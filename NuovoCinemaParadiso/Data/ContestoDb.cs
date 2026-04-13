@@ -19,6 +19,7 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<FasciaOraria> FasceOrarie { get; set; }
         public DbSet<Acquisto> Acquisti { get; set; }
         public DbSet<Utente> Utenti { get; set; }
+        public DbSet<Abbonamento> Abbonamenti {get;set;}
         public DbSet<LogAzioni> LogAzioni {get;set;}
     }
 }

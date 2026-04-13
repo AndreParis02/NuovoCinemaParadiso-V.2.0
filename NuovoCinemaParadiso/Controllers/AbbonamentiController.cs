@@ -123,7 +123,7 @@ public class AbbonamentiController : ControllerBase
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto, utenteId);
+        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {

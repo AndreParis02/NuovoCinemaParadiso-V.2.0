@@ -1,4 +1,5 @@
 using NuovoCinemaParadiso.Models;
+
 namespace NuovoCinemaParadiso.Helpers;
 
 public static class CalcolaPrezzo
