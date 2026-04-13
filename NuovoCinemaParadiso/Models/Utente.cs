@@ -14,4 +14,8 @@ public class Utente : IdentityUser
     [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
     public int Eta {get; set;}
     public List <Acquisto> Acquisti {get; set;} = new List <Acquisto>();
+    
+    public string AbbonamentoId {get; set;} = string.Empty;
+    [ForeignKey("AbbonamentoId")]
+    public Abbonamento Abbonamento {get; set;}
 } 
