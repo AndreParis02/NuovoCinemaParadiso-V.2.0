@@ -30,7 +30,7 @@ public class AbbonamentoService
         await _contesto.SaveChangesAsync();
 
         DtoAbbonamento risultato = new DtoAbbonamento();
-        risultato.Id         = abbonamento.IdUtente;
+        risultato.Id         = abbonamento.Id;
         risultato.Nome       = abbonamento.NomeAzione;
         risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata     = abbonamento.Durata;
