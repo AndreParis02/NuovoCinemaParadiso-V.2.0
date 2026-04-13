@@ -21,30 +21,12 @@ public class AbbonamentiController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    [HttpGet("admin")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAbbonamentiAdmin()
-    {
-        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTuttoAdmin();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli abbonamenti admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(abbonamenti);
-    }
-
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiGliAbbonamentiUtente()
+    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto(utenteId);
+        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {

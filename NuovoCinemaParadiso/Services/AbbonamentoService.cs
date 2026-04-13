@@ -13,31 +13,6 @@ public class AbbonamentoService
     {
         _contesto = contesto;
     }
-    public async Task<List<DtoAbbonamento>> OttieniTuttoAdmin()
-    {
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-
-        List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
-
-        for (int i = 0; i < abbonamenti.Count; i++)
-        {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
-            List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-            DtoAbbonamento dto = new DtoAbbonamento();
-            dto.Id = abbonamentoCorrente.Id;
-            dto.Nome = abbonamentoCorrente.Nome;
-            dto.DataDiInizio = abbonamentoCorrente.DataInizio;
-            dto.Durata = abbonamentoCorrente.Durata;
-            dto.DataFine = abbonamentoCorrente.DataFine;
-            dto.Prezzo = abbonamentoCorrente.Prezzo;
-            dto.Sconto = abbonamentoCorrente.Sconto;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
-    }
 
     public async Task<List<DtoAbbonamento>> OttieniTutto()
     {
