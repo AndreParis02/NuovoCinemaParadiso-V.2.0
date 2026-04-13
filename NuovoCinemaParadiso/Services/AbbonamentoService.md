@@ -68,6 +68,21 @@ public class AbbonamentoService
           Sconto         = abbonamento.Sconto,
         };
     }
+
+        public async Task<bool> EliminazioneAsync(string id) // eliminazione di un abbonamento 
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id); // query per restituire l'abbonamento, da eliminare, tramite id passato
+
+        if (abbonamento == null)
+        {
+            return false;
+        }
+
+        _contesto.Abbonamenti.Remove(abbonamento);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
 }
 
 ```
