@@ -117,7 +117,7 @@ public class AbbonamentoService
         abbonamento.Durata  = dto.Durata;
         abbonamento.Prezzo  = dto.Prezzo;
         abbonamento.Sconto  = dto.Sconto;
-        abbonamento.DataFine = abbonamento.DataInizio.AddMonths(dto.Durata); // ricalcolo della durata
+        abbonamento.DataFine = abbonamento.DataInizio.AddMonths(dto.Durata);
 
         await _contesto.SaveChangesAsync();
 
@@ -131,5 +131,20 @@ public class AbbonamentoService
           Prezzo         = abbonamento.Prezzo,
           Sconto         = abbonamento.Sconto,
         };
+    }
+
+     public async Task<bool> EliminazioneAsync(string id)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+        if (abbonamento == null)
+        {
+            return false;
+        }
+
+        _contesto.Abbonamenti.Remove(abbonamento);
+        await _contesto.SaveChangesAsync();
+
+        return true;
     }
 }
