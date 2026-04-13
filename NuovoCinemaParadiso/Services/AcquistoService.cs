@@ -36,7 +36,7 @@ public class AcquistoService
             dto.Nome = sala.Nome;
             dto.UtenteId = acquistoCorrente.UtenteId;
             dto.NomeCompleto = utente.NomeCompleto;
-            dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo,acquistoCorrente.NumeroBiglietti);
+            dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
             dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
 
@@ -58,6 +58,7 @@ public class AcquistoService
             Movie? movie = await _contesto.Movies.FindAsync(acquistoCorrente.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(acquistoCorrente.SalaId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
 
             if (acquistoCorrente.UtenteId == utenteId)
             {
@@ -67,7 +68,7 @@ public class AcquistoService
                 dto.Titolo = movie.Titolo;
                 dto.SalaId = acquistoCorrente.SalaId;
                 dto.Nome = sala.Nome;
-                dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo,acquistoCorrente.NumeroBiglietti);
+                dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
                 dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
                 dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
 
@@ -98,7 +99,7 @@ public class AcquistoService
         dto.Nome = sala.Nome;
         dto.UtenteId = acquisto.UtenteId;
         dto.NomeCompleto = utente.NomeCompleto;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo,acquisto.NumeroBiglietti);
+        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
 
@@ -111,6 +112,7 @@ public class AcquistoService
         Movie? movie = await _contesto.Movies.FindAsync(acquisto.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(acquisto.SalaId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        Utente? utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
 
         if (acquisto == null)
         {
@@ -128,66 +130,67 @@ public class AcquistoService
         dto.Titolo = movie.Titolo;
         dto.SalaId = acquisto.SalaId;
         dto.Nome = sala.Nome;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo,acquisto.NumeroBiglietti);
+        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
 
         return dto;
     }
 
-public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
-{
-    // Recupera tutti gli acquisti (in memoria) per controllare duplicati
-    List<Acquisto> tuttiGliAcquisti = await _contesto.Acquisti.ToListAsync();
-    foreach (Acquisto a in tuttiGliAcquisti)
+    public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
     {
-        if (a.UtenteId == utenteId && a.MovieId == dto.MovieId && a.SalaId == dto.SalaId)
+        // Recupera tutti gli acquisti (in memoria) per controllare duplicati
+        List<Acquisto> tuttiGliAcquisti = await _contesto.Acquisti.ToListAsync();
+        foreach (Acquisto a in tuttiGliAcquisti)
         {
-            return null; // acquisto duplicato
+            if (a.UtenteId == utenteId && a.MovieId == dto.MovieId && a.SalaId == dto.SalaId)
+            {
+                return null; // acquisto duplicato
+            }
         }
+
+        // Recupera le entità necessarie
+        Movie movie = await _contesto.Movies.FindAsync(dto.MovieId);
+        Sala sala = await _contesto.Sale.FindAsync(dto.SalaId);
+        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        Utente utente = await _contesto.Utenti.FindAsync(utenteId);
+
+        // Calcola il prezzo finale lato server
+        decimal prezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            dto.NumeroBiglietti,
+            utente
+        );
+
+        // Crea l'acquisto
+        Acquisto acquisto = new Acquisto();
+        acquisto.MovieId = dto.MovieId;
+        acquisto.SalaId = dto.SalaId;
+        acquisto.UtenteId = utenteId;
+        acquisto.NumeroBiglietti = dto.NumeroBiglietti;
+        acquisto.PrezzoFinale = prezzoFinale;
+        acquisto.OrarioCreazione = DateTime.UtcNow;
+
+        // Salva nel DB
+        _contesto.Acquisti.Add(acquisto);
+        await _contesto.SaveChangesAsync();
+
+        // Crea DTO da restituire
+        DtoAcquisto risultato = new DtoAcquisto();
+        risultato.Id = acquisto.Id;
+        risultato.MovieId = acquisto.MovieId;
+        risultato.SalaId = acquisto.SalaId;
+        risultato.UtenteId = acquisto.UtenteId;
+        risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
+        risultato.PrezzoFinale = acquisto.PrezzoFinale;
+        risultato.Titolo = movie.Titolo;
+        risultato.Nome = sala.Nome;
+        risultato.NomeCompleto = utente.NomeCompleto;
+        risultato.OrarioCreazione = acquisto.OrarioCreazione;
+
+        return risultato;
     }
-
-    // Recupera le entità necessarie
-    Movie movie = await _contesto.Movies.FindAsync(dto.MovieId);
-    Sala sala = await _contesto.Sale.FindAsync(dto.SalaId) ;
-    TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-    Utente utente = await _contesto.Utenti.FindAsync(utenteId);
-
-    // Calcola il prezzo finale lato server
-    decimal prezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(
-        movie.PrezzoMovie,
-        tipologiaSala.MaggiorazionePrezzo,
-        dto.NumeroBiglietti
-    );
-
-    // Crea l'acquisto
-    Acquisto acquisto = new Acquisto();
-    acquisto.MovieId = dto.MovieId;
-    acquisto.SalaId = dto.SalaId;
-    acquisto.UtenteId = utenteId;
-    acquisto.NumeroBiglietti = dto.NumeroBiglietti;
-    acquisto.PrezzoFinale = prezzoFinale;
-    acquisto.OrarioCreazione = DateTime.UtcNow;
-
-    // Salva nel DB
-    _contesto.Acquisti.Add(acquisto);
-    await _contesto.SaveChangesAsync();
-
-    // Crea DTO da restituire
-    DtoAcquisto risultato = new DtoAcquisto();
-    risultato.Id = acquisto.Id;
-    risultato.MovieId = acquisto.MovieId;
-    risultato.SalaId = acquisto.SalaId;
-    risultato.UtenteId = acquisto.UtenteId;
-    risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
-    risultato.PrezzoFinale = acquisto.PrezzoFinale;
-    risultato.Titolo = movie.Titolo;
-    risultato.Nome = sala.Nome;
-    risultato.NomeCompleto = utente.NomeCompleto;
-    risultato.OrarioCreazione = acquisto.OrarioCreazione;
-
-    return risultato;
-}
 
     public async Task<DtoAcquisto?> ModificaAsync(string id, DtoCreazioneAcquisto dto)
     {
@@ -205,7 +208,7 @@ public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string u
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
         // Aggiorna prezzo dal film
-        acquistoEsistente.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo,acquistoEsistente.NumeroBiglietti);
+        acquistoEsistente.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoEsistente.NumeroBiglietti, utente);
 
         await _contesto.SaveChangesAsync();
 
