@@ -14,9 +14,37 @@ public class AbbonamentoService
         _contesto = contesto;
     }
 
+    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string utenteId)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteId);
+
+        if (abbonamento == null)
+        {
+            return null;
+        }
+
+        DtoAbbonamento risultato = new DtoAbbonamento();
+        risultato.id = abbonamento.Id;
+        risultato.Nome = abbonamento.Nome;
+        risultato.DataDiInizio = abbonamento.DataInizio.ToLocalTime();
+        risultato.Durata = abbonamento.Durata;
+        risultato.DataDiFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
+        risultato.Prezzo = abbonamento.Prezzo;
+        risultato.Sconto = abbonamento.Sconto;
+
+        return risultato;
+    }
+
     public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
         Abbonamento abbonamento = new Abbonamento();
+        abbonamento.Id = dto.Id;
+        abbonamento.Nome = dto.Nome;
+        abbonamento.DataInizio = DateTime.UtcNow;
+        abbonamento.Durata = dto.Durata;
+        abbonamento.DataFine = dto.DataFine;
+        abbonamento.Prezzo = dto.Prezzo;
+        abbonamento.Sconto = dto.Sconto;
         abbonamento.Nome        = dto.Nome;
         abbonamento.DataInizio  = DateTime.UtcNow;
         abbonamento.Durata      = dto.Durata;
