@@ -31,7 +31,7 @@ public class AbbonamentoService
 
         DtoAbbonamento risultato = new DtoAbbonamento();
         risultato.Id         = abbonamento.Id;
-        risultato.Nome       = abbonamento.NomeAzione;
+        risultato.Nome       = abbonamento.Nome;
         risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata     = abbonamento.Durata;
         risultato.DataFine   = abbonamento.DataInizio.AddMonths(abbonamento.Durata); // calcolo della durata dell'abbonamento
