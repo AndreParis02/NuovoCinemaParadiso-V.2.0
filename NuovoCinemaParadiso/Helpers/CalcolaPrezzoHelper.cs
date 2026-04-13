@@ -1,3 +1,4 @@
+using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
 

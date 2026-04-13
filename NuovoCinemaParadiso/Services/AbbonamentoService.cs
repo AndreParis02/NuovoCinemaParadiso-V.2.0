@@ -17,7 +17,6 @@ public class AbbonamentoService
     public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
         Abbonamento abbonamento = new Abbonamento();
-        abbonamento.Id          = dto.Id;
         abbonamento.Nome        = dto.Nome;
         abbonamento.DataInizio  = DateTime.UtcNow;
         abbonamento.Durata      = dto.Durata;
@@ -30,7 +29,7 @@ public class AbbonamentoService
 
         DtoAbbonamento risultato = new DtoAbbonamento();
         risultato.Id             = abbonamento.Id;
-        risultato.Nome           = abbonamento.NomeAzione;
+        risultato.Nome           = abbonamento.Nome;
         risultato.DataInizio     = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata         = abbonamento.Durata;
         risultato.DataFine       = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
@@ -38,5 +37,33 @@ public class AbbonamentoService
         risultato.Sconto         = abbonamento.Sconto;
 
         return risultato;
+    }
+
+    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+        if (abbonamento == null)
+            return null;
+
+
+        abbonamento.Nome    = dto.Nome;
+        abbonamento.Durata  = dto.Durata;
+        abbonamento.Prezzo  = dto.Prezzo;
+        abbonamento.Sconto  = dto.Sconto;
+        abbonamento.DataFine = abbonamento.DataInizio.AddMonths(dto.Durata); // ricalcolo della durata
+
+        await _contesto.SaveChangesAsync();
+
+        return new DtoAbbonamento
+        {
+          Id             = abbonamento.Id,
+          Nome           = abbonamento.Nome,
+          DataInizio     = abbonamento.DataInizio.ToLocalTime(),
+          Durata         = abbonamento.Durata,
+          DataFine       = abbonamento.DataFine,
+          Prezzo         = abbonamento.Prezzo,
+          Sconto         = abbonamento.Sconto,
+        };
     }
 }
