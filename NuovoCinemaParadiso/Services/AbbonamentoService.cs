@@ -14,9 +14,9 @@ public class AbbonamentoService
         _contesto = contesto;
     }
 
-    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string utenteId)
+    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
     {
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteId);
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
         if (abbonamento == null)
         {
@@ -24,27 +24,41 @@ public class AbbonamentoService
         }
 
         DtoAbbonamento risultato = new DtoAbbonamento();
-        risultato.id = abbonamento.Id;
+        risultato.Id = abbonamento.Id;
         risultato.Nome = abbonamento.Nome;
-        risultato.DataDiInizio = abbonamento.DataInizio.ToLocalTime();
+        risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata = abbonamento.Durata;
-        risultato.DataDiFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
+        risultato.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
         risultato.Prezzo = abbonamento.Prezzo;
         risultato.Sconto = abbonamento.Sconto;
 
         return risultato;
     }
 
+    public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+        if (abbonamento == null)
+        {
+            return null;
+        }
+
+       DtoAbbonamento dto = new DtoAbbonamento();
+        dto.Id = abbonamento.Id;
+        dto.Nome = abbonamento.Nome;
+        dto.DataInizio = abbonamento.DataInizio.ToLocalTime();
+        dto.Durata = abbonamento.Durata;
+        dto.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
+        dto.Prezzo = abbonamento.Prezzo;
+        dto.Sconto = abbonamento.Sconto;
+
+        return dto;
+    }
+
     public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
         Abbonamento abbonamento = new Abbonamento();
-        abbonamento.Id = dto.Id;
-        abbonamento.Nome = dto.Nome;
-        abbonamento.DataInizio = DateTime.UtcNow;
-        abbonamento.Durata = dto.Durata;
-        abbonamento.DataFine = dto.DataFine;
-        abbonamento.Prezzo = dto.Prezzo;
-        abbonamento.Sconto = dto.Sconto;
         abbonamento.Nome        = dto.Nome;
         abbonamento.DataInizio  = DateTime.UtcNow;
         abbonamento.Durata      = dto.Durata;
