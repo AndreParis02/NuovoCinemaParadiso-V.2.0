@@ -1,0 +1,6 @@
+@NuovoCinemaParadiso_HostAddress = http://localhost:5226
+
+GET {{NuovoCinemaParadiso_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

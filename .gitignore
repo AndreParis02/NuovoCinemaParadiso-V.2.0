@@ -1,0 +1,5 @@
+# .gitignore ottimizzato per applicazioni dotnet 10
+
+bin
+obj
+.DS_Store
