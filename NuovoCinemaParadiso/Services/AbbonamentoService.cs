@@ -13,7 +13,56 @@ public class AbbonamentoService
     {
         _contesto = contesto;
     }
+    public async Task<List<DtoAbbonamento>> OttieniTuttoAdmin()
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
 
+        List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+            List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+
+            DtoAbbonamento dto = new DtoAbbonamento();
+            dto.Id = abbonamentoCorrente.Id;
+            dto.Nome = abbonamentoCorrente.Nome;
+            dto.DataDiInizio = abbonamentoCorrente.DataInizio;
+            dto.Durata = abbonamentoCorrente.Durata;
+            dto.DataFine = abbonamentoCorrente.DataFine;
+            dto.Prezzo = abbonamentoCorrente.Prezzo;
+            dto.Sconto = abbonamentoCorrente.Sconto;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<List<DtoAbbonamento>> OttieniTutto()
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+            DtoAbbonamento dto = new DtoAbbonamento();
+            dto.Id = abbonamentoCorrente.Id;
+            dto.Nome = abbonamentoCorrente.Nome;
+            dto.DataInizio = abbonamentoCorrente.DataInizio;
+            dto.Durata = abbonamentoCorrente.Durata;
+            dto.DataFine = abbonamentoCorrente.DataFine;
+            dto.Prezzo = abbonamentoCorrente.Prezzo;
+            dto.Sconto = abbonamentoCorrente.Sconto;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
     public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
@@ -44,12 +93,12 @@ public class AbbonamentoService
             return null;
         }
 
-       DtoAbbonamento dto = new DtoAbbonamento();
+        DtoAbbonamento dto = new DtoAbbonamento();
         dto.Id = abbonamento.Id;
         dto.Nome = abbonamento.Nome;
-        dto.DataInizio = abbonamento.DataInizio.ToLocalTime();
+        dto.DataInizio = abbonamento.DataInizio;
         dto.Durata = abbonamento.Durata;
-        dto.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
+        dto.DataFine = abbonamento.DataFine;
         dto.Prezzo = abbonamento.Prezzo;
         dto.Sconto = abbonamento.Sconto;
 

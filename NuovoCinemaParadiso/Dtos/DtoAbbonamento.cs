@@ -9,5 +9,4 @@ public class DtoAbbonamento
     public DateTime DataFine {get; set;}
     public decimal Prezzo {get; set;}
     public int Sconto {get; set;}
-
 }
