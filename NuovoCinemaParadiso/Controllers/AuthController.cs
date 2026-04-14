@@ -102,61 +102,6 @@ public class AuthController : ControllerBase
         return Ok(utente);
     }
 
-    [HttpGet]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiIProfili()
-    {
-        List<DtoUtente> utenti = await _authService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,  
-                NomeAzione = "Ricerca profili",
-                Effettuato = true,
-                Messaggio  = "Ricerca avvenuta"
-            });
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i profili",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(utenti);
-    }
-
-    [HttpGet("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoUtente? utente = await _authService.OttieniTramiteIdAsync(id);
-
-        if (utente == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Ricerca profilo",
-                Effettuato = false,
-                Messaggio  = "Ricerca fallita"
-            });
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-        
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Ricerca profilo",
-                Effettuato = true,
-                Messaggio  = "Ricerca avvenuta"
-            });
-        return Ok(utente);
-    }
-
     [HttpPut("modifica")]
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
@@ -192,36 +137,6 @@ public class AuthController : ControllerBase
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(risultato);
-    }
-
-    [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> EliminaTramiteId(string Id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        var risultato = await _authService.EliminaAsync(Id);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = false,
-                Messaggio  = "Eliminazione profilo fallita"
-            });
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = true,
-                Messaggio  = "Eliminazione profilo avvenuta"
-            });
         return Ok(risultato);
     }
 
