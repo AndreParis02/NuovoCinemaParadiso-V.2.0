@@ -68,8 +68,10 @@ public class UtenteService
             return null;
         }
 
-        // Associa l'abbonamento all'utente
+        // Associa l'abbonamento all'utente, il booleano e la data di inizio
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizio = DateTime.UtcNow;
 
         // Salva le modifiche nel database
         await _contesto.SaveChangesAsync();
@@ -78,62 +80,17 @@ public class UtenteService
         return new DtoUtente()
         {
             Id = utenteTrovato.Id,
-            AbbonamentoId = abbonamentoTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            Abbonato = utenteTrovato.SeAbbonato,
+            DataInizio = utenteTrovato.DataInizio,
+            AbbonamentoId = utenteTrovato.AbbonamentoId,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
 
-    // Metodo per ottenere tutti gli utenti con uno specifico abbonamento
-    public async Task<List<DtoUtente>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
-    {
-        // Carica utenti e abbonamenti
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-
-        // Cerca l'abbonamento
-        Abbonamento? abbonamentoTrovato = null;
-
-        for (int i = 0; i < abbonamenti.Count; i++)
-        {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
-
-            if (abbonamentoCorrente.Id == abbonamentoId)
-            {
-                abbonamentoTrovato = abbonamentoCorrente;
-                break;
-            }
-        }
-
-        // Se non esiste, ritorna lista vuota
-        if (abbonamentoTrovato == null)
-        {
-            return new List<DtoUtente>();
-        }
-
-        // Lista risultato
-        List<DtoUtente> risultato = new List<DtoUtente>();
-
-        // Filtra utenti con quell'abbonamento
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            Utente utenteCorrente = utenti[i];
-
-            // Controlla se l'abbonamento dell'utente è quello cercato
-            if (utenteCorrente.Abbonamento == abbonamentoTrovato)
-            {
-                // Mappa Utente -> DTO
-                DtoUtente dto = new DtoUtente();
-                dto.Id = utenteCorrente.Id;
-                dto.NomeCompleto = utenteCorrente.NomeCompleto;
-                dto.Email = utenteCorrente.Email;
-                dto.Eta = utenteCorrente.Eta;
-
-                risultato.Add(dto);
-            }
-        }
-
-        return risultato;
-    }
+    
 }
 
 ```
