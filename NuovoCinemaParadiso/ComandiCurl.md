@@ -409,13 +409,12 @@ curl -s -X GET "http://localhost:5226/api/Acquisti/admin/acquisto/Id Acquisto" \
 curl -s -X GET "http://localhost:5226/api/Acquisti/admin/acquisti" -H "Authorization: Bearer $TOKEN"
 ```
 
-# Comandi Utente: 
+# Comandi Utente:
 ```bash
-curl -s -X POST "http://localhost:5226/api/Acquisti/Utenti/abbonati" \
+curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "abbonamentoId": " id abbonamento",
-    "abbonato": true,
-  }'
+  "abbonamentoId": "dda6878f-e71c-455f-b8b5-b4cb6b925645"
+}'
   ```

@@ -26,7 +26,7 @@ public class UtentiController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId) || string.IsNullOrEmpty(dto.Id))
+        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
@@ -38,7 +38,7 @@ public class UtentiController : ControllerBase
             return BadRequest("Dati non validi");
         }
 
-        var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, dto.Id);
+        var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
 
         if (risultato == null)
         {
