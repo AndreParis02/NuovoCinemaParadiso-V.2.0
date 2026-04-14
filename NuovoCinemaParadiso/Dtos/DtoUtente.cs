@@ -10,4 +10,4 @@ public class DtoUtente
     public int Eta { get; set; }
      public string AbbonamentoId {get; set;} = string.Empty;
     public string TipoAbbonamento {get; set;} = string.Empty;
-}
+} 
