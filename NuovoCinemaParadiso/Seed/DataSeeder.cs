@@ -99,6 +99,7 @@ public static class DataSeeder
         utente.NomeCompleto = nomeCompleto;
         utente.Eta = eta;
         utente.SeAbbonato = abbonato;
+        utente.AbbonamentoId = null;
 
         IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
 

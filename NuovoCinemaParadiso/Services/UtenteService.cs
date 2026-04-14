@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using Microsoft.AspNetCore.Identity;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
@@ -9,9 +9,12 @@ namespace NuovoCinemaParadiso.Services;
 public class UtenteService
 {
     private readonly ContestoDb _contesto;
-    public UtenteService(ContestoDb contestoDb)
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
     }
 
     public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
@@ -35,17 +38,7 @@ public class UtenteService
             return null;
         }
 
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-        Utente? utenteTrovato = null;
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            if (utenti[i].Id == utenteId)
-            {
-                utenteTrovato = utenti[i];
-                break;
-            }
-        }
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
 
         if (utenteTrovato == null)
         {
