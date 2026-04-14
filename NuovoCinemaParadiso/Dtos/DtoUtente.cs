@@ -8,4 +8,6 @@ public class DtoUtente
     public bool Abbonato {get; set;}
     public string Email { get; set; } = string.Empty;
     public int Eta { get; set; }
+     public string AbbonamentoId {get; set;} = string.Empty;
+    public string TipoAbbonamento {get; set;} = string.Empty;
 }
