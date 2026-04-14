@@ -129,7 +129,7 @@ public class AdminService
         return dto;
     }
 
-    public async Task<List<DtoUtente>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
+    public async Task<List<DtoUtente>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
 
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();

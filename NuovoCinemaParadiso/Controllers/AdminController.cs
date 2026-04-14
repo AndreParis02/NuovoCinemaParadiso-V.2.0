@@ -21,7 +21,7 @@ public class AdminController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    [HttpGet("ListaUtenti")]
+    [HttpGet("listaUtenti")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
@@ -126,7 +126,7 @@ public class AdminController : ControllerBase
 
      [HttpGet("acquisto/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
+    public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
     {
         var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -155,9 +155,9 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpGet("abbonamento/{id}")]
+    [HttpGet("utenti/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -174,7 +174,7 @@ public class AdminController : ControllerBase
             return BadRequest("AbbonamentoId non valido");
         }
 
-        var risultato = await _adminService.OttieniTramiteAbbonamentoAsync(abbonamentoId);
+        var risultato = await _adminService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
 
         if (risultato == null || risultato.Count == 0)
         {
