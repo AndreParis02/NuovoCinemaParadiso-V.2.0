@@ -55,6 +55,11 @@ public static class DataSeeder
         await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(10), TimeSpan.FromHours(13),"Mattina");
         await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(13), TimeSpan.FromHours(18),"Pomeriggio");
         await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(18), TimeSpan.FromHours(22),"Sera");
+
+        await AssicuraEsistenzaAbbonamento(contestoDb,"Mensile",70,25,1);
+        await AssicuraEsistenzaAbbonamento(contestoDb,"Semestrale",210,50,6);
+        await AssicuraEsistenzaAbbonamento(contestoDb,"Annuale", 300,75,12);
+
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -185,7 +190,7 @@ public static class DataSeeder
   private static async Task AssicuraEsistenzaFasciaOraria(
    ContestoDb context,
    TimeSpan oraInizio, TimeSpan oraFine, string nome)
-  {
+   {
     List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();
     for (int i = 0; i < fasceOrarie.Count; i++)
     {
@@ -198,7 +203,6 @@ public static class DataSeeder
         {
             return;
         }
-
     }
 
     FasciaOraria nuovaFasciaOraria = new FasciaOraria
@@ -210,5 +214,36 @@ public static class DataSeeder
 
     context.FasceOrarie.Add(nuovaFasciaOraria);
     await context.SaveChangesAsync();
+   }
+
+   private static async Task AssicuraEsistenzaAbbonamento(
+   ContestoDb context,
+   string nome, decimal prezzo, int sconto, int durata)
+   { 
+     List<Abbonamento> abbonamenti = await context.Abbonamenti.ToListAsync();
+     for (int i = 0; i < abbonamenti.Count; i++)
+     {
+        Abbonamento abbonamentoCorrente = abbonamenti[i];
+        bool nomeUguale = string.Equals(
+            abbonamentoCorrente.Nome,
+            nome,
+            StringComparison.OrdinalIgnoreCase);
+        if(nomeUguale)
+        {
+            return;
+        }
+
+     }
+
+     Abbonamento nuovoAbbonamento = new Abbonamento
+     {
+        Nome       = nome,
+        Prezzo     = prezzo,
+        Sconto     = sconto,
+        Durata     = durata
+     };
+
+     context.Abbonamenti.Add(nuovoAbbonamento);
+     await context.SaveChangesAsync();
   }
 }
