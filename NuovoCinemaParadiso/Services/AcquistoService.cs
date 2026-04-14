@@ -14,38 +14,6 @@ public class AcquistoService
         _contesto = contesto;
     }
 
-    public async Task<List<DtoAcquisto>> OttieniTuttoAdmin()
-    {
-        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
-
-        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
-
-        for (int i = 0; i < acquisti.Count; i++)
-        {
-            Acquisto acquistoCorrente = acquisti[i];
-            Movie? movie = await _contesto.Movies.FindAsync(acquistoCorrente.MovieId);
-            Sala? sala = await _contesto.Sale.FindAsync(acquistoCorrente.SalaId);
-            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
-            TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-            DtoAcquisto dto = new DtoAcquisto();
-            dto.Id = acquistoCorrente.Id;
-            dto.MovieId = acquistoCorrente.MovieId;
-            dto.Titolo = movie.Titolo;
-            dto.SalaId = acquistoCorrente.SalaId;
-            dto.Nome = sala.Nome;
-            dto.UtenteId = acquistoCorrente.UtenteId;
-            dto.NomeCompleto = utente.NomeCompleto;
-            dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
-            dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
-    }
-
     public async Task<List<DtoAcquisto>> OttieniTutto(string utenteId)
     {
         List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
@@ -78,34 +46,7 @@ public class AcquistoService
 
         return risultato;
     }
-    public async Task<DtoAcquisto> OttieniTramiteIdPerAdminAsync(string id)
-    {
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
-        Movie? movie = await _contesto.Movies.FindAsync(acquisto.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(acquisto.SalaId);
-        Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId);
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-        if (acquisto == null)
-        {
-            return null;
-        }
-
-        DtoAcquisto dto = new DtoAcquisto();
-        dto.Id = acquisto.Id;
-        dto.MovieId = acquisto.MovieId;
-        dto.Titolo = movie.Titolo;
-        dto.SalaId = acquisto.SalaId;
-        dto.Nome = sala.Nome;
-        dto.UtenteId = acquisto.UtenteId;
-        dto.NomeCompleto = utente.NomeCompleto;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
-        dto.OrarioCreazione = acquisto.OrarioCreazione;
-        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
-
-        return dto;
-    }
-
+    
     public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
     {
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
