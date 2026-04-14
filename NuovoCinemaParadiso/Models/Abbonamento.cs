@@ -14,10 +14,6 @@ public class Abbonamento
     [Required]
     public int Durata {get;set;} 
     [Required]
-    public DateTime DataInizio { get; set; } = DateTime.UtcNow;
-    public DateTime DataFine { get; set; }
-
-    [Required]
     public decimal Prezzo {get;set;}
     [Required]
     public int Sconto {get;set;}
