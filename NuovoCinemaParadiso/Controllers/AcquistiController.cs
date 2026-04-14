@@ -21,26 +21,8 @@ public class AcquistiController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    [HttpGet("admin")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAcquistiAdmin()
-    {
-        List<DtoAcquisto> acquisti = await _acquistoService.OttieniTuttoAdmin();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli acquisti admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(acquisti);
-    }
-
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiGliAcquistiUtente()
+    public async Task<IActionResult> OttieniTutti()
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -57,39 +39,8 @@ public class AcquistiController : ControllerBase
         return Ok(acquisti);
     }
 
-    [HttpGet("admin/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
-    {
-        var risultato = await _acquistoService.OttieniTramiteIdPerAdminAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni acquisti tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound($"Acquisto con id {id} non trovato");
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni acquisti tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
     [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
+    public async Task<IActionResult> OttieniTramiteId(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

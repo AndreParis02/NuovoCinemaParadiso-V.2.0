@@ -94,45 +94,6 @@ public class AuthService
         return response;
     }
 
-    public async Task<List<DtoUtente>> OttieniTuttoAsync()
-    {
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-        List<DtoUtente> risultato = new List<DtoUtente>();
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            Utente utenteCorrente = utenti[i];
-
-            DtoUtente dto = new DtoUtente();
-            dto.Id = utenteCorrente.Id;
-            dto.Email = utenteCorrente.Email ?? string.Empty;
-            dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
-            dto.Eta = utenteCorrente.Eta;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
-    }
-    public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
-    {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
-
-        if (utente == null)
-        {
-            return null;
-        }
-
-        DtoUtente dto = new DtoUtente();
-        dto.Id = utente.Id;
-        dto.Email = utente.Email ?? string.Empty;
-        dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
-        dto.Eta = utente.Eta;
-
-        return dto;
-    }
-
     public async Task<IdentityResult> ModificaAsync(DtoCreazioneUtente dto, string idUtente)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(idUtente);
@@ -160,19 +121,6 @@ public class AuthService
             return IdentityResult.Failed(errore);
         }
 
-        IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
-
-        return risultato;
-    }
-
-    public async Task<IdentityResult> EliminaPerIdAsync(string id)
-    {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
-        if (utente == null)
-        {
-            IdentityError errore = new IdentityError();  //
-            return IdentityResult.Failed(errore);  //
-        }
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
 
         return risultato;
