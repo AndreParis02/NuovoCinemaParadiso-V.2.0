@@ -94,6 +94,24 @@ public class AuthService
         return response;
     }
 
+    public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+
+        if (utente == null)
+        {
+            return null;
+        }
+
+        DtoUtente dto = new DtoUtente();
+        dto.Id = utente.Id;
+        dto.Email = utente.Email ?? string.Empty;
+        dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
+        dto.Eta = utente.Eta;
+
+        return dto;
+    }
+
     public async Task<IdentityResult> ModificaAsync(DtoCreazioneUtente dto, string idUtente)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(idUtente);

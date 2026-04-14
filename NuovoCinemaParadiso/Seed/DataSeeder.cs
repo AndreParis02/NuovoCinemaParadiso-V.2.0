@@ -24,21 +24,24 @@ public static class DataSeeder
             "gestore@gmail.com",
             "123456",
             "Gestore",
-            60);
+            60
+            ,false);
 
         Utente operatore = await AssicuraEsistenzaUtenteAsync(
             gestioneUtenti,
             "operatore@gmail.com",
             "123456",
             "Operatore",
-            35);
+            35,
+            false);
 
         Utente utente = await AssicuraEsistenzaUtenteAsync(
         gestioneUtenti,
             "utente1@gmail.com",
             "123456",
             "Utente Uno",
-            15);
+            15,
+            false);
 
         await ImpostaRuoloUnicoAsync(gestioneUtenti, gestore, Ruoli.Gestore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
@@ -79,7 +82,8 @@ public static class DataSeeder
         string email,
         string password,
         string nomeCompleto,
-        int eta
+        int eta,
+        bool abbonato
         )
     {
         Utente? utenteEsistente = await gestioneUtenti.FindByEmailAsync(email);
@@ -94,6 +98,7 @@ public static class DataSeeder
         utente.Email = email;
         utente.NomeCompleto = nomeCompleto;
         utente.Eta = eta;
+        utente.SeAbbonato = abbonato;
 
         IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
 

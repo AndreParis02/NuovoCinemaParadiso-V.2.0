@@ -81,6 +81,10 @@ builder.Services.AddScoped<AcquistoService>();
 builder.Services.AddScoped<RuoloUtenteService>(); // <-- nuovo servizio per gestire i ruoli degli utenti
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<LogAzioniService>();
+builder.Services.AddScoped<UtenteService>();
+builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<AbbonamentoService>();
+
 
 var app = builder.Build();
 
