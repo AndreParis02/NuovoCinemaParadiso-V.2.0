@@ -7,7 +7,7 @@
 ```bash
 curl -s -X POST "http://localhost:5226/api/Auth/registrazione" \
 -H "Content-Type: application/json" \
--d '{"email":"mariorossi@gmail.com","password":"123456","nomeCompleto":"Mario Rossi","eta":"55"}'
+-d '{"email":"mariorossi@gmail.com","password":"123456","nomeCompleto":"Mario Rossi","eta":"55", "SeAbbonato": false, "DataInizio": null, "AbbonamentoId":null}'
 ```
 
 ## Curl di Login utente: 
@@ -384,7 +384,7 @@ curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: 
 
 ## Lettura di un profilo tramite id inserito (solo da Gestore o Operatore)
 ```bash
-curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/(idUtente)\
+curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/id utente \
 -H "Authorization: Bearer $TOKEN" \
 -H "Accept: application/json"
 ```
@@ -392,21 +392,22 @@ curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/(idUtente)\
 ## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
 
 ```bash
-curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/id utente da eliminare" \
+curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
 -H "Authorization: Bearer $TOKEN" 
 ```
 
 ## Admin Acquisti
 
+// da testare
 ## leggi informazioni Acquisto per id (accesso a tutti gli acquisti di ogni utente) (solo gestore o operatore)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisti/admin/acquisto/Id Acquisto" \
+curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi tutti gli Acquisti di tutti gli utenti(solo gestore o operatore)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisti/admin/acquisti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Admin/acquisti" -H "Authorization: Bearer $TOKEN"
 ```
 
 # Comandi Utente: 

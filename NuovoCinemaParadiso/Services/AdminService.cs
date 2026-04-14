@@ -11,9 +11,10 @@ public class AdminService
 {
     private readonly ContestoDb _contesto;
     private readonly UserManager<Utente> _gestioneUtenti;
-    public AdminService(ContestoDb contestoDb)
+    public AdminService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
 
     }
     
