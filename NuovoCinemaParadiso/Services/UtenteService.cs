@@ -53,12 +53,19 @@ public class UtenteService
         }
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizio = DateTime.UtcNow;
         await _contesto.SaveChangesAsync();
 
         return new DtoUtente()
         {
             Id = utenteTrovato.Id,
-            AbbonamentoId = abbonamentoTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            Abbonato = utenteTrovato.SeAbbonato,
+            DataInizio = utenteTrovato.DataInizio,
+            AbbonamentoId = utenteTrovato.AbbonamentoId,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
