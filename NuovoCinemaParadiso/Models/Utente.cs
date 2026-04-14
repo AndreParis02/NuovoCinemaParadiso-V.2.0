@@ -19,7 +19,7 @@ public class Utente : IdentityUser
     public DateTime DataInizioAbbonamento { get; set; }
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
-    public string? AbbonamentoId { get; set; } = string.Empty;
+    public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
 }
