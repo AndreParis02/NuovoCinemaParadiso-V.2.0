@@ -27,9 +27,7 @@ public class AbbonamentoService
             DtoAbbonamento dto = new DtoAbbonamento();
             dto.Id = abbonamentoCorrente.Id;
             dto.Nome = abbonamentoCorrente.Nome;
-            dto.DataInizio = abbonamentoCorrente.DataInizio;
             dto.Durata = abbonamentoCorrente.Durata;
-            dto.DataFine = abbonamentoCorrente.DataFine;
             dto.Prezzo = abbonamentoCorrente.Prezzo;
             dto.Sconto = abbonamentoCorrente.Sconto;
 
@@ -50,9 +48,7 @@ public class AbbonamentoService
         DtoAbbonamento risultato = new DtoAbbonamento();
         risultato.Id = abbonamento.Id;
         risultato.Nome = abbonamento.Nome;
-        risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata = abbonamento.Durata;
-        risultato.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
         risultato.Prezzo = abbonamento.Prezzo;
         risultato.Sconto = abbonamento.Sconto;
 
@@ -71,9 +67,7 @@ public class AbbonamentoService
         DtoAbbonamento dto = new DtoAbbonamento();
         dto.Id = abbonamento.Id;
         dto.Nome = abbonamento.Nome;
-        dto.DataInizio = abbonamento.DataInizio;
         dto.Durata = abbonamento.Durata;
-        dto.DataFine = abbonamento.DataFine;
         dto.Prezzo = abbonamento.Prezzo;
         dto.Sconto = abbonamento.Sconto;
 
@@ -84,9 +78,7 @@ public class AbbonamentoService
     {
         Abbonamento abbonamento = new Abbonamento();
         abbonamento.Nome        = dto.Nome;
-        abbonamento.DataInizio  = DateTime.UtcNow;
         abbonamento.Durata      = dto.Durata;
-        abbonamento.DataFine    = dto.DataFine;
         abbonamento.Prezzo      = dto.Prezzo;
         abbonamento.Sconto      = dto.Sconto;
 
@@ -96,9 +88,7 @@ public class AbbonamentoService
         DtoAbbonamento risultato = new DtoAbbonamento();
         risultato.Id             = abbonamento.Id;
         risultato.Nome           = abbonamento.Nome;
-        risultato.DataInizio     = abbonamento.DataInizio.ToLocalTime();
         risultato.Durata         = abbonamento.Durata;
-        risultato.DataFine       = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
         risultato.Prezzo         = abbonamento.Prezzo;
         risultato.Sconto         = abbonamento.Sconto;
 
@@ -117,7 +107,7 @@ public class AbbonamentoService
         abbonamento.Durata  = dto.Durata;
         abbonamento.Prezzo  = dto.Prezzo;
         abbonamento.Sconto  = dto.Sconto;
-        abbonamento.DataFine = abbonamento.DataInizio.AddMonths(dto.Durata);
+        
 
         await _contesto.SaveChangesAsync();
 
@@ -125,9 +115,7 @@ public class AbbonamentoService
         {
           Id             = abbonamento.Id,
           Nome           = abbonamento.Nome,
-          DataInizio     = abbonamento.DataInizio.ToLocalTime(),
           Durata         = abbonamento.Durata,
-          DataFine       = abbonamento.DataFine,
           Prezzo         = abbonamento.Prezzo,
           Sconto         = abbonamento.Sconto,
         };
