@@ -8,6 +8,9 @@ public class FasciaOraria
 {
     [Key]
     public string Id { get; set; } = Guid.NewGuid().ToString();
+    
+    [Required]
+    public DateTime Data { get; set; }
 
     [Required]
     public TimeSpan OraInizio { get; set; }

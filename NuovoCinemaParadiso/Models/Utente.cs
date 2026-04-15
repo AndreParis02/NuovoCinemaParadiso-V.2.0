@@ -16,10 +16,10 @@ public class Utente : IdentityUser
     [Required]
     public bool SeAbbonato { get; set; } = false;
 
-    public DateTime DataInizio { get; set; } = DateTime.UtcNow;
+    public DateTime DataInizioAbbonamento { get; set; }
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
-    public string AbbonamentoId { get; set; } = string.Empty;
+    public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
-    public Abbonamento Abbonamento { get; set; }
+    public Abbonamento? Abbonamento { get; set; }
 }

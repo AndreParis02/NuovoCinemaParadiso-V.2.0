@@ -36,7 +36,7 @@ public class AcquistoService
                 dto.Titolo = movie.Titolo;
                 dto.SalaId = acquistoCorrente.SalaId;
                 dto.Nome = sala.Nome;
-                dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
+                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
                 dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
                 dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
 
@@ -71,7 +71,7 @@ public class AcquistoService
         dto.Titolo = movie.Titolo;
         dto.SalaId = acquisto.SalaId;
         dto.Nome = sala.Nome;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
 
@@ -97,7 +97,7 @@ public class AcquistoService
         Utente utente = await _contesto.Utenti.FindAsync(utenteId);
 
         // Calcola il prezzo finale lato server
-        decimal prezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(
+        decimal prezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             dto.NumeroBiglietti,
@@ -149,7 +149,7 @@ public class AcquistoService
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
         // Aggiorna prezzo dal film
-        acquistoEsistente.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoEsistente.NumeroBiglietti, utente);
+        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoEsistente.NumeroBiglietti, utente);
 
         await _contesto.SaveChangesAsync();
 

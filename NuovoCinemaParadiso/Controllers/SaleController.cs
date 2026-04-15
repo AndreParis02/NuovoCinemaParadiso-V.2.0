@@ -163,24 +163,6 @@ public class SaleController : ControllerBase
     {
         DtoSala? risultato = await _salaService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
-
-        foreach (var sala in sale)
-        {
-            if (sala.Nome.Contains(risultato.Nome))
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione sala",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
-
-                return BadRequest(new { messaggio = "Sala già presente." });
-            }
-        }
-
 
         if (risultato == null)
         {

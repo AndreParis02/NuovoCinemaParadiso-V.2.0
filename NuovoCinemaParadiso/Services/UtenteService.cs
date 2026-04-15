@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PathSegments;
+using Microsoft.AspNetCore.Identity;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
@@ -9,9 +9,12 @@ namespace NuovoCinemaParadiso.Services;
 public class UtenteService
 {
     private readonly ContestoDb _contesto;
-    public UtenteService(ContestoDb contestoDb)
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
     }
 
     public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
@@ -35,17 +38,7 @@ public class UtenteService
             return null;
         }
 
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-        Utente? utenteTrovato = null;
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            if (utenti[i].Id == utenteId)
-            {
-                utenteTrovato = utenti[i];
-                break;
-            }
-        }
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
 
         if (utenteTrovato == null)
         {
@@ -54,7 +47,7 @@ public class UtenteService
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
         utenteTrovato.SeAbbonato = true;
-        utenteTrovato.DataInizio = DateTime.UtcNow;
+        utenteTrovato.DataInizioAbbonamento = DateTime.UtcNow;
         await _contesto.SaveChangesAsync();
 
         return new DtoUtente()
@@ -64,7 +57,7 @@ public class UtenteService
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
             Abbonato = utenteTrovato.SeAbbonato,
-            DataInizio = utenteTrovato.DataInizio,
+            DataInizio = utenteTrovato.DataInizioAbbonamento,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };

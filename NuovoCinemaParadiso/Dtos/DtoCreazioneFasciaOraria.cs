@@ -5,6 +5,8 @@ namespace NuovoCinemaParadiso.Dtos;
 public class DtoCreazioneFasciaOraria
 {    
     [Required]
+    public DateTime Data { get; set; }
+    [Required]
     public TimeSpan OraInizio { get; set; }
 
     [Required]

@@ -2,11 +2,11 @@ using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
 
-public static class CalcolaPrezzo
+public static class Calcoli
 {
     public static Decimal CalcolaPrezzoFinale(Decimal prezzoMovie, Decimal prezzoSala, int numeroBiglietti, Utente utente)
     {
-        if (utente.AbbonamentoId == null)
+        if (utente.SeAbbonato == false)
         {
             Decimal prezzoFinale = (prezzoMovie + prezzoSala) * numeroBiglietti;
             return prezzoFinale;

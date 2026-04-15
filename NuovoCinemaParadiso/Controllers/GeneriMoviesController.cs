@@ -71,13 +71,12 @@ public class GeneriMoviesController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
-        DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
 
         foreach (var generiMovies in generiMovie)
         {
-            if (generiMovies.Genere.Contains(risultato.Genere))
+            if (generiMovies.Genere.Contains(dto.Genere))
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
@@ -90,6 +89,8 @@ public class GeneriMoviesController : ControllerBase
                 return BadRequest(new { messaggio = "Genere già presente." });
             }
         }
+        
+        DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
 
         if (risultato == null)
         {

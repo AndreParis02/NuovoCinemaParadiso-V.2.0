@@ -11,9 +11,10 @@ public class AdminService
 {
     private readonly ContestoDb _contesto;
     private readonly UserManager<Utente> _gestioneUtenti;
-    public AdminService(ContestoDb contestoDb)
+    public AdminService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
 
     }
     
@@ -91,7 +92,7 @@ public class AdminService
             dto.Nome = sala.Nome;
             dto.UtenteId = acquistoCorrente.UtenteId;
             dto.NomeCompleto = utente.NomeCompleto;
-            dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
             dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
 
@@ -122,14 +123,14 @@ public class AdminService
         dto.Nome = sala.Nome;
         dto.UtenteId = acquisto.UtenteId;
         dto.NomeCompleto = utente.NomeCompleto;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
 
         return dto;
     }
 
-    public async Task<List<DtoUtente>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
+    public async Task<List<DtoUtente>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
 
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();

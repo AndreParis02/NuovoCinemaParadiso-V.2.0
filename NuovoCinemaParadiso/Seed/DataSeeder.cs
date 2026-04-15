@@ -11,6 +11,7 @@ public static class DataSeeder
     {
         using IServiceScope scope = serviceProvider.CreateScope();
 
+        DateTime oggi = DateTime.Today;
         ContestoDb contestoDb = scope.ServiceProvider.GetRequiredService<ContestoDb>();
         UserManager<Utente> gestioneUtenti = scope.ServiceProvider.GetRequiredService<UserManager<Utente>>();
         RoleManager<IdentityRole> gestioneRuoli = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -55,9 +56,9 @@ public static class DataSeeder
         await AssicuraEsistenzaTipologiaSala(contestoDb,"3D",3);
         await AssicuraEsistenzaTipologiaSala(contestoDb,"IMAX",4);
         
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(10), TimeSpan.FromHours(13),"Mattina");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(13), TimeSpan.FromHours(18),"Pomeriggio");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(18), TimeSpan.FromHours(22),"Sera");
+        await AssicuraEsistenzaFasciaOraria(contestoDb, oggi, TimeSpan.FromHours(10), TimeSpan.FromHours(13),"Mattina");
+        await AssicuraEsistenzaFasciaOraria(contestoDb, oggi, TimeSpan.FromHours(13), TimeSpan.FromHours(18),"Pomeriggio");
+        await AssicuraEsistenzaFasciaOraria(contestoDb, oggi, TimeSpan.FromHours(18), TimeSpan.FromHours(22),"Sera");
 
         await AssicuraEsistenzaAbbonamento(contestoDb,"Mensile",70,25,1);
         await AssicuraEsistenzaAbbonamento(contestoDb,"Semestrale",210,50,6);
@@ -99,6 +100,7 @@ public static class DataSeeder
         utente.NomeCompleto = nomeCompleto;
         utente.Eta = eta;
         utente.SeAbbonato = abbonato;
+        utente.AbbonamentoId = null;
 
         IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
 
@@ -194,7 +196,7 @@ public static class DataSeeder
 
   private static async Task AssicuraEsistenzaFasciaOraria(
    ContestoDb context,
-   TimeSpan oraInizio, TimeSpan oraFine, string nome)
+   DateTime data, TimeSpan oraInizio, TimeSpan oraFine, string nome)
    {
     List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();
     for (int i = 0; i < fasceOrarie.Count; i++)
@@ -204,7 +206,7 @@ public static class DataSeeder
             fasciaOrariaCorrente.Nome,
             nome,
             StringComparison.OrdinalIgnoreCase);
-        if(nomeUguale || (fasciaOrariaCorrente.OraInizio == oraInizio && fasciaOrariaCorrente.OraFine == oraFine))
+        if(nomeUguale || (fasciaOrariaCorrente.Data == data && fasciaOrariaCorrente.OraInizio == oraInizio && fasciaOrariaCorrente.OraFine == oraFine))
         {
             return;
         }
@@ -212,6 +214,7 @@ public static class DataSeeder
 
     FasciaOraria nuovaFasciaOraria = new FasciaOraria
     {
+        Data      = data,
         Nome      = nome,
         OraInizio = oraInizio,
         OraFine   = oraFine

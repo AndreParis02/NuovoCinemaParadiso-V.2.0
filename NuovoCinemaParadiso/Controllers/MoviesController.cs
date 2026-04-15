@@ -117,12 +117,11 @@ public class MoviesController : ControllerBase
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
         foreach (var movie in movies)
         {
-            if (movie.Titolo.Contains(movie.Titolo))
+            if (movie.Titolo.Contains(dto.Titolo))
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
@@ -135,6 +134,8 @@ public class MoviesController : ControllerBase
                 return BadRequest(new { messaggio = "Film già presente." });
             }
         }
+        
+        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
