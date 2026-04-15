@@ -1,68 +1,65 @@
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
-using NuovoCinemaParadiso.Services;
+using System.Security.Claims;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AcquistiController : ControllerBase
+public class TurnoController : ControllerBase
 {
-    private readonly AcquistoService _acquistoService;
+    private readonly TurnoService _turnoService;
     private readonly LogAzioniService _logAzioniService;
 
-    public AcquistiController(AcquistoService acquistoService, LogAzioniService logAzioniService)
+    public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
     {
-        _acquistoService = acquistoService;
+        _turnoService = turnoService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli acquisti utente",
+            NomeAzione = "Ottieni tutte i turni",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(acquisti);
+        return Ok(turni);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni acquisti tramite id utente",
+                NomeAzione = "Ottieni turno tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"Acquisto con id {id} non trovato");
+            return NotFound($"Turno con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni acquisti tramite id utente",
+            NomeAzione = "Ottieni turno tramite id",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -71,28 +68,46 @@ public class AcquistiController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
+        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+
+        foreach (var turno in turni)
+        {
+            if (turno.Nome.Contains(risultato.Nome))
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione turno",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Turno già presente." });
+            }
+        }
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione acquisto",
+                NomeAzione = "Creazione turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
+            return BadRequest(new { messaggio = "Turno non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione acquisto",
+            NomeAzione = "Creazione turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -102,9 +117,9 @@ public class AcquistiController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
-        DtoAcquisto? risultato = await _acquistoService.ModificaAsync(id, dto);
+        DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -112,18 +127,18 @@ public class AcquistiController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica acquisto",
+                NomeAzione = "Modifica turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Acquisto non trovato." });
+            return NotFound(new { messaggio = "Turno non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica acquisto",
+            NomeAzione = "Modifica turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -135,7 +150,7 @@ public class AcquistiController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _acquistoService.EliminazioneAsync(id);
+        bool eliminato = await _turnoService.EliminaAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!eliminato)
@@ -143,22 +158,21 @@ public class AcquistiController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina acquisto",
+                NomeAzione = "Elimina turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Acquisto non trovato." });
+            return NotFound(new { messaggio = "Turno non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina acquisto",
+            NomeAzione = "Elimina turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
-
         return NoContent();
     }
 }

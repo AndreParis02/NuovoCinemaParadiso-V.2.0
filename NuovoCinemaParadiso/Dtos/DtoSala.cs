@@ -9,8 +9,6 @@ public class DtoSala
     [StringLength(100)]
     public string Nome {get; set;} = string.Empty;
     public int Capienza {get; set;}
-    public string FasciaOrariaId { get; set; } = string.Empty;
-    public string FasciaOraria { get; set; } = string.Empty;
     public string TipologiaSalaId {get; set;} = string.Empty;
     public string NomeTipologia {get; set;} = string.Empty;
 }

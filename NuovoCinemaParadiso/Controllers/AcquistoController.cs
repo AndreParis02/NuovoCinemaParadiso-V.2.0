@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
@@ -10,57 +10,59 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class TipologieSalaController : ControllerBase
+public class AcquistoController : ControllerBase
 {
-    private readonly TipologiaSalaService _tipologiaSalaService;
+    private readonly AcquistoService _acquistoService;
     private readonly LogAzioniService _logAzioniService;
 
-    public TipologieSalaController(TipologiaSalaService tipologiaSalaService, LogAzioniService logAzioniService)
+    public AcquistoController(AcquistoService acquistoService, LogAzioniService logAzioniService)
     {
-        _tipologiaSalaService = tipologiaSalaService;
+        _acquistoService = acquistoService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le tipologie",
+            NomeAzione = "Ottieni tutti gli acquisti utente",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(tipologieSala);
+        return Ok(acquisti);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        var risultato = await _tipologiaSalaService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni tipologia tramite id",
+                NomeAzione = "Ottieni acquisti tramite id utente",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"TipologiaSala con id {id} non trovato");
+            return NotFound($"Acquisto con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tipologia tramite id",
+            NomeAzione = "Ottieni acquisti tramite id utente",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -69,46 +71,28 @@ public class TipologieSalaController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
     {
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-        
-        foreach (var tipologiaSala in tipologieSala)
-        {
-            if (tipologiaSala.Nome.Contains(risultato.Nome))
-            {
-                    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                    {
-                        IdUtente = utenteId,
-                        NomeAzione = "Creazione tipologia",
-                        Effettuato = false,
-                        Messaggio = "Operazione fallita"
-                    });
-
-                return BadRequest(new { messaggio = "Tipologia sala già presente." });
-            }
-        }
+        DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione tipologia",
+                NomeAzione = "Creazione acquisto",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Tipologia sala non valida." });
+            return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione tipologia",
+            NomeAzione = "Creazione acquisto",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -118,9 +102,9 @@ public class TipologieSalaController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
     {
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
+        DtoAcquisto? risultato = await _acquistoService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -128,18 +112,18 @@ public class TipologieSalaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica tipologia",
+                NomeAzione = "Modifica acquisto",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+            return NotFound(new { messaggio = "Acquisto non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica tipologia",
+            NomeAzione = "Modifica acquisto",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -151,7 +135,7 @@ public class TipologieSalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
+        bool eliminato = await _acquistoService.EliminazioneAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!eliminato)
@@ -159,18 +143,18 @@ public class TipologieSalaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina tipologia",
+                NomeAzione = "Elimina acquisto",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+            return NotFound(new { messaggio = "Acquisto non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina tipologia",
+            NomeAzione = "Elimina acquisto",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });

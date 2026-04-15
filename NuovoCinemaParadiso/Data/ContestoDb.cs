@@ -16,10 +16,11 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<GenereMovie> GeneriMovies { get; set; }
         public DbSet<Sala> Sale { get; set; }
         public DbSet<TipologiaSala> TipologieSala { get; set; }
-        public DbSet<FasciaOraria> FasceOrarie { get; set; }
+        public DbSet<Turno> Turni { get; set; }
         public DbSet<Acquisto> Acquisti { get; set; }
         public DbSet<Utente> Utenti { get; set; }
         public DbSet<Abbonamento> Abbonamenti {get;set;}
         public DbSet<LogAzioni> LogAzioni {get;set;}
+        public DbSet<Proiezione> Proiezioni {get;set;}
     }
 }

@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuovoCinemaParadiso.Dtos;
 
-public class DtoCreazioneFasciaOraria
+public class DtoCreazioneTurno
 {    
-    [Required]
-    public DateTime Data { get; set; }
     [Required]
     public TimeSpan OraInizio { get; set; }
 

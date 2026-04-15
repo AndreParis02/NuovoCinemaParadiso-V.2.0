@@ -4,14 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace NuovoCinemaParadiso.Models;
 
 [Table("FasciaOraria")]
-public class FasciaOraria
+public class Turno
 {
     [Key]
     public string Id { get; set; } = Guid.NewGuid().ToString();
     
-    [Required]
-    public DateTime Data { get; set; }
-
     [Required]
     public TimeSpan OraInizio { get; set; }
 

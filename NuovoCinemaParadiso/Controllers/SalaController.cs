@@ -1,68 +1,79 @@
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AbbonamentiController : ControllerBase
+public class SalaController : ControllerBase
 {
-    private readonly AbbonamentoService _abbonamentoService;
+    private readonly SalaService _salaService;
     private readonly LogAzioniService _logAzioniService;
 
-    public AbbonamentiController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService)
+    public SalaController(SalaService salaService, LogAzioniService logAzioniService)
     {
-        _abbonamentoService = abbonamentoService;
+        _salaService = salaService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
+    public async Task<IActionResult> OttieniTutti()
     {
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli abbonamenti utente",
+            NomeAzione = "Ottieni tutte le sale",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(abbonamenti);
+        return Ok(sale);
     }
 
-    [HttpGet("admin/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
+    [HttpGet("tipologia/{tipologiaId}")]
+    public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
     {
-        var risultato = await _abbonamentoService.OttieniTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (risultato == null)
+        if (string.IsNullOrWhiteSpace(tipologiaId))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni abbonamenti tramite id admin",
+                NomeAzione = "Ottieni le sale per tipologia",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"Abbonamento con id {id} non trovato");
+            return BadRequest("TipologiaId non valido");
+        }
+
+        var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni le sale per tipologia",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessuna sala trovata per questa tipologia");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni abbonamenti tramite id admin",
+            NomeAzione = "Ottieni le sale per tipologia",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -71,29 +82,29 @@ public class AbbonamentiController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
+    public async Task<IActionResult> OttieniTramiteId(string id)
     {
+        var risultato = await _salaService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni abbonamenti tramite id utente",
+                NomeAzione = "Ottieni sala tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"Abbonamento con id {id} non trovato");
+
+            return NotFound($"Sala con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni abbonamenti tramite id utente",
+            NomeAzione = "Ottieni sala tramite id",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -102,28 +113,46 @@ public class AbbonamentiController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
+        DtoSala? risultato = await _salaService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
+
+        foreach (var sala in sale)
+        {
+            if (sala.Nome.Contains(risultato.Nome))
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione sala",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Sala già presente." });
+            }
+        }
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione abbonamento",
+                NomeAzione = "Creazione sala",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
+            return BadRequest(new { messaggio = "Sala non valida." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione abbonamento",
+            NomeAzione = "Creazione sala",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -133,9 +162,9 @@ public class AbbonamentiController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
-        DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
+        DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -143,18 +172,18 @@ public class AbbonamentiController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica abbonamento",
+                NomeAzione = "Modifica sala",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+            return NotFound(new { messaggio = "Sala non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica abbonamento",
+            NomeAzione = "Modifica sala",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -166,7 +195,7 @@ public class AbbonamentiController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
+        bool eliminato = await _salaService.EliminaAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!eliminato)
@@ -174,18 +203,18 @@ public class AbbonamentiController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina abbonamento",
+                NomeAzione = "Elimina sala",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+            return NotFound(new { messaggio = "Sala non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina abbonamento",
+            NomeAzione = "Elimina sala",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });

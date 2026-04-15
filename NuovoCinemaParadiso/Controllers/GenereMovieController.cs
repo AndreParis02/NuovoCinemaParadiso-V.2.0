@@ -9,38 +9,38 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class FasciaOrariaController : ControllerBase
+public class GenereMovieController : ControllerBase
 {
-    private readonly FasciaOrariaService _fasciaOrariaService;
+    private readonly GenereMovieService _genereMovieService;
     private readonly LogAzioniService _logAzioniService;
 
-    public FasciaOrariaController(FasciaOrariaService fasciaOrariaService, LogAzioniService logAzioniService)
+    public GenereMovieController(GenereMovieService genereMovieService, LogAzioniService logAzioniService)
     {
-        _fasciaOrariaService = fasciaOrariaService;
+        _genereMovieService = genereMovieService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        List<DtoFasciaOraria> fasceOrarie = await _fasciaOrariaService.OttieniTuttoAsync();
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le fasce orarie",
+            NomeAzione = "Ottieni tutti i generi",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(fasceOrarie);
+        return Ok(generiMovie);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        var risultato = await _fasciaOrariaService.OttieniTramiteIdAsync(id);
+        var risultato = await _genereMovieService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -48,18 +48,18 @@ public class FasciaOrariaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni fascia oraria tramite id",
+                NomeAzione = "Ottieni genere tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"TipologiaSala con id {id} non trovato");
+            return NotFound($"GenereMovie con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni fascia oraria tramite id",
+            NomeAzione = "Ottieni genere tramite id",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -69,25 +69,25 @@ public class FasciaOrariaController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneFasciaOraria dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
-        DtoFasciaOraria? risultato = await _fasciaOrariaService.CreazioneAsync(dto);
+        DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoFasciaOraria> fasceOrarie = await _fasciaOrariaService.OttieniTuttoAsync();
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
 
-        foreach (var fasciaOraria in fasceOrarie)
+        foreach (var generiMovies in generiMovie)
         {
-            if (fasciaOraria.Nome.Contains(risultato.Nome))
+            if (generiMovies.Genere.Contains(risultato.Genere))
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
                     IdUtente = utenteId,
-                    NomeAzione = "Creazione fascia oraria",
+                    NomeAzione = "Creazione genere",
                     Effettuato = false,
                     Messaggio = "Operazione fallita"
                 });
 
-                return BadRequest(new { messaggio = "Fascia oraria già presente." });
+                return BadRequest(new { messaggio = "Genere già presente." });
             }
         }
 
@@ -96,18 +96,18 @@ public class FasciaOrariaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione fasce oraria",
+                NomeAzione = "Creazione genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Fascia oraria non valida." });
+            return BadRequest(new { messaggio = "Genere non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione fasce oraria",
+            NomeAzione = "Creazione genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -117,9 +117,9 @@ public class FasciaOrariaController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneFasciaOraria dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
-        DtoFasciaOraria? risultato = await _fasciaOrariaService.ModificaAsync(id, dto);
+        DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -127,18 +127,18 @@ public class FasciaOrariaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica fasce oraria",
+                NomeAzione = "Modifica genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Fascia oraria non trovata." });
+            return NotFound(new { messaggio = "Genere non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica fasce oraria",
+            NomeAzione = "Modifica genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -150,7 +150,7 @@ public class FasciaOrariaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _fasciaOrariaService.EliminaAsync(id);
+        bool eliminato = await _genereMovieService.EliminaAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!eliminato)
@@ -158,21 +158,22 @@ public class FasciaOrariaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina fascia oraria",
+                NomeAzione = "Elimina genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Fascia oraria non trovata." });
+            return NotFound(new { messaggio = "Genere non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina fascia oraria",
+            NomeAzione = "Elimina genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
+
         return NoContent();
     }
 }
