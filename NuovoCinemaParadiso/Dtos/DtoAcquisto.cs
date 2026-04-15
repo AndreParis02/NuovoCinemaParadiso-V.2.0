@@ -9,6 +9,6 @@ public class DtoAcquisto
     public string UtenteId { get; set; } = string.Empty;
     public string NomeCompleto{get;set;} = string.Empty;
     public decimal PrezzoFinale {get;set;}
-    public DateTime OrarioCreazione {get;set;} 
+    public DateTimeOffset OrarioCreazione {get;set;} 
     public int NumeroBiglietti {get;set;}
 }

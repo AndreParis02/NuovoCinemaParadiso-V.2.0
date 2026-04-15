@@ -33,7 +33,7 @@ erDiagram
         string UtenteId
         Utente Utente
         int NumeroBiglietti
-        DateTime OrarioCreazione
+        DateTimeOffset OrarioCreazione
         decimal PrezzoFinale
     }
     FasciaOraria {
@@ -137,7 +137,7 @@ public class Acquisto
 
     // Data e ora in cui è stato creato l'acquisto
     // Impostato automaticamente all'ora UTC corrente
-    public DateTime OrarioCreazione { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
 
     // Prezzo finale Acquisto tenendo conto del prezzo del film,
     // maggiorazione prezzo della tipologia sala e il numero di biglietti 
@@ -242,7 +242,7 @@ public class LogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora in cui è stata registrata l'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -520,7 +520,7 @@ public class JwtHelper
             issuer: issuer,          // Chi ha generato il token
             audience: audience,      // Chi può usare il token
             claims: claims,          // Informazioni contenute nel token
-            expires: DateTime.UtcNow.AddHours(1), // Scadenza del token
+            expires: DateTimeOffset.UtcNow.AddHours(1), // Scadenza del token
             signingCredentials: credentials        // Firma del token
         );
 
@@ -630,7 +630,7 @@ public class DtoAcquisto
     public decimal PrezzoFinale { get; set; }
 
     // Data e ora in cui è stato creato l'acquisto
-    public DateTime OrarioCreazione { get; set; }
+    public DateTimeOffset OrarioCreazione { get; set; }
 
     // Numero biglietti acquistati dall'utente
     public int NumeroBiglietti {get;set;}
@@ -771,7 +771,7 @@ public class DtoCreazioneLogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora dell'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -952,7 +952,7 @@ public class DtoLogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora in cui è avvenuta l'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -3400,7 +3400,7 @@ public class AcquistoService
             UtenteId = utenteId,
             NumeroBiglietti = dto.NumeroBiglietti,
             PrezzoFinale = prezzoFinale,
-            OrarioCreazione = DateTime.UtcNow
+            OrarioCreazione = DateTimeOffset.UtcNow
         };
 
         _contesto.Acquisti.Add(acquisto);
@@ -3983,7 +3983,7 @@ public class LogAzioniService
             NomeAzione = dto.NomeAzione,
             Effettuato = dto.Effettuato,
             Messaggio = dto.Messaggio,
-            TimeStamp = DateTime.UtcNow
+            TimeStamp = DateTimeOffsetOffset.UtcNow
         };
 
         // Inserimento nel DB

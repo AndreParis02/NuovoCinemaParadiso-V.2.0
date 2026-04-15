@@ -22,7 +22,7 @@ public class LogAzioniService
         log.NomeAzione = dto.NomeAzione;
         log.Effettuato = dto.Effettuato;
         log.Messaggio = dto.Messaggio;
-        log.TimeStamp = DateTime.UtcNow;
+        log.TimeStamp = DateTimeOffset.UtcNow;
 
        
 
@@ -34,7 +34,7 @@ public class LogAzioniService
         risultato.NomeAzione = log.NomeAzione;
         risultato.Effettuato = log.Effettuato;
         risultato.Messaggio = log.Messaggio;
-        risultato.TimeStamp = log.TimeStamp.ToLocalTime();
+        risultato.TimeStamp = log.TimeStamp;
 
 
         return risultato;
