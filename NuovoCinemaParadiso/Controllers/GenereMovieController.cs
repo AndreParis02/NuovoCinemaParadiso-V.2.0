@@ -1,47 +1,46 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class TipologieSalaController : ControllerBase
+public class GenereMovieController : ControllerBase
 {
-    private readonly TipologiaSalaService _tipologiaSalaService;
+    private readonly GenereMovieService _genereMovieService;
     private readonly LogAzioniService _logAzioniService;
 
-    public TipologieSalaController(TipologiaSalaService tipologiaSalaService, LogAzioniService logAzioniService)
+    public GenereMovieController(GenereMovieService genereMovieService, LogAzioniService logAzioniService)
     {
-        _tipologiaSalaService = tipologiaSalaService;
+        _genereMovieService = genereMovieService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le tipologie",
+            NomeAzione = "Ottieni tutti i generi",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(tipologieSala);
+        return Ok(generiMovie);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        var risultato = await _tipologiaSalaService.OttieniTramiteIdAsync(id);
+        var risultato = await _genereMovieService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -49,18 +48,18 @@ public class TipologieSalaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni tipologia tramite id",
+                NomeAzione = "Ottieni genere tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"TipologiaSala con id {id} non trovato");
+            return NotFound($"GenereMovie con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tipologia tramite id",
+            NomeAzione = "Ottieni genere tramite id",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -70,46 +69,46 @@ public class TipologieSalaController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-        
-        foreach (var tipologiaSala in tipologieSala)
-        {
-            if (tipologiaSala.Nome.Contains(dto.Nome))
-            {
-                    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                    {
-                        IdUtente = utenteId,
-                        NomeAzione = "Creazione tipologia",
-                        Effettuato = false,
-                        Messaggio = "Operazione fallita"
-                    });
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
 
-                return BadRequest(new { messaggio = "Tipologia sala già presente." });
+        foreach (var generiMovies in generiMovie)
+        {
+            if (generiMovies.Genere.Contains(dto.Genere))
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione genere",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Genere già presente." });
             }
         }
-
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
+        
+        DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione tipologia",
+                NomeAzione = "Creazione genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Tipologia sala non valida." });
+            return BadRequest(new { messaggio = "Genere non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione tipologia",
+            NomeAzione = "Creazione genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -119,9 +118,9 @@ public class TipologieSalaController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
+        DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -129,18 +128,18 @@ public class TipologieSalaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica tipologia",
+                NomeAzione = "Modifica genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+            return NotFound(new { messaggio = "Genere non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica tipologia",
+            NomeAzione = "Modifica genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -152,7 +151,7 @@ public class TipologieSalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
+        bool eliminato = await _genereMovieService.EliminaAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!eliminato)
@@ -160,18 +159,18 @@ public class TipologieSalaController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina tipologia",
+                NomeAzione = "Elimina genere",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+            return NotFound(new { messaggio = "Genere non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina tipologia",
+            NomeAzione = "Elimina genere",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });

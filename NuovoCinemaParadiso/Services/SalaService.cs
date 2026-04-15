@@ -24,13 +24,10 @@ public class SalaService
             Sala salaCorrente = sale[i];
 
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaCorrente.TipologiaSalaId);
-            FasciaOraria? fasciaOraria = await _contesto.FasceOrarie.FindAsync(salaCorrente.FasciaOrariaId);
-
             DtoSala dto = new DtoSala();
             dto.Id = salaCorrente.Id;
             dto.Nome = salaCorrente.Nome;
             dto.Capienza = salaCorrente.Capienza;
-            dto.FasciaOraria = fasciaOraria?.Nome ?? "";
             dto.NomeTipologia = tipologiaSala?.Nome ?? "";
 
             risultato.Add(dto);
@@ -47,7 +44,6 @@ public class SalaService
         }
 
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-        FasciaOraria? fasciaOraria = await _contesto.FasceOrarie.FindAsync(sala.FasciaOrariaId);
 
         DtoSala risultato = new DtoSala
         {
@@ -55,7 +51,6 @@ public class SalaService
             Nome = sala.Nome,
             Capienza = sala.Capienza,
             NomeTipologia = tipologiaSala?.Nome ?? "",
-            FasciaOraria = fasciaOraria?.Nome ?? ""
         };
         return risultato;
     }
@@ -72,7 +67,6 @@ public class SalaService
                 continue;
 
             TipologiaSala? tipologia = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-            FasciaOraria? fascia = await _contesto.FasceOrarie.FindAsync(sala.FasciaOrariaId);
 
             DtoSala dto = new DtoSala
             {
@@ -81,57 +75,25 @@ public class SalaService
                 Capienza = sala.Capienza,
                 TipologiaSalaId = sala.TipologiaSalaId,
                 NomeTipologia = tipologia?.Nome ?? "",
-                FasciaOrariaId = sala.FasciaOrariaId,
-                FasciaOraria = fascia?.Nome ?? ""
             };
 
             risultato.Add(dto);
         }
         return risultato;
     }
-    public async Task<List<DtoSala>> OttieniTramiteFasciaOrariaAsync(string fasciaOrariaId)
-    {
-        List<Sala> tutteLeSale = await _contesto.Sale.ToListAsync();
 
-        List<DtoSala> risultato = new List<DtoSala>();
-
-        foreach (var sala in tutteLeSale)
-        {
-            if (sala.FasciaOrariaId != fasciaOrariaId)
-                continue;
-
-            TipologiaSala? tipologia = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-            FasciaOraria? fascia = await _contesto.FasceOrarie.FindAsync(sala.FasciaOrariaId);
-
-            DtoSala dto = new DtoSala
-            {
-                Id = sala.Id,
-                Nome = sala.Nome,
-                Capienza = sala.Capienza,
-                TipologiaSalaId = sala.TipologiaSalaId,
-                NomeTipologia = tipologia?.Nome ?? "",
-                FasciaOrariaId = sala.FasciaOrariaId,
-                FasciaOraria = fascia?.Nome ?? ""
-            };
-
-            risultato.Add(dto);
-        }
-        return risultato;
-    }
     public async Task<DtoSala> CreazioneAsync(DtoCreazioneSala dto)
     {
         Sala sala = new Sala
         {
             Nome = dto.Nome,
             Capienza = dto.Capienza,
-            FasciaOrariaId = dto.FasciaOrariaId,
             TipologiaSalaId = dto.TipologiaSalaId
         };
 
         _contesto.Sale.Add(sala);
         await _contesto.SaveChangesAsync();
 
-        FasciaOraria? fasciaOraria = await _contesto.FasceOrarie.FindAsync(sala.FasciaOrariaId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
         DtoSala risultato = new DtoSala
@@ -139,8 +101,6 @@ public class SalaService
             Id = sala.Id,
             Nome = sala.Nome,
             Capienza = sala.Capienza,
-            FasciaOrariaId = sala.FasciaOrariaId,
-            FasciaOraria = fasciaOraria?.Nome ?? "",
             TipologiaSalaId = tipologiaSala?.Id ?? "",
             NomeTipologia = sala.TipologiaSala?.Nome ?? ""
         };
@@ -159,20 +119,16 @@ public class SalaService
 
         salaEsistente.Nome = dto.Nome;
         salaEsistente.Capienza = dto.Capienza;
-        salaEsistente.FasciaOrariaId = dto.FasciaOrariaId;
         salaEsistente.TipologiaSalaId = dto.TipologiaSalaId;
 
         await _contesto.SaveChangesAsync();
 
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId);
-        FasciaOraria? fasciaOraria = await _contesto.FasceOrarie.FindAsync(salaEsistente.FasciaOrariaId);
 
         DtoSala risultato = new DtoSala();
         risultato.Id = salaEsistente.Id;
         risultato.Nome = salaEsistente.Nome;
         risultato.Capienza = salaEsistente.Capienza;
-        risultato.FasciaOrariaId = salaEsistente.FasciaOrariaId;
-        risultato.FasciaOraria = fasciaOraria.Nome;
         risultato.TipologiaSalaId = salaEsistente.TipologiaSalaId;
         risultato.NomeTipologia = tipologiaSala.Nome;
 

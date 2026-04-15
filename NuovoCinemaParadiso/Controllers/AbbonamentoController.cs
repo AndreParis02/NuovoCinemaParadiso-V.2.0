@@ -1,79 +1,68 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class MoviesController : ControllerBase
+public class AbbonamentoController : ControllerBase
 {
-    private readonly MovieService _movieService;
+    private readonly AbbonamentoService _abbonamentoService;
     private readonly LogAzioniService _logAzioniService;
 
-    public MoviesController(MovieService movieService, LogAzioniService logAzioniService)
+    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService)
     {
-        _movieService = movieService;
+        _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiIMovies()
+    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
-        List<DtoMovie> movies = await _movieService.OttieniTutto();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i movies",
+            NomeAzione = "Ottieni tutti gli abbonamenti utente",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(movies);
+        return Ok(abbonamenti);
     }
 
-    [HttpGet("genere/{genereId}")]
-    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
+    [HttpGet("admin/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
+        var risultato = await _abbonamentoService.OttieniTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrWhiteSpace(genereId))
+        if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
+                NomeAzione = "Ottieni abbonamenti tramite id admin",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest("GenereId non valido");
-        }
-
-        var risultato = await _movieService.OttieniTramiteGenere(genereId);
-
-        if (risultato == null || risultato.Count == 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound("Nessun film trovato per questo genere");
+            return NotFound($"Abbonamento con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni movies per genere",
+            NomeAzione = "Ottieni abbonamenti tramite id admin",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -82,29 +71,29 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteId(string id)
+    public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var risultato = await _movieService.OttieniTramiteIdAsync(id);
+        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni movie tramite id",
+                NomeAzione = "Ottieni abbonamenti tramite id utente",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"Film con id {id} non trovato");
+            return NotFound($"Abbonamento con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni movie tramite id",
+            NomeAzione = "Ottieni abbonamenti tramite id utente",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -113,47 +102,28 @@ public class MoviesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoMovie> movies = await _movieService.OttieniTutto();
-
-        foreach (var movie in movies)
-        {
-            if (movie.Titolo.Contains(dto.Titolo))
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione movie",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
-
-                return BadRequest(new { messaggio = "Film già presente." });
-            }
-        }
-        
-        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
+        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione movie",
+                NomeAzione = "Creazione abbonamento",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Film non valido." });
+            return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione movie",
+            NomeAzione = "Creazione abbonamento",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -163,29 +133,28 @@ public class MoviesController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
+        DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica movie",
+                NomeAzione = "Modifica abbonamento",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Film non trovato." });
+            return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica movie",
+            NomeAzione = "Modifica abbonamento",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -197,27 +166,26 @@ public class MoviesController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
+        bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        bool eliminato = await _movieService.EliminaAsync(id);
 
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina movie",
+                NomeAzione = "Elimina abbonamento",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Film non trovato." });
+            return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina movie",
+            NomeAzione = "Elimina abbonamento",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });

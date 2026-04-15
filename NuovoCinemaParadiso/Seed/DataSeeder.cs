@@ -56,9 +56,9 @@ public static class DataSeeder
         await AssicuraEsistenzaTipologiaSala(contestoDb,"3D",3);
         await AssicuraEsistenzaTipologiaSala(contestoDb,"IMAX",4);
         
-        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(10), new TimeOnly(13),"Mattina");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(13), new TimeOnly(18),"Pomeriggio");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(18), new TimeOnly(22),"Sera");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10), new TimeOnly(13),"Mattina");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13), new TimeOnly(18),"Pomeriggio");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18), new TimeOnly(22),"Sera");
 
         await AssicuraEsistenzaAbbonamento(contestoDb,"Mensile",70,25,1);
         await AssicuraEsistenzaAbbonamento(contestoDb,"Semestrale",210,50,6);
@@ -194,33 +194,32 @@ public static class DataSeeder
     await context.SaveChangesAsync();
   }
 
-  private static async Task AssicuraEsistenzaFasciaOraria(
+  private static async Task AssicuraEsistenzaTurno(
    ContestoDb context,
    TimeOnly oraInizio, TimeOnly oraFine, string nome)
    {
-    List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();
-    for (int i = 0; i < fasceOrarie.Count; i++)
+    List<Turno> turni = await context.Turni.ToListAsync();
+    for (int i = 0; i < turni.Count; i++)
     {
-        FasciaOraria fasciaOrariaCorrente = fasceOrarie[i];
+        Turno turnoCorrente = turni[i];
         bool nomeUguale = string.Equals(
-            fasciaOrariaCorrente.Nome,
+            turnoCorrente.Nome,
             nome,
             StringComparison.OrdinalIgnoreCase);
-        if(nomeUguale || (fasciaOrariaCorrente.Data == data && fasciaOrariaCorrente.OraInizio == oraInizio && fasciaOrariaCorrente.OraFine == oraFine))
+        if(nomeUguale || (turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine))
         {
             return;
         }
     }
 
-    FasciaOraria nuovaFasciaOraria = new FasciaOraria
+    Turno nuovoTurno = new Turno
     {
-        Data      = data,
         Nome      = nome,
         OraInizio = oraInizio,
         OraFine   = oraFine
     };
 
-    context.FasceOrarie.Add(nuovaFasciaOraria);
+    context.Turni.Add(nuovoTurno);
     await context.SaveChangesAsync();
    }
 

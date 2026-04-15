@@ -1,6 +1,6 @@
 namespace NuovoCinemaParadiso.Dtos;
 
-public class DtoFasciaOraria
+public class DtoTurno
 {
     public string Id { get; set; }
     public TimeOnly OraInizio { get; set; }

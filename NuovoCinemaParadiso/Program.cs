@@ -74,7 +74,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GenereMovieService>();
 builder.Services.AddScoped<TipologiaSalaService>();
-builder.Services.AddScoped<FasciaOrariaService>();
+builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<SalaService>();
 builder.Services.AddScoped<MovieService>();
 builder.Services.AddScoped<AcquistoService>();

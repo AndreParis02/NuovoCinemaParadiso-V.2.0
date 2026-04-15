@@ -1,15 +1,22 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace NuovoCinemaParadiso.Dtos;
+namespace NuovoCinemaParadiso.Models;
 
-public class DtoCreazioneFasciaOraria
-{    
+[Table("FasciaOraria")]
+public class Turno
+{
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    
     [Required]
     public TimeOnly OraInizio { get; set; }
 
     [Required]
     public TimeOnly OraFine { get; set; }
-    
+
     [StringLength(50)]
     public string Nome { get; set; } = string.Empty; // es: "Sera", "Pomeriggio"
+
+    public List<Sala> Sale { get; set; } = new();
 }

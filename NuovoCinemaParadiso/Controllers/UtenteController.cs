@@ -10,12 +10,12 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UtentiController : ControllerBase
+public class UtenteController : ControllerBase
 {
     private readonly UtenteService _utenteService;
     private readonly LogAzioniService _logAzioniService;
 
-    public UtentiController(UtenteService utenteService, LogAzioniService logAzioniService)
+    public UtenteController(UtenteService utenteService, LogAzioniService logAzioniService)
     {
         _utenteService = utenteService;
         _logAzioniService = logAzioniService;

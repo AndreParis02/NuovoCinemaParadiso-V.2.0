@@ -9,12 +9,12 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class SaleController : ControllerBase
+public class SalaController : ControllerBase
 {
     private readonly SalaService _salaService;
     private readonly LogAzioniService _logAzioniService;
 
-    public SaleController(SalaService salaService, LogAzioniService logAzioniService)
+    public SalaController(SalaService salaService, LogAzioniService logAzioniService)
     {
         _salaService = salaService;
         _logAzioniService = logAzioniService;
@@ -74,51 +74,6 @@ public class SaleController : ControllerBase
         {
             IdUtente = utenteId,
             NomeAzione = "Ottieni le sale per tipologia",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    // Ottieni sale per fascia oraria
-    [HttpGet("fascia-oraria/{fasciaOrariaId}")]
-    public async Task<ActionResult<List<DtoSala>>> OttieniPerFasciaOraria(string fasciaOrariaId)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrWhiteSpace(fasciaOrariaId))
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni le sale per fascia oraria",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest("FasciaOrariaId non valido");
-        }
-
-        var risultato = await _salaService.OttieniTramiteFasciaOrariaAsync(fasciaOrariaId);
-
-        if (risultato == null || risultato.Count == 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni le sale per fascia oraria",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound("Nessuna sala trovata per questa fascia oraria");
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni le sale per fascia oraria",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
