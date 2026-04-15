@@ -25,6 +25,7 @@ namespace NuovoCinemaParadiso.Services
 
                 DtoFasciaOraria dto = new DtoFasciaOraria();
                 dto.Id = fasciaCorrente.Id;
+                dto.Data = fasciaCorrente.Data;
                 dto.OraInizio = fasciaCorrente.OraInizio;
                 dto.OraFine = fasciaCorrente.OraFine;
                 dto.Nome = fasciaCorrente.Nome;
@@ -46,6 +47,7 @@ namespace NuovoCinemaParadiso.Services
             DtoFasciaOraria dto = new DtoFasciaOraria();
             dto.Id = fasciaOraria.Id;
             dto.Nome = fasciaOraria.Nome;
+            dto.Data = fasciaOraria.Data;
             dto.OraInizio = fasciaOraria.OraInizio;
             dto.OraFine = fasciaOraria.OraFine;
 
@@ -56,6 +58,7 @@ namespace NuovoCinemaParadiso.Services
         {
             FasciaOraria fasciaOraria = new FasciaOraria();
             fasciaOraria.Nome = dto.Nome;
+            fasciaOraria.Data =  dto.Data;
             fasciaOraria.OraInizio = dto.OraInizio;
             fasciaOraria.OraFine = dto.OraFine;
 
@@ -65,6 +68,7 @@ namespace NuovoCinemaParadiso.Services
             DtoFasciaOraria risultato = new DtoFasciaOraria();
             risultato.Id = fasciaOraria.Id;
             risultato.Nome = fasciaOraria.Nome;
+            risultato.Data = fasciaOraria.Data;
             risultato.OraInizio = fasciaOraria.OraInizio;
             risultato.OraFine = fasciaOraria.OraFine;
 
@@ -80,6 +84,7 @@ namespace NuovoCinemaParadiso.Services
                 return null;
             }
 
+            fasciaEsistente.Data = dto.Data;
             fasciaEsistente.OraInizio = dto.OraInizio;
             fasciaEsistente.OraFine = dto.OraFine;
             fasciaEsistente.Nome = dto.Nome;
@@ -88,6 +93,7 @@ namespace NuovoCinemaParadiso.Services
 
             DtoFasciaOraria risultato = new DtoFasciaOraria();
             risultato.Id = fasciaEsistente.Id;
+            risultato.Data = fasciaEsistente.Data;
             risultato.OraInizio = fasciaEsistente.OraInizio;
             risultato.OraFine = fasciaEsistente.OraFine;
             risultato.Nome = fasciaEsistente.Nome;
