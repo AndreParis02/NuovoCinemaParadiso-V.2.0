@@ -19,4 +19,16 @@ public static class Calcoli
             return prezzoFinale;
         }
     }
+
+    public static DateTime? CalcolaScadenzaAbbonamento(DateOnly dataInizio, int durata)
+    {
+       return dataInizio.AddMonths(durata).ToDateTime(TimeOnly.MinValue);
+    }
+
+    public static int GiorniAllaScadenza(DateTime dataInizio, int durata)
+    {
+        DateTime dataScadenza = dataInizio.AddMonths(durata);
+        TimeSpan differenza = dataScadenza - DateTime.Now;
+        return (int)differenza.TotalDays;
+    }
 }
