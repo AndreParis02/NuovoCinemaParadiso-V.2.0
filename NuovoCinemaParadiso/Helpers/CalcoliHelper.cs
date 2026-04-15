@@ -14,7 +14,8 @@ public static class Calcoli
         else
         {
             Decimal prezzoBiglietto = prezzoMovie + prezzoSala;
-            Decimal prezzoScontato = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            Decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            Decimal prezzoScontato = prezzoBiglietto - sconto;
             Decimal prezzoFinale = prezzoScontato * numeroBiglietti;
             return prezzoFinale;
         }
