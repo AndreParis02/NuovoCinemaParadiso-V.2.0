@@ -11,6 +11,7 @@ public static class DataSeeder
     {
         using IServiceScope scope = serviceProvider.CreateScope();
 
+        DateTime oggi = DateTime.Today;
         ContestoDb contestoDb = scope.ServiceProvider.GetRequiredService<ContestoDb>();
         UserManager<Utente> gestioneUtenti = scope.ServiceProvider.GetRequiredService<UserManager<Utente>>();
         RoleManager<IdentityRole> gestioneRuoli = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -205,7 +206,7 @@ public static class DataSeeder
             fasciaOrariaCorrente.Nome,
             nome,
             StringComparison.OrdinalIgnoreCase);
-        if(nomeUguale || (fasciaOrariaCorrente.OraInizio == oraInizio && fasciaOrariaCorrente.OraFine == oraFine))
+        if(nomeUguale || (fasciaOrariaCorrente.Data == data && fasciaOrariaCorrente.OraInizio == oraInizio && fasciaOrariaCorrente.OraFine == oraFine))
         {
             return;
         }
@@ -213,6 +214,7 @@ public static class DataSeeder
 
     FasciaOraria nuovaFasciaOraria = new FasciaOraria
     {
+        Data      = data,
         Nome      = nome,
         OraInizio = oraInizio,
         OraFine   = oraFine

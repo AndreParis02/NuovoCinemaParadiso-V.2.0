@@ -14,9 +14,22 @@ public static class Calcoli
         else
         {
             Decimal prezzoBiglietto = prezzoMovie + prezzoSala;
-            Decimal prezzoScontato = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            Decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            Decimal prezzoScontato = prezzoBiglietto - sconto;
             Decimal prezzoFinale = prezzoScontato * numeroBiglietti;
             return prezzoFinale;
         }
+    }
+
+    public static DateTime? CalcolaScadenzaAbbonamento(DateOnly dataInizio, int durata)
+    {
+       return dataInizio.AddMonths(durata).ToDateTime(TimeOnly.MinValue);
+    }
+
+    public static int GiorniAllaScadenza(DateTime dataInizio, int durata)
+    {
+        DateTime dataScadenza = dataInizio.AddMonths(durata);
+        TimeSpan differenza = dataScadenza - DateTime.Now;
+        return (int)differenza.TotalDays;
     }
 }

@@ -305,8 +305,8 @@ curl -s -X POST "http://localhost:5226/api/Acquisti" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "MovieId": "Id Movie",
-    "SalaId": "Id Sala",
+    "MovieId": "d1319ac1-5b8c-4160-a4de-fc68c2b21651",
+    "SalaId": "0bd99b92-f622-4656-8f3b-8ba533a16524",
     "NumeroBiglietti": 3
 }' | jq
 ```
@@ -398,7 +398,6 @@ curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-
 
 ## Admin Acquisti
 
-// da testare
 ## leggi informazioni Acquisto per id (accesso a tutti gli acquisti di ogni utente) (solo gestore o operatore)
 ```bash
 curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
@@ -416,6 +415,6 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-  "abbonamentoId": "dda6878f-e71c-455f-b8b5-b4cb6b925645"
+  "abbonamentoId": "id abbonamento"
 }'
   ```

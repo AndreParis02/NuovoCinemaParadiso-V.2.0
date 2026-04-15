@@ -61,6 +61,6 @@ public class UtentiController : ControllerBase
             });
 
         return Ok(risultato);
-    }
+    } 
 
 }
