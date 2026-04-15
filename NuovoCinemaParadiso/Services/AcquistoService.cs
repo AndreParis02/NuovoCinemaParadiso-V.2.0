@@ -46,7 +46,7 @@ public class AcquistoService
 
         return risultato;
     }
-
+    
     public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
     {
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
@@ -95,8 +95,6 @@ public class AcquistoService
         Sala sala = await _contesto.Sale.FindAsync(dto.SalaId);
         TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         Utente utente = await _contesto.Utenti.FindAsync(utenteId);
-
-        await _contesto.Entry(utente).Reference("Abbonamento").LoadAsync();
 
         // Calcola il prezzo finale lato server
         decimal prezzoFinale = Calcoli.CalcolaPrezzoFinale(
