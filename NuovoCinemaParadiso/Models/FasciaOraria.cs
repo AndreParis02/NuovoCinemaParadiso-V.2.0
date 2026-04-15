@@ -10,10 +10,10 @@ public class FasciaOraria
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
     [Required]
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     [Required]
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     [StringLength(50)]
     public string Nome { get; set; } = string.Empty; // es: "Sera", "Pomeriggio"

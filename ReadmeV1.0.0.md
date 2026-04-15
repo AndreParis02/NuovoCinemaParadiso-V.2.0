@@ -38,8 +38,8 @@ erDiagram
     }
     FasciaOraria {
         string Id
-        TimeSpan OraInizio
-        TimeSpan OraFine
+        TimeOnly OraInizio
+        TimeOnly OraFine
         string Nome
         List Sale
     }
@@ -167,12 +167,12 @@ public class FasciaOraria
     // Orario di inizio della fascia (es: 14:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia oraria (es: "Pomeriggio", "Sera")
     // Lunghezza massima 50 caratteri
@@ -714,12 +714,12 @@ public class DtoCreazioneFasciaOraria
     // Orario di inizio della fascia (es: 14:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia (es: "Sera", "Pomeriggio")
     // Lunghezza massima 50 caratteri
@@ -901,10 +901,10 @@ public class DtoFasciaOraria
     public string Id { get; set; }
 
     // Orario di inizio della fascia (es: 14:00)
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia (es: "Sera", "Pomeriggio")
     public string Nome { get; set; } = string.Empty;
@@ -1244,8 +1244,8 @@ public static class DataSeeder
         // Inserimento fascia oraria se non esiste già
         await AssicuraEsistenzaFasciaOraria(
             contestoDb,
-            TimeSpan.FromHours(10),
-            TimeSpan.FromHours(13),
+            TimeOnly.FromHours(10),
+            TimeOnly.FromHours(13),
             "Mattina");
     }
 
@@ -1420,8 +1420,8 @@ public static class DataSeeder
     /// </summary>
     private static async Task AssicuraEsistenzaFasciaOraria(
         ContestoDb context,
-        TimeSpan oraInizio,
-        TimeSpan oraFine,
+        TimeOnly oraInizio,
+        TimeOnly oraFine,
         string nome)
     {
         List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();

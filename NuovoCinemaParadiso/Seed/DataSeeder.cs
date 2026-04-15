@@ -55,9 +55,9 @@ public static class DataSeeder
         await AssicuraEsistenzaTipologiaSala(contestoDb,"3D",3);
         await AssicuraEsistenzaTipologiaSala(contestoDb,"IMAX",4);
         
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(10), TimeSpan.FromHours(13),"Mattina");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(13), TimeSpan.FromHours(18),"Pomeriggio");
-        await AssicuraEsistenzaFasciaOraria(contestoDb,TimeSpan.FromHours(18), TimeSpan.FromHours(22),"Sera");
+        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(10), new TimeOnly(13),"Mattina");
+        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(13), new TimeOnly(18),"Pomeriggio");
+        await AssicuraEsistenzaFasciaOraria(contestoDb,new TimeOnly(18), new TimeOnly(22),"Sera");
 
         await AssicuraEsistenzaAbbonamento(contestoDb,"Mensile",70,25,1);
         await AssicuraEsistenzaAbbonamento(contestoDb,"Semestrale",210,50,6);
@@ -195,7 +195,7 @@ public static class DataSeeder
 
   private static async Task AssicuraEsistenzaFasciaOraria(
    ContestoDb context,
-   TimeSpan oraInizio, TimeSpan oraFine, string nome)
+   TimeOnly oraInizio, TimeOnly oraFine, string nome)
    {
     List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();
     for (int i = 0; i < fasceOrarie.Count; i++)
