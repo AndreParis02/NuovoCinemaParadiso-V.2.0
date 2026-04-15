@@ -364,7 +364,7 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DataInizio")
+                    b.Property<DateTime>("DataInizioAbbonamento")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")

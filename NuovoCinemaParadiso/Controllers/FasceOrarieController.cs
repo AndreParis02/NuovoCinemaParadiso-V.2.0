@@ -71,13 +71,12 @@ public class FasciaOrariaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneFasciaOraria dto)
     {
-        DtoFasciaOraria? risultato = await _fasciaOrariaService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         List<DtoFasciaOraria> fasceOrarie = await _fasciaOrariaService.OttieniTuttoAsync();
 
         foreach (var fasciaOraria in fasceOrarie)
         {
-            if (fasciaOraria.Nome.Contains(risultato.Nome))
+            if (fasciaOraria.Nome.Contains(dto.Nome))
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
@@ -90,6 +89,8 @@ public class FasciaOrariaController : ControllerBase
                 return BadRequest(new { messaggio = "Fascia oraria già presente." });
             }
         }
+        
+        DtoFasciaOraria? risultato = await _fasciaOrariaService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
