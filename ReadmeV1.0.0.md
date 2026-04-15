@@ -33,13 +33,13 @@ erDiagram
         string UtenteId
         Utente Utente
         int NumeroBiglietti
-        DateTime OrarioCreazione
+        DateTimeOffset OrarioCreazione
         decimal PrezzoFinale
     }
     FasciaOraria {
         string Id
-        TimeSpan OraInizio
-        TimeSpan OraFine
+        TimeOnly OraInizio
+        TimeOnly OraFine
         string Nome
         List Sale
     }
@@ -137,7 +137,7 @@ public class Acquisto
 
     // Data e ora in cui è stato creato l'acquisto
     // Impostato automaticamente all'ora UTC corrente
-    public DateTime OrarioCreazione { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
 
     // Prezzo finale Acquisto tenendo conto del prezzo del film,
     // maggiorazione prezzo della tipologia sala e il numero di biglietti 
@@ -167,12 +167,12 @@ public class FasciaOraria
     // Orario di inizio della fascia (es: 14:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia oraria (es: "Pomeriggio", "Sera")
     // Lunghezza massima 50 caratteri
@@ -242,7 +242,7 @@ public class LogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora in cui è stata registrata l'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -520,7 +520,7 @@ public class JwtHelper
             issuer: issuer,          // Chi ha generato il token
             audience: audience,      // Chi può usare il token
             claims: claims,          // Informazioni contenute nel token
-            expires: DateTime.UtcNow.AddHours(1), // Scadenza del token
+            expires: DateTimeOffset.UtcNow.AddHours(1), // Scadenza del token
             signingCredentials: credentials        // Firma del token
         );
 
@@ -630,7 +630,7 @@ public class DtoAcquisto
     public decimal PrezzoFinale { get; set; }
 
     // Data e ora in cui è stato creato l'acquisto
-    public DateTime OrarioCreazione { get; set; }
+    public DateTimeOffset OrarioCreazione { get; set; }
 
     // Numero biglietti acquistati dall'utente
     public int NumeroBiglietti {get;set;}
@@ -714,12 +714,12 @@ public class DtoCreazioneFasciaOraria
     // Orario di inizio della fascia (es: 14:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
     // Campo obbligatorio
     [Required]
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia (es: "Sera", "Pomeriggio")
     // Lunghezza massima 50 caratteri
@@ -771,7 +771,7 @@ public class DtoCreazioneLogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora dell'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -901,10 +901,10 @@ public class DtoFasciaOraria
     public string Id { get; set; }
 
     // Orario di inizio della fascia (es: 14:00)
-    public TimeSpan OraInizio { get; set; }
+    public TimeOnly OraInizio { get; set; }
 
     // Orario di fine della fascia (es: 18:00)
-    public TimeSpan OraFine { get; set; }
+    public TimeOnly OraFine { get; set; }
 
     // Nome descrittivo della fascia (es: "Sera", "Pomeriggio")
     public string Nome { get; set; } = string.Empty;
@@ -952,7 +952,7 @@ public class DtoLogAzioni
     public string Messaggio { get; set; } = string.Empty;
 
     // Data e ora in cui è avvenuta l'azione
-    public DateTime TimeStamp { get; set; }
+    public DateTimeOffset TimeStamp { get; set; }
 }
 ```
 
@@ -1244,8 +1244,8 @@ public static class DataSeeder
         // Inserimento fascia oraria se non esiste già
         await AssicuraEsistenzaFasciaOraria(
             contestoDb,
-            TimeSpan.FromHours(10),
-            TimeSpan.FromHours(13),
+            TimeOnly.FromHours(10),
+            TimeOnly.FromHours(13),
             "Mattina");
     }
 
@@ -1420,8 +1420,8 @@ public static class DataSeeder
     /// </summary>
     private static async Task AssicuraEsistenzaFasciaOraria(
         ContestoDb context,
-        TimeSpan oraInizio,
-        TimeSpan oraFine,
+        TimeOnly oraInizio,
+        TimeOnly oraFine,
         string nome)
     {
         List<FasciaOraria> fasceOrarie = await context.FasceOrarie.ToListAsync();
@@ -3400,7 +3400,7 @@ public class AcquistoService
             UtenteId = utenteId,
             NumeroBiglietti = dto.NumeroBiglietti,
             PrezzoFinale = prezzoFinale,
-            OrarioCreazione = DateTime.UtcNow
+            OrarioCreazione = DateTimeOffset.UtcNow
         };
 
         _contesto.Acquisti.Add(acquisto);
@@ -3983,7 +3983,7 @@ public class LogAzioniService
             NomeAzione = dto.NomeAzione,
             Effettuato = dto.Effettuato,
             Messaggio = dto.Messaggio,
-            TimeStamp = DateTime.UtcNow
+            TimeStamp = DateTimeOffsetOffset.UtcNow
         };
 
         // Inserimento nel DB

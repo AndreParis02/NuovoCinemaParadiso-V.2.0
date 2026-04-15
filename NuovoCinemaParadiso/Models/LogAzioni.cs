@@ -16,5 +16,5 @@ public class LogAzioni
 
     public string Messaggio {get;set;} = string.Empty;
 
-    public DateTime TimeStamp {get;set;}
+    public DateTimeOffset TimeStamp {get;set;}
 }

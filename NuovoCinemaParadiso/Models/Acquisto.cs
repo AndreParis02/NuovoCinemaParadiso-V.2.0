@@ -29,7 +29,7 @@ public class Acquisto
 
     [Required]
     public int NumeroBiglietti {get;set;}
-    public DateTime OrarioCreazione { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
     [Required]
     public decimal PrezzoFinale {get; set;}
 }

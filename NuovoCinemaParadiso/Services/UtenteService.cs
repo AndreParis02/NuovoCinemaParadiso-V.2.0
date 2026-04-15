@@ -47,7 +47,7 @@ public class UtenteService
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
         utenteTrovato.SeAbbonato = true;
-        utenteTrovato.DataInizioAbbonamento = DateTime.UtcNow;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
         await _contesto.SaveChangesAsync();
 
         return new DtoUtente()

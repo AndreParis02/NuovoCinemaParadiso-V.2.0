@@ -113,7 +113,7 @@ public class AcquistoService
         acquisto.UtenteId = utenteId;
         acquisto.NumeroBiglietti = dto.NumeroBiglietti;
         acquisto.PrezzoFinale = prezzoFinale;
-        acquisto.OrarioCreazione = DateTime.UtcNow;
+        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
 
         // Salva nel DB
         _contesto.Acquisti.Add(acquisto);

@@ -484,7 +484,7 @@ public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
         abbonamento.Nome = dto.Nome;
 
         // Imposta la data di inizio come UTC corrente
-        abbonamento.DataInizio = DateTime.UtcNow;
+        abbonamento.DataInizio = DateTimeOffset.UtcNow;
 
         // Durata dell'abbonamento
         abbonamento.Durata = dto.Durata;
@@ -614,7 +614,7 @@ public class Utente : IdentityUser
     [Required]
     public bool SeAbbonato { get; set; } = false;
 
-    public DateTime DataInizio { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset DataInizio { get; set; } = DateTimeOffset.UtcNow;
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
     public string AbbonamentoId { get; set; } = string.Empty;
@@ -633,7 +633,7 @@ public class DtoUtente
 {
     public string Id { get; set; } = string.Empty;
     public string NomeCompleto { get; set; } = string.Empty;
-    public DateTime DataInizio {get; set;}
+    public DateTimeOffset DataInizio {get; set;}
     public bool Abbonato {get; set;}
     public string Email { get; set; } = string.Empty;
     public int Eta { get; set; }
@@ -787,7 +787,7 @@ public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId
     // 7. Aggiorno i campi dell'utente per segnare l'abbonamento.
     utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
     utenteTrovato.SeAbbonato = true;
-    utenteTrovato.DataInizio = DateTime.UtcNow;
+    utenteTrovato.DataInizio = DateTimeOffset.UtcNow;
 
     // 8. Salvo le modifiche nel database.
     await _contesto.SaveChangesAsync();
