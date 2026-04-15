@@ -11,8 +11,8 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260414104232_primaMigrazione")]
-    partial class primaMigrazione
+    [Migration("20260415072854_test")]
+    partial class test
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -367,7 +367,7 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DataInizio")
+                    b.Property<DateTime>("DataInizioAbbonamento")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")

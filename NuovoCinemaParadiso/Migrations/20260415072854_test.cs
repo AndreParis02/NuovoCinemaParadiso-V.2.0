@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class primaMigrazione : Migration
+    public partial class test : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -103,7 +103,7 @@ namespace NuovoCinemaParadiso.Migrations
                     NomeCompleto = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Eta = table.Column<int>(type: "INTEGER", nullable: false),
                     SeAbbonato = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DataInizio = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    DataInizioAbbonamento = table.Column<DateTime>(type: "TEXT", nullable: false),
                     AbbonamentoId = table.Column<string>(type: "TEXT", nullable: true),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),

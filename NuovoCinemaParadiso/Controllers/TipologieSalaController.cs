@@ -72,13 +72,12 @@ public class TipologieSalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
     {
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
         
         foreach (var tipologiaSala in tipologieSala)
         {
-            if (tipologiaSala.Nome.Contains(risultato.Nome))
+            if (tipologiaSala.Nome.Contains(dto.Nome))
             {
                     await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                     {
@@ -91,6 +90,8 @@ public class TipologieSalaController : ControllerBase
                 return BadRequest(new { messaggio = "Tipologia sala già presente." });
             }
         }
+
+        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
