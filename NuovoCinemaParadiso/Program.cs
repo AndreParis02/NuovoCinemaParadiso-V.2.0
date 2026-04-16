@@ -84,6 +84,7 @@ builder.Services.AddScoped<LogAzioniService>();
 builder.Services.AddScoped<UtenteService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<AbbonamentoService>();
+builder.Services.AddScoped<ProiezioneService>();
 
 
 var app = builder.Build();
