@@ -120,6 +120,68 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
+## DtoAcquisto
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoAcquisto
+{
+    // Identificativo univoco dell'acquisto (GUID o stringa generata dal DB)
+    public string Id { get; set; }
+
+    // Identificativo della proiezione associata all'acquisto
+    // Serve per collegare l'acquisto alla proiezione scelta dall'utente
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    // Identificativo dell'utente che ha effettuato l'acquisto
+    public string UtenteId { get; set; } = string.Empty;
+
+    // Prezzo finale calcolato (prezzo base + maggiorazioni * numero biglietti)
+    public decimal PrezzoFinale { get; set; }
+
+    // Timestamp di creazione dell'acquisto
+    // Usare DateTimeOffset garantisce correttezza rispetto ai fusi orari
+    public DateTimeOffset OrarioCreazione { get; set; }
+
+    // Numero di biglietti acquistati in questa transazione
+    public int NumeroBiglietti { get; set; }
+}
+```
+
+## DtoCreazioneAcquisto
+
+```c#
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoCreazioneAcquisto
+{
+    // Identificativo della proiezione scelta dall'utente.
+    // È obbligatorio perché l'acquisto deve sempre riferirsi a una proiezione valida.
+    [Required]
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    // Identificativo dell'utente che effettua l'acquisto.
+    // Viene passato dal client, ma nel controller puoi anche sovrascriverlo
+    // con l'utente autenticato per maggiore sicurezza.
+    [Required]
+    public string? UtenteId { get; set; } = string.Empty;
+
+    // Numero di biglietti acquistati.
+    // Deve essere >= 1, ma questo controllo può essere aggiunto con [Range].
+    [Required]
+    public int NumeroBiglietti { get; set; }
+
+    // Prezzo finale calcolato lato server.
+    // Nota: spesso NON si fa passare dal client per evitare manipolazioni,
+    // ma si ricalcola nel backend usando i dati della proiezione.
+    [Required]
+    public decimal PrezzoFinale { get; set; }
+}
+```
+
 ## DtoCreazioneProiezione.cs
 ```c#
 // DTO utilizzato per la creazione di una nuova proiezione.
@@ -906,7 +968,15 @@ public async Task<bool> EliminazioneAsync(string id)
 ```
 
 # Models
+
+## Acquisto.cs
+
+```c#
+
+```
+
 ## Utente.cs
+
 ```c#
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
@@ -937,7 +1007,9 @@ public class Utente : IdentityUser
 ```
 
 # Dtos
+
 ## DtoUtente.cs
+
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
 
@@ -955,6 +1027,7 @@ public class DtoUtente
 ```
 
 ## DtoCreazioneUtente.cs
+
 ```c#
 using System.ComponentModel.DataAnnotations;
 
@@ -973,7 +1046,9 @@ public class DtoCreazioneUtente
 ```
 
 # Controller
+
 ## UtentiController.cs
+
 ```c#
 [ApiController]
 [Route("api/[controller]")]
@@ -1045,11 +1120,12 @@ public class UtentiController : ControllerBase
         return Ok(risultato);
     }
 }
-
 ```
 
 # Service
+
 ## UtenteService.cs
+
 ```c#
 public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
 {
@@ -1120,6 +1196,7 @@ public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId
 ```
 
 # Controllers
+
 ## AdminController.cs 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -1377,7 +1454,225 @@ public class AdminController : ControllerBase
 ```
 
 # Services
+
+## AcquistoService.cs
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class AcquistoService
+{
+    private readonly ContestoDb _contesto;
+
+    public AcquistoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // Restituisce tutti gli acquisti dell'utente specificato
+    public async Task<List<DtoAcquisto>> OttieniTutto(string utenteId)
+    {
+        // Recupera tutti gli acquisti dal DB
+        // NOTA: qui si genera un potenziale N+1 perché poi carichi altre entità una per una
+        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
+
+        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
+
+        for (int i = 0; i < acquisti.Count; i++)
+        {
+            Acquisto acquistoCorrente = acquisti[i];
+
+            // Carica l'utente associato all'acquisto
+            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
+
+            // Carica la proiezione collegata
+            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+
+            // Carica il film della proiezione
+            Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+
+            // Carica la sala della proiezione
+            Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+
+            // Carica la tipologia della sala (per maggiorazioni)
+            TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+            // Filtra solo gli acquisti dell'utente richiesto
+            if (acquistoCorrente.UtenteId == utenteId)
+            {
+                DtoAcquisto dto = new DtoAcquisto();
+                dto.Id = acquistoCorrente.Id;
+                dto.ProiezioneId = acquistoCorrente.ProiezioneId;
+
+                // Calcolo del prezzo finale basato su film, sala e numero biglietti
+                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                    movie.PrezzoMovie,
+                    tipologiaSala.MaggiorazionePrezzo,
+                    acquistoCorrente.NumeroBiglietti,
+                    utente
+                );
+
+                dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
+                dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+
+                risultato.Add(dto);
+            }
+        }
+
+        return risultato;
+    }
+
+    // Restituisce un singolo acquisto tramite ID, solo se appartiene all'utente
+    public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupera l'acquisto
+        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
+
+        // Carica entità correlate
+        Utente? utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Se non esiste → null
+        if (acquisto == null)
+        {
+            return null;
+        }
+
+        // Se l'acquisto non appartiene all'utente → null
+        if (acquisto.UtenteId != utenteId)
+        {
+            return null;
+        }
+
+        // Mappa in DTO
+        DtoAcquisto dto = new DtoAcquisto();
+        dto.Id = acquisto.Id;
+        dto.ProiezioneId = acquisto.ProiezioneId;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            acquisto.NumeroBiglietti,
+            utente
+        );
+        dto.OrarioCreazione = acquisto.OrarioCreazione;
+        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+
+        return dto;
+    }
+
+    // Crea un nuovo acquisto
+    public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
+    {
+        // Carica tutte le entità necessarie per il calcolo del prezzo
+        Utente utente = await _contesto.Utenti.FindAsync(utenteId);
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Crea l'entità Acquisto
+        Acquisto acquisto = new Acquisto();
+        acquisto.UtenteId = utenteId;
+        acquisto.ProiezioneId = proiezione.Id;
+        acquisto.NumeroBiglietti = dto.NumeroBiglietti;
+
+        // Calcolo del prezzo finale lato server (sicuro)
+        acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            dto.NumeroBiglietti,
+            utente
+        );
+
+        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
+
+        // Salvataggio nel DB
+        _contesto.Acquisti.Add(acquisto);
+        await _contesto.SaveChangesAsync();
+
+        // Mappa in DTO da restituire
+        DtoAcquisto risultato = new DtoAcquisto();
+        risultato.Id = acquisto.Id;
+        risultato.ProiezioneId = acquisto.ProiezioneId;
+        risultato.UtenteId = acquisto.UtenteId;
+        risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
+        risultato.PrezzoFinale = acquisto.PrezzoFinale;
+        risultato.OrarioCreazione = acquisto.OrarioCreazione;
+
+        return risultato;
+    }
+
+    // Modifica un acquisto esistente
+    public async Task<DtoAcquisto?> ModificaAsync(string id, DtoCreazioneAcquisto dto)
+    {
+        // Recupera l'acquisto da modificare
+        Acquisto? acquistoEsistente = await _contesto.Acquisti.FindAsync(id);
+
+        // Aggiorna numero biglietti
+        acquistoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
+
+        // Carica entità correlate aggiornate
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Utente? utente = await _contesto.Utenti.FindAsync(acquistoEsistente.UtenteId);
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Ricalcola il prezzo finale
+        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            acquistoEsistente.NumeroBiglietti,
+            utente
+        );
+
+        await _contesto.SaveChangesAsync();
+
+        // Mappa in DTO
+        DtoAcquisto risultato = new DtoAcquisto
+        {
+            Id = acquistoEsistente.Id,
+            UtenteId = acquistoEsistente.UtenteId,
+            ProiezioneId = acquistoEsistente.ProiezioneId,
+            NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
+            PrezzoFinale = acquistoEsistente.PrezzoFinale,
+            OrarioCreazione = acquistoEsistente.OrarioCreazione
+        };
+
+        return risultato;
+    }
+
+    // Elimina un acquisto
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        // Recupera l'acquisto
+        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
+
+        if (acquisto == null)
+        {
+            return false;
+        }
+
+        // Rimuove e salva
+        _contesto.Acquisti.Remove(acquisto);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
 ## AdminService.cs
+
 ```c#
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -1615,11 +1910,6 @@ public class AdminService
 }
 
 ```
-
-
-
-
-
 
 # Helpers
 
