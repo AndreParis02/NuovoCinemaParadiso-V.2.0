@@ -140,7 +140,7 @@ public class DtoCreazioneProiezione
     public string TurnoId { get; set; } = string.Empty;
 
     // Data della proiezione.
-    // Usi DateOnly perché ti interessa solo la data, non l'orario.
+    // Usi DateOnly perché ti interessa solo la data, non l'orario
     public DateOnly DataProiezione { get; set; }
 }
 ```
