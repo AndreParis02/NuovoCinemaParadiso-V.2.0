@@ -49,6 +49,78 @@ public class Abbonamento
 }
 ```
 
+## Proiezione.cs
+```c#
+[Table("Proiezioni")]
+public class Proiezione
+{
+    // Identificativo univoco della proiezione (stringa perché usi GUID).
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    // Data in cui avviene la proiezione (solo data, niente orario).
+    [Required]
+    public DateOnly DataProiezione { get; set; }
+
+    // Riferimento al film proiettato.
+    [Required]
+    public string MovieId { get; set; } = string.Empty;
+
+    // Navigazione verso il film.
+    [ForeignKey("MovieId")]
+    public Movie Movie { get; set; }
+
+    // Riferimento alla sala in cui avviene la proiezione.
+    [Required]
+    public string SalaId { get; set; } = string.Empty;
+
+    // Navigazione verso la sala.
+    [ForeignKey("SalaId")]
+    public Sala Sala { get; set; }
+
+    // Riferimento al turno (fascia oraria).
+    [Required]
+    public string TurnoId { get; set; } = string.Empty;
+
+    // Navigazione verso il turno.
+    [ForeignKey("TurnoId")]
+    public Utente Turno { get; set; }
+}
+```
+
+## Utente.cs
+```c#
+[Table("Utente")]
+public class Utente : IdentityUser
+{
+    // Nome completo dell’utente (obbligatorio, max 100 caratteri).
+    [Required]
+    [StringLength(100)]
+    public string NomeCompleto { get; set; } = string.Empty;
+
+    // Età dell’utente con vincolo minimo e massimo.
+    [Required]
+    [Range(14, 100)]
+    public int Eta { get; set; }
+
+    // Indica se l’utente ha un abbonamento attivo.
+    [Required]
+    public bool SeAbbonato { get; set; } = false;
+
+    // Data di inizio dell’abbonamento (se presente).
+    public DateTimeOffset DataInizioAbbonamento { get; set; }
+
+    // Acquisti associati all’utente.
+    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
+
+    // Riferimento all’abbonamento (può essere nullo).
+    public string? AbbonamentoId { get; set; }
+
+    // Navigazione verso l’entità Abbonamento.
+    [ForeignKey("AbbonamentoId")]
+    public Abbonamento? Abbonamento { get; set; }
+}
+```
 # Dtos
 
 ## DtoAbbonamento.cs
@@ -144,275 +216,46 @@ public class DtoCreazioneProiezione
     public DateOnly DataProiezione { get; set; }
 }
 ```
+## DtoUtente.cs
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoUtente
+{
+    public string Id { get; set; } = string.Empty;
+    public string NomeCompleto { get; set; } = string.Empty;
+    public DateTimeOffset DataInizio {get; set;}
+    public bool Abbonato {get; set;}
+    public string Email { get; set; } = string.Empty;
+    public int Eta { get; set; }
+     public string AbbonamentoId {get; set;} = string.Empty;
+    public string TipoAbbonamento {get; set;} = string.Empty;
+} 
+```
+## DtoCreazioneUtente.cs
+```c#
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoCreazioneUtente
+{
+    [Required]
+    [StringLength(100)]
+    public string NomeCompleto {get; set;} = string.Empty;
+    
+    [Required]
+    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
+    public int Eta {get; set;} 
+}
+```
+
+
 
 
 
 # Controllers
 
-
-## ProiezioneController.cs
-
-```c#
-// Controller API per la gestione delle proiezioni
-[ApiController]
-[Route("api/[controller]")]
-[Authorize] // Richiede autenticazione per tutti gli endpoint
-public class ProiezioneController : ControllerBase
-{
-    // Servizi iniettati tramite Dependency Injection
-    private readonly ProiezioneService _proiezioneService;
-    private readonly LogAzioniService _logAzioniService;
-
-    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
-    {
-        _proiezioneService = proiezioneService;
-        _logAzioniService = logAzioniService;
-    }
-
-    // GET: api/proiezione
-    // Restituisce tutte le proiezioni
-    [HttpGet]
-    public async Task<IActionResult> OttieniTutteLeProiezioni()
-    {
-        // Recupero tutte le proiezioni
-        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-
-        // Recupero ID utente autenticato
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Log dell'operazione
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le proiezioni",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(proiezioni);
-    }
-
-    //  GET: api/proiezione/{id}
-    // Restituisce una proiezione tramite ID
-    [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteId(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Chiamata al service
-        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
-
-        // Se non trovata → 404
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezione tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound($"Proiezione con id {id} non trovato");
-        }
-
-        // Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezione tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    //  GET: api/proiezione/turno/{turnoId}
-    // Restituisce tutte le proiezioni per un turno specifico
-    [HttpGet("turno/{turnoId}")]
-    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Validazione input
-        if (turnoId == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest("TurnoId non valido");
-        }
-
-        // Recupero dati
-        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
-
-        // Nessun risultato trovato
-        if (risultato == null || risultato.Count == 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound("Nessuna proiezione trovata per questo turno");
-        }
-
-        // Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    //  POST: api/proiezione
-    // Crea una nuova proiezione
-    [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)] // Solo ruoli autorizzati
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Recupero tutte le proiezioni (per controllo duplicati)
-        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-
-        // Controllo duplicati: stessa sala, turno e data
-        foreach (var proiezione in proiezioni)
-        {
-            if (proiezione.TurnoId == dto.TurnoId &&
-                proiezione.SalaId == dto.SalaId &&
-                proiezione.DataProiezione == dto.DataProiezione)
-            {
-                // Log fallimento
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione movie",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
-
-                return BadRequest(new { messaggio = "Proiezione già presente." });
-            }
-        }
-
-        // Creazione proiezione
-        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
-
-        // Se fallisce
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest(new { messaggio = "Proiezione non valida." });
-        }
-
-        // Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    // PUT: api/proiezione/{id}
-    // Modifica una proiezione esistente
-    [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Chiamata al service
-        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
-
-        // Se non trovata
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound(new { messaggio = "Proiezione non trovata." });
-        }
-
-        // Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    // DELETE: api/proiezione/{id}
-    // Elimina una proiezione
-    [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Elimina(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Tentativo eliminazione
-        bool eliminato = await _proiezioneService.EliminaAsync(id);
-
-        // Se fallisce
-        if (!eliminato)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound(new { messaggio = "Proiezione non trovato." });
-        }
-
-        // Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return NoContent();
-    }
-}
-```
 ## AbbonamentiController.cs
 
 ```c#
@@ -670,309 +513,6 @@ public class AbbonamentiController : ControllerBase
     }
 }
 ```
-
-# Service
-
-## Services/AbbonamentoService.cs
-
-```c#
-using System.Runtime.CompilerServices;
-using Microsoft.EntityFrameworkCore;
-using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
-
-namespace NuovoCinemaParadiso.Services;
-
-// Service responsabile della gestione CRUD degli abbonamenti.
-// Utilizza il ContestoDb per interagire con il database.
-public class AbbonamentoService
-{
-    private readonly ContestoDb _contesto;
-
-    // Iniezione del DbContext tramite dependency injection
-    public AbbonamentoService(ContestoDb contesto)
-    {
-        _contesto = contesto;
-    }
-
-    public async Task<List<DtoAbbonamento>> OttieniTutto()
-{
-    // 1. Recupero tutti gli abbonamenti dal database.
-    //    ToListAsync() esegue la query e restituisce una lista completa.
-    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-
-    // 2. Creo la lista che conterrà i DTO da restituire al chiamante.
-    List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
-
-    // 3. Ciclo manualmente su ogni elemento della lista di modelli.
-    //    Questo approccio è trasparente e ti permette di controllare ogni passaggio.
-    for (int i = 0; i < abbonamenti.Count; i++)
-    {
-        // Estraggo l'abbonamento corrente
-        Abbonamento abbonamentoCorrente = abbonamenti[i];
-
-        // 4. Creo un nuovo DTO e copio manualmente ogni proprietà.
-        //    Questo evita automapper, LINQ o magie nascoste.
-        DtoAbbonamento dto = new DtoAbbonamento();
-        dto.Id = abbonamentoCorrente.Id;
-        dto.Nome = abbonamentoCorrente.Nome;
-        dto.Durata = abbonamentoCorrente.Durata;
-        dto.Prezzo = abbonamentoCorrente.Prezzo;
-        dto.Sconto = abbonamentoCorrente.Sconto;
-
-        // 5. Aggiungo il DTO alla lista finale.
-        risultato.Add(dto);
-    }
-
-    // 6. Restituisco la lista completa dei DTO.
-    return risultato;
-}
-
-public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
-{
-    // 1. Cerco nel database l'abbonamento con la chiave primaria uguale a 'id'.
-    //    FindAsync usa direttamente la chiave primaria e quindi è molto efficiente.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Questo permette al chiamante di gestire il "non trovato".
-    if (abbonamento == null)
-    {
-        return null;
-    }
-
-    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà rilevanti.
-    //    Questo evita automapper, LINQ o logiche implicite.
-    DtoAbbonamento risultato = new DtoAbbonamento();
-    risultato.Id = abbonamento.Id;
-    risultato.Nome = abbonamento.Nome;
-    risultato.Durata = abbonamento.Durata;
-    risultato.Prezzo = abbonamento.Prezzo;
-    risultato.Sconto = abbonamento.Sconto;
-
-    // 4. Restituisco il DTO completamente popolato.
-    return risultato;
-}
-
-public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Il metodo è dichiarato come Task<DtoAbbonamento>, ma restituisce null:
-    //    tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
-    if (abbonamento == null)
-    {
-        return null;
-    }
-
-    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà.
-    //    Questo garantisce massima trasparenza e nessuna magia nascosta.
-    DtoAbbonamento dto = new DtoAbbonamento();
-    dto.Id = abbonamento.Id;
-    dto.Nome = abbonamento.Nome;
-    dto.Durata = abbonamento.Durata;
-    dto.Prezzo = abbonamento.Prezzo;
-    dto.Sconto = abbonamento.Sconto;
-
-    // 4. Restituisco il DTO popolato.
-    return dto;
-}
-
-// Metodo per creare un nuovo abbonamento nel database
-    public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
-    {
-        // Creazione dell'entità Abbonamento da salvare nel DB
-        Abbonamento abbonamento = new Abbonamento();
-
-        // ⚠️ ATTENZIONE: dto.Id NON ESISTE nel DTO che mi hai mandato
-        // Questo assegnamento causerà errore di compilazione
-        abbonamento.Id = dto.Id;
-
-        // Nome dell'abbonamento
-        abbonamento.Nome = dto.Nome;
-
-        // Imposta la data di inizio come UTC corrente
-        abbonamento.DataInizio = DateTimeOffset.UtcNow;
-
-        // Durata dell'abbonamento
-        abbonamento.Durata = dto.Durata;
-
-        // Data di fine (inviata dal client)
-        abbonamento.DataFine = dto.DataFine;
-
-        // Prezzo dell'abbonamento
-        abbonamento.Prezzo = dto.Prezzo;
-
-        // Percentuale di sconto
-        abbonamento.Sconto = dto.Sconto;
-
-        // Aggiunge l'abbonamento al contesto EF
-        _contesto.Abbonamenti.Add(abbonamento);
-
-        // Salva le modifiche nel database
-        await _contesto.SaveChangesAsync();
-
-        // Creazione del DTO di risposta
-        DtoAbbonamento risultato = new DtoAbbonamento();
-
-        // Id generato
-        risultato.Id = abbonamento.Id;
-
-        // ⚠️ ERRORE: NomeAzione NON ESISTE nel model Abbonamento
-        risultato.Nome = abbonamento.NomeAzione;
-
-        // Converte la data in locale per il client
-        risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
-
-        // Durata
-        risultato.Durata = abbonamento.Durata;
-
-        // Calcolo della data di fine (qui viene ignorato DataFine del DB)
-        risultato.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
-
-        // Prezzo
-        risultato.Prezzo = abbonamento.Prezzo;
-
-        // Sconto
-        risultato.Sconto = abbonamento.Sconto;
-
-        return risultato;
-    }
-
-    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Nota: il metodo ritorna Task<DtoAbbonamento>, ma qui ritorni null.
-    //    Tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
-    if (abbonamento == null)
-        return null;
-
-    // 3. Aggiorno manualmente ogni proprietà dell'entità.
-    //    Questo approccio è chiaro, esplicito e ti permette di controllare
-    //    esattamente cosa viene modificato.
-    abbonamento.Nome    = dto.Nome;
-    abbonamento.Durata  = dto.Durata;
-    abbonamento.Prezzo  = dto.Prezzo;
-    abbonamento.Sconto  = dto.Sconto;
-
-    // 4. Salvo le modifiche nel database.
-    //    SaveChangesAsync applica gli aggiornamenti all'entità tracciata.
-    await _contesto.SaveChangesAsync();
-
-    // 5. Creo e restituisco un DTO aggiornato.
-    //    Questo evita di esporre direttamente il modello EF.
-    return new DtoAbbonamento
-    {
-        Id     = abbonamento.Id,
-        Nome   = abbonamento.Nome,
-        Durata = abbonamento.Durata,
-        Prezzo = abbonamento.Prezzo,
-        Sconto = abbonamento.Sconto,
-    };
-}
-
-public async Task<bool> EliminazioneAsync(string id)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco false.
-    //    Questo indica al chiamante che non c'era nulla da eliminare.
-    if (abbonamento == null)
-    {
-        return false;
-    }
-
-    // 3. Rimuovo l'entità dal DbSet.
-    //    EF Core la marca come "Deleted" nel ChangeTracker.
-    _contesto.Abbonamenti.Remove(abbonamento);
-
-    // 4. Applico le modifiche al database.
-    await _contesto.SaveChangesAsync();
-
-    // 5. Restituisco true per indicare che l'eliminazione è avvenuta con successo.
-    return true;
-}
-}
-```
-
-# Models
-## Utente.cs
-```c#
-using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace NuovoCinemaParadiso.Models;
-
-[Table("Utente")]
-public class Utente : IdentityUser
-{
-    [Required]
-    [StringLength(100)]
-    public string NomeCompleto { get; set; } = string.Empty;
-    [Required]
-    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
-    public int Eta { get; set; }
-    [Required]
-    public bool SeAbbonato { get; set; } = false;
-
-    public DateTimeOffset DataInizio { get; set; } = DateTimeOffset.UtcNow;
-    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
-
-    public string AbbonamentoId { get; set; } = string.Empty;
-    [ForeignKey("AbbonamentoId")]
-    public Abbonamento Abbonamento { get; set; }
-}
-
-```
-
-# Dtos
-## DtoUtente.cs
-```c#
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoUtente
-{
-    public string Id { get; set; } = string.Empty;
-    public string NomeCompleto { get; set; } = string.Empty;
-    public DateTimeOffset DataInizio {get; set;}
-    public bool Abbonato {get; set;}
-    public string Email { get; set; } = string.Empty;
-    public int Eta { get; set; }
-     public string AbbonamentoId {get; set;} = string.Empty;
-    public string TipoAbbonamento {get; set;} = string.Empty;
-} 
-```
-
-## DtoCreazioneUtente.cs
-```c#
-using System.ComponentModel.DataAnnotations;
-
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoCreazioneUtente
-{
-    [Required]
-    [StringLength(100)]
-    public string NomeCompleto {get; set;} = string.Empty;
-    
-    [Required]
-    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
-    public int Eta {get; set;} 
-}
-```
-
-# Controller
 ## UtentiController.cs
 ```c#
 [ApiController]
@@ -1047,79 +587,6 @@ public class UtentiController : ControllerBase
 }
 
 ```
-
-# Service
-## UtenteService.cs
-```c#
-public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
-{
-    // 1. Recupero tutti gli abbonamenti dal database.
-    //    Non usi LINQ, quindi fai un ToListAsync e poi cerchi manualmente.
-    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-    Abbonamento? abbonamentoTrovato = null;
-
-    // 2. Ciclo manuale per trovare l'abbonamento con l'ID richiesto.
-    for (int i = 0; i < abbonamenti.Count; i++)
-    {
-        Abbonamento abbonamentoCorrente = abbonamenti[i];
-
-        if (abbonamentoCorrente.Id == abbonamentoId)
-        {
-            abbonamentoTrovato = abbonamentoCorrente;
-            break; // appena trovato, esco dal ciclo
-        }
-    }
-
-    // 3. Se non ho trovato l'abbonamento, interrompo e restituisco null.
-    if (abbonamentoTrovato == null)
-    {
-        return null;
-    }
-
-    // 4. Recupero tutti gli utenti dal database.
-    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-    Utente? utenteTrovato = null;
-
-    // 5. Ciclo manuale per trovare l'utente con l'ID richiesto.
-    for (int i = 0; i < utenti.Count; i++)
-    {
-        if (utenti[i].Id == utenteId)
-        {
-            utenteTrovato = utenti[i];
-            break;
-        }
-    }
-
-    // 6. Se l'utente non esiste, restituisco null.
-    if (utenteTrovato == null)
-    {
-        return null;
-    }
-
-    // 7. Aggiorno i campi dell'utente per segnare l'abbonamento.
-    utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
-    utenteTrovato.SeAbbonato = true;
-    utenteTrovato.DataInizio = DateTimeOffset.UtcNow;
-
-    // 8. Salvo le modifiche nel database.
-    await _contesto.SaveChangesAsync();
-
-    // 9. Restituisco un DTO completo dell'utente aggiornato.
-    return new DtoUtente()
-    {
-        Id = utenteTrovato.Id,
-        NomeCompleto = utenteTrovato.NomeCompleto,
-        Email = utenteTrovato.Email,
-        Eta = utenteTrovato.Eta,
-        Abbonato = utenteTrovato.SeAbbonato,
-        DataInizio = utenteTrovato.DataInizio,
-        AbbonamentoId = utenteTrovato.AbbonamentoId,
-        TipoAbbonamento = abbonamentoTrovato.Nome
-    };
-}
-```
-
-# Controllers
 ## AdminController.cs 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -1375,8 +842,459 @@ public class AdminController : ControllerBase
     }
 }
 ```
+## ProiezioneController.cs
+```c#
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class ProiezioneController : ControllerBase
+{
+    // Servizi principali: gestione proiezioni e logging azioni.
+    private readonly ProiezioneService _proiezioneService;
+    private readonly LogAzioniService _logAzioniService;
 
-# Services
+    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
+    {
+        _proiezioneService = proiezioneService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Restituisce tutte le proiezioni presenti nel sistema.
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutte le proiezioni",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(proiezioni);
+    }
+
+    // Restituisce una singola proiezione tramite ID.
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezione tramite id",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Proiezione con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezione tramite id",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Restituisce tutte le proiezioni associate a un turno specifico.
+    [HttpGet("turno/{turnoId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (turnoId == null)
+            return BadRequest("TurnoId non valido");
+
+        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
+
+        if (risultato == null || risultato.Count == 0)
+            return NotFound("Nessuna proiezione trovata per questo turno");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per turno",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Crea una nuova proiezione, con controllo duplicati.
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+        // Controllo duplicati: stessa sala, stesso turno, stessa data.
+        foreach (var proiezione in proiezioni)
+        {
+            if (proiezione.TurnoId == dto.TurnoId &&
+                proiezione.SalaId == dto.SalaId &&
+                proiezione.DataProiezione == dto.DataProiezione)
+            {
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
+        }
+
+        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
+
+        if (risultato == null)
+            return BadRequest(new { messaggio = "Proiezione non valida." });
+
+        return Ok(risultato);
+    }
+
+    // Modifica una proiezione esistente.
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
+
+        if (risultato == null)
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+
+        return Ok(risultato);
+    }
+
+    // Elimina una proiezione tramite ID.
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool eliminato = await _proiezioneService.EliminaAsync(id);
+
+        if (!eliminato)
+            return NotFound(new { messaggio = "Proiezione non trovato." });
+
+        return NoContent();
+    }
+}
+```
+
+
+# Service
+
+## Services/AbbonamentoService.cs
+
+```c#
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+// Service responsabile della gestione CRUD degli abbonamenti.
+// Utilizza il ContestoDb per interagire con il database.
+public class AbbonamentoService
+{
+    private readonly ContestoDb _contesto;
+
+    // Iniezione del DbContext tramite dependency injection
+    public AbbonamentoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<List<DtoAbbonamento>> OttieniTutto()
+{
+    // 1. Recupero tutti gli abbonamenti dal database.
+    //    ToListAsync() esegue la query e restituisce una lista completa.
+    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+    // 2. Creo la lista che conterrà i DTO da restituire al chiamante.
+    List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
+
+    // 3. Ciclo manualmente su ogni elemento della lista di modelli.
+    //    Questo approccio è trasparente e ti permette di controllare ogni passaggio.
+    for (int i = 0; i < abbonamenti.Count; i++)
+    {
+        // Estraggo l'abbonamento corrente
+        Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+        // 4. Creo un nuovo DTO e copio manualmente ogni proprietà.
+        //    Questo evita automapper, LINQ o magie nascoste.
+        DtoAbbonamento dto = new DtoAbbonamento();
+        dto.Id = abbonamentoCorrente.Id;
+        dto.Nome = abbonamentoCorrente.Nome;
+        dto.Durata = abbonamentoCorrente.Durata;
+        dto.Prezzo = abbonamentoCorrente.Prezzo;
+        dto.Sconto = abbonamentoCorrente.Sconto;
+
+        // 5. Aggiungo il DTO alla lista finale.
+        risultato.Add(dto);
+    }
+
+    // 6. Restituisco la lista completa dei DTO.
+    return risultato;
+}
+
+public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
+{
+    // 1. Cerco nel database l'abbonamento con la chiave primaria uguale a 'id'.
+    //    FindAsync usa direttamente la chiave primaria e quindi è molto efficiente.
+    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+    // 2. Se l'abbonamento non esiste, restituisco null.
+    //    Questo permette al chiamante di gestire il "non trovato".
+    if (abbonamento == null)
+    {
+        return null;
+    }
+
+    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà rilevanti.
+    //    Questo evita automapper, LINQ o logiche implicite.
+    DtoAbbonamento risultato = new DtoAbbonamento();
+    risultato.Id = abbonamento.Id;
+    risultato.Nome = abbonamento.Nome;
+    risultato.Durata = abbonamento.Durata;
+    risultato.Prezzo = abbonamento.Prezzo;
+    risultato.Sconto = abbonamento.Sconto;
+
+    // 4. Restituisco il DTO completamente popolato.
+    return risultato;
+}
+
+public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
+{
+    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
+    //    FindAsync è molto efficiente perché usa direttamente la PK.
+    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+    // 2. Se l'abbonamento non esiste, restituisco null.
+    //    Il metodo è dichiarato come Task<DtoAbbonamento>, ma restituisce null:
+    //    tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
+    if (abbonamento == null)
+    {
+        return null;
+    }
+
+    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà.
+    //    Questo garantisce massima trasparenza e nessuna magia nascosta.
+    DtoAbbonamento dto = new DtoAbbonamento();
+    dto.Id = abbonamento.Id;
+    dto.Nome = abbonamento.Nome;
+    dto.Durata = abbonamento.Durata;
+    dto.Prezzo = abbonamento.Prezzo;
+    dto.Sconto = abbonamento.Sconto;
+
+    // 4. Restituisco il DTO popolato.
+    return dto;
+}
+
+// Metodo per creare un nuovo abbonamento nel database
+    public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
+    {
+        // Creazione dell'entità Abbonamento da salvare nel DB
+        Abbonamento abbonamento = new Abbonamento();
+
+        // ⚠️ ATTENZIONE: dto.Id NON ESISTE nel DTO che mi hai mandato
+        // Questo assegnamento causerà errore di compilazione
+        abbonamento.Id = dto.Id;
+
+        // Nome dell'abbonamento
+        abbonamento.Nome = dto.Nome;
+
+        // Imposta la data di inizio come UTC corrente
+        abbonamento.DataInizio = DateTimeOffset.UtcNow;
+
+        // Durata dell'abbonamento
+        abbonamento.Durata = dto.Durata;
+
+        // Data di fine (inviata dal client)
+        abbonamento.DataFine = dto.DataFine;
+
+        // Prezzo dell'abbonamento
+        abbonamento.Prezzo = dto.Prezzo;
+
+        // Percentuale di sconto
+        abbonamento.Sconto = dto.Sconto;
+
+        // Aggiunge l'abbonamento al contesto EF
+        _contesto.Abbonamenti.Add(abbonamento);
+
+        // Salva le modifiche nel database
+        await _contesto.SaveChangesAsync();
+
+        // Creazione del DTO di risposta
+        DtoAbbonamento risultato = new DtoAbbonamento();
+
+        // Id generato
+        risultato.Id = abbonamento.Id;
+
+        // ⚠️ ERRORE: NomeAzione NON ESISTE nel model Abbonamento
+        risultato.Nome = abbonamento.NomeAzione;
+
+        // Converte la data in locale per il client
+        risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
+
+        // Durata
+        risultato.Durata = abbonamento.Durata;
+
+        // Calcolo della data di fine (qui viene ignorato DataFine del DB)
+        risultato.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
+
+        // Prezzo
+        risultato.Prezzo = abbonamento.Prezzo;
+
+        // Sconto
+        risultato.Sconto = abbonamento.Sconto;
+
+        return risultato;
+    }
+
+    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+{
+    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
+    //    FindAsync è molto efficiente perché usa direttamente la PK.
+    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+    // 2. Se l'abbonamento non esiste, restituisco null.
+    //    Nota: il metodo ritorna Task<DtoAbbonamento>, ma qui ritorni null.
+    //    Tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
+    if (abbonamento == null)
+        return null;
+
+    // 3. Aggiorno manualmente ogni proprietà dell'entità.
+    //    Questo approccio è chiaro, esplicito e ti permette di controllare
+    //    esattamente cosa viene modificato.
+    abbonamento.Nome    = dto.Nome;
+    abbonamento.Durata  = dto.Durata;
+    abbonamento.Prezzo  = dto.Prezzo;
+    abbonamento.Sconto  = dto.Sconto;
+
+    // 4. Salvo le modifiche nel database.
+    //    SaveChangesAsync applica gli aggiornamenti all'entità tracciata.
+    await _contesto.SaveChangesAsync();
+
+    // 5. Creo e restituisco un DTO aggiornato.
+    //    Questo evita di esporre direttamente il modello EF.
+    return new DtoAbbonamento
+    {
+        Id     = abbonamento.Id,
+        Nome   = abbonamento.Nome,
+        Durata = abbonamento.Durata,
+        Prezzo = abbonamento.Prezzo,
+        Sconto = abbonamento.Sconto,
+    };
+}
+
+public async Task<bool> EliminazioneAsync(string id)
+{
+    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
+    //    FindAsync è molto efficiente perché usa direttamente la PK.
+    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+    // 2. Se l'abbonamento non esiste, restituisco false.
+    //    Questo indica al chiamante che non c'era nulla da eliminare.
+    if (abbonamento == null)
+    {
+        return false;
+    }
+
+    // 3. Rimuovo l'entità dal DbSet.
+    //    EF Core la marca come "Deleted" nel ChangeTracker.
+    _contesto.Abbonamenti.Remove(abbonamento);
+
+    // 4. Applico le modifiche al database.
+    await _contesto.SaveChangesAsync();
+
+    // 5. Restituisco true per indicare che l'eliminazione è avvenuta con successo.
+    return true;
+}
+}
+```
+
+## UtenteService.cs
+```c#
+public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+{
+    // 1. Recupero tutti gli abbonamenti dal database.
+    //    Non usi LINQ, quindi fai un ToListAsync e poi cerchi manualmente.
+    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+    Abbonamento? abbonamentoTrovato = null;
+
+    // 2. Ciclo manuale per trovare l'abbonamento con l'ID richiesto.
+    for (int i = 0; i < abbonamenti.Count; i++)
+    {
+        Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+        if (abbonamentoCorrente.Id == abbonamentoId)
+        {
+            abbonamentoTrovato = abbonamentoCorrente;
+            break; // appena trovato, esco dal ciclo
+        }
+    }
+
+    // 3. Se non ho trovato l'abbonamento, interrompo e restituisco null.
+    if (abbonamentoTrovato == null)
+    {
+        return null;
+    }
+
+    // 4. Recupero tutti gli utenti dal database.
+    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+    Utente? utenteTrovato = null;
+
+    // 5. Ciclo manuale per trovare l'utente con l'ID richiesto.
+    for (int i = 0; i < utenti.Count; i++)
+    {
+        if (utenti[i].Id == utenteId)
+        {
+            utenteTrovato = utenti[i];
+            break;
+        }
+    }
+
+    // 6. Se l'utente non esiste, restituisco null.
+    if (utenteTrovato == null)
+    {
+        return null;
+    }
+
+    // 7. Aggiorno i campi dell'utente per segnare l'abbonamento.
+    utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+    utenteTrovato.SeAbbonato = true;
+    utenteTrovato.DataInizio = DateTimeOffset.UtcNow;
+
+    // 8. Salvo le modifiche nel database.
+    await _contesto.SaveChangesAsync();
+
+    // 9. Restituisco un DTO completo dell'utente aggiornato.
+    return new DtoUtente()
+    {
+        Id = utenteTrovato.Id,
+        NomeCompleto = utenteTrovato.NomeCompleto,
+        Email = utenteTrovato.Email,
+        Eta = utenteTrovato.Eta,
+        Abbonato = utenteTrovato.SeAbbonato,
+        DataInizio = utenteTrovato.DataInizio,
+        AbbonamentoId = utenteTrovato.AbbonamentoId,
+        TipoAbbonamento = abbonamentoTrovato.Nome
+    };
+}
+```
+
 ## AdminService.cs
 ```c#
 using Microsoft.AspNetCore.Identity;
@@ -1615,6 +1533,213 @@ public class AdminService
 }
 
 ```
+## ProiezioneService.cs
+```c#
+public class ProiezioneService
+{
+    private readonly ContestoDb _contesto;
+    public ProiezioneService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // Restituisce tutte le proiezioni, mappandole manualmente in DTO.
+    public async Task<List<DtoProiezione>> OttieniTuttoAsync()
+    {
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+
+            // Recupero manuale delle entità collegate (non usate nel DTO).
+            Movie? film = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId);
+            Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId);
+
+            // Mappatura esplicita.
+            DtoProiezione dto = new DtoProiezione();
+            dto.Id = proiezioneCorrente.Id;
+            dto.DataProiezione = proiezioneCorrente.DataProiezione;
+            dto.MovieId = proiezioneCorrente.MovieId;
+            dto.SalaId = proiezioneCorrente.SalaId;
+            dto.TurnoId = proiezioneCorrente.TurnoId;
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    // Restituisce una singola proiezione tramite ID.
+    public async Task<DtoProiezione?> OttieniTramiteIdAsync(string id)
+    {
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+        if (proiezione == null)
+            return null;
+
+        // Recupero manuale delle entità collegate.
+        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
+
+        // Mappatura esplicita.
+        DtoProiezione risultato = new DtoProiezione();
+        risultato.Id = proiezione.Id;
+        risultato.DataProiezione = proiezione.DataProiezione;
+        risultato.MovieId = proiezione.MovieId;
+        risultato.SalaId = proiezione.SalaId;
+        risultato.TurnoId = proiezione.TurnoId;
+
+        return risultato;
+    }
+
+    // Filtra le proiezioni per MovieId (loop manuale).
+    public async Task<List<DtoProiezione>> OttieniTramiteMovieAsync(string movieId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.MovieId == movieId)
+            {
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+    // Filtra per SalaId.
+    public async Task<List<DtoProiezione>> OttieniTramiteSalaAsync(string salaId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.SalaId == salaId)
+            {
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+    // Filtra per TurnoId.
+    public async Task<List<DtoProiezione>> OttieniTramiteTurnoAsync(string turnoId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.TurnoId == turnoId)
+            {
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+    // Crea una nuova proiezione.
+    public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
+    {
+        Proiezione proiezione = new Proiezione();
+        proiezione.DataProiezione = dto.DataProiezione;
+        proiezione.MovieId = dto.MovieId;
+        proiezione.SalaId = dto.SalaId;
+        proiezione.TurnoId = dto.TurnoId;
+
+        _contesto.Proiezioni.Add(proiezione);
+        await _contesto.SaveChangesAsync();
+
+        // Recupero manuale delle entità collegate.
+        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
+
+        // Mappatura esplicita.
+        DtoProiezione risultato = new DtoProiezione();
+        risultato.Id = proiezione.Id;
+        risultato.DataProiezione = proiezione.DataProiezione;
+        risultato.MovieId = proiezione.MovieId;
+        risultato.SalaId = proiezione.SalaId;
+        risultato.TurnoId = proiezione.TurnoId;
+
+        return risultato;
+    }
+
+    // Modifica una proiezione esistente.
+    public async Task<DtoProiezione?> ModificaAsync(string id, DtoCreazioneProiezione dto)
+    {
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+        if (proiezione == null)
+            return null;
+
+        proiezione.DataProiezione = dto.DataProiezione;
+        proiezione.MovieId = dto.MovieId;
+        proiezione.SalaId = dto.SalaId;
+        proiezione.TurnoId = dto.TurnoId;
+
+        await _contesto.SaveChangesAsync();
+
+        // Recupero manuale delle entità collegate.
+        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
+
+        // Mappatura esplicita.
+        DtoProiezione risultato = new DtoProiezione();
+        risultato.Id = proiezione.Id;
+        risultato.DataProiezione = proiezione.DataProiezione;
+        risultato.MovieId = proiezione.MovieId;
+        risultato.SalaId = proiezione.SalaId;
+        risultato.TurnoId = proiezione.TurnoId;
+
+        return risultato;
+    }
+
+    // Elimina una proiezione tramite ID.
+    public async Task<bool> EliminaAsync(string id)
+    {
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+        if (proiezione == null)
+            return false;
+
+        _contesto.Proiezioni.Remove(proiezione);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+
+
 
 
 
