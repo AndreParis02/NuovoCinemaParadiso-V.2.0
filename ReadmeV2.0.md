@@ -120,6 +120,30 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
+## DtoCreazioneProiezione.cs
+```c#
+// DTO utilizzato per la creazione di una nuova proiezione.
+// Contiene solo i campi necessari in input dal client.
+namespace NuovoCinemaParadiso.Dtos;
+public class DtoCreazioneProiezione
+{
+   // Identificativo del film da proiettare.
+    // Viene passato come stringa perché probabilmente il tuo sistema usa GUID o ID non numerici.
+    public string MovieId { get; set; } = string.Empty;
+
+    // Identificativo della sala in cui avverrà la proiezione.
+    // Anche qui stringa per coerenza con il resto del progetto.
+    public string SalaId { get; set; } = string.Empty;
+
+    // Identificativo del turno (es. mattina, pomeriggio, sera).
+    // Serve per collegare la proiezione a una fascia oraria predefinita.
+    public string TurnoId { get; set; } = string.Empty;
+
+    // Data della proiezione.
+    // Usi DateOnly perché ti interessa solo la data, non l'orario.
+    public DateOnly DataProiezione { get; set; }
+}
+```
 
 
 
