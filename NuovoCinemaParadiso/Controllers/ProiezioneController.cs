@@ -86,7 +86,7 @@ public class ProiezioneController : ControllerBase
             return BadRequest("TurnoId non valido");
         }
 
-        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
+        var risultato = await _proiezioneService.OttieniTramiteTurnoAsync(turnoId);
 
         if (risultato == null || risultato.Count == 0)
         {
@@ -163,11 +163,11 @@ public class ProiezioneController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
+        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id,dto);
 
         if (risultato == null)
         {
