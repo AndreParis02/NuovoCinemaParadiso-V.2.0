@@ -38,3 +38,6 @@ Acquisto Nuovo:
 
 ProiezioneId;
 utenteId;
+
+Sala Nuova:
+TipologiaSalaId;
