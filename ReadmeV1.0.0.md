@@ -4,7 +4,7 @@
 - X Sale, X Movie, X posti.
 - Acquirenti comprano i biglietti.
 - Promozioni/abbonamenti, bundle biglietti, carnet.
-- Ruoli: admin, acquirente, gestore della sala(editor).
+- Ruoli: gestore, operatore, utente.
 
 # Organizzazione del lavoro:
 

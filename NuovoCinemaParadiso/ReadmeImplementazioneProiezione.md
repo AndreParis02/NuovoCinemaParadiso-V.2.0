@@ -38,3 +38,9 @@ Acquisto Nuovo:
 
 ProiezioneId;
 utenteId;
+
+
+# Task
+
+- Lorenzo: DtoProiezione da sistemare, DtoCreazioneProiezione e funzione ottieniperidasync
+- Fabio: Controller di proiezione.
