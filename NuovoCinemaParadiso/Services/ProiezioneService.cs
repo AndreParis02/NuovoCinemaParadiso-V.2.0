@@ -37,7 +37,7 @@ public class ProiezioneService
         return risultato;
     }
 
-    public async Task<DtoProiezione?> OttieniPerIdAsync(string id)
+    public async Task<DtoProiezione?> OttieniTramiteIdAsync(string id)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
         if (proiezione == null)
@@ -47,7 +47,37 @@ public class ProiezioneService
        
         Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
 
+        
+        DtoProiezione risultato = new DtoProiezione();
+        risultato.Id = proiezione.Id;
+        risultato.DataProiezione = proiezione.DataProiezione;
+        risultato.MovieId = proiezione.MovieId;
+        risultato.SalaId = proiezione.SalaId;
+        risultato.TurnoId = proiezione.TurnoId;
+
+        return risultato;
+    }
+
+    public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
+    {
+        Proiezione proiezione = new Proiezione();
+
+        
+        proiezione.DataProiezione = dto.DataProiezione;
+        proiezione.MovieId = dto.MovieId;
+        proiezione.SalaId = dto.SalaId;
+        proiezione.TurnoId = dto.TurnoId;
+        
+        _contesto.Proiezioni.Add(proiezione);
+        await _contesto.SaveChangesAsync();
+
+        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
+
+        
         DtoProiezione risultato = new DtoProiezione();
         risultato.Id = proiezione.Id;
         risultato.DataProiezione = proiezione.DataProiezione;
