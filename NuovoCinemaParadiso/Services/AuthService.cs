@@ -60,6 +60,11 @@ public class AuthService
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
     {
         Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+        
+        if (utente == null)
+        {
+            return null;
+        }
 
         if (utente.SeAbbonato == true)
         {
@@ -71,12 +76,7 @@ public class AuthService
                 utente.SeAbbonato = false;
             }
         }
-
-        if (utente == null)
-        {
-            return null;
-        }
-
+        
         SignInResult result = await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
 
         if (!result.Succeeded)
