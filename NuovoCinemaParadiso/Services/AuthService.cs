@@ -46,7 +46,7 @@ public class AuthService
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 
         if (!risultato.Succeeded)
-        { 
+        {
             return risultato;
         }
         IdentityResult aggiuntaRisultatoRuolo = await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
@@ -60,6 +60,17 @@ public class AuthService
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
     {
         Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+
+        if (utente.SeAbbonato == true)
+        {
+            DateTimeOffset? scadenza = Calcoli.CalcolaScadenzaAbbonamento(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+
+            if (giorniMancanti == 0)
+            {
+                utente.SeAbbonato = false;
+            }
+        }
 
         if (utente == null)
         {

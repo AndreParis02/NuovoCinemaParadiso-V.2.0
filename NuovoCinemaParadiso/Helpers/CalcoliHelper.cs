@@ -4,16 +4,16 @@ namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static Decimal CalcolaPrezzoFinale(Decimal prezzoMovie, Decimal prezzoSala, int numeroBiglietti, Utente utente)
+    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
     {
         if (utente.SeAbbonato == false)
         {
-            Decimal prezzoFinale = (prezzoMovie + prezzoSala) * numeroBiglietti;
+            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
             return prezzoFinale;
         }
         else
         {
-            Decimal prezzoBiglietto = prezzoMovie + prezzoSala;
+            Decimal prezzoBiglietto = prezzoMovie + maggiorazione;
             Decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
             Decimal prezzoScontato = prezzoBiglietto - sconto;
             Decimal prezzoFinale = prezzoScontato * numeroBiglietti;
@@ -21,14 +21,14 @@ public static class Calcoli
         }
     }
 
-    public static DateTime? CalcolaScadenzaAbbonamento(DateOnly dataInizio, int durata)
+    public static DateTimeOffset? CalcolaScadenzaAbbonamento(DateTimeOffset dataInizio, int durata)
     {
-       return dataInizio.AddMonths(durata).ToDateTime(TimeOnly.MinValue);
+        return dataInizio.AddMonths(durata);
     }
 
-    public static int GiorniAllaScadenza(DateTime dataInizio, int durata)
+    public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
-        DateTime dataScadenza = dataInizio.AddMonths(durata);
+        DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
         TimeSpan differenza = dataScadenza - DateTime.Now;
         return (int)differenza.TotalDays;
     }
