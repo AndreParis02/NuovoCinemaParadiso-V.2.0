@@ -191,4 +191,19 @@ public class ProiezioneService
 
 
     }
+
+    public async Task<bool> EliminaAsync(string id)
+    {
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+
+        if (proiezione == null)
+        {
+            return false;
+        }
+
+        _contesto.Proiezioni.Remove(proiezione);
+        await _contesto.SaveChangesAsync();
+        
+        return true;
+    }
 }
