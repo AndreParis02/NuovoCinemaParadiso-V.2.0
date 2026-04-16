@@ -60,6 +60,78 @@ public class ProiezioneService
         return risultato;
     }
 
+    public async Task<List<DtoProiezione>> OttieniTramiteMovieAsync (string movieId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.MovieId == movieId)
+            {
+               DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+
+            
+        }
+        return risultato;
+    }
+
+    public async Task<List<DtoProiezione>> OttieniTramiteSalaAsync(string salaId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.SalaId == salaId)
+            {
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+    public async Task<List<DtoProiezione>> OttieniTramiteTurnoAsync(string turnoId)
+    {
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+
+        for(int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+            if (proiezioneCorrente.TurnoId == turnoId)
+            {
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+
+    }
+
     public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
     {
         Proiezione proiezione = new Proiezione();
