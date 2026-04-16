@@ -44,6 +44,31 @@ Seconda fase
 |user|file|commento
 |---|---|---|
 |Greg| | |
-|Marco| | |
+|Marco| AcquistiController | perché si crea un DTO DtoCreazioneLogAzioni? |
+|Marco| AcquistiController | perché il costruttore di DtoCreazioneLogAzioni non inizializza il timestamp? |
+|Marco| AcquistiController | string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier); cosa succede se utenteId==null? |
+|Marco| AuthController | RicercaProfiloLoggato() non logga il fallimento dell'azione. Accade anche in altri metodi |
+|Marco| RuoloUtenteService | Perché ModificaRuoloUtente() non ritorna semplicemente un true o false? |
+|Marco| MoviesController | Perché OttieniPerGenere() logga un fallimento se trova zero film? |
+|Marco| Program.cs | perché builder.Services.AddScoped aggiunge JwtHelper e non CalcoliHelper? |
+|Marco| DTO | noi abbiamo suddiviso i DTO in Request e Response |
+|Marco| UtentiController | AbbonatiAsync() perché non preleva direttamente l'abbonamento tramite abbonamentoId? |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OttieniTuttiGliAcquistiUtente
+
 |Simeone| | |
 
