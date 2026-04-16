@@ -149,6 +149,270 @@ public class DtoCreazioneProiezione
 
 # Controllers
 
+
+## ProiezioneController.cs
+
+```c#
+// Controller API per la gestione delle proiezioni
+[ApiController]
+[Route("api/[controller]")]
+[Authorize] // Richiede autenticazione per tutti gli endpoint
+public class ProiezioneController : ControllerBase
+{
+    // Servizi iniettati tramite Dependency Injection
+    private readonly ProiezioneService _proiezioneService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
+    {
+        _proiezioneService = proiezioneService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // GET: api/proiezione
+    // Restituisce tutte le proiezioni
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeProiezioni()
+    {
+        // Recupero tutte le proiezioni
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+        // Recupero ID utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Log dell'operazione
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutte le proiezioni",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(proiezioni);
+    }
+
+    //  GET: api/proiezione/{id}
+    // Restituisce una proiezione tramite ID
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Chiamata al service
+        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
+
+        // Se non trovata → 404
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezione tramite id",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Proiezione con id {id} non trovato");
+        }
+
+        // Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezione tramite id",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    //  GET: api/proiezione/turno/{turnoId}
+    // Restituisce tutte le proiezioni per un turno specifico
+    [HttpGet("turno/{turnoId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Validazione input
+        if (turnoId == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("TurnoId non valido");
+        }
+
+        // Recupero dati
+        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
+
+        // Nessun risultato trovato
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessuna proiezione trovata per questo turno");
+        }
+
+        // Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per turno",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    //  POST: api/proiezione
+    // Crea una nuova proiezione
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)] // Solo ruoli autorizzati
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupero tutte le proiezioni (per controllo duplicati)
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+        // Controllo duplicati: stessa sala, turno e data
+        foreach (var proiezione in proiezioni)
+        {
+            if (proiezione.TurnoId == dto.TurnoId &&
+                proiezione.SalaId == dto.SalaId &&
+                proiezione.DataProiezione == dto.DataProiezione)
+            {
+                // Log fallimento
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione movie",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
+        }
+
+        // Creazione proiezione
+        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
+
+        // Se fallisce
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Creazione proiezione",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest(new { messaggio = "Proiezione non valida." });
+        }
+
+        // Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Creazione proiezione",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // PUT: api/proiezione/{id}
+    // Modifica una proiezione esistente
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Chiamata al service
+        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
+
+        // Se non trovata
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Modifica proiezione",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        // Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Modifica proiezione",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // DELETE: api/proiezione/{id}
+    // Elimina una proiezione
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Tentativo eliminazione
+        bool eliminato = await _proiezioneService.EliminaAsync(id);
+
+        // Se fallisce
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Elimina proiezione",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Proiezione non trovato." });
+        }
+
+        // Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Elimina proiezione",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return NoContent();
+    }
+}
+```
 ## AbbonamentiController.cs
 
 ```c#

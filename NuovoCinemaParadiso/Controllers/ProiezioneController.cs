@@ -3,82 +3,39 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class MovieController : ControllerBase
+public class ProiezioneController : ControllerBase
 {
-    private readonly MovieService _movieService;
+    private readonly ProiezioneService _proiezioneService;
     private readonly LogAzioniService _logAzioniService;
 
-    public MovieController(MovieService movieService, LogAzioniService logAzioniService)
+    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
     {
-        _movieService = movieService;
+        _proiezioneService = proiezioneService;
         _logAzioniService = logAzioniService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiIMovies()
+    public async Task<IActionResult> OttieniTutteLeProiezioni()
     {
-        List<DtoMovie> movies = await _movieService.OttieniTutto();
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i movies",
+            NomeAzione = "Ottieni tutte le proiezioni",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(movies);
-    }
-
-    [HttpGet("genere/{genereId}")]
-    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrWhiteSpace(genereId))
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest("GenereId non valido");
-        }
-
-        var risultato = await _movieService.OttieniTramiteGenere(genereId);
-
-        if (risultato == null || risultato.Count == 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound("Nessun film trovato per questo genere");
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni movies per genere",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
+        return Ok(proiezioni);
     }
 
     [HttpGet("{id}")]
@@ -86,25 +43,68 @@ public class MovieController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var risultato = await _movieService.OttieniTramiteIdAsync(id);
+        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni movie tramite id",
+                NomeAzione = "Ottieni proiezione tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound($"Film con id {id} non trovato");
+            return NotFound($"Proiezione con id {id} non trovato");
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni movie tramite id",
+            NomeAzione = "Ottieni proiezione tramite id",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+    [HttpGet("turno/{turnoId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (turnoId == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("TurnoId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessuna proiezione trovata per questo turno");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -114,14 +114,14 @@ public class MovieController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoMovie> movies = await _movieService.OttieniTutto();
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
-        foreach (var movie in movies)
+        foreach (var proiezione in proiezioni)
         {
-            if (movie.Titolo.Contains(dto.Titolo))
+            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
@@ -131,29 +131,29 @@ public class MovieController : ControllerBase
                     Messaggio = "Operazione fallita"
                 });
 
-                return BadRequest(new { messaggio = "Film già presente." });
+                return BadRequest(new { messaggio = "Proiezione già presente." });
             }
         }
-        
-        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
+
+        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione movie",
+                NomeAzione = "Creazione proiezione",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Film non valido." });
+            return BadRequest(new { messaggio = "Proiezione non valida." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione movie",
+            NomeAzione = "Creazione proiezione",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -167,25 +167,25 @@ public class MovieController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
+        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica movie",
+                NomeAzione = "Modifica proiezione",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Film non trovato." });
+            return NotFound(new { messaggio = "Proiezione non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica movie",
+            NomeAzione = "Modifica proiezione",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -199,25 +199,25 @@ public class MovieController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        bool eliminato = await _movieService.EliminaAsync(id);
+        bool eliminato = await _proiezioneService.EliminaAsync(id);
 
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina movie",
+                NomeAzione = "Elimina proiezione",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Film non trovato." });
+            return NotFound(new { messaggio = "Proiezione non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina movie",
+            NomeAzione = "Elimina proiezione",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
