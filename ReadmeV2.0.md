@@ -110,6 +110,8 @@ public class DtoProiezione
 {
     // codice identificativo della proiezione
     public string Id {get; set; }
+    //data in cui avverrà la proiezione
+    public DateOnly DataProiezione {get; set; }
     // film della proiezione
     public string MovieId {get; set; } 
     // sala dove avverrà la proiezione
@@ -118,6 +120,8 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
+
+
 
 # Controllers
 
