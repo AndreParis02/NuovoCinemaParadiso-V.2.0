@@ -159,4 +159,36 @@ public class ProiezioneService
 
         return risultato;
     }
+
+    public async Task<DtoProiezione?> ModificaAsync(string id, DtoCreazioneProiezione dto)
+    {
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+
+        if (proiezione == null)
+        {
+            return null;
+        }
+
+        proiezione.DataProiezione = dto.DataProiezione;
+        proiezione.MovieId = dto.MovieId;
+        proiezione.SalaId = dto.SalaId;
+        proiezione.TurnoId = dto.TurnoId;
+
+        await _contesto.SaveChangesAsync();
+
+        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
+
+        DtoProiezione risultato = new DtoProiezione();
+        risultato.Id = proiezione.Id;
+        risultato.DataProiezione = proiezione.DataProiezione;
+        risultato.MovieId = proiezione.MovieId;
+        risultato.SalaId = proiezione.SalaId;
+        risultato.TurnoId = proiezione.TurnoId;
+
+        return risultato;
+
+
+    }
 }
