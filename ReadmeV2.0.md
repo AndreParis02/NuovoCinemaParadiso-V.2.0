@@ -99,6 +99,26 @@ public class DtoCreazioneAbbonamento
 }
 ```
 
+## DtoProiezione 
+
+```c#
+// DTO utilizzato per trasferire i dati di una proiezione verso/da il client 
+
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoProiezione
+{
+    // codice identificativo della proiezione
+    public string Id {get; set; }
+    // film della proiezione
+    public string MovieId {get; set; } 
+    // sala dove avverrà la proiezione
+    public string SalaId {get; set; }
+    // turno di intervallo di tempo dove avverrà la proiezione
+    public string TurnoId {get; set; }
+}
+```
+
 # Controllers
 
 ## AbbonamentiController.cs
