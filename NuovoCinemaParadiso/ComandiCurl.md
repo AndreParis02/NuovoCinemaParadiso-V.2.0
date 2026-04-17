@@ -331,46 +331,49 @@ curl -s -X DELETE "http://localhost:5226/api/Acquisti/Id Acquisto" -H "Authoriza
 
 ## Leggi tutti gli abbonamenti
 ```bash
-curl -s -X GET "http://localhost:5226/api/Abbonamenti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
 ## leggi informazioni Abbonamento per id (accesso a tutti gli acquisti dell'utente loggato)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Abbonamenti/Id Abbonamento" \
--H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Crea Abbonamento:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Abbonamenti" \
+curl -s -X POST "http://localhost:5226/api/Abbonamento" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "Nome": "Standard",
-    "Durata": "4",
-    "Prezzo": 120,
-    "Sconto": 25
+    "Nome": "TEST",
+    "Durata": 420,
+    "Prezzo": 32.50,
+    "Sconto" : 5
 }' | jq
 ```
 
 ## Modifica Abbonamento con id dell'abbonamento:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/Abbonamenti/Id Abbonamento" \
+curl -s -X PUT "http://localhost:5226/api/Abbonamento/Id Abbonamento" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "Nome": "Standard modificato",
-    "Durata": "6",
-    "Prezzo": 125,
-    "Sconto": 27
-}' | jq 
+    "Nome": "TEST MODIFICATO",
+    "Durata": 520,
+    "Prezzo": 36.99,
+    "Sconto" : 47
+}' | jq
 ```
 
-## Elimina Movie con id dell'Abbonamento:
+## Elimina l'Abbonamento con id dell'Abbonamento:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/Abbonamenti/Id Abbonamento" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
+```
+## leggi informazioni Abbonamento per id come admin
+```bash
+curl -s -X GET "http://localhost:5226/api/Abbonamento/admin/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
 # Comandi Admin: 
@@ -382,7 +385,7 @@ curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: 
 
 ## Lettura di un profilo tramite id inserito (solo da Gestore o Operatore)
 ```bash
-curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/id utente \
+curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
 -H "Authorization: Bearer $TOKEN" \
 -H "Accept: application/json"
 ```

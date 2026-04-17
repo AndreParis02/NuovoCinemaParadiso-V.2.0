@@ -54,6 +54,11 @@ terza fase
 
 |user|file|commento| risposta
 |---|---|---|---|
+|Greg| AbbonamentoController.cs | BUG: Tutti sono autorizzati alla creazione dell'abbonamento|  |
+|Greg| AbbonamentoController.cs | BUG: GET ID e GET ADMIN/ID sono identici non essendoci nessun controllo |  |
+|Marco|  |  | 
+|Francesco|  | 
+
 |Greg| | |  |
 |Marco|  |  | 
 
