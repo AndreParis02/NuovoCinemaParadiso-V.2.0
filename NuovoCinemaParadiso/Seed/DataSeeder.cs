@@ -56,9 +56,9 @@ public static class DataSeeder
         await AssicuraEsistenzaTipologiaSala(contestoDb,"3D",3);
         await AssicuraEsistenzaTipologiaSala(contestoDb,"IMAX",4);
         
-        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10), new TimeOnly(13),"Mattina");
-        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13), new TimeOnly(18),"Pomeriggio");
-        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18), new TimeOnly(22),"Sera");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0),"Mattina");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0),"Pomeriggio");
+        await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0),"Sera");
 
         await AssicuraEsistenzaAbbonamento(contestoDb,"Mensile",70,25,1);
         await AssicuraEsistenzaAbbonamento(contestoDb,"Semestrale",210,50,6);

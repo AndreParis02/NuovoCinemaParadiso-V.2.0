@@ -2683,3 +2683,43 @@ public static class CalcolaPrezzo
     }
 }
 ```
+
+Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
+
+```c#
+//Gli orari prima avevano solo 10, 13, 18; di seguito abbiamo aggiunto i minuti e i secondi che permettono di visualizzare gli orari corretti nella tabella
+await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0),"Mattina");
+await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0),"Pomeriggio");
+await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0),"Sera");
+```
+## AssicuraEsistenzaTurno
+```c#
+ private static async Task AssicuraEsistenzaTurno(
+   ContestoDb context,
+   TimeOnly oraInizio, TimeOnly oraFine, string nome)
+   {
+    List<Turno> turni = await context.Turni.ToListAsync();
+    for (int i = 0; i < turni.Count; i++)
+    {
+        Turno turnoCorrente = turni[i];
+        bool nomeUguale = string.Equals(
+            turnoCorrente.Nome,
+            nome,
+            StringComparison.OrdinalIgnoreCase);
+        if(nomeUguale || (turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine))
+        {
+            return;
+        }
+    }
+
+    Turno nuovoTurno = new Turno
+    {
+        Nome      = nome,
+        OraInizio = oraInizio,
+        OraFine   = oraFine
+    };
+
+    context.Turni.Add(nuovoTurno);
+    await context.SaveChangesAsync();
+   }
+```
