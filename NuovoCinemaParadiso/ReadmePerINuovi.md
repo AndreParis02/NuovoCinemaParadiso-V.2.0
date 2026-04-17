@@ -58,7 +58,7 @@ terza fase
 |Greg| AbbonamentoController.cs | BUG: Tutti sono autorizzati alla creazione dell'abbonamento|  |
 |Greg| AbbonamentoController.cs | BUG: GET ID e GET ADMIN/ID sono identici non essendoci nessun controllo |  |
 |Marco|  |  | 
-|Francesco|  | 
+|Francesco| ApplicationDbContext.cs  | PROBLEMA LOGICO: alla eliminazione di una proiezione, gli acquista collegati ad essa vengono eliminati a cascata 
 
 |Greg| | |  |
 |Marco|  |  | 
