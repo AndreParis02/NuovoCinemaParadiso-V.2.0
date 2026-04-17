@@ -7,9 +7,6 @@ public class DtoCreazioneAcquisto
     [Required]
     public string ProiezioneId { get; set; } = string.Empty;
     [Required]
-    public string? UtenteId { get; set; } = string.Empty;
-    [Required]
     public int NumeroBiglietti { get; set; }
-    [Required]
-    public decimal PrezzoFinale { get; set; }
+    
 }

@@ -301,12 +301,11 @@ curl -s -X GET "http://localhost:5226/api/Acquisti/Id Acquisto" \
 ## Crea Acquisto:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Acquisti" \
+curl -s -X POST "http://localhost:5226/api/Acquisto" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "MovieId": "d1319ac1-5b8c-4160-a4de-fc68c2b21651",
-    "SalaId": "0bd99b92-f622-4656-8f3b-8ba533a16524",
+    "ProiezioneId": "Id_proiezione",
     "NumeroBiglietti": 3
 }' | jq
 ```
@@ -314,12 +313,11 @@ curl -s -X POST "http://localhost:5226/api/Acquisti" \
 ## Modifica Acquisto con id dell'acquisto:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/Acquisti/Id Acquisto" \
+curl -s -X PUT "http://localhost:5226/api/Acquisto/Id_acquisto" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "MovieId": "Id Movie",
-    "SalaId": "Id Sala",
+    "ProiezioneId": "Id_proiezione",
     "NumeroBiglietti": 2
     }' | jq 
 ```
