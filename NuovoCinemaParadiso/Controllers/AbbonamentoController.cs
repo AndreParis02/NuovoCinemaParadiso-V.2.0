@@ -47,7 +47,7 @@ public class AbbonamentoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
-        var risultato = await _adminService.OttieniTramiteIdPerAdminAsync(id);
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
