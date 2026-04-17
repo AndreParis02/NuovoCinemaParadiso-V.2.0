@@ -128,25 +128,25 @@ curl -s -X PUT "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" -H "C
 curl -s -X DELETE "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" -H "Authorization: Bearer $TOKEN" 
 ```
 
-# Fasce Orarie
+# Turno
 
-## Leggi FasceOrarie:
+## Leggi Turni:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/FasciaOraria" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Turno" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi Fascia Oraria tramite Id della fascia oraria:
+## Leggi Turno tramite Id della fascia oraria:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/FasciaOraria/Id Fascia Oraria" \
+curl -s -X GET "http://localhost:5226/api/Turno/Id Turno" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
-## Crea Fascia Oraria:
+## Crea Turno:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/FasciaOraria" \
+curl -s -X POST "http://localhost:5226/api/Turno" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -155,10 +155,10 @@ curl -s -X POST "http://localhost:5226/api/FasciaOraria" \
     "nome": "Pomeriggio"
 }' | jq
 ```
-## Modifica Fascia Oraria con id della fascia oraria:
+## Modifica Turno con id del Turno:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/FasciaOraria/Id Fascia Oraria" \
+curl -s -X PUT "http://localhost:5226/api/Turno/Id Turno" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -168,9 +168,9 @@ curl -s -X PUT "http://localhost:5226/api/FasciaOraria/Id Fascia Oraria" \
 }' | jq
 ```
 
-## Elimina Fascia Oraria con id della fascia oraria:
+## Elimina Turno con id della Turno:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/FasciaOraria/Id Fascia Oraria" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Turno/Id Turno" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Sale
@@ -417,6 +417,43 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 -d '{
   "abbonamentoId": "id abbonamento"
 }'
+```
+
+
+
+
+
+## Crea Proiezione:
+
+```bash
+curl -s -X POST "http://localhost:5226/api/Proiezione" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+    "MovieId": "Id del movie",
+    "SalaId": "Id della sala",
+    "TurnoId": "Id del turno",
+    "DataProiezione": "AAAA-MM-GG"
+}' | jq
+```
+
+## Modifica Proiezione con id della Proiezione:
+
+```bash
+curl -s -X PUT "http://localhost:5226/api/Proiezione/Id Proiezione" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+    "MovieId": "Id Movie",
+    "SalaId": "Id Sala",
+    "TurnoId": "Id del turno",
+    "DataProiezione": "AAAA-MM-GG"
+    }' | jq 
+```
+
+## Elimina Proiezione con id della Proiezione:
+```bash
+curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Authorization: Bearer $TOKEN" 
   ```
 
 # Proiezione
@@ -441,5 +478,8 @@ curl -s -X GET "http://localhost:5226/api/Proiezioni/turno/Id Turno" \
 ## Leggi proiezione tramite id sala
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/sala/Id Sala" \
+## ottieni proiezione per film
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezione/movie/Id Movie" \
 -H "Authorization: Bearer $TOKEN"
 ```
