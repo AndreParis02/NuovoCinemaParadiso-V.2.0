@@ -468,3 +468,9 @@ curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer 
 curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
 -H "Authorization: Bearer $TOKEN"
 ```
+
+## ottieni proiezione per film
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezione/movie/Id Movie" \
+-H "Authorization: Bearer $TOKEN"
+```
