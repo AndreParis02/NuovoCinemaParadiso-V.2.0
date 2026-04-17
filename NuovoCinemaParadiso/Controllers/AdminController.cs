@@ -124,7 +124,7 @@ public class AdminController : ControllerBase
         return Ok(acquisti);
     }
 
-     [HttpGet("acquisto/{id}")]
+    [HttpGet("acquisto/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
     {
@@ -200,5 +200,34 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
+    [HttpGet("abbonamento/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
+    {
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni abbonamenti tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni abbonamenti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
 }

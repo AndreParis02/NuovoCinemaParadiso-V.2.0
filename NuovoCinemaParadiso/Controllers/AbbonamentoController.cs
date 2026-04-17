@@ -13,12 +13,16 @@ namespace NuovoCinemaParadiso.Controllers;
 public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
+    private readonly AdminService _adminService;
+
     private readonly LogAzioniService _logAzioniService;
 
-    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService)
+    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, AdminService adminService)
     {
         _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
+        _adminService = adminService;
+
     }
 
     [HttpGet]
@@ -43,7 +47,7 @@ public class AbbonamentoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
-        var risultato = await _abbonamentoService.OttieniTramiteIdPerAdminAsync(id);
+        var risultato = await _adminService.OttieniTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -102,6 +106,7 @@ public class AbbonamentoController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

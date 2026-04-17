@@ -426,28 +426,33 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 # Proiezione
 
 ## Leggi tutte le proiezioni
+
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi proiezione tramite id proiezione
+## Leggi proiezione tramite id
+
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi proiezione tramite id turno
+
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/turno/Id Turno" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi proiezione tramite id sala
+
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/sala/Id Sala" \
 ```
 
-## Leggi proiezione tramite id film
+## ottieni proiezione per film
+
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezione/movie/Id Movie" \
 -H "Authorization: Bearer $TOKEN"
@@ -482,9 +487,7 @@ curl -s -X PUT "http://localhost:5226/api/Proiezione/Id Proiezione" \
 ```
 
 ## Elimina Proiezione con id della Proiezione:
+
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Authorization: Bearer $TOKEN" 
-  ```
-
-
 ```

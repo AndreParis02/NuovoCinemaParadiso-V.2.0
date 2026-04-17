@@ -168,6 +168,23 @@ public class AdminService
 
         return risultato;
     }
+    
+    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
+        if (abbonamento == null)
+        {
+            return null;
+        }
 
+        DtoAbbonamento dto = new DtoAbbonamento();
+        dto.Id = abbonamento.Id;
+        dto.Nome = abbonamento.Nome;
+        dto.Durata = abbonamento.Durata;
+        dto.Prezzo = abbonamento.Prezzo;
+        dto.Sconto = abbonamento.Sconto;
+
+        return dto;
+    }
 }

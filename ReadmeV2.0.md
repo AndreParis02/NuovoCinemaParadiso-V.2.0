@@ -332,56 +332,35 @@ namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController] 
 [Route("api/[controller]")]
-[Authorize] // Richiede autenticazione per tutte le azioni del controller
-public class AbbonamentiController : ControllerBase
+[Authorize] // ✔ Richiede autenticazione per tutte le azioni del controller
+public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
+    private readonly AdminService _adminService;
     private readonly LogAzioniService _logAzioniService;
 
-    // Iniezione dei servizi necessari: gestione abbonamenti e logging azioni
-    public AbbonamentiController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService)
+    // ✔ Iniezione dei servizi necessari al controller
+    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, AdminService adminService)
     {
         _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
+        _adminService = adminService;
     }
 
-    // ----------------------------------------------------------------------
-    // GET ADMIN: Ottiene tutti gli abbonamenti (solo per Gestore/Operatore)
-    // ----------------------------------------------------------------------
-    [HttpGet("admin")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAbbonamentiAdmin()
-    {
-        // Recupera tutti gli abbonamenti senza filtri utente
-        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTuttoAdmin();
-
-        // Recupera l'ID dell'utente autenticato
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Registra l'azione nei log
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli abbonamenti admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(abbonamenti);
-    }
-
-    // ----------------------------------------------------------------------
-    // GET UTENTE: Ottiene gli abbonamenti dell'utente autenticato
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // GET api/abbonamento
+    // ✔ Restituisce tutti gli abbonamenti dell’utente autenticato
+    // ------------------------------------------------------------
     [HttpGet]
-    public async Task<IActionResult> OttieniTuttiGliAbbonamentiUtente()
+    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
+        // ✔ Recupera l'ID dell'utente dal token JWT
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Recupera solo gli abbonamenti dell'utente corrente
-        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto(utenteId);
+        // ✔ Ottiene tutti gli abbonamenti (filtrati nel service)
+        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
-        // Log dell'azione
+        // ✔ Log dell’azione
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -393,19 +372,21 @@ public class AbbonamentiController : ControllerBase
         return Ok(abbonamenti);
     }
 
-    // ----------------------------------------------------------------------
-    // GET ADMIN BY ID: Recupera un abbonamento tramite ID (solo admin)
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // GET api/abbonamento/admin/{id}
+    // ✔ Endpoint riservato a Gestore/Operatore
+    // ✔ Permette di ottenere un abbonamento tramite ID senza limiti
+    // ------------------------------------------------------------
     [HttpGet("admin/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
-        var risultato = await _abbonamentoService.OttieniTramiteIdPerAdminAsync(id);
+        var risultato = await _adminService.OttieniTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Se non trovato → log fallimento + 404
         if (risultato == null)
         {
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -417,7 +398,7 @@ public class AbbonamentiController : ControllerBase
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
-        // Log successo
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -429,19 +410,21 @@ public class AbbonamentiController : ControllerBase
         return Ok(risultato);
     }
 
-    // ----------------------------------------------------------------------
-    // GET UTENTE BY ID: Recupera un abbonamento dell'utente autenticato
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // GET api/abbonamento/{id}
+    // ✔ Restituisce un abbonamento SOLO se appartiene all’utente
+    // ------------------------------------------------------------
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Recupera l'abbonamento solo se appartiene all'utente
+        // ✔ Il service applica il controllo di proprietà
         var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (risultato == null)
         {
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -453,7 +436,7 @@ public class AbbonamentiController : ControllerBase
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
-        // Log successo
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -465,20 +448,22 @@ public class AbbonamentiController : ControllerBase
         return Ok(risultato);
     }
 
-    // ----------------------------------------------------------------------
-    // POST: Creazione di un nuovo abbonamento
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // POST api/abbonamento
+    // ✔ Creazione di un nuovo abbonamento (solo Gestore/Operatore)
+    // ------------------------------------------------------------
     [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Tenta la creazione dell'abbonamento
-        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto, utenteId);
+        // ✔ Creazione tramite service
+        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
-            // Log fallimento
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -490,7 +475,7 @@ public class AbbonamentiController : ControllerBase
             return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
         }
 
-        // Log successo
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -502,9 +487,10 @@ public class AbbonamentiController : ControllerBase
         return Ok(risultato);
     }
 
-    // ----------------------------------------------------------------------
-    // PUT: Modifica di un abbonamento esistente (solo admin)
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // PUT api/abbonamento/{id}
+    // ✔ Modifica di un abbonamento esistente
+    // ------------------------------------------------------------
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
@@ -514,7 +500,7 @@ public class AbbonamentiController : ControllerBase
 
         if (risultato == null)
         {
-            // Log fallimento
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -526,7 +512,7 @@ public class AbbonamentiController : ControllerBase
             return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
-        // Log successo
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -538,9 +524,10 @@ public class AbbonamentiController : ControllerBase
         return Ok(risultato);
     }
 
-    // ----------------------------------------------------------------------
-    // DELETE: Eliminazione di un abbonamento (solo admin)
-    // ----------------------------------------------------------------------
+    // ------------------------------------------------------------
+    // DELETE api/abbonamento/{id}
+    // ✔ Eliminazione di un abbonamento
+    // ------------------------------------------------------------
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
@@ -550,7 +537,7 @@ public class AbbonamentiController : ControllerBase
 
         if (!eliminato)
         {
-            // Log fallimento
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -562,7 +549,7 @@ public class AbbonamentiController : ControllerBase
             return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
-        // Log successo
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -575,6 +562,7 @@ public class AbbonamentiController : ControllerBase
     }
 }
 ```
+
 ## UtentiController.cs
 ```c#
 [ApiController]
@@ -649,6 +637,7 @@ public class UtentiController : ControllerBase
 }
 
 ```
+
 ## AdminController.cs 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -1185,7 +1174,7 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
 
 # Service
 
-## Services/AbbonamentoService.cs
+## AbbonamentoService.cs
 
 ```c#
 using System.Runtime.CompilerServices;
@@ -1196,224 +1185,153 @@ using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Services;
 
-// Service responsabile della gestione CRUD degli abbonamenti.
-// Utilizza il ContestoDb per interagire con il database.
 public class AbbonamentoService
 {
     private readonly ContestoDb _contesto;
 
-    // Iniezione del DbContext tramite dependency injection
+    // ✔ Iniezione del DbContext per accedere al database
     public AbbonamentoService(ContestoDb contesto)
     {
         _contesto = contesto;
     }
 
+    // ------------------------------------------------------------
+    // ✔ Restituisce tutti gli abbonamenti presenti nel sistema
+    // ✔ Conversione manuale in DTO (senza LINQ)
+    // ------------------------------------------------------------
     public async Task<List<DtoAbbonamento>> OttieniTutto()
-{
-    // 1. Recupero tutti gli abbonamenti dal database.
-    //    ToListAsync() esegue la query e restituisce una lista completa.
-    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-
-    // 2. Creo la lista che conterrà i DTO da restituire al chiamante.
-    List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
-
-    // 3. Ciclo manualmente su ogni elemento della lista di modelli.
-    //    Questo approccio è trasparente e ti permette di controllare ogni passaggio.
-    for (int i = 0; i < abbonamenti.Count; i++)
     {
-        // Estraggo l'abbonamento corrente
-        Abbonamento abbonamentoCorrente = abbonamenti[i];
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
 
-        // 4. Creo un nuovo DTO e copio manualmente ogni proprietà.
-        //    Questo evita automapper, LINQ o magie nascoste.
-        DtoAbbonamento dto = new DtoAbbonamento();
-        dto.Id = abbonamentoCorrente.Id;
-        dto.Nome = abbonamentoCorrente.Nome;
-        dto.Durata = abbonamentoCorrente.Durata;
-        dto.Prezzo = abbonamentoCorrente.Prezzo;
-        dto.Sconto = abbonamentoCorrente.Sconto;
+        // ✔ Conversione iterativa in DTO
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
 
-        // 5. Aggiungo il DTO alla lista finale.
-        risultato.Add(dto);
+            DtoAbbonamento dto = new DtoAbbonamento();
+            dto.Id = abbonamentoCorrente.Id;
+            dto.Nome = abbonamentoCorrente.Nome;
+            dto.Durata = abbonamentoCorrente.Durata;
+            dto.Prezzo = abbonamentoCorrente.Prezzo;
+            dto.Sconto = abbonamentoCorrente.Sconto;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
     }
 
-    // 6. Restituisco la lista completa dei DTO.
-    return risultato;
-}
-
-public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
-{
-    // 1. Cerco nel database l'abbonamento con la chiave primaria uguale a 'id'.
-    //    FindAsync usa direttamente la chiave primaria e quindi è molto efficiente.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Questo permette al chiamante di gestire il "non trovato".
-    if (abbonamento == null)
+    // ------------------------------------------------------------
+    // ✔ Restituisce un abbonamento SOLO se appartiene all’utente
+    // ✔ Nessun LINQ, nessun Include() (richiede Lazy Loading o dati già caricati)
+    // ------------------------------------------------------------
+    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
     {
+        // ✔ Recupera l’abbonamento tramite chiave primaria
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+        if (abbonamento == null)
+        {
+            return null;
+        }
+
+        // ✔ Controllo manuale della lista utenti (senza LINQ)
+        foreach (var utente in abbonamento.Utenti)
+        {
+            if (utente.Id == utenteId)
+            {
+                // ✔ Conversione in DTO solo se l’utente è autorizzato
+                DtoAbbonamento risultato = new DtoAbbonamento();
+                risultato.Id = abbonamento.Id;
+                risultato.Nome = abbonamento.Nome;
+                risultato.Durata = abbonamento.Durata;
+                risultato.Prezzo = abbonamento.Prezzo;
+                risultato.Sconto = abbonamento.Sconto;
+
+                return risultato;
+            }
+        }
+
+        // ❌ L’utente non è associato all’abbonamento
         return null;
     }
 
-    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà rilevanti.
-    //    Questo evita automapper, LINQ o logiche implicite.
-    DtoAbbonamento risultato = new DtoAbbonamento();
-    risultato.Id = abbonamento.Id;
-    risultato.Nome = abbonamento.Nome;
-    risultato.Durata = abbonamento.Durata;
-    risultato.Prezzo = abbonamento.Prezzo;
-    risultato.Sconto = abbonamento.Sconto;
-
-    // 4. Restituisco il DTO completamente popolato.
-    return risultato;
-}
-
-public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Il metodo è dichiarato come Task<DtoAbbonamento>, ma restituisce null:
-    //    tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
-    if (abbonamento == null)
-    {
-        return null;
-    }
-
-    // 3. Creo un nuovo DTO e copio manualmente tutte le proprietà.
-    //    Questo garantisce massima trasparenza e nessuna magia nascosta.
-    DtoAbbonamento dto = new DtoAbbonamento();
-    dto.Id = abbonamento.Id;
-    dto.Nome = abbonamento.Nome;
-    dto.Durata = abbonamento.Durata;
-    dto.Prezzo = abbonamento.Prezzo;
-    dto.Sconto = abbonamento.Sconto;
-
-    // 4. Restituisco il DTO popolato.
-    return dto;
-}
-
-// Metodo per creare un nuovo abbonamento nel database
+    // ------------------------------------------------------------
+    // ✔ Crea un nuovo abbonamento
+    // ✔ Restituisce il DTO dell’oggetto appena creato
+    // ------------------------------------------------------------
     public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
-        // Creazione dell'entità Abbonamento da salvare nel DB
         Abbonamento abbonamento = new Abbonamento();
-
-        // ⚠️ ATTENZIONE: dto.Id NON ESISTE nel DTO che mi hai mandato
-        // Questo assegnamento causerà errore di compilazione
-        abbonamento.Id = dto.Id;
-
-        // Nome dell'abbonamento
         abbonamento.Nome = dto.Nome;
-
-        // Imposta la data di inizio come UTC corrente
-        abbonamento.DataInizio = DateTimeOffset.UtcNow;
-
-        // Durata dell'abbonamento
         abbonamento.Durata = dto.Durata;
-
-        // Data di fine (inviata dal client)
-        abbonamento.DataFine = dto.DataFine;
-
-        // Prezzo dell'abbonamento
         abbonamento.Prezzo = dto.Prezzo;
-
-        // Percentuale di sconto
         abbonamento.Sconto = dto.Sconto;
 
-        // Aggiunge l'abbonamento al contesto EF
+        // ✔ Inserimento nel database
         _contesto.Abbonamenti.Add(abbonamento);
-
-        // Salva le modifiche nel database
         await _contesto.SaveChangesAsync();
 
-        // Creazione del DTO di risposta
+        // ✔ Conversione in DTO
         DtoAbbonamento risultato = new DtoAbbonamento();
-
-        // Id generato
         risultato.Id = abbonamento.Id;
-
-        // ⚠️ ERRORE: NomeAzione NON ESISTE nel model Abbonamento
-        risultato.Nome = abbonamento.NomeAzione;
-
-        // Converte la data in locale per il client
-        risultato.DataInizio = abbonamento.DataInizio.ToLocalTime();
-
-        // Durata
+        risultato.Nome = abbonamento.Nome;
         risultato.Durata = abbonamento.Durata;
-
-        // Calcolo della data di fine (qui viene ignorato DataFine del DB)
-        risultato.DataFine = abbonamento.DataInizio.AddMonths(abbonamento.Durata);
-
-        // Prezzo
         risultato.Prezzo = abbonamento.Prezzo;
-
-        // Sconto
         risultato.Sconto = abbonamento.Sconto;
 
         return risultato;
     }
 
+    // ------------------------------------------------------------
+    // ✔ Modifica un abbonamento esistente
+    // ✔ Restituisce null se non trovato
+    // ------------------------------------------------------------
     public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-    // 2. Se l'abbonamento non esiste, restituisco null.
-    //    Nota: il metodo ritorna Task<DtoAbbonamento>, ma qui ritorni null.
-    //    Tecnicamente sarebbe più corretto usare Task<DtoAbbonamento?>.
-    if (abbonamento == null)
-        return null;
-
-    // 3. Aggiorno manualmente ogni proprietà dell'entità.
-    //    Questo approccio è chiaro, esplicito e ti permette di controllare
-    //    esattamente cosa viene modificato.
-    abbonamento.Nome    = dto.Nome;
-    abbonamento.Durata  = dto.Durata;
-    abbonamento.Prezzo  = dto.Prezzo;
-    abbonamento.Sconto  = dto.Sconto;
-
-    // 4. Salvo le modifiche nel database.
-    //    SaveChangesAsync applica gli aggiornamenti all'entità tracciata.
-    await _contesto.SaveChangesAsync();
-
-    // 5. Creo e restituisco un DTO aggiornato.
-    //    Questo evita di esporre direttamente il modello EF.
-    return new DtoAbbonamento
     {
-        Id     = abbonamento.Id,
-        Nome   = abbonamento.Nome,
-        Durata = abbonamento.Durata,
-        Prezzo = abbonamento.Prezzo,
-        Sconto = abbonamento.Sconto,
-    };
-}
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
-public async Task<bool> EliminazioneAsync(string id)
-{
-    // 1. Cerco nel database l'abbonamento con chiave primaria uguale a 'id'.
-    //    FindAsync è molto efficiente perché usa direttamente la PK.
-    Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+        if (abbonamento == null)
+            return null;
 
-    // 2. Se l'abbonamento non esiste, restituisco false.
-    //    Questo indica al chiamante che non c'era nulla da eliminare.
-    if (abbonamento == null)
-    {
-        return false;
+        // ✔ Aggiornamento dei campi
+        abbonamento.Nome = dto.Nome;
+        abbonamento.Durata = dto.Durata;
+        abbonamento.Prezzo = dto.Prezzo;
+        abbonamento.Sconto = dto.Sconto;
+
+        await _contesto.SaveChangesAsync();
+
+        // ✔ Restituzione del DTO aggiornato
+        return new DtoAbbonamento
+        {
+            Id = abbonamento.Id,
+            Nome = abbonamento.Nome,
+            Durata = abbonamento.Durata,
+            Prezzo = abbonamento.Prezzo,
+            Sconto = abbonamento.Sconto,
+        };
     }
 
-    // 3. Rimuovo l'entità dal DbSet.
-    //    EF Core la marca come "Deleted" nel ChangeTracker.
-    _contesto.Abbonamenti.Remove(abbonamento);
+    // ------------------------------------------------------------
+    // ✔ Elimina un abbonamento tramite ID
+    // ✔ Restituisce true/false per indicare l’esito
+    // ------------------------------------------------------------
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
-    // 4. Applico le modifiche al database.
-    await _contesto.SaveChangesAsync();
+        if (abbonamento == null)
+        {
+            return false;
+        }
 
-    // 5. Restituisco true per indicare che l'eliminazione è avvenuta con successo.
-    return true;
-}
+        _contesto.Abbonamenti.Remove(abbonamento);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
 }
 ```
 
@@ -1422,7 +1340,48 @@ public async Task<bool> EliminazioneAsync(string id)
 ## Acquisto.cs
 
 ```c#
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Acquisti")] 
+// ✔ Mappa la classe alla tabella "Acquisti" nel database
+public class Acquisto
+{
+    [Key]
+    // ✔ Chiave primaria dell’acquisto, generata automaticamente come GUID stringa
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [Required]
+    // ✔ FK verso la proiezione acquistata
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    [ForeignKey("ProiezioneId")]
+    // ✔ Navigazione verso la proiezione associata
+    public Proiezione Proiezione { get; set; }
+
+    [Required]
+    // ✔ FK verso l’utente che ha effettuato l’acquisto
+    public string UtenteId { get; set; } = string.Empty;
+
+    [ForeignKey("UtenteId")]
+    // ✔ Navigazione verso l’utente proprietario dell’acquisto
+    public Utente Utente { get; set; }
+
+    [Required]
+    // ✔ Numero di biglietti acquistati per questa proiezione
+    public int NumeroBiglietti { get; set; }
+
+    // ✔ Timestamp di creazione dell’acquisto
+    // ✔ Usa DateTimeOffset per mantenere il fuso orario
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
+
+    [Required]
+    // ✔ Prezzo finale calcolato al momento dell’acquisto
+    //   (include maggiorazioni sala, sconti, numero biglietti, ecc.)
+    public decimal PrezzoFinale { get; set; }
+}
 ```
 
 ## Utente.cs
@@ -1648,6 +1607,7 @@ public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId
 # Controllers
 
 ## AdminController.cs 
+
 ```c#
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -1658,40 +1618,37 @@ using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-[ApiController] 
-// Indica che questo controller gestisce API REST e abilita funzionalità automatiche
-// come la validazione del modello e il binding dei parametri.
+[ApiController]
 [Route("api/[controller]")]
-// La route diventa: api/admin
-[Authorize]
-// Richiede che l’utente sia autenticato per accedere a qualsiasi endpoint del controller.
+[Authorize] // ✔ Tutti gli endpoint richiedono autenticazione
 public class AdminController : ControllerBase
 {
     private readonly AdminService _adminService;
     private readonly LogAzioniService _logAzioniService;
 
+    // ✔ Iniezione dei servizi necessari al controller
     public AdminController(AdminService adminService, LogAzioniService logAzioniService)
     {
-        // Iniezione dei servizi necessari al controller.
         _adminService = adminService;
         _logAzioniService = logAzioniService;
     }
 
     // ------------------------------------------------------------
-    // 1) OTTIENI TUTTI I PROFILI UTENTE
+    // GET api/admin/listaUtenti
+    // ✔ Restituisce tutti i profili utente
+    // ✔ Accessibile solo a Gestore/Operatore
     // ------------------------------------------------------------
-    [HttpGet("ListaUtenti")]
+    [HttpGet("listaUtenti")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    // Solo Gestore e Operatore possono accedere.
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
-        // Recupero tutti gli utenti tramite il servizio Admin.
+        // ✔ Recupera tutti gli utenti dal service
         List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
 
-        // Recupero l’ID dell’utente autenticato dal token JWT.
+        // ✔ ID dell’utente che effettua l’operazione (per logging)
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Registro nel log che la ricerca è stata effettuata.
+        // ✔ Log dell’azione (duplicato intenzionale secondo tua logica)
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -1700,7 +1657,6 @@ public class AdminController : ControllerBase
             Messaggio = "Ricerca avvenuta"
         });
 
-        // Secondo log (puoi unificarli se vuoi).
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -1709,12 +1665,13 @@ public class AdminController : ControllerBase
             Messaggio = "Operazione eseguita"
         });
 
-        // Restituisco la lista degli utenti.
         return Ok(utenti);
     }
 
     // ------------------------------------------------------------
-    // 2) RICERCA PROFILO TRAMITE ID
+    // GET api/admin/ricercaProfilo/{id}
+    // ✔ Ricerca un profilo tramite ID
+    // ✔ Accessibile solo a Gestore/Operatore
     // ------------------------------------------------------------
     [HttpGet("ricercaProfilo/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
@@ -1722,12 +1679,12 @@ public class AdminController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Recupero l’utente tramite ID.
+        // ✔ Recupera il profilo tramite ID
         DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
 
-        // Se non trovato → log fallimento + 404.
         if (utente == null)
         {
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -1739,7 +1696,7 @@ public class AdminController : ControllerBase
             return NotFound(new { messaggio = "Utente non trovato." });
         }
 
-        // Log successo.
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -1752,7 +1709,9 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // 3) ELIMINA UTENTE TRAMITE ID
+    // DELETE api/admin/eliminaUtente/{id}
+    // ✔ Elimina un utente tramite ID
+    // ✔ Accessibile solo a Gestore/Operatore
     // ------------------------------------------------------------
     [HttpDelete("eliminaUtente/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
@@ -1760,12 +1719,12 @@ public class AdminController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Chiamo il servizio per eliminare l’utente.
+        // ✔ Tentativo di eliminazione
         var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
 
-        // Se non trovato → log fallimento + 404.
         if (risultato == null)
         {
+            // ❌ Log fallimento
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
@@ -1777,7 +1736,7 @@ public class AdminController : ControllerBase
             return NotFound(new { messaggio = "Utente non trovato." });
         }
 
-        // Log successo.
+        // ✔ Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
@@ -1789,23 +1748,155 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
-    // 2. Se l'abbonamento non esiste, restituisco false.
-    //    Questo indica al chiamante che non c'era nulla da eliminare.
-    if (abbonamento == null)
+    // ------------------------------------------------------------
+    // GET api/admin/acquisti
+    // ✔ Restituisce tutti gli acquisti registrati
+    // ------------------------------------------------------------
+    [HttpGet("acquisti")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniTuttiGliAcquisti()
     {
-        return false;
+        List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // ✔ Log dell’azione
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutti gli acquisti admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(acquisti);
     }
 
-    // 3. Rimuovo l'entità dal DbSet.
-    //    EF Core la marca come "Deleted" nel ChangeTracker.
-    _contesto.Abbonamenti.Remove(abbonamento);
+    // ------------------------------------------------------------
+    // GET api/admin/acquisto/{id}
+    // ✔ Restituisce un acquisto tramite ID
+    // ------------------------------------------------------------
+    [HttpGet("acquisto/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
+    {
+        var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    // 4. Applico le modifiche al database.
-    await _contesto.SaveChangesAsync();
+        if (risultato == null)
+        {
+            // ❌ Log fallimento
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni acquisti tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
 
-    // 5. Restituisco true per indicare che l'eliminazione è avvenuta con successo.
-    return true;
-}
+            return NotFound($"Acquisto con id {id} non trovato");
+        }
+
+        // ✔ Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni acquisti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // ------------------------------------------------------------
+    // GET api/admin/utenti/{id}
+    // ✔ Restituisce tutti gli utenti associati a un abbonamento
+    // ------------------------------------------------------------
+    [HttpGet("utenti/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // ✔ Validazione input
+        if (string.IsNullOrWhiteSpace(abbonamentoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente= utenteId,
+                NomeAzione = "Ottieni gli utenti per abbonamento",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("AbbonamentoId non valido");
+        }
+
+        // ✔ Recupera utenti associati all’abbonamento
+        var risultato = await _adminService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            // ❌ Log fallimento
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni gli utenti per abbonamento",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessun utente trovato per questo abbonamento");
+        }
+
+        // ✔ Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni gli utenti per abbonamento",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // ------------------------------------------------------------
+    // GET api/admin/abbonamento/{id}
+    // ✔ Restituisce un abbonamento tramite ID (senza limiti utente)
+    // ------------------------------------------------------------
+    [HttpGet("abbonamento/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
+    {
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            // ❌ Log fallimento
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni abbonamenti tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+
+        // ✔ Log successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni abbonamenti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
 }
 ```
 
@@ -2114,27 +2205,23 @@ public class AdminService
     private readonly ContestoDb _contesto;
     private readonly UserManager<Utente> _gestioneUtenti;
 
-    public AdminService(ContestoDb contestoDb)
+    // ✔ Iniezione del DbContext e del gestore utenti Identity
+    public AdminService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
-        // Inietto il contesto del database.
         _contesto = contestoDb;
-
-        // ATTENZIONE: _gestioneUtenti non viene inizializzato qui.
-        // Dovresti iniettarlo nel costruttore per evitare NullReferenceException.
+        _gestioneUtenti = gestioneUtenti;
     }
-    
+
     // ------------------------------------------------------------
-    // 1) OTTIENI TUTTI GLI UTENTI
+    // ✔ Restituisce tutti gli utenti registrati
+    // ✔ Conversione manuale in DTO (senza LINQ)
     // ------------------------------------------------------------
     public async Task<List<DtoUtente>> OttieniUtentiAsync()
     {
-        // Recupero tutti gli utenti dal database.
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-        // Creo la lista dei DTO da restituire.
         List<DtoUtente> risultato = new List<DtoUtente>();
 
-        // Ciclo manuale per convertire ogni Utente in DtoUtente.
+        // ✔ Conversione iterativa in DTO
         for (int i = 0; i < utenti.Count; i++)
         {
             Utente utenteCorrente = utenti[i];
@@ -2152,20 +2239,19 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // 2) OTTIENI UTENTE TRAMITE ID
+    // ✔ Restituisce un singolo utente tramite ID
+    // ✔ Usa UserManager per compatibilità con Identity
     // ------------------------------------------------------------
     public async Task<DtoUtente?> OttieniUtenteTramiteIdAsync(string id)
     {
-        // Uso UserManager per cercare l’utente tramite ID.
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
 
-        // Se non esiste → restituisco null.
         if (utente == null)
         {
             return null;
         }
 
-        // Converto l’utente in DTO.
+        // ✔ Conversione in DTO
         DtoUtente dto = new DtoUtente();
         dto.Id = utente.Id;
         dto.Email = utente.Email ?? string.Empty;
@@ -2176,57 +2262,51 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // 3) ELIMINA UTENTE TRAMITE ID
+    // ✔ Elimina un utente tramite ID
+    // ✔ Restituisce IdentityResult per gestire errori e successi
     // ------------------------------------------------------------
     public async Task<IdentityResult> EliminaUtentePerIdAsync(string id)
     {
-        // Cerco l’utente tramite UserManager.
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
 
-        // Se non esiste → ritorno un errore IdentityResult.
         if (utente == null)
         {
+            // ✔ Identity richiede un errore formale per Failed()
             IdentityError errore = new IdentityError();
             return IdentityResult.Failed(errore);
         }
 
-        // Elimino l’utente tramite Identity.
+        // ✔ Eliminazione tramite Identity
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
-
         return risultato;
     }
 
     // ------------------------------------------------------------
-    // 4) OTTIENI TUTTI GLI ACQUISTI
+    // ✔ Restituisce tutti gli acquisti
+    // ✔ Caricamento manuale delle entità correlate (senza Include)
     // ------------------------------------------------------------
     public async Task<List<DtoAcquisto>> OttieniAcquisti()
     {
-        // Recupero tutti gli acquisti.
         List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
-
         List<DtoAcquisto> risultato = new List<DtoAcquisto>();
 
-        // Ciclo manuale su ogni acquisto.
         for (int i = 0; i < acquisti.Count; i++)
         {
             Acquisto acquistoCorrente = acquisti[i];
 
-            // Recupero manualmente tutte le entità collegate.
-            Movie? movie = await _contesto.Movies.FindAsync(acquistoCorrente.MovieId);
-            Sala? sala = await _contesto.Sale.FindAsync(acquistoCorrente.SalaId);
+            // ✔ Caricamento manuale delle entità correlate
+            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+            Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+            Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
             Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-            // Creo il DTO dell’acquisto.
+            // ✔ Conversione in DTO
             DtoAcquisto dto = new DtoAcquisto();
             dto.Id = acquistoCorrente.Id;
-            dto.MovieId = acquistoCorrente.MovieId;
-            dto.Titolo = movie.Titolo;
-            dto.SalaId = acquistoCorrente.SalaId;
-            dto.Nome = sala.Nome;
+            dto.ProiezioneId = acquistoCorrente.ProiezioneId;
             dto.UtenteId = acquistoCorrente.UtenteId;
-            dto.NomeCompleto = utente.NomeCompleto;
-            dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
                 movie.PrezzoMovie,
                 tipologiaSala.MaggiorazionePrezzo,
                 acquistoCorrente.NumeroBiglietti,
@@ -2242,35 +2322,31 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // 5) OTTIENI ACQUISTO TRAMITE ID
+    // ✔ Restituisce un acquisto tramite ID
+    // ✔ Caricamento manuale delle entità correlate
     // ------------------------------------------------------------
     public async Task<DtoAcquisto> OttieniAcquistoTramiteIdAsync(string id)
     {
-        // Recupero l’acquisto tramite ID.
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
 
-        // Se non esiste → restituisco null.
         if (acquisto == null)
         {
             return null;
         }
 
-        // Recupero manualmente tutte le entità collegate.
-        Movie? movie = await _contesto.Movies.FindAsync(acquisto.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(acquisto.SalaId);
+        // ✔ Caricamento entità correlate
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-        // Creo il DTO.
+        // ✔ Conversione in DTO
         DtoAcquisto dto = new DtoAcquisto();
         dto.Id = acquisto.Id;
-        dto.MovieId = acquisto.MovieId;
-        dto.Titolo = movie.Titolo;
-        dto.SalaId = acquisto.SalaId;
-        dto.Nome = sala.Nome;
         dto.UtenteId = acquisto.UtenteId;
-        dto.NomeCompleto = utente.NomeCompleto;
-        dto.PrezzoFinale = CalcolaPrezzo.CalcolaPrezzoFinale(
+        dto.ProiezioneId = acquisto.ProiezioneId;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             acquisto.NumeroBiglietti,
@@ -2283,17 +2359,18 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // 6) OTTIENI UTENTI TRAMITE ABBONAMENTO
+    // ✔ Restituisce tutti gli utenti associati a un abbonamento
+    // ✔ Implementazione senza LINQ e senza Include()
     // ------------------------------------------------------------
-    public async Task<List<DtoUtente>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
+    public async Task<List<DtoUtente>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
-        // Recupero tutti gli utenti e tutti gli abbonamenti.
+        // ✔ Caricamento completo (senza Include)
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
 
+        // ✔ Ricerca manuale dell’abbonamento
         Abbonamento? abbonamentoTrovato = null;
 
-        // Cerco manualmente l’abbonamento richiesto.
         for (int i = 0; i < abbonamenti.Count; i++)
         {
             Abbonamento abbonamentoCorrente = abbonamenti[i];
@@ -2305,20 +2382,19 @@ public class AdminService
             }
         }
 
-        // Se non esiste → restituisco lista vuota.
         if (abbonamentoTrovato == null)
         {
             return new List<DtoUtente>();
         }
 
+        // ✔ Conversione utenti → DTO filtrando per abbonamento
         List<DtoUtente> risultato = new List<DtoUtente>();
 
-        // Cerco manualmente gli utenti che hanno quell’abbonamento.
         for (int i = 0; i < utenti.Count; i++)
         {
             Utente utenteCorrente = utenti[i];
 
-            // Confronto diretto tra oggetti (funziona perché EF traccia le entità).
+            // ✔ Confronto diretto dell’oggetto (senza LINQ)
             if (utenteCorrente.Abbonamento == abbonamentoTrovato)
             {
                 DtoUtente dto = new DtoUtente();
@@ -2333,10 +2409,34 @@ public class AdminService
 
         return risultato;
     }
-}
 
+    // ------------------------------------------------------------
+    // ✔ Restituisce un abbonamento tramite ID (per admin)
+    // ------------------------------------------------------------
+    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+
+        if (abbonamento == null)
+        {
+            return null;
+        }
+
+        // ✔ Conversione in DTO
+        DtoAbbonamento dto = new DtoAbbonamento();
+        dto.Id = abbonamento.Id;
+        dto.Nome = abbonamento.Nome;
+        dto.Durata = abbonamento.Durata;
+        dto.Prezzo = abbonamento.Prezzo;
+        dto.Sconto = abbonamento.Sconto;
+
+        return dto;
+    }
+}
 ```
+
 ## ProiezioneService.cs
+
 ```c#
 public class ProiezioneService
 {
