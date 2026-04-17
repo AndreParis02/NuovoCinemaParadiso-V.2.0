@@ -23,9 +23,10 @@ Seconda fase
 
 |Assegnato| user | task | feedback |
 |---|---|---|---|
-| |Greg|Sala|Creazione, Modifica |
+| |Greg|Acquisto|Creazione, Modifica|
 | |Marco|Movie| Creazione, Modifica|
-| |Simeone|Acquisto|Creazione, Modifica, calcolo |
+| |Francesco|Sala | creazione| modifica |
+| |Simeone|Acquisto|Creazione, Modifica|
 
 
 terza fase
@@ -54,14 +55,6 @@ terza fase
 |user|file|commento| risposta
 |---|---|---|---|
 |Greg| | |  |
-|Marco|  |  | 
-|Marco|  | 
-|Marco|  |  |
-|Marco|  |  | 
-|Marco|  |  | 
-|Marco|  |  | 
-|Marco|  |  | 
-|Marco|  |  | 
 |Marco|  |  | 
 
 
