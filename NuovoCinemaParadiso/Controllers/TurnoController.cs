@@ -71,13 +71,16 @@ public class TurnoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
-        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
+        
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();//legge la lista di tutti i turni
 
+        
+        //controlla che il nome turno fornito dal DTO non sia già presente nella lista dei turni del db. Se trovato, restituisce errore
         foreach (var turno in turni)
         {
-            if (turno.Nome.Contains(risultato.Nome))
+            bool stringheUguali=string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
+            if (stringheUguali)
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
                 {
@@ -90,6 +93,8 @@ public class TurnoController : ControllerBase
                 return BadRequest(new { messaggio = "Turno già presente." });
             }
         }
+
+        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);//creazione nuovo turno. Se fallisce, ritorna errore
         
         if (risultato == null)
         {
