@@ -57,6 +57,13 @@ curl -s -X PUT "http://localhost:5226/api/GestoreUtenti/cambia-ruolo" \
     }' | jq
 ```
 
+## Curl di lettura log
+
+```bash
+curl -s -X GET "http://localhost:5226/api/Auth/log" -H "Authorization: Bearer $TOKEN"
+
+```
+
 # Generi Movies
 
 ## Leggi Generi Movies:

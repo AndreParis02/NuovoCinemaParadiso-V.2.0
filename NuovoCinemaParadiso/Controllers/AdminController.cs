@@ -230,4 +230,15 @@ public class AdminController : ControllerBase
 
         return Ok(risultato);
     }
+
+    [HttpGet("log")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        List<DtoLogAzioni> risultatiLog = await _logAzioniService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+    
 }
+        
+    

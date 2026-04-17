@@ -1,6 +1,7 @@
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace NuovoCinemaParadiso.Services;
@@ -14,7 +15,7 @@ public class LogAzioniService
   }
 
   
-   public async Task<DtoLogAzioni> SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
+    public async Task SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
     {
         LogAzioni log = new LogAzioni();
 
@@ -37,7 +38,26 @@ public class LogAzioniService
         risultato.TimeStamp = log.TimeStamp;
 
 
-        return risultato;
+    }
+
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        foreach (LogAzioni log in logs)
+        {
+          DtoLogAzioni risultato = new DtoLogAzioni();
+          risultato.Id = log.Id;
+          risultato.IdUtente = log.IdUtente;
+          risultato.NomeAzione = log.NomeAzione;
+          risultato.Effettuato = log.Effettuato;
+          risultato.Messaggio = log.Messaggio;
+          risultato.TimeStamp = log.TimeStamp;
+          risultati.Add(risultato);
+        }
+
+
+        return risultati;
     }
 
 }
