@@ -426,8 +426,20 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi proiezione tramite id
+## Leggi proiezione tramite id proiezione
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
+-H "Authorization: Bearer $TOKEN"
+```
+
+## Leggi proiezione tramite id turno
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni/turno/Id Turno" \
+-H "Authorization: Bearer $TOKEN"
+```
+
+## Leggi proiezione tramite id sala
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni/sala/Id Sala" \
 -H "Authorization: Bearer $TOKEN"
 ```
