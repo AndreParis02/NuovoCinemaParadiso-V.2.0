@@ -136,7 +136,7 @@ curl -s -X DELETE "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" -H
 curl -s -X GET "http://localhost:5226/api/Turno" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi Turno tramite Id della fascia oraria:
+## Leggi Turno tramite Id:
 
 ```bash
 curl -s -X GET "http://localhost:5226/api/Turno/Id Turno" \
@@ -422,6 +422,18 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 
 
 
+# Proiezione
+
+## Leggi tutte le proiezioni
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
+```
+
+## Leggi proiezione tramite id
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
+-H "Authorization: Bearer $TOKEN"
+```
 
 ## Crea Proiezione:
 
@@ -455,16 +467,3 @@ curl -s -X PUT "http://localhost:5226/api/Proiezione/Id Proiezione" \
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Authorization: Bearer $TOKEN" 
   ```
-
-# Proiezione
-
-## Leggi tutte le proiezioni
-```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
-```
-
-## Leggi proiezione tramite id
-```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
--H "Authorization: Bearer $TOKEN"
-```

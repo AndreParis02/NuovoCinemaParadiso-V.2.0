@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuovoCinemaParadiso.Models;
 
-[Table("Utente")]
+[Table("Utenti")]
 public class Utente : IdentityUser
 {
     [Required]
