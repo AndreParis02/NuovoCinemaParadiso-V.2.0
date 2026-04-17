@@ -235,22 +235,11 @@ public class DtoCreazioneAcquisto
     [Required]
     public string ProiezioneId { get; set; } = string.Empty;
 
-    // Identificativo dell'utente che effettua l'acquisto.
-    // Viene passato dal client, ma nel controller puoi anche sovrascriverlo
-    // con l'utente autenticato per maggiore sicurezza.
-    [Required]
-    public string? UtenteId { get; set; } = string.Empty;
-
     // Numero di biglietti acquistati.
     // Deve essere >= 1, ma questo controllo può essere aggiunto con [Range].
     [Required]
     public int NumeroBiglietti { get; set; }
 
-    // Prezzo finale calcolato lato server.
-    // Nota: spesso NON si fa passare dal client per evitare manipolazioni,
-    // ma si ricalcola nel backend usando i dati della proiezione.
-    [Required]
-    public decimal PrezzoFinale { get; set; }
 }
 ```
 
