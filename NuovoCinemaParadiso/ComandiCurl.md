@@ -463,12 +463,21 @@ curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Autho
 curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi proiezione tramite id
+## Leggi proiezione tramite id proiezione
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
+## Leggi proiezione tramite id turno
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni/turno/Id Turno" \
+-H "Authorization: Bearer $TOKEN"
+```
+
+## Leggi proiezione tramite id sala
+```bash
+curl -s -X GET "http://localhost:5226/api/Proiezioni/sala/Id Sala" \
 ## ottieni proiezione per film
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezione/movie/Id Movie" \
