@@ -2635,7 +2635,149 @@ public class AcquistoService
     }
 }
 ```
+## GiftCardService.cs
+```c#
+// Servizio applicativo per la gestione delle GiftCard
+public class GiftCardService
+{
+    // Riferimento al DbContext per operazioni sul database
+    private readonly ContestoDb _contesto;
 
+    // Iniezione del contesto tramite costruttore
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // Restituisce tutte le GiftCard presenti nel sistema
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        // Lettura completa della tabella GiftCards
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        // Mappatura manuale GiftCard → DTO
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Durata = giftCardCorrente.Durata;
+            dto.Prezzo = giftCardCorrente.Prezzo;
+            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    // Restituisce una GiftCard solo se appartiene all’utente richiesto
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupero GiftCard tramite chiave primaria
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        // Controllo che l’utente sia associato alla GiftCard
+        foreach (var utente in giftCard.Utenti)
+        {
+            if (utente.Id == utenteId)
+            {
+                DtoGiftCard risultato = new DtoGiftCard();
+                risultato.Id = giftCard.Id;
+                risultato.Nome = giftCard.Nome;
+                risultato.Durata = giftCard.Durata;
+                risultato.Prezzo = giftCard.Prezzo;
+                risultato.NumeroMovie = giftCard.NumeroMovie;
+
+                return risultato;
+            }
+        }
+
+        return null;
+    }
+
+    // Crea una nuova GiftCard
+    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
+    {
+        // Costruzione dell’entità da salvare
+        GiftCard giftCard = new GiftCard();
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        // Salvataggio nel database
+        _contesto.GiftCards.Add(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        // Mappatura dell’entità salvata in DTO
+        DtoGiftCard risultato = new DtoGiftCard();
+        risultato.Id = giftCard.Id;
+        risultato.Nome = giftCard.Nome;
+        risultato.Durata = giftCard.Durata;
+        risultato.Prezzo = giftCard.Prezzo;
+        risultato.NumeroMovie = giftCard.NumeroMovie;
+
+        return risultato;
+    }
+
+    // Modifica una GiftCard esistente
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        // Recupero GiftCard da modificare
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        // Aggiornamento dei campi modificabili
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        await _contesto.SaveChangesAsync();
+
+        // Restituzione DTO aggiornato
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie,
+        };
+    }
+
+    // Elimina una GiftCard tramite id
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        // Recupero GiftCard
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return false;
+        }
+
+        // Eliminazione dal database
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+
+```
 
 
 
