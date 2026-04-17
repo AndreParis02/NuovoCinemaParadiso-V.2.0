@@ -8,7 +8,7 @@
 
 Services:
 
-Prima fase 17/04/2026
+Prima fase 17/04/2026 finita
 
 
 |Assegnato| user | task | feedback |
@@ -19,7 +19,7 @@ Prima fase 17/04/2026
 | |Simeone| | |
 
 
-Seconda fase
+Seconda fase( Greg e Francesco hanno completato le tasks)
 
 |Assegnato| user | task | feedback |
 |---|---|---|---|
@@ -33,9 +33,10 @@ terza fase
 
 |Assegnato| user | task | feedback |
 |---|---|---|---|
-| |Greg|      |         |
-| |Marco|DtoLogAzioni-LogAzioniService|        |
+| |Greg| Proiezione|Tutti gli ottieni(testare i curl)|
+| |Marco||        |
 | |Simeone|          |        |
+| |Francesco|Proiezione |Creazione/Modifica/Elimina(testare i curl)|
 
 
 
