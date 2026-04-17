@@ -121,6 +121,81 @@ public class Utente : IdentityUser
     public Abbonamento? Abbonamento { get; set; }
 }
 ```
+## Turno.cs
+```c#
+// Mappa la classe alla tabella "Turni"
+[Table("Turni")]
+public class Turno
+{
+    // Chiave primaria generata come GUID stringa
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    
+    // Orario di inizio del turno (obbligatorio)
+    [Required]
+    public TimeOnly OraInizio { get; set; }
+
+    // Orario di fine del turno (obbligatorio)
+    [Required]
+    public TimeOnly OraFine { get; set; }
+
+    // Nome descrittivo del turno, max 50 caratteri
+    [StringLength(50)]
+    public string Nome { get; set; } = string.Empty;
+
+    // Relazione 1‑a‑molti con le sale
+    public List<Sala> Sale { get; set; } = new();
+}
+```
+## Acquisto.cs
+
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Acquisti")] 
+// ✔ Mappa la classe alla tabella "Acquisti" nel database
+public class Acquisto
+{
+    [Key]
+    // ✔ Chiave primaria dell’acquisto, generata automaticamente come GUID stringa
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [Required]
+    // ✔ FK verso la proiezione acquistata
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    [ForeignKey("ProiezioneId")]
+    // ✔ Navigazione verso la proiezione associata
+    public Proiezione Proiezione { get; set; }
+
+    [Required]
+    // ✔ FK verso l’utente che ha effettuato l’acquisto
+    public string UtenteId { get; set; } = string.Empty;
+
+    [ForeignKey("UtenteId")]
+    // ✔ Navigazione verso l’utente proprietario dell’acquisto
+    public Utente Utente { get; set; }
+
+    [Required]
+    // ✔ Numero di biglietti acquistati per questa proiezione
+    public int NumeroBiglietti { get; set; }
+
+    // ✔ Timestamp di creazione dell’acquisto
+    // ✔ Usa DateTimeOffset per mantenere il fuso orario
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
+
+    [Required]
+    // ✔ Prezzo finale calcolato al momento dell’acquisto
+    //   (include maggiorazioni sala, sconti, numero biglietti, ecc.)
+    public decimal PrezzoFinale { get; set; }
+}
+```
+
+
+
 # Dtos
 
 ## DtoAbbonamento.cs
@@ -192,57 +267,6 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
-## DtoAcquisto
-
-```c#
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoAcquisto
-{
-    // Identificativo univoco dell'acquisto (GUID o stringa generata dal DB)
-    public string Id { get; set; }
-
-    // Identificativo della proiezione associata all'acquisto
-    // Serve per collegare l'acquisto alla proiezione scelta dall'utente
-    public string ProiezioneId { get; set; } = string.Empty;
-
-    // Identificativo dell'utente che ha effettuato l'acquisto
-    public string UtenteId { get; set; } = string.Empty;
-
-    // Prezzo finale calcolato (prezzo base + maggiorazioni * numero biglietti)
-    public decimal PrezzoFinale { get; set; }
-
-    // Timestamp di creazione dell'acquisto
-    // Usare DateTimeOffset garantisce correttezza rispetto ai fusi orari
-    public DateTimeOffset OrarioCreazione { get; set; }
-
-    // Numero di biglietti acquistati in questa transazione
-    public int NumeroBiglietti { get; set; }
-}
-```
-
-## DtoCreazioneAcquisto
-
-```c#
-using System.ComponentModel.DataAnnotations;
-
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoCreazioneAcquisto
-{
-    // Identificativo della proiezione scelta dall'utente.
-    // È obbligatorio perché l'acquisto deve sempre riferirsi a una proiezione valida.
-    [Required]
-    public string ProiezioneId { get; set; } = string.Empty;
-
-    // Numero di biglietti acquistati.
-    // Deve essere >= 1, ma questo controllo può essere aggiunto con [Range].
-    [Required]
-    public int NumeroBiglietti { get; set; }
-
-}
-```
-
 ## DtoCreazioneProiezione.cs
 ```c#
 // DTO utilizzato per la creazione di una nuova proiezione.
@@ -300,10 +324,88 @@ public class DtoCreazioneUtente
     public int Eta {get; set;} 
 }
 ```
+## DtoTurno.cs
+```c#
+// DTO usato per esporre i dati essenziali di un turno
+public class DtoTurno
+{
+    // Identificativo del turno (stringa GUID)
+    public string Id { get; set; }
 
+    // Orario di inizio del turno (solo ora, senza data)
+    public TimeOnly OraInizio { get; set; }
 
+    // Orario di fine del turno (solo ora, senza data)
+    public TimeOnly OraFine { get; set; }
 
+    // Nome descrittivo del turno (es. "Sera", "Pomeriggio")
+    public string Nome { get; set; } = string.Empty;
+}
+```
+## DtoCreazioneTurno.cs
+```c#
+// DTO usato per creare un nuovo turno: contiene solo i campi richiesti in input
+public class DtoCreazioneTurno
+{    
+    // Orario di inizio del turno (obbligatorio)
+    [Required]
+    public TimeOnly OraInizio { get; set; }
 
+    // Orario di fine del turno (obbligatorio)
+    [Required]
+    public TimeOnly OraFine { get; set; }
+    
+    // Nome descrittivo del turno, max 50 caratteri (es. "Sera", "Pomeriggio")
+    [StringLength(50)]
+    public string Nome { get; set; } = string.Empty;
+}
+```
+## DtoAcquisto.cs
+```c#
+// DTO restituito al client per rappresentare un acquisto già registrato
+public class DtoAcquisto
+{
+    // Identificativo univoco dell’acquisto
+    public string Id { get; set; }
+
+    // Id della proiezione associata all’acquisto
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    // Id dell’utente che ha effettuato l’acquisto
+    public string UtenteId { get; set; } = string.Empty;
+
+    // Prezzo finale calcolato lato server (film + tipologia sala + quantità)
+    public decimal PrezzoFinale { get; set; }
+
+    // Timestamp di creazione dell’acquisto (UTC)
+    public DateTimeOffset OrarioCreazione { get; set; }
+
+    // Numero di biglietti acquistati
+    public int NumeroBiglietti { get; set; }
+}
+```
+## DtoCreazioneAcquisto.cs
+```c#
+// DTO usato per creare un nuovo acquisto: contiene solo i dati forniti dal client
+public class DtoCreazioneAcquisto
+{
+    // Id della proiezione scelta dall’utente (obbligatorio)
+    [Required]
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    // Id dell’utente che effettua l’acquisto (obbligatorio, ma ignorato lato server)
+    [Required]
+    public string? UtenteId { get; set; } = string.Empty;
+
+    // Numero di biglietti richiesti (obbligatorio)
+    [Required]
+    public int NumeroBiglietti { get; set; }
+
+    // Prezzo finale calcolato dal client (obbligatorio ma NON usato: il server ricalcola sempre)
+    [Required]
+    public decimal PrezzoFinale { get; set; }
+}
+```
 
 # Controllers
 
@@ -370,7 +472,7 @@ public class AbbonamentoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
-        var risultato = await _adminService.OttieniTramiteIdPerAdminAsync(id);
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
@@ -1159,6 +1261,369 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
     }
 }
 ```
+## TurnoController.cs
+```c#
+// Controller API per la gestione dei turni: richiede autenticazione
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TurnoController : ControllerBase
+{
+    // Servizi applicativi usati dal controller
+    private readonly TurnoService _turnoService;
+    private readonly LogAzioniService _logAzioniService;
+
+    // Iniezione dei servizi necessari
+    public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
+    {
+        _turnoService = turnoService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Restituisce tutti i turni presenti nel sistema
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutte i turni",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(turni);
+    }
+
+    // Restituisce un turno tramite il suo id
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni turno tramite id",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Turno con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni turno tramite id",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Crea un nuovo turno (solo Gestore o Operatore)
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync(); // lettura turni esistenti
+
+        // Verifica unicità del nome turno
+        foreach (var turno in turni)
+        {
+            bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
+            if (stringheUguali)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione turno",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Turno già presente." });
+            }
+        }
+
+        // Creazione del turno tramite servizio applicativo
+        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Creazione turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest(new { messaggio = "Turno non valido." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Creazione turno",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Modifica un turno esistente
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
+    {
+        DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Modifica turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Turno non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Modifica turno",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Elimina un turno tramite id
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _turnoService.EliminaAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Elimina turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Turno non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Elimina turno",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return NoContent();
+    }
+}
+```
+## AcquistoController.cs
+```c#
+// Controller API per la gestione degli acquisti: richiede autenticazione
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class AcquistoController : ControllerBase
+{
+    // Servizi applicativi utilizzati dal controller
+    private readonly AcquistoService _acquistoService;
+    private readonly LogAzioniService _logAzioniService;
+
+    // Iniezione dei servizi tramite costruttore
+    public AcquistoController(AcquistoService acquistoService, LogAzioniService logAzioniService)
+    {
+        _acquistoService = acquistoService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Restituisce tutti gli acquisti dell’utente autenticato
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
+
+        // Log dell’operazione
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutti gli acquisti utente",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(acquisti);
+    }
+
+    // Restituisce un acquisto tramite id, solo se appartiene all’utente
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
+
+        // Se non trovato o non appartenente all’utente
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni acquisti tramite id utente",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Acquisto con id {id} non trovato");
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni acquisti tramite id utente",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Crea un nuovo acquisto per l’utente autenticato
+    [HttpPost]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
+
+        // Se la creazione fallisce
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Creazione acquisto",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Creazione acquisto",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Modifica un acquisto esistente (solo Gestore o Operatore)
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
+    {
+        DtoAcquisto? risultato = await _acquistoService.ModificaAsync(id, dto);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se l’acquisto non esiste
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Modifica acquisto",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Acquisto non trovato." });
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Modifica acquisto",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    // Elimina un acquisto tramite id (solo Gestore o Operatore)
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _acquistoService.EliminazioneAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non trovato
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Elimina acquisto",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound(new { messaggio = "Acquisto non trovato." });
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Elimina acquisto",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return NoContent();
+    }
+}
+
+```
 
 
 # Service
@@ -1324,204 +1789,6 @@ public class AbbonamentoService
 }
 ```
 
-# Models
-
-## Acquisto.cs
-
-```c#
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace NuovoCinemaParadiso.Models;
-
-[Table("Acquisti")] 
-// ✔ Mappa la classe alla tabella "Acquisti" nel database
-public class Acquisto
-{
-    [Key]
-    // ✔ Chiave primaria dell’acquisto, generata automaticamente come GUID stringa
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-
-    [Required]
-    // ✔ FK verso la proiezione acquistata
-    public string ProiezioneId { get; set; } = string.Empty;
-
-    [ForeignKey("ProiezioneId")]
-    // ✔ Navigazione verso la proiezione associata
-    public Proiezione Proiezione { get; set; }
-
-    [Required]
-    // ✔ FK verso l’utente che ha effettuato l’acquisto
-    public string UtenteId { get; set; } = string.Empty;
-
-    [ForeignKey("UtenteId")]
-    // ✔ Navigazione verso l’utente proprietario dell’acquisto
-    public Utente Utente { get; set; }
-
-    [Required]
-    // ✔ Numero di biglietti acquistati per questa proiezione
-    public int NumeroBiglietti { get; set; }
-
-    // ✔ Timestamp di creazione dell’acquisto
-    // ✔ Usa DateTimeOffset per mantenere il fuso orario
-    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
-
-    [Required]
-    // ✔ Prezzo finale calcolato al momento dell’acquisto
-    //   (include maggiorazioni sala, sconti, numero biglietti, ecc.)
-    public decimal PrezzoFinale { get; set; }
-}
-```
-
-## Utente.cs
-
-```c#
-using Microsoft.AspNetCore.Identity;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace NuovoCinemaParadiso.Models;
-
-[Table("Utente")]
-public class Utente : IdentityUser
-{
-    [Required]
-    [StringLength(100)]
-    public string NomeCompleto { get; set; } = string.Empty;
-    [Required]
-    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
-    public int Eta { get; set; }
-    [Required]
-    public bool SeAbbonato { get; set; } = false;
-
-    public DateTimeOffset DataInizio { get; set; } = DateTimeOffset.UtcNow;
-    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
-
-    public string AbbonamentoId { get; set; } = string.Empty;
-    [ForeignKey("AbbonamentoId")]
-    public Abbonamento Abbonamento { get; set; }
-}
-
-```
-
-# Dtos
-
-## DtoUtente.cs
-
-```c#
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoUtente
-{
-    public string Id { get; set; } = string.Empty;
-    public string NomeCompleto { get; set; } = string.Empty;
-    public DateTimeOffset DataInizio {get; set;}
-    public bool Abbonato {get; set;}
-    public string Email { get; set; } = string.Empty;
-    public int Eta { get; set; }
-     public string AbbonamentoId {get; set;} = string.Empty;
-    public string TipoAbbonamento {get; set;} = string.Empty;
-} 
-```
-
-## DtoCreazioneUtente.cs
-
-```c#
-using System.ComponentModel.DataAnnotations;
-
-namespace NuovoCinemaParadiso.Dtos;
-
-public class DtoCreazioneUtente
-{
-    [Required]
-    [StringLength(100)]
-    public string NomeCompleto {get; set;} = string.Empty;
-    
-    [Required]
-    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
-    public int Eta {get; set;} 
-}
-```
-
-# Controller
-
-## UtentiController.cs
-
-```c#
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class UtentiController : ControllerBase
-{
-    private readonly UtenteService _utenteService;
-    private readonly LogAzioniService _logAzioniService;
-
-    public UtentiController(UtenteService utenteService, LogAzioniService logAzioniService)
-    {
-        // Inietto i servizi necessari al controller.
-        _utenteService = utenteService;
-        _logAzioniService = logAzioniService;
-    }
-
-    // Endpoint: POST api/utenti/abbonati
-    [HttpPost("abbonati")]
-    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
-    {
-        // 1. Recupero l'ID dell'utente autenticato tramite il token JWT.
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // 2. Validazione dei dati in ingresso.
-        //    Controllo che il DTO non sia null e che contenga gli ID necessari.
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId) || string.IsNullOrEmpty(dto.Id))
-        {
-            // 3. Registro nel log che l'operazione è fallita.
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Abbonati",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            // 4. Risposta HTTP 400: dati non validi.
-            return BadRequest("Dati non validi");
-        }
-
-        // 5. Chiamo il servizio che gestisce la logica di abbonamento.
-        var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, dto.Id);
-
-        // 6. Se il servizio restituisce null, significa che l'utente o l'abbonamento non esistono.
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Abbonati",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            // Risposta HTTP 404: risorsa non trovata.
-            return NotFound("Utente o abbonamento non trovato");
-        }
-
-        // 7. Se tutto è andato bene, registro l'azione come riuscita.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Abbonati",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        // 8. Risposta HTTP 200 con il risultato.
-        return Ok(risultato);
-    }
-}
-```
-
-# Service
-
 ## UtenteService.cs
 
 ```c#
@@ -1593,589 +1860,7 @@ public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId
 }
 ```
 
-# Controllers
 
-## AdminController.cs 
-
-```c#
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
-
-namespace NuovoCinemaParadiso.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-[Authorize] // ✔ Tutti gli endpoint richiedono autenticazione
-public class AdminController : ControllerBase
-{
-    private readonly AdminService _adminService;
-    private readonly LogAzioniService _logAzioniService;
-
-    // ✔ Iniezione dei servizi necessari al controller
-    public AdminController(AdminService adminService, LogAzioniService logAzioniService)
-    {
-        _adminService = adminService;
-        _logAzioniService = logAzioniService;
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/listaUtenti
-    // ✔ Restituisce tutti i profili utente
-    // ✔ Accessibile solo a Gestore/Operatore
-    // ------------------------------------------------------------
-    [HttpGet("listaUtenti")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiIProfili()
-    {
-        // ✔ Recupera tutti gli utenti dal service
-        List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
-
-        // ✔ ID dell’utente che effettua l’operazione (per logging)
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // ✔ Log dell’azione (duplicato intenzionale secondo tua logica)
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ricerca profili",
-            Effettuato = true,
-            Messaggio = "Ricerca avvenuta"
-        });
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i profili",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(utenti);
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/ricercaProfilo/{id}
-    // ✔ Ricerca un profilo tramite ID
-    // ✔ Accessibile solo a Gestore/Operatore
-    // ------------------------------------------------------------
-    [HttpGet("ricercaProfilo/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // ✔ Recupera il profilo tramite ID
-        DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
-
-        if (utente == null)
-        {
-            // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ricerca profilo",
-                Effettuato = false,
-                Messaggio = "Ricerca fallita"
-            });
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-
-        // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ricerca profilo",
-            Effettuato = true,
-            Messaggio = "Ricerca avvenuta"
-        });
-
-        return Ok(utente);
-    }
-
-    // ------------------------------------------------------------
-    // DELETE api/admin/eliminaUtente/{id}
-    // ✔ Elimina un utente tramite ID
-    // ✔ Accessibile solo a Gestore/Operatore
-    // ------------------------------------------------------------
-    [HttpDelete("eliminaUtente/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> EliminaTramiteId(string Id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // ✔ Tentativo di eliminazione
-        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
-
-        if (risultato == null)
-        {
-            // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = false,
-                Messaggio = "Eliminazione profilo fallita"
-            });
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-
-        // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Eliminazione profilo",
-            Effettuato = true,
-            Messaggio = "Eliminazione profilo avvenuta"
-        });
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/acquisti
-    // ✔ Restituisce tutti gli acquisti registrati
-    // ------------------------------------------------------------
-    [HttpGet("acquisti")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAcquisti()
-    {
-        List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // ✔ Log dell’azione
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli acquisti admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(acquisti);
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/acquisto/{id}
-    // ✔ Restituisce un acquisto tramite ID
-    // ------------------------------------------------------------
-    [HttpGet("acquisto/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
-    {
-        var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (risultato == null)
-        {
-            // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni acquisti tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound($"Acquisto con id {id} non trovato");
-        }
-
-        // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni acquisti tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/utenti/{id}
-    // ✔ Restituisce tutti gli utenti associati a un abbonamento
-    // ------------------------------------------------------------
-    [HttpGet("utenti/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // ✔ Validazione input
-        if (string.IsNullOrWhiteSpace(abbonamentoId))
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente= utenteId,
-                NomeAzione = "Ottieni gli utenti per abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest("AbbonamentoId non valido");
-        }
-
-        // ✔ Recupera utenti associati all’abbonamento
-        var risultato = await _adminService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
-
-        if (risultato == null || risultato.Count == 0)
-        {
-            // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni gli utenti per abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound("Nessun utente trovato per questo abbonamento");
-        }
-
-        // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni gli utenti per abbonamento",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // GET api/admin/abbonamento/{id}
-    // ✔ Restituisce un abbonamento tramite ID (senza limiti utente)
-    // ------------------------------------------------------------
-    [HttpGet("abbonamento/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
-    {
-        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (risultato == null)
-        {
-            // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni abbonamenti tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound($"Abbonamento con id {id} non trovato");
-        }
-
-        // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni abbonamenti tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
-        return Ok(risultato);
-    }
-}
-```
-
-## UtenteService.cs
-```c#
-public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
-{
-    // 1. Recupero tutti gli abbonamenti dal database.
-    //    Non usi LINQ, quindi fai un ToListAsync e poi cerchi manualmente.
-    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-    Abbonamento? abbonamentoTrovato = null;
-
-    // 2. Ciclo manuale per trovare l'abbonamento con l'ID richiesto.
-    for (int i = 0; i < abbonamenti.Count; i++)
-    {
-        Abbonamento abbonamentoCorrente = abbonamenti[i];
-
-        if (abbonamentoCorrente.Id == abbonamentoId)
-        {
-            abbonamentoTrovato = abbonamentoCorrente;
-            break; // appena trovato, esco dal ciclo
-        }
-    }
-
-    // 3. Se non ho trovato l'abbonamento, interrompo e restituisco null.
-    if (abbonamentoTrovato == null)
-    {
-        return null;
-    }
-
-    // 4. Recupero tutti gli utenti dal database.
-    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-    Utente? utenteTrovato = null;
-
-    // 5. Ciclo manuale per trovare l'utente con l'ID richiesto.
-    for (int i = 0; i < utenti.Count; i++)
-    {
-        if (utenti[i].Id == utenteId)
-        {
-            utenteTrovato = utenti[i];
-            break;
-        }
-    }
-
-    // 6. Se l'utente non esiste, restituisco null.
-    if (utenteTrovato == null)
-    {
-        return null;
-    }
-
-    // 7. Aggiorno i campi dell'utente per segnare l'abbonamento.
-    utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
-    utenteTrovato.SeAbbonato = true;
-    utenteTrovato.DataInizio = DateTimeOffset.UtcNow;
-
-    // 8. Salvo le modifiche nel database.
-    await _contesto.SaveChangesAsync();
-
-    // 9. Restituisco un DTO completo dell'utente aggiornato.
-    return new DtoUtente()
-    {
-        Id = utenteTrovato.Id,
-        NomeCompleto = utenteTrovato.NomeCompleto,
-        Email = utenteTrovato.Email,
-        Eta = utenteTrovato.Eta,
-        Abbonato = utenteTrovato.SeAbbonato,
-        DataInizio = utenteTrovato.DataInizio,
-        AbbonamentoId = utenteTrovato.AbbonamentoId,
-        TipoAbbonamento = abbonamentoTrovato.Nome
-    };
-}
-```
-
-# Services
-
-## AcquistoService.cs
-
-```c#
-using Microsoft.EntityFrameworkCore;
-using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Helpers;
-
-namespace NuovoCinemaParadiso.Services;
-
-public class AcquistoService
-{
-    private readonly ContestoDb _contesto;
-
-    public AcquistoService(ContestoDb contesto)
-    {
-        _contesto = contesto;
-    }
-
-    // Restituisce tutti gli acquisti dell'utente specificato
-    public async Task<List<DtoAcquisto>> OttieniTutto(string utenteId)
-    {
-        // Recupera tutti gli acquisti dal DB
-        // NOTA: qui si genera un potenziale N+1 perché poi carichi altre entità una per una
-        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
-
-        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
-
-        for (int i = 0; i < acquisti.Count; i++)
-        {
-            Acquisto acquistoCorrente = acquisti[i];
-
-            // Carica l'utente associato all'acquisto
-            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
-
-            // Carica la proiezione collegata
-            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
-
-            // Carica il film della proiezione
-            Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-
-            // Carica la sala della proiezione
-            Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-
-            // Carica la tipologia della sala (per maggiorazioni)
-            TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-            // Filtra solo gli acquisti dell'utente richiesto
-            if (acquistoCorrente.UtenteId == utenteId)
-            {
-                DtoAcquisto dto = new DtoAcquisto();
-                dto.Id = acquistoCorrente.Id;
-                dto.ProiezioneId = acquistoCorrente.ProiezioneId;
-
-                // Calcolo del prezzo finale basato su film, sala e numero biglietti
-                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-                    movie.PrezzoMovie,
-                    tipologiaSala.MaggiorazionePrezzo,
-                    acquistoCorrente.NumeroBiglietti,
-                    utente
-                );
-
-                dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
-                dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
-
-                risultato.Add(dto);
-            }
-        }
-
-        return risultato;
-    }
-
-    // Restituisce un singolo acquisto tramite ID, solo se appartiene all'utente
-    public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
-    {
-        // Recupera l'acquisto
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
-
-        // Carica entità correlate
-        Utente? utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
-        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
-        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-        // Se non esiste → null
-        if (acquisto == null)
-        {
-            return null;
-        }
-
-        // Se l'acquisto non appartiene all'utente → null
-        if (acquisto.UtenteId != utenteId)
-        {
-            return null;
-        }
-
-        // Mappa in DTO
-        DtoAcquisto dto = new DtoAcquisto();
-        dto.Id = acquisto.Id;
-        dto.ProiezioneId = acquisto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-            movie.PrezzoMovie,
-            tipologiaSala.MaggiorazionePrezzo,
-            acquisto.NumeroBiglietti,
-            utente
-        );
-        dto.OrarioCreazione = acquisto.OrarioCreazione;
-        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
-
-        return dto;
-    }
-
-    // Crea un nuovo acquisto
-    public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
-    {
-        // Carica tutte le entità necessarie per il calcolo del prezzo
-        Utente utente = await _contesto.Utenti.FindAsync(utenteId);
-        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
-        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-        // Crea l'entità Acquisto
-        Acquisto acquisto = new Acquisto();
-        acquisto.UtenteId = utenteId;
-        acquisto.ProiezioneId = proiezione.Id;
-        acquisto.NumeroBiglietti = dto.NumeroBiglietti;
-
-        // Calcolo del prezzo finale lato server (sicuro)
-        acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-            movie.PrezzoMovie,
-            tipologiaSala.MaggiorazionePrezzo,
-            dto.NumeroBiglietti,
-            utente
-        );
-
-        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
-
-        // Salvataggio nel DB
-        _contesto.Acquisti.Add(acquisto);
-        await _contesto.SaveChangesAsync();
-
-        // Mappa in DTO da restituire
-        DtoAcquisto risultato = new DtoAcquisto();
-        risultato.Id = acquisto.Id;
-        risultato.ProiezioneId = acquisto.ProiezioneId;
-        risultato.UtenteId = acquisto.UtenteId;
-        risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
-        risultato.PrezzoFinale = acquisto.PrezzoFinale;
-        risultato.OrarioCreazione = acquisto.OrarioCreazione;
-
-        return risultato;
-    }
-
-    // Modifica un acquisto esistente
-    public async Task<DtoAcquisto?> ModificaAsync(string id, DtoCreazioneAcquisto dto)
-    {
-        // Recupera l'acquisto da modificare
-        Acquisto? acquistoEsistente = await _contesto.Acquisti.FindAsync(id);
-
-        // Aggiorna numero biglietti
-        acquistoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
-
-        // Carica entità correlate aggiornate
-        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
-        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        Utente? utente = await _contesto.Utenti.FindAsync(acquistoEsistente.UtenteId);
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-        // Ricalcola il prezzo finale
-        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-            movie.PrezzoMovie,
-            tipologiaSala.MaggiorazionePrezzo,
-            acquistoEsistente.NumeroBiglietti,
-            utente
-        );
-
-        await _contesto.SaveChangesAsync();
-
-        // Mappa in DTO
-        DtoAcquisto risultato = new DtoAcquisto
-        {
-            Id = acquistoEsistente.Id,
-            UtenteId = acquistoEsistente.UtenteId,
-            ProiezioneId = acquistoEsistente.ProiezioneId,
-            NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
-            PrezzoFinale = acquistoEsistente.PrezzoFinale,
-            OrarioCreazione = acquistoEsistente.OrarioCreazione
-        };
-
-        return risultato;
-    }
-
-    // Elimina un acquisto
-    public async Task<bool> EliminazioneAsync(string id)
-    {
-        // Recupera l'acquisto
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
-
-        if (acquisto == null)
-        {
-            return false;
-        }
-
-        // Rimuove e salva
-        _contesto.Acquisti.Remove(acquisto);
-        await _contesto.SaveChangesAsync();
-
-        return true;
-    }
-}
-```
 
 ## AdminService.cs
 
@@ -2629,46 +2314,375 @@ public class ProiezioneService
     }
 }
 ```
+## TurnoService.cs
+```c#
+// Servizio applicativo per la gestione dei turni: incapsula la logica di accesso al DB
+public class TurnoService
+{
+    // Riferimento al DbContext per operazioni CRUD
+    private readonly ContestoDb _contesto;
+
+    // Iniezione del contesto tramite costruttore
+    public TurnoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // Restituisce tutti i turni mappandoli manualmente in DTO
+    public async Task<List<DtoTurno>> OttieniTuttoAsync()
+    {
+        List<Turno> turni = await _contesto.Turni.ToListAsync();
+        List<DtoTurno> risultato = new List<DtoTurno>();
+
+        // Mappatura manuale per ogni turno
+        for (int i = 0; i < turni.Count; i++)
+        {
+            Turno turnoCorrente = turni[i];
+
+            DtoTurno dto = new DtoTurno();
+            dto.Id = turnoCorrente.Id;
+            dto.OraInizio = turnoCorrente.OraInizio;
+            dto.OraFine = turnoCorrente.OraFine;
+            dto.Nome = turnoCorrente.Nome;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    // Restituisce un turno tramite id, oppure null se non trovato
+    public async Task<DtoTurno> OttieniTramiteIdAsync(string id) 
+    {
+        Turno? turno = await _contesto.Turni.FindAsync(id);
+        if (turno == null)
+        {
+            return null;
+        }
+
+        // Mappatura del singolo turno in DTO
+        DtoTurno dto = new DtoTurno();
+        dto.Id = turno.Id;
+        dto.Nome = turno.Nome;
+        dto.OraInizio = turno.OraInizio;
+        dto.OraFine = turno.OraFine;
+
+        return dto;
+    }
+
+    // Crea un nuovo turno a partire dal DTO di creazione
+    public async Task<DtoTurno> CreazioneAsync(DtoCreazioneTurno dto)
+    {
+        // Creazione dell'entità da salvare
+        Turno turno = new Turno();
+        turno.Nome = dto.Nome;
+        turno.OraInizio = dto.OraInizio;
+        turno.OraFine = dto.OraFine;
+
+        _contesto.Turni.Add(turno);
+        await _contesto.SaveChangesAsync();
+
+        // Restituzione del DTO risultante
+        DtoTurno risultato = new DtoTurno();
+        risultato.Id = turno.Id;
+        risultato.Nome = turno.Nome;
+        risultato.OraInizio = turno.OraInizio;
+        risultato.OraFine = turno.OraFine;
+
+        return risultato;
+    }
+
+    // Modifica un turno esistente tramite id e DTO di creazione
+    public async Task<DtoTurno?> ModificaAsync(string id, DtoCreazioneTurno dto)
+    {
+        Turno? turnoEsistente = await _contesto.Turni.FindAsync(id);
+
+        // Se non trovato, restituisce null
+        if (turnoEsistente == null)
+        {
+            return null;
+        }
+
+        // Aggiornamento dei campi modificabili
+        turnoEsistente.OraInizio = dto.OraInizio;
+        turnoEsistente.OraFine = dto.OraFine;
+        turnoEsistente.Nome = dto.Nome;
+
+        await _contesto.SaveChangesAsync();
+
+        // Mappatura del risultato aggiornato
+        DtoTurno risultato = new DtoTurno();
+        risultato.Id = turnoEsistente.Id;
+        risultato.OraInizio = turnoEsistente.OraInizio;
+        risultato.OraFine = turnoEsistente.OraFine;
+        risultato.Nome = turnoEsistente.Nome;
+
+        return risultato;
+    }
+
+    // Elimina un turno tramite id, restituisce true se eliminato
+    public async Task<bool> EliminaAsync(string id) 
+    {
+        Turno? turno = await _contesto.Turni.FindAsync(id);
+
+        // Se non esiste, operazione fallita
+        if (turno == null)
+        {
+            return false;
+        }
+
+        _contesto.Turni.Remove(turno);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+## AcquistoService.cs
+```c#
+// Servizio applicativo per la gestione degli acquisti: contiene la logica di business
+public class AcquistoService
+{
+    // Riferimento al DbContext per operazioni sul database
+    private readonly ContestoDb _contesto;
+
+    // Iniezione del contesto tramite costruttore
+    public AcquistoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // Restituisce tutti gli acquisti dell'utente specificato
+    public async Task<List<DtoAcquisto>> OttieniTutto(string utenteId)
+    {
+        // Recupera tutti gli acquisti dal DB
+        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
+        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
+
+        // Mappatura manuale con filtraggio per utente
+        for (int i = 0; i < acquisti.Count; i++)
+        {
+            Acquisto acquistoCorrente = acquisti[i];
+
+            // Recupero entità correlate necessarie al calcolo del prezzo
+            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
+            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+            Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+            Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+            TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+            // Considera solo gli acquisti dell'utente richiesto
+            if (acquistoCorrente.UtenteId == utenteId)
+            {
+                // Costruzione DTO risultato
+                DtoAcquisto dto = new DtoAcquisto();
+                dto.Id = acquistoCorrente.Id;
+                dto.ProiezioneId = acquistoCorrente.ProiezioneId;
+                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                    movie.PrezzoMovie,
+                    tipologiaSala.MaggiorazionePrezzo,
+                    acquistoCorrente.NumeroBiglietti,
+                    utente
+                );
+                dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
+                dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+
+                risultato.Add(dto);
+            }
+        }
+
+        return risultato;
+    }
+
+    // Restituisce un acquisto tramite id, solo se appartiene all'utente
+    public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupero dell'acquisto
+        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
+
+        if (acquisto == null)
+        {
+            return null;
+        }
+
+        // Controllo che l'acquisto appartenga all'utente
+        if (acquisto.UtenteId != utenteId)
+        {
+            return null;
+        }
+
+        // Recupero entità correlate
+        Utente? utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Costruzione DTO
+        DtoAcquisto dto = new DtoAcquisto();
+        dto.Id = acquisto.Id;
+        dto.ProiezioneId = acquisto.ProiezioneId;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            acquisto.NumeroBiglietti,
+            utente
+        );
+        dto.OrarioCreazione = acquisto.OrarioCreazione;
+        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+
+        return dto;
+    }
+
+    // Crea un nuovo acquisto per l'utente
+    public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
+    {
+        // Recupero entità necessarie al calcolo del prezzo
+        Utente utente = await _contesto.Utenti.FindAsync(utenteId);
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Creazione dell'entità Acquisto
+        Acquisto acquisto = new Acquisto();
+        acquisto.UtenteId = utenteId;
+        acquisto.ProiezioneId = proiezione.Id;
+        acquisto.NumeroBiglietti = dto.NumeroBiglietti;
+        acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            dto.NumeroBiglietti,
+            utente
+        );
+        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
+
+        // Salvataggio nel DB
+        _contesto.Acquisti.Add(acquisto);
+        await _contesto.SaveChangesAsync();
+
+        // Costruzione DTO risultato
+        DtoAcquisto risultato = new DtoAcquisto();
+        risultato.Id = acquisto.Id;
+        risultato.ProiezioneId = acquisto.ProiezioneId;
+        risultato.UtenteId = acquisto.UtenteId;
+        risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
+        risultato.PrezzoFinale = acquisto.PrezzoFinale;
+        risultato.OrarioCreazione = acquisto.OrarioCreazione;
+
+        return risultato;
+    }
+
+    // Modifica un acquisto esistente (solo numero biglietti e prezzo)
+    public async Task<DtoAcquisto?> ModificaAsync(string id, DtoCreazioneAcquisto dto)
+    {
+        // Recupero dell'acquisto
+        Acquisto? acquistoEsistente = await _contesto.Acquisti.FindAsync(id);
+
+        if (acquistoEsistente == null)
+        {
+            return null;
+        }
+
+        // Aggiornamento numero biglietti
+        acquistoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
+
+        // Recupero entità correlate aggiornate
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        Utente? utente = await _contesto.Utenti.FindAsync(acquistoEsistente.UtenteId);
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // Ricalcolo del prezzo finale
+        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            acquistoEsistente.NumeroBiglietti,
+            utente
+        );
+
+        await _contesto.SaveChangesAsync();
+
+        // Costruzione DTO risultato
+        DtoAcquisto risultato = new DtoAcquisto
+        {
+            Id = acquistoEsistente.Id,
+            UtenteId = acquistoEsistente.UtenteId,
+            ProiezioneId = acquistoEsistente.ProiezioneId,
+            NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
+            PrezzoFinale = acquistoEsistente.PrezzoFinale,
+            OrarioCreazione = acquistoEsistente.OrarioCreazione
+        };
+
+        return risultato;
+    }
+
+    // Elimina un acquisto tramite id
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
+
+        if (acquisto == null)
+        {
+            return false;
+        }
+
+        _contesto.Acquisti.Remove(acquisto);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
 
 
 
 
 # Helpers
 
-## CalcolaPrezzoHelper.cs
+## CalcoliHelper.cs
 
 ```c#
-namespace NuovoCinemaParadiso.Helpers;
-
-// Classe helper statica per il calcolo del prezzo finale dei biglietti
-public static class CalcolaPrezzo
+// Classe helper che contiene funzioni di calcolo riutilizzabili nel progetto
+public static class Calcoli
 {
-    // Calcola il prezzo finale in base al costo del film, della sala,
-    // al numero di biglietti e all'eventuale abbonamento dell'utente.
-    public static Decimal CalcolaPrezzoFinale(Decimal prezzoMovie, Decimal prezzoSala, int numeroBiglietti, Utente utente)
+    // Calcola il prezzo finale di un acquisto in base a:
+    // - prezzo base del film
+    // - maggiorazione della sala
+    // - numero di biglietti
+    // - eventuale sconto dell’abbonamento dell’utente
+    public static decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
     {
-        // Se l'utente NON ha un abbonamento → prezzo pieno
-        if (utente.AbbonamentoId == null)
+        // Caso: utente NON abbonato → prezzo pieno
+        if (utente.SeAbbonato == false)
         {
-            // Prezzo totale = (prezzo film + prezzo sala) * numero biglietti
-            Decimal prezzoFinale = (prezzoMovie + prezzoSala) * numeroBiglietti;
+            decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
             return prezzoFinale;
         }
         else
         {
-            // Prezzo base del singolo biglietto
-            Decimal prezzoBiglietto = prezzoMovie + prezzoSala;
-
-            // Calcolo dello sconto in base alla percentuale dell'abbonamento
-            // ATTENZIONE: qui stai calcolando SOLO lo sconto, non il prezzo scontato
-            Decimal prezzoScontato = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-
-            // Prezzo finale = sconto * numero biglietti
-            // ⚠️ Questo restituisce il valore dello sconto totale, NON il prezzo finale scontato
-            Decimal prezzoFinale = prezzoScontato * numeroBiglietti;
-
+            // Caso: utente abbonato → applica sconto percentuale
+            decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            decimal prezzoScontato = prezzoBiglietto - sconto;
+            decimal prezzoFinale = prezzoScontato * numeroBiglietti;
             return prezzoFinale;
         }
+    }
+
+    // Calcola la data di scadenza dell’abbonamento aggiungendo la durata in mesi
+    public static DateTimeOffset? CalcolaScadenzaAbbonamento(DateTimeOffset dataInizio, int durata)
+    {
+        return dataInizio.AddMonths(durata);
+    }
+
+    // Restituisce quanti giorni mancano alla scadenza dell’abbonamento
+    public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
+    {
+        DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
+        TimeSpan differenza = dataScadenza - DateTime.Now;
+        return (int)differenza.TotalDays;
     }
 }
 ```
