@@ -27,5 +27,5 @@ public class Proiezione
     public string TurnoId { get; set; } = string.Empty;
 
     [ForeignKey("TurnoId")]
-    public Utente Turno { get; set; }
+    public Turno Turno { get; set; }
 }
