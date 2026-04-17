@@ -976,12 +976,31 @@ public class ProiezioneController : ControllerBase
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (turnoId == null)
+        if (string.IsNullOrEmpty(turnoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
             return BadRequest("TurnoId non valido");
+        }
 
         var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
 
-        if (risultato == null || risultato.Count == 0)
+         if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni proiezioni per turno",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
             return NotFound("Nessuna proiezione trovata per questo turno");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
@@ -994,6 +1013,117 @@ public class ProiezioneController : ControllerBase
 
         return Ok(risultato);
     }
+
+    // Endpoint GET: restituisce tutte le proiezioni associate a una sala specifica
+[HttpGet("sala/{salaId}")]
+public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
+{
+    // Recupera l'ID dell'utente autenticato dai claims (token JWT)
+    string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // Controllo di validità del parametro salaId
+    if (string.IsNullOrEmpty(salaId))
+    {
+        // Log dell'azione fallita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per sala",
+            Effettuato = false,
+            Messaggio = "Operazione fallita"
+        });
+
+        // Restituisce errore 400 Bad Request
+        return BadRequest("SalaId non valido");
+    }
+
+    // Chiama il service per ottenere le proiezioni della sala
+    var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
+
+    // Se non viene trovato nulla
+    if (risultato == null)
+    {
+        // Log dell'azione fallita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per sala",
+            Effettuato = false,
+            Messaggio = "Operazione fallita"
+        });
+
+        // Restituisce errore 404 Not Found
+        return NotFound("Nessuna proiezione trovata per questa sala");
+    }
+
+    // Log dell'azione completata con successo
+    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+    {
+        IdUtente = utenteId,
+        NomeAzione = "Ottieni proiezioni per sala",
+        Effettuato = true,
+        Messaggio = "Operazione eseguita"
+    });
+
+    // Restituisce risultato con status 200 OK
+    return Ok(risultato);
+}
+
+
+// Endpoint GET: restituisce tutte le proiezioni associate a un film specifico
+[HttpGet("movie/{movieId}")]
+public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movieId)
+{
+    // Recupera l'ID dell'utente autenticato
+    string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // Controllo di validità del parametro movieId
+    if(string.IsNullOrEmpty(movieId))
+    {
+        // Log dell'azione fallita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per film",
+            Effettuato = false,
+            Messaggio = "Operazione fallita"
+        });
+
+        // Restituisce errore 400 Bad Request
+        return BadRequest("MovieId non valido");
+    }
+
+    // Chiama il service per ottenere le proiezioni del film
+    var risultato = await _proiezioneService.OttieniTramiteMovieAsync(movieId);
+
+    // Se non viene trovato nulla
+    if (risultato == null)
+    {
+        // Log dell'azione fallita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni proiezioni per film",
+            Effettuato = false,
+            Messaggio = "Operazione fallita"
+        });
+
+        // Restituisce errore 404 Not Found
+        return NotFound("Nessuna proiezione trovata per questo film");
+    }
+
+    // Log dell'azione completata con successo
+    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+    {
+        IdUtente = utenteId,
+        NomeAzione = "Ottieni proiezioni per film",
+        Effettuato = true,
+        Messaggio = "Operazione eseguita"
+    });
+
+    // Restituisce risultato con status 200 OK
+    return Ok(risultato);
+}
 
     // Crea una nuova proiezione, con controllo duplicati.
     [HttpPost]
