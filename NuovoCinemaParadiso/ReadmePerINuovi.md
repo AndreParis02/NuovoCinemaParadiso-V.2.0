@@ -24,7 +24,7 @@ Seconda fase
 |Assegnato| user | task | feedback |
 |---|---|---|---|
 | |Greg|Acquisto|Creazione, Modifica|
-| |Marco|Movie| Creazione, Modifica|
+| |Marco|DtoLogAzioni-LogAzioniService (il service deve essere una classe statica con le conseguenti modifiche)||
 | |Francesco|Sala | creazione| modifica |
 | |Simeone|Acquisto|Creazione, Modifica|
 
