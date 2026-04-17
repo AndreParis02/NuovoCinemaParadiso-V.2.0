@@ -60,7 +60,7 @@ curl -s -X PUT "http://localhost:5226/api/GestoreUtenti/cambia-ruolo" \
 ## Curl di lettura log
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Auth/log" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Admin/log" -H "Authorization: Bearer $TOKEN"
 
 ```
 
