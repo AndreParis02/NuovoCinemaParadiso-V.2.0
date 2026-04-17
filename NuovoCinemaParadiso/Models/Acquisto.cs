@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace NuovoCinemaParadiso.Models;
 
-[Table("Acquisto")]
+[Table("Acquisti")]
 public class Acquisto
 {
     [Key]

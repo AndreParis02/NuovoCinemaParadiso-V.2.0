@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuovoCinemaParadiso.Models;
 
-[Table("Movie")]
+[Table("Movies")]
 public class Movie
 {
     [Key]

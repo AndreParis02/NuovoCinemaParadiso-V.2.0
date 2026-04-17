@@ -14,7 +14,7 @@ Prima fase 17/04/2026
 |Assegnato| user | task | feedback |
 |---|---|---|---|
 | |Greg|abbonamento| Creazione, Modifica. |
-| |Marco|turno| Creazione, Modifica. |
+| |Marco|turno| Creazione| Modifica|
 | |Francesco|Sala | creazione| modifica |
 | |Simeone| | |
 
