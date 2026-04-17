@@ -169,7 +169,7 @@ public class AdminService
         return risultato;
     }
     
-    public async Task<DtoAbbonamento> OttieniTramiteIdPerAdminAsync(string id)
+    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
