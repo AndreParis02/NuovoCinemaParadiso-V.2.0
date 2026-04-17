@@ -205,14 +205,14 @@ curl -s -X GET "http://localhost:5226/api/Sale/tipologia/Id Tipologia Sala" \
 ## Crea Sala:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Sala" \
+curl -s -X POST "http://localhost:5226/api/Sale" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
     "Nome": "Sala 3",
     "Capienza": 100,
-    "TipologiaSalaId": "e93a92a7-f30c-4b7f-b2ec-4370ad58efd8",
-    "FasciaOrariaId": "649dacc1-116c-4031-885e-e2212c816e0a"
+    "TipologiaSalaId": "Id Tipologia Sala",
+    "FasciaOrariaId": "Id Fascia Oraria"
 }' | jq
 ```
 ## Modifica Sala con id della sala:
