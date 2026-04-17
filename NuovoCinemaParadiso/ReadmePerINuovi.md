@@ -14,7 +14,7 @@ Prima fase 17/04/2026
 |Assegnato| user | task | feedback |
 |---|---|---|---|
 | |Greg|abbonamento| Creazione, Modifica. |
-| |Marco|turno| Creazione, Modifica. |
+| |Marco|turno| Creazione| Modifica|
 | |Francesco|Sala | creazione| modifica |
 | |Simeone| | |
 
@@ -23,9 +23,10 @@ Seconda fase
 
 |Assegnato| user | task | feedback |
 |---|---|---|---|
-| |Greg|Sala|Creazione, Modifica |
-| |Marco|Movie| Creazione, Modifica|
-| |Simeone|Acquisto|Creazione, Modifica, calcolo |
+| |Greg|Acquisto|Creazione, Modifica|
+| |Marco|DtoLogAzioni-LogAzioniService (il service deve essere una classe statica con le conseguenti modifiche)||
+| |Francesco|Sala | creazione| modifica |
+| |Simeone|Acquisto|Creazione, Modifica|
 
 
 terza fase
@@ -58,6 +59,31 @@ terza fase
 |Marco|  |  | 
 |Francesco|  | 
 
+|Greg| | |  |
+|Marco|  |  | 
+
+
+### MARCO
+Test Creazione Turno
+Creazione di TurnoController crea turni con nome duplicato sul db e poi restituisce un errore di turno già esistente.
+Sembra che il turno venga creato senza nessun controllo, e il controllo sul nome che dovrebbe essere effettuato avviene tramite un Contain e non con un'uguaglianza di stringhe.
+
+```bash
+curl -s -X POST "http://localhost:5226/api/Turno" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+    "oraInizio": "15:30:00",
+    "oraFine": "18:00:00",
+    "nome": "Pomeriggio5"
+}' | jq
+```
+
+Restituisce turno già esistente e crea la fascia pomeriggio5 sul db.
+Sul DB vedo 3 fasce orarie che hanno orainizio e orafine tipo 00:00:00.0000010. E' un errore del dataseeder?
+
+Test Modifica turno
+Il test sembra dare esito positivo, i valori sul db vengono modificati correttamente
 
 
 

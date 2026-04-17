@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuovoCinemaParadiso.Models;
 
-[Table("TipologiaSala")]
+[Table("TipologieSala")]
 public class TipologiaSala
 {
     [Key]
