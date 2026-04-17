@@ -22,5 +22,6 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<Abbonamento> Abbonamenti {get;set;}
         public DbSet<LogAzioni> LogAzioni {get;set;}
         public DbSet<Proiezione> Proiezioni {get;set;}
+        public DbSet<GiftCard> GiftCards {get;set;}
     }
 }

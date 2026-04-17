@@ -15,11 +15,13 @@ public class Utente : IdentityUser
     public int Eta { get; set; }
     [Required]
     public bool SeAbbonato { get; set; } = false;
-
     public DateTimeOffset DataInizioAbbonamento { get; set; }
+    public DateTimeOffset DataInizioGiftCard { get; set; }
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
-
     public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
+    public string? GiftCardId { get; set; }
+    [ForeignKey("GiftCardId")]
+    public GiftCard? GiftCard { get; set; }
 }
