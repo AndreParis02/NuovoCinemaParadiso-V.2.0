@@ -10,7 +10,6 @@ DataProiezione;
 
 Sala:
 TipologiaSalaId;
-FasciaOrariaId;
 
 Film:
 GenereId;
@@ -44,5 +43,3 @@ utenteId;
 
 - Lorenzo: DtoProiezione da sistemare, DtoCreazioneProiezione e funzione ottieniperidasync
 - Fabio: Controller di proiezione.
-Sala Nuova:
-TipologiaSalaId;

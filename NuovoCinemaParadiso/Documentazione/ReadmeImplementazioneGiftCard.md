@@ -666,87 +666,111 @@ public class GiftCardController : ControllerBase
 ## CalcoliHelper.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Helpers;
+
 /// <summary>
-/// Calcola il prezzo finale di un acquisto in base a:
-/// - prezzo base del film
-/// - maggiorazione della tipologia sala
-/// - numero di biglietti acquistati
-/// - stato dell’utente (abbonato o possessore di gift card)
-/// 
-/// La logica gestisce tre casi:
-/// 1. Utente NON abbonato e senza gift card → paga tutto
-/// 2. Utente con gift card → scala i film disponibili
-/// 3. Utente abbonato → paga tutto (l’abbonamento non dà sconti sui biglietti)
+/// Classe statica che contiene funzioni di utilità per calcoli
+/// relativi a prezzi, scadenze e gestione temporale.
 /// </summary>
-public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
+public static class Calcoli
 {
-    // ---------------------------------------------------------
-    // CASO 1: Utente NON abbonato e NON possessore di gift card
-    // ---------------------------------------------------------
-    // Se l’utente non è abbonato, si applica il prezzo pieno.
-    if (utente.SeAbbonato == false)
+    /// <summary>
+    /// Calcola il prezzo finale dei biglietti in base al metodo di pagamento scelto.
+    /// Supporta tre modalità:
+    /// - "abbonamento": applica lo sconto previsto dal tipo di abbonamento
+    /// - "giftcard": scala i film disponibili e calcola eventuali biglietti rimanenti
+    /// - default: prezzo pieno
+    /// 
+    /// Aggiorna automaticamente lo stato della gift card (numero film rimanenti).
+    /// </summary>
+    public static Decimal CalcolaPrezzoFinale(
+        decimal prezzoMovie,
+        decimal maggiorazione,
+        int numeroBiglietti,
+        Utente utente,
+        string metodoPagamento)
     {
-        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-        return prezzoFinale;
+        // Prezzo base del singolo biglietto (film + eventuale maggiorazione sala)
+        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+
+        // ---------------------------------------------------------
+        // PAGAMENTO CON ABBONAMENTO
+        // ---------------------------------------------------------
+        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
+        {
+            // Calcolo dello sconto percentuale
+            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+
+            // Prezzo del biglietto dopo lo sconto
+            decimal prezzoScontato = prezzoBiglietto - sconto;
+
+            // Prezzo finale per il numero di biglietti richiesti
+            return prezzoScontato * numeroBiglietti;
+        }
+
+        // ---------------------------------------------------------
+        // PAGAMENTO CON GIFT CARD
+        // ---------------------------------------------------------
+        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        {
+            // Caso 1: la gift card copre più biglietti di quelli richiesti
+            if (utente.GiftCard.NumeroMovie > numeroBiglietti)
+            {
+                utente.GiftCard.NumeroMovie -= numeroBiglietti;
+                return 0;
+            }
+
+            // Caso 2: la gift card copre esattamente i biglietti richiesti
+            else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
+            {
+                utente.GiftCard.NumeroMovie = 0;
+                utente.PossiedeGiftCard = false;
+                return 0;
+            }
+
+            // Caso 3: la gift card copre solo una parte dei biglietti
+            else
+            {
+                int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
+
+                // La gift card viene completamente consumata
+                utente.GiftCard.NumeroMovie = 0;
+                utente.PossiedeGiftCard = false;
+
+                // Si paga solo per i biglietti non coperti
+                return prezzoBiglietto * bigliettiRimanenti;
+            }
+        }
+
+        // ---------------------------------------------------------
+        // PAGAMENTO STANDARD (prezzo pieno)
+        // ---------------------------------------------------------
+        return prezzoBiglietto * numeroBiglietti;
     }
 
-    // ---------------------------------------------------------
-    // CASO 2: Utente possessore di gift card
-    // ---------------------------------------------------------
-    // Se l’utente ha una gift card attiva, si scala il numero di film disponibili.
-    else if (utente.PossiedeGiftCard == true)
+    /// <summary>
+    /// Calcola la data di scadenza aggiungendo un numero di mesi
+    /// alla data di inizio (usato per abbonamenti e gift card).
+    /// </summary>
+    public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
-        // Se la gift card copre TUTTI i biglietti richiesti
-        if (utente.GiftCard.NumeroMovie > numeroBiglietti)
-        {
-            // Tutti i biglietti sono coperti → prezzo 0
-            Decimal prezzoFinale = 0;
-
-            // Scala i film rimanenti dalla gift card
-            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
-
-            return prezzoFinale;
-        }
-
-        // Se la gift card copre ESATTAMENTE il numero di biglietti richiesti
-        else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
-        {
-            // Tutti i biglietti sono coperti → prezzo 0
-            Decimal prezzoFinale = 0;
-
-            // La gift card viene completamente consumata
-            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
-
-            // L’utente non possiede più una gift card attiva
-            utente.PossiedeGiftCard = false;
-
-            return prezzoFinale;
-        }
-
-        // Se la gift card copre SOLO una parte dei biglietti richiesti
-        else
-        {
-            // Calcola quanti biglietti NON sono coperti dalla gift card
-            int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
-
-            // Prezzo da pagare solo per i biglietti non coperti
-            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * bigliettiRimanenti;
-
-            // La gift card viene esaurita
-            utente.PossiedeGiftCard = false;
-
-            return prezzoFinale;
-        }
+        return dataInizio.AddMonths(durata);
     }
 
-    // ---------------------------------------------------------
-    // CASO 3: Utente abbonato (ma senza gift card)
-    // ---------------------------------------------------------
-    // L’abbonamento NON dà sconti sui biglietti → paga tutto.
-    else
+    /// <summary>
+    /// Restituisce il numero di giorni rimanenti alla scadenza.
+    /// Se il valore è 0, significa che l'abbonamento/gift card è scaduto.
+    /// </summary>
+    public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
-        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-        return prezzoFinale;
+        DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
+
+        // Differenza tra la data di scadenza e la data attuale
+        TimeSpan differenza = dataScadenza - DateTime.Now;
+
+        return (int)differenza.TotalDays;
     }
 }
 ```
