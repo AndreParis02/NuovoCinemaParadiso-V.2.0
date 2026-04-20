@@ -2831,9 +2831,61 @@ public class GiftCardService
     }
 }
 
+```c#
+// Servizio applicativo per la gestione dei log: incapsula la logica di accesso al DB
+public class LogAzioniService
+{
+    // Riferimento al DbContext per operazioni CRUD
+    private readonly ContestoDb _contesto;
+
+    // Iniezione del contesto tramite costruttore
+    public LogAzioniService(ContestoDb contesto) 
+    {
+      _contesto = contesto; 
+    }
+
+    // Salva i log passati come dto all'interno del database
+    public async Task SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
+    {
+        // Trasforma il log passato com dto nel modello LogAzioni
+        LogAzioni log = new LogAzioni();
+        log.IdUtente = dto.IdUtente;
+        log.NomeAzione = dto.NomeAzione;
+        log.Effettuato = dto.Effettuato;
+        log.Messaggio = dto.Messaggio;
+        log.TimeStamp = DateTimeOffset.UtcNow;
+
+        // Salvataggio all'interno del database
+        _contesto.LogAzioni.Add(log);
+        await _contesto.SaveChangesAsync();
+    }
+    // Prende tutti i log dal database e li passa passa come una lista di dto log
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {   // Prende tutti i log dal database e li racchiude in una lista
+        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        // Prepara una lista di dto per contenere tutti i log
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        // Per ogni log presente nel DB
+        foreach (LogAzioni log in logs)
+        {
+          // Inserimento di ogni dato del log all'interno del dto 
+          DtoLogAzioni risultato = new DtoLogAzioni();
+          risultato.Id = log.Id;
+          risultato.IdUtente = log.IdUtente;
+          risultato.NomeAzione = log.NomeAzione;
+          risultato.Effettuato = log.Effettuato;
+          risultato.Messaggio = log.Messaggio;
+          risultato.TimeStamp = log.TimeStamp;
+          // Inserisce il dto dentro la lista da ritornare
+          risultati.Add(risultato);
+        }
+
+        // Ritorna la lista con tutti i log passati tramite dto
+        return risultati;
+    }
+
+}
 ```
-
-
 
 # Helpers
 

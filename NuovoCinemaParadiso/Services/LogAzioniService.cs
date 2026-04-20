@@ -25,19 +25,10 @@ public class LogAzioniService
         log.Messaggio = dto.Messaggio;
         log.TimeStamp = DateTimeOffset.UtcNow;
 
-       
+      
 
         _contesto.LogAzioni.Add(log);
         await _contesto.SaveChangesAsync();
-
-        DtoLogAzioni risultato = new DtoLogAzioni();
-        risultato.IdUtente = log.IdUtente;
-        risultato.NomeAzione = log.NomeAzione;
-        risultato.Effettuato = log.Effettuato;
-        risultato.Messaggio = log.Messaggio;
-        risultato.TimeStamp = log.TimeStamp;
-
-
     }
 
     public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
