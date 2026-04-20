@@ -6,12 +6,7 @@ public static class Calcoli
 {
     public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
     {
-        if (utente.SeAbbonato == false)
-        {
-            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-            return prezzoFinale;
-        }
-        else
+        if (utente.SeAbbonato == true)
         {
             Decimal prezzoBiglietto = prezzoMovie + maggiorazione;
             Decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
