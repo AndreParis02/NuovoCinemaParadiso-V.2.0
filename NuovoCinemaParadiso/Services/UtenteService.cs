@@ -56,10 +56,55 @@ public class UtenteService
             NomeCompleto = utenteTrovato.NomeCompleto,
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
-            Abbonato = utenteTrovato.SeAbbonato,
+            SeAbbonato = utenteTrovato.SeAbbonato,
             DataInizio = utenteTrovato.DataInizioAbbonamento,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             TipoAbbonamento = abbonamentoTrovato.Nome
+        };
+    }
+    public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+        GiftCard? giftCardTrovata = null;
+
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            if (giftCardCorrente.Id == giftCardId)
+            {
+                giftCardTrovata = giftCardCorrente;
+                break;
+            }
+        }
+
+        if (giftCardTrovata == null)
+        {
+            return null;
+        }
+
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteTrovato == null)
+        {
+            return null;
+        }
+
+        utenteTrovato.GiftCardId = giftCardTrovata.Id;
+        utenteTrovato.PossiedeGiftCard = true;
+        utenteTrovato.DataInizioGiftCard = DateTimeOffset.UtcNow;
+        await _contesto.SaveChangesAsync();
+
+        return new DtoUtente()
+        {
+            Id = utenteTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
+            DataInizio = utenteTrovato.DataInizioGiftCard,
+            GiftCardId = utenteTrovato.GiftCardId,
+            TipoGiftCard = giftCardTrovata.Nome
         };
     }
 }
