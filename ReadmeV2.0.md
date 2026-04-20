@@ -948,45 +948,7 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // 3) ELIMINA UTENTE TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpDelete("eliminaUtente/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> EliminaTramiteId(string Id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Chiamo il servizio per eliminare l’utente.
-        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
-
-        // Se non trovato → log fallimento + 404.
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = false,
-                Messaggio = "Eliminazione profilo fallita"
-            });
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-
-        // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Eliminazione profilo",
-            Effettuato = true,
-            Messaggio = "Eliminazione profilo avvenuta"
-        });
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // 4) OTTIENI TUTTI GLI ACQUISTI
+    // 3) OTTIENI TUTTI GLI ACQUISTI
     // ------------------------------------------------------------
     [HttpGet("acquisti")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
@@ -1010,7 +972,7 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // 5) OTTIENI ACQUISTO TRAMITE ID
+    // 4) OTTIENI ACQUISTO TRAMITE ID
     // ------------------------------------------------------------
     [HttpGet("acquisto/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
@@ -1046,7 +1008,7 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // 6) OTTIENI UTENTI TRAMITE ABBONAMENTO
+    // 5) OTTIENI UTENTI TRAMITE ABBONAMENTO
     // ------------------------------------------------------------
     [HttpGet("utenti/{abbonamentoid}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
