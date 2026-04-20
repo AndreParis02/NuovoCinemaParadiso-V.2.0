@@ -370,6 +370,7 @@ curl -s -X PUT "http://localhost:5226/api/Abbonamento/Id Abbonamento" \
 curl -s -X DELETE "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
 ```
 
+
 # GiftCard
 
 ## Leggi tutte le giftCard
@@ -526,11 +527,26 @@ curl -s -X GET "http://localhost:5226/api/Admin/acquisto" -H "Authorization: Bea
 curl -s -X GET "http://localhost:5226/api/Admin/abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
+## Leggi Utenti Per Id Abbonamento
+```bash
+curl -X GET "https://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
+-H "Authorization: Bearer YOUR_JWT_TOKEN" \
+-H "Content-Type: application/json"
+  ```
+
 ## Admin GiftCard
 
 ## leggi informazioni GiftCard per id come admin
 ```bash
 curl -s -X GET "http://localhost:5226/api/Admin/giftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN" | jq
+```
+
+## Leggi Utenti Per Id GiftCard
+```bash
+curl -X GET "https://localhost:5226/Admin/utenti/giftCard/Id_giftCard" \
+-H "Authorization: Bearer YOUR_JWT_TOKEN" \
+-H "Content-Type: application/json"
+  ```
 
 # Comandi Utente:
 
