@@ -232,29 +232,29 @@ curl -s -X PUT "http://localhost:5226/api/Sala/Id_sala" \
 curl -s -X DELETE "http://localhost:5226/api/Sale/Id Sala" -H "Authorization: Bearer $TOKEN" 
 ```
 
-# Movies
+# Movie
 
 ## Leggi tutti i film
 ```bash
-curl -s -X GET "http://localhost:5226/api/Movies" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Movie" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## leggi informazioni film per id
 ```bash
-curl -s -X GET "http://localhost:5226/api/Movies/Id Movies" \
+curl -s -X GET "http://localhost:5226/api/Movie/Id Movies" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## ottieni film per genere
 ```bash
-curl -s -X GET "http://localhost:5226/api/Movies/genere/Id Genere" \
+curl -s -X GET "http://localhost:5226/api/Movie/genere/Id Genere" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Crea Movie:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Movies" \
+curl -s -X POST "http://localhost:5226/api/Movie" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -269,7 +269,7 @@ curl -s -X POST "http://localhost:5226/api/Movies" \
 ## Modifica Movie con id del movie:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/Movies/Id Movie" \
+curl -s -X PUT "http://localhost:5226/api/Movie/Id Movie" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -280,7 +280,7 @@ curl -s -X PUT "http://localhost:5226/api/Movies/Id Movie" \
 
 ## Elimina Movie con id del movie:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/Movies/Id Movie" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Movie/Id Movie" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Acquisti
@@ -426,27 +426,27 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 ## Leggi tutte le proiezioni
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Proiezione" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi proiezione tramite id
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni/Id Proiezione" \
+curl -s -X GET "http://localhost:5226/api/Proiezione/Id Proiezione" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi proiezione tramite id turno
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni/turno/Id Turno" \
+curl -s -X GET "http://localhost:5226/api/Proiezione/turno/Id Turno" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi proiezione tramite id sala
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Proiezioni/sala/Id Sala" \
+curl -s -X GET "http://localhost:5226/api/Proiezione/sala/Id Sala" \
 ```
 
 ## ottieni proiezione per film
