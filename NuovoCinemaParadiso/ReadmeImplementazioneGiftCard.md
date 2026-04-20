@@ -237,236 +237,104 @@ public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
 }
 ```
 
-## GiftCardService.cs // INTERO
+## AuthService.cs // SOLO AGGIUNTA
 
 ```c#
-using Microsoft.EntityFrameworkCore;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Models;
-
-namespace NuovoCinemaParadiso.Services;
-
-public class GiftCardService
+public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
 {
-    private readonly ContestoDb _contesto;
-
-    public GiftCardService(ContestoDb contesto)
+    // Recupera l’utente tramite email.
+    // Se non esiste, il login fallisce immediatamente.
+    Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+    
+    if (utente == null)
     {
-        _contesto = contesto;
-    }
-
-    // -----------------------------------------------------
-    // OTTIENI TUTTE LE GIFT CARD
-    // -----------------------------------------------------
-    public async Task<List<DtoGiftCard>> OttieniTutto()
-    {
-        // Recupera tutte le gift card dal database
-        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
-
-        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
-
-        // Mapping manuale verso DTO
-        for (int i = 0; i < giftCards.Count; i++)
-        {
-            GiftCard giftCardCorrente = giftCards[i];
-
-            DtoGiftCard dto = new DtoGiftCard();
-            dto.Id = giftCardCorrente.Id;
-            dto.Nome = giftCardCorrente.Nome;
-            dto.Durata = giftCardCorrente.Durata;
-            dto.Prezzo = giftCardCorrente.Prezzo;
-            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
-    }
-
-    // -----------------------------------------------------
-    // OTTIENI GIFT CARD TRAMITE ID SOLO SE APPARTIENE ALL’UTENTE
-    // -----------------------------------------------------
-    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
-    {
-        // Recupera la gift card
-        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
-
-        if (giftCard == null)
-            return null;
-
-        // Controlla se l’utente possiede questa gift card
-        foreach (var utente in giftCard.Utenti)
-        {
-            if (utente.Id == utenteId)
-            {
-                return new DtoGiftCard
-                {
-                    Id = giftCard.Id,
-                    Nome = giftCard.Nome,
-                    Durata = giftCard.Durata,
-                    Prezzo = giftCard.Prezzo,
-                    NumeroMovie = giftCard.NumeroMovie
-                };
-            }
-        }
-
         return null;
     }
 
-    // -----------------------------------------------------
-    // CREA UNA NUOVA GIFT CARD
-    // -----------------------------------------------------
-    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
+    // ---------------------------------------------------------
+    // CONTROLLO SCADENZA ABBONAMENTO
+    // ---------------------------------------------------------
+    // Se l’utente risulta abbonato, calcoliamo la scadenza
+    // utilizzando la data di inizio e la durata dell’abbonamento.
+    if (utente.SeAbbonato == true)
     {
-        GiftCard giftCard = new GiftCard();
-        giftCard.Nome = dto.Nome;
-        giftCard.Durata = dto.Durata;
-        giftCard.Prezzo = dto.Prezzo;
-        giftCard.NumeroMovie = dto.NumeroMovie;
+        // Calcola la data di scadenza dell’abbonamento.
+        DateTimeOffset? scadenzaAbbonamento =
+            Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
 
-        _contesto.GiftCards.Add(giftCard);
-        await _contesto.SaveChangesAsync();
+        // Calcola quanti giorni mancano alla scadenza.
+        int giorniMancanti =
+            Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
 
-        return new DtoGiftCard
+        // Se mancano 0 giorni, significa che l’abbonamento è scaduto.
+        if (giorniMancanti == 0)
         {
-            Id = giftCard.Id,
-            Nome = giftCard.Nome,
-            Durata = giftCard.Durata,
-            Prezzo = giftCard.Prezzo,
-            NumeroMovie = giftCard.NumeroMovie
-        };
+            utente.SeAbbonato = false;
+        }
     }
 
-    // -----------------------------------------------------
-    // MODIFICA GIFT CARD ESISTENTE
-    // -----------------------------------------------------
-    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    // ---------------------------------------------------------
+    // CONTROLLO SCADENZA GIFT CARD
+    // ---------------------------------------------------------
+    // Se l’utente possiede una gift card, calcoliamo la scadenza
+    // utilizzando la data di attivazione e la durata della gift card.
+    if (utente.PossiedeGiftCard == true)
     {
-        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+        // Calcola la data di scadenza della gift card.
+        DateTimeOffset? scadenzaGiftCard =
+            Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
 
-        if (giftCard == null)
-            return null;
+        // Calcola quanti giorni mancano alla scadenza.
+        int giorniMancanti =
+            Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
 
-        giftCard.Nome = dto.Nome;
-        giftCard.Durata = dto.Durata;
-        giftCard.Prezzo = dto.Prezzo;
-        giftCard.NumeroMovie = dto.NumeroMovie;
-
-        await _contesto.SaveChangesAsync();
-
-        return new DtoGiftCard
+        // Se mancano 0 giorni, la gift card è scaduta.
+        if (giorniMancanti == 0)
         {
-            Id = giftCard.Id,
-            Nome = giftCard.Nome,
-            Durata = giftCard.Durata,
-            Prezzo = giftCard.Prezzo,
-            NumeroMovie = giftCard.NumeroMovie
-        };
+            utente.PossiedeGiftCard = false;
+        }
     }
+    
+    // ---------------------------------------------------------
+    // VERIFICA PASSWORD
+    // ---------------------------------------------------------
+    // Controlla che la password inserita sia corretta.
+    // Se fallisce, il login non procede.
+    SignInResult result =
+        await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
 
-    // -----------------------------------------------------
-    // ELIMINA GIFT CARD
-    // -----------------------------------------------------
-    public async Task<bool> EliminazioneAsync(string id)
+    if (!result.Succeeded)
     {
-        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
-
-        if (giftCard == null)
-            return false;
-
-        _contesto.GiftCards.Remove(giftCard);
-        await _contesto.SaveChangesAsync();
-
-        return true;
+        return null;
     }
+
+    // ---------------------------------------------------------
+    // RECUPERO RUOLI UTENTE
+    // ---------------------------------------------------------
+    IList<string> ruoli = await _gestioneUtenti.GetRolesAsync(utente);
+
+    // ---------------------------------------------------------
+    // GENERAZIONE TOKEN JWT
+    // ---------------------------------------------------------
+    string token = _jwtHelper.GenerateToken(utente, ruoli);
+
+    // ---------------------------------------------------------
+    // COSTRUZIONE RISPOSTA DI LOGIN
+    // ---------------------------------------------------------
+    DtoAuthResponse response = new DtoAuthResponse();
+    response.Token = token;
+    response.Id = utente.Id;
+    response.NomeCompleto = utente.NomeCompleto;
+    response.Email = utente.Email ?? string.Empty;
+
+    // Se l’utente ha almeno un ruolo, restituiamo il primo.
+    response.Ruolo = ruoli.Count > 0 ? ruoli[0] : "";
+
+    return response;
 }
 ```
 
-## AdminService.cs // SOLO AGGIUNTA
-
-```c#
-public async Task<DtoGiftCard?> OttieniGiftCardTramiteIdPerAdminAsync(string id)
-{
-    // Recupera la GiftCard tramite chiave primaria (ID).
-    // FindAsync è il metodo più veloce quando si cerca per PK.
-    GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
-
-    // Se la GiftCard non esiste, restituisce null.
-    if (giftCard == null)
-    {
-        return null;
-    }
-
-    // Mapping manuale dell'entità GiftCard verso il DTO.
-    // Questo DTO contiene solo le informazioni principali della GiftCard.
-    DtoGiftCard dto = new DtoGiftCard();
-    dto.Id = giftCard.Id;
-    dto.Nome = giftCard.Nome;
-    dto.Durata = giftCard.Durata;
-    dto.Prezzo = giftCard.Prezzo;
-    dto.NumeroMovie = giftCard.NumeroMovie;
-
-    return dto;
-}
-
-public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
-{
-    // Recupera tutti gli utenti dal database.
-    // NOTA: questo approccio carica tutti gli utenti in memoria.
-    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-    // Recupera tutte le GiftCard dal database.
-    // Anche questo approccio carica tutte le gift card in memoria.
-    List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
-
-    GiftCard? giftCardTrovata = null;
-
-    // Ricerca manuale della GiftCard tramite ciclo.
-    // Si interrompe appena viene trovata quella con l'ID richiesto.
-    for (int i = 0; i < giftCards.Count; i++)
-    {
-        GiftCard giftCardCorrente = giftCards[i];
-
-        if (giftCardCorrente.Id == giftCardId)
-        {
-            giftCardTrovata = giftCardCorrente;
-            break;
-        }
-    }
-
-    // Se la GiftCard non esiste, restituisce null.
-    if (giftCardTrovata == null)
-    {
-        return null;
-    }
-
-    List<DtoUtente> risultato = new List<DtoUtente>();
-
-    // Scorre tutti gli utenti per verificare chi possiede la GiftCard trovata.
-    for (int i = 0; i < utenti.Count; i++)
-    {
-        Utente utenteCorrente = utenti[i];
-
-        // Confronto diretto tra entità GiftCard.
-        // Questo funziona solo se EF Core ha tracciato entrambe le entità
-        // e se rappresentano lo stesso riferimento in memoria.
-        if (utenteCorrente.GiftCard == giftCardTrovata)
-        {
-            // Mapping dell'utente verso il DTO.
-            DtoUtente dto = new DtoUtente();
-            dto.Id = utenteCorrente.Id;
-            dto.NomeCompleto = utenteCorrente.NomeCompleto;
-            dto.Email = utenteCorrente.Email;
-            dto.Eta = utenteCorrente.Eta;
-
-            risultato.Add(dto);
-        }
-    }
-
-    return risultato;
-}
-```
+## GiftCardService.cs
 
 # Controllers
 
@@ -474,7 +342,93 @@ public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string gift
 
 # Helpers
 
-## CalcoliHelper.cs
+## CalcoliHelper.cs // SOLO AGGIUNTA
+
+```c#
+/// <summary>
+/// Calcola il prezzo finale di un acquisto in base a:
+/// - prezzo base del film
+/// - maggiorazione della tipologia sala
+/// - numero di biglietti acquistati
+/// - stato dell’utente (abbonato o possessore di gift card)
+/// 
+/// La logica gestisce tre casi:
+/// 1. Utente NON abbonato e senza gift card → paga tutto
+/// 2. Utente con gift card → scala i film disponibili
+/// 3. Utente abbonato → paga tutto (l’abbonamento non dà sconti sui biglietti)
+/// </summary>
+public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
+{
+    // ---------------------------------------------------------
+    // CASO 1: Utente NON abbonato e NON possessore di gift card
+    // ---------------------------------------------------------
+    // Se l’utente non è abbonato, si applica il prezzo pieno.
+    if (utente.SeAbbonato == false)
+    {
+        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
+        return prezzoFinale;
+    }
+
+    // ---------------------------------------------------------
+    // CASO 2: Utente possessore di gift card
+    // ---------------------------------------------------------
+    // Se l’utente ha una gift card attiva, si scala il numero di film disponibili.
+    else if (utente.PossiedeGiftCard == true)
+    {
+        // Se la gift card copre TUTTI i biglietti richiesti
+        if (utente.GiftCard.NumeroMovie > numeroBiglietti)
+        {
+            // Tutti i biglietti sono coperti → prezzo 0
+            Decimal prezzoFinale = 0;
+
+            // Scala i film rimanenti dalla gift card
+            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
+
+            return prezzoFinale;
+        }
+
+        // Se la gift card copre ESATTAMENTE il numero di biglietti richiesti
+        else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
+        {
+            // Tutti i biglietti sono coperti → prezzo 0
+            Decimal prezzoFinale = 0;
+
+            // La gift card viene completamente consumata
+            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
+
+            // L’utente non possiede più una gift card attiva
+            utente.PossiedeGiftCard = false;
+
+            return prezzoFinale;
+        }
+
+        // Se la gift card copre SOLO una parte dei biglietti richiesti
+        else
+        {
+            // Calcola quanti biglietti NON sono coperti dalla gift card
+            int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
+
+            // Prezzo da pagare solo per i biglietti non coperti
+            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * bigliettiRimanenti;
+
+            // La gift card viene esaurita
+            utente.PossiedeGiftCard = false;
+
+            return prezzoFinale;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // CASO 3: Utente abbonato (ma senza gift card)
+    // ---------------------------------------------------------
+    // L’abbonamento NON dà sconti sui biglietti → paga tutto.
+    else
+    {
+        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
+        return prezzoFinale;
+    }
+}
+```
 
 # Data
 

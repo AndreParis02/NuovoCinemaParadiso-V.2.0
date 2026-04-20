@@ -50,6 +50,7 @@ public class Abbonamento
 ```
 
 ## Proiezione.cs
+
 ```c#
 [Table("Proiezioni")]
 public class Proiezione
@@ -91,6 +92,7 @@ public class Proiezione
 ```
 
 ## Utente.cs
+
 ```c#
 
 [Table("Utenti")]
@@ -124,7 +126,9 @@ public class Utente : IdentityUser
     public GiftCard? GiftCard { get; set; }
 }
 ```
+
 ## Turno.cs
+
 ```c#
 // Mappa la classe alla tabella "Turni"
 [Table("Turni")]
@@ -150,6 +154,7 @@ public class Turno
     public List<Sala> Sale { get; set; } = new();
 }
 ```
+
 ## Acquisto.cs
 
 ```c#
@@ -321,7 +326,9 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
+
 ## DtoCreazioneProiezione.cs
+
 ```c#
 // DTO utilizzato per la creazione di una nuova proiezione.
 // Contiene solo i campi necessari in input dal client.
@@ -345,7 +352,9 @@ public class DtoCreazioneProiezione
     public DateOnly DataProiezione { get; set; }
 }
 ```
+
 ## DtoUtente.cs
+
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
 
@@ -362,7 +371,9 @@ public class DtoUtente
     public string TipoGiftCard { get; set; } = string.Empty;
 } 
 ```
+
 ## DtoCreazioneUtente.cs
+
 ```c#
 using System.ComponentModel.DataAnnotations;
 
@@ -702,6 +713,7 @@ public class AbbonamentoController : ControllerBase
 ```
 
 ## UtentiController.cs
+
 ```c#
 [ApiController]
 [Route("api/[controller]")]
@@ -831,6 +843,7 @@ public class UtentiController : ControllerBase
 ```
 
 ## AdminController.cs 
+
 ```c#
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -1035,7 +1048,7 @@ public class AdminController : ControllerBase
     // ------------------------------------------------------------
     // 6) OTTIENI UTENTI TRAMITE ABBONAMENTO
     // ------------------------------------------------------------
-    [HttpGet("abbonamento/{id}")]
+    [HttpGet("utenti/{abbonamentoid}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
     {
@@ -1083,9 +1096,111 @@ public class AdminController : ControllerBase
 
         return Ok(risultato);
     }
+
+    [HttpGet("giftcard/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniGiftCardTramiteIdPerAdmin(string id)
+    {
+        // Recupera la gift card tramite ID usando il service dedicato agli admin
+        var risultato = await _adminService.OttieniGiftCardTramiteIdPerAdminAsync(id);
+
+        // Recupera l'id dell'utente autenticato dal token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se la gift card non esiste, logga l’operazione come fallita e ritorna 404
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni giftcard tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Giftcard con id {id} non trovato");
+        }
+
+        // Se la gift card esiste, logga l’operazione come riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni giftcard tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        // Restituisce la gift card trovata
+        return Ok(risultato);
+}
+
+    [HttpGet("utenti/{giftcardId}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
+    {
+        // Recupera l'id dell’utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Controllo base sul parametro ricevuto
+        if (string.IsNullOrWhiteSpace(giftcardId))
+        {
+            // Log operazione fallita per parametro non valido
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni gli utenti per giftcard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("giftcardId non valido");
+        }
+
+        // Recupera gli utenti associati alla gift card
+        var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+
+        // Se non ci sono utenti associati, logga fallimento e ritorna 404
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni gli utenti per giftcard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessun utente trovato per questa giftcard");
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni gli utenti per giftcard",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        // Restituisce la lista degli utenti trovati
+        return Ok(risultato);
+}
+
+    [HttpGet("log")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        // Recupera tutti i log delle azioni dal sistema
+        List<DtoLogAzioni> risultatiLog = await _logAzioniService.LetturaLogAzioneAsync();
+
+        // Restituisce la lista dei log
+        return Ok(risultatiLog);
+    }
 }
 ```
+
 ## ProiezioneController.cs
+
 ```c#
 [ApiController]
 [Route("api/[controller]")]
@@ -2415,7 +2530,9 @@ public class ProiezioneService
     }
 }
 ```
+
 ## TurnoService.cs
+
 ```c#
 // Servizio applicativo per la gestione dei turni: incapsula la logica di accesso al DB
 public class TurnoService
@@ -2539,7 +2656,9 @@ public class TurnoService
     }
 }
 ```
+
 ## AcquistoService.cs
+
 ```c#
 // Servizio applicativo per la gestione degli acquisti: contiene la logica di business
 public class AcquistoService
@@ -2736,7 +2855,9 @@ public class AcquistoService
     }
 }
 ```
+
 ## GiftCardService.cs
+
 ```c#
 // Servizio applicativo per la gestione delle GiftCard
 public class GiftCardService
@@ -2966,13 +3087,13 @@ public static class Calcoli
         }
     }
 
-    // Calcola la data di scadenza dell’abbonamento aggiungendo la durata in mesi
-    public static DateTimeOffset? CalcolaScadenzaAbbonamento(DateTimeOffset dataInizio, int durata)
+    // Calcola la data di scadenza aggiungendo la durata in mesi
+    public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
     }
 
-    // Restituisce quanti giorni mancano alla scadenza dell’abbonamento
+    // Restituisce quanti giorni mancano alla scadenza 
     public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
@@ -2982,6 +3103,7 @@ public static class Calcoli
 }
 ```
 
+# Seed
 Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
 
 ```c#
@@ -2990,6 +3112,7 @@ await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10, 0, 0), new TimeOnly(13,
 await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0),"Pomeriggio");
 await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0),"Sera");
 ```
+
 ## AssicuraEsistenzaTurno
 ```c#
  private static async Task AssicuraEsistenzaTurno(

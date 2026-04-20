@@ -68,12 +68,23 @@ public class AuthService
 
         if (utente.SeAbbonato == true)
         {
-            DateTimeOffset? scadenza = Calcoli.CalcolaScadenzaAbbonamento(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+            DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
             int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
 
             if (giorniMancanti == 0)
             {
                 utente.SeAbbonato = false;
+            }
+        }
+
+        if (utente.PossiedeGiftCard == true)
+        {
+            DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+
+            if (giorniMancanti == 0)
+            {
+                utente.PossiedeGiftCard = false;
             }
         }
         
