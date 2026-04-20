@@ -1460,6 +1460,255 @@ public static class DataSeeder
 
 # Controllers
 
+## AdminController
+
+```C#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class AdminController : ControllerBase
+{
+    private readonly AdminService _adminService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public AdminController(AdminService adminService, LogAzioniService logAzioniService)
+    {
+        _adminService = adminService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet("listaUtenti")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniTuttiIProfili()
+    {
+        List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ricerca profili",
+            Effettuato = true,
+            Messaggio = "Ricerca avvenuta"
+        });
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutti i profili",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(utenti);
+    }
+
+    [HttpGet("ricercaProfilo/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
+
+        if (utente == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ricerca profilo",
+                Effettuato = false,
+                Messaggio = "Ricerca fallita"
+            });
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ricerca profilo",
+            Effettuato = true,
+            Messaggio = "Ricerca avvenuta"
+        });
+        return Ok(utente);
+    }
+
+    [HttpDelete("eliminaUtente/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> EliminaTramiteId(string Id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Eliminazione profilo",
+                Effettuato = false,
+                Messaggio = "Eliminazione profilo fallita"
+            });
+
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Eliminazione profilo",
+            Effettuato = true,
+            Messaggio = "Eliminazione profilo avvenuta"
+        });
+        return Ok(risultato);
+    }
+
+    [HttpGet("acquisti")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniTuttiGliAcquisti()
+    {
+        List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni tutti gli acquisti admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(acquisti);
+    }
+
+    [HttpGet("acquisto/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
+    {
+        var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni acquisti tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Acquisto con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni acquisti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("utenti/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(abbonamentoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente= utenteId,
+                NomeAzione = "Ottieni gli utenti per abbonamento",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("AbbonamentoId non valido");
+        }
+
+        var risultato = await _adminService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni gli utenti per abbonamento",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessun utente trovato per questo abbonamento");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni gli utenti per abbonamento",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("abbonamento/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
+    {
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni abbonamenti tramite id admin",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni abbonamenti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("log")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        List<DtoLogAzioni> risultatiLog = await _logAzioniService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+    
+}
+        
+    
+
+```
 ## AcquistiController.cs
 
 ```c#
@@ -1967,7 +2216,7 @@ public class AuthController : ControllerBase
 }
 ```
 
-## FasceOrarieController.cs
+## TurnoController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -1978,80 +2227,60 @@ using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-// Indica che questa classe è un controller API
 [ApiController]
-// Route base: api/FasciaOraria
 [Route("api/[controller]")]
-// Richiede autenticazione per tutti gli endpoint
 [Authorize]
-public class FasciaOrariaController : ControllerBase
+public class TurnoController : ControllerBase
 {
-    // Service per la gestione delle fasce orarie
-    private readonly FasciaOrariaService _fasciaOrariaService;
-
-    // Service per il logging delle azioni
+    private readonly TurnoService _turnoService;
     private readonly LogAzioniService _logAzioniService;
 
-    // Costruttore con Dependency Injection
-    public FasciaOrariaController(FasciaOrariaService fasciaOrariaService, LogAzioniService logAzioniService)
+    public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
     {
-        _fasciaOrariaService = fasciaOrariaService;
+        _turnoService = turnoService;
         _logAzioniService = logAzioniService;
     }
 
-    // ========================= LETTURA =========================
-
-    // Ottiene tutte le fasce orarie
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        // Recupera tutte le fasce orarie
-        List<DtoFasciaOraria> fasceOrarie = await _fasciaOrariaService.OttieniTuttoAsync();
-
-        // Recupera ID utente autenticato
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Log operazione
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le fasce orarie",
+            NomeAzione = "Ottieni tutte i turni",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
 
-        return Ok(fasceOrarie);
+        return Ok(turni);
     }
 
-    // Ottiene una fascia oraria tramite ID
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        // Recupera la fascia oraria
-        var risultato = await _fasciaOrariaService.OttieniTramiteIdAsync(id);
-
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Se non trovata
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Ottieni fascia oraria tramite id",
+                NomeAzione = "Ottieni turno tramite id",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            // ⚠️ Nota: messaggio contiene "TipologiaSala" (probabile errore di copia)
-            return NotFound($"TipologiaSala con id {id} non trovato");
+            return NotFound($"Turno con id {id} non trovato");
         }
 
-        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Ottieni fascia oraria tramite id",
+            NomeAzione = "Ottieni turno tramite id",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -2059,37 +2288,52 @@ public class FasciaOrariaController : ControllerBase
         return Ok(risultato);
     }
 
-    // ========================= CREAZIONE =========================
-
-    // Crea una nuova fascia oraria (solo admin/operatori)
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneFasciaOraria dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
-        // Crea la fascia oraria
-        DtoFasciaOraria? risultato = await _fasciaOrariaService.CreazioneAsync(dto);
-
+        
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();//legge la lista di tutti i turni
 
-        // Se creazione fallita
+        
+        //controlla che il nome turno fornito dal DTO non sia già presente nella lista dei turni del db. Se trovato, restituisce errore
+        foreach (var turno in turni)
+        {
+            bool stringheUguali=string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
+            if (stringheUguali)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+                {
+                    IdUtente = utenteId,
+                    NomeAzione = "Creazione turno",
+                    Effettuato = false,
+                    Messaggio = "Operazione fallita"
+                });
+
+                return BadRequest(new { messaggio = "Turno già presente." });
+            }
+        }
+
+        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);//creazione nuovo turno. Se fallisce, ritorna errore
+        
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Creazione fasce oraria",
+                NomeAzione = "Creazione turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return BadRequest(new { messaggio = "Fascia oraria già presente oppure non valida." });
+            return BadRequest(new { messaggio = "Turno non valido." });
         }
 
-        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Creazione fasce oraria",
+            NomeAzione = "Creazione turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -2097,37 +2341,30 @@ public class FasciaOrariaController : ControllerBase
         return Ok(risultato);
     }
 
-    // ========================= MODIFICA =========================
-
-    // Modifica una fascia oraria (solo admin/operatori)
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneFasciaOraria dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
-        // Modifica fascia oraria
-        DtoFasciaOraria? risultato = await _fasciaOrariaService.ModificaAsync(id, dto);
-
+        DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Se non trovata
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Modifica fasce oraria",
+                NomeAzione = "Modifica turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Fascia oraria non trovata." });
+            return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Modifica fasce oraria",
+            NomeAzione = "Modifica turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
@@ -2135,41 +2372,33 @@ public class FasciaOrariaController : ControllerBase
         return Ok(risultato);
     }
 
-    // ========================= ELIMINAZIONE =========================
-
-    // Elimina una fascia oraria (solo admin/operatori)
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        // Elimina fascia oraria
-        bool eliminato = await _fasciaOrariaService.EliminaAsync(id);
-
+        bool eliminato = await _turnoService.EliminaAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Se non trovata
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
             {
                 IdUtente = utenteId,
-                NomeAzione = "Elimina fascia oraria",
+                NomeAzione = "Elimina turno",
                 Effettuato = false,
                 Messaggio = "Operazione fallita"
             });
 
-            return NotFound(new { messaggio = "Fascia oraria non trovata." });
+            return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina fascia oraria",
+            NomeAzione = "Elimina turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
-
         return NoContent();
     }
 }
@@ -3960,46 +4189,65 @@ public class GenereMovieService
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace NuovoCinemaParadiso.Services;
 
-// Service responsabile della scrittura dei log azioni nel database
 public class LogAzioniService
 {
-    private readonly ContestoDb _contesto;
+  private readonly ContestoDb _contesto;
+  public LogAzioniService(ContestoDb contesto) 
+  {
+    _contesto = contesto; 
+  }
 
-    public LogAzioniService(ContestoDb contesto)
+  
+    public async Task SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
     {
-        _contesto = contesto;
-    }
+        LogAzioni log = new LogAzioni();
 
-    // Salva un log di azione nel DB e restituisce il DTO salvato
-    public async Task<DtoLogAzioni> SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
-    {
-        // Creazione entity Log
-        LogAzioni log = new LogAzioni
-        {
-            IdUtente = dto.IdUtente,
-            NomeAzione = dto.NomeAzione,
-            Effettuato = dto.Effettuato,
-            Messaggio = dto.Messaggio,
-            TimeStamp = DateTimeOffsetOffset.UtcNow
-        };
+        log.IdUtente = dto.IdUtente;
+        log.NomeAzione = dto.NomeAzione;
+        log.Effettuato = dto.Effettuato;
+        log.Messaggio = dto.Messaggio;
+        log.TimeStamp = DateTimeOffset.UtcNow;
 
-        // Inserimento nel DB
+       
+
         _contesto.LogAzioni.Add(log);
         await _contesto.SaveChangesAsync();
 
-        // Mapping verso DTO di output
-        return new DtoLogAzioni
-        {
-            IdUtente = log.IdUtente,
-            NomeAzione = log.NomeAzione,
-            Effettuato = log.Effettuato,
-            Messaggio = log.Messaggio,
-            TimeStamp = log.TimeStamp
-        };
+        DtoLogAzioni risultato = new DtoLogAzioni();
+        risultato.IdUtente = log.IdUtente;
+        risultato.NomeAzione = log.NomeAzione;
+        risultato.Effettuato = log.Effettuato;
+        risultato.Messaggio = log.Messaggio;
+        risultato.TimeStamp = log.TimeStamp;
+
+
     }
+
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        foreach (LogAzioni log in logs)
+        {
+          DtoLogAzioni risultato = new DtoLogAzioni();
+          risultato.Id = log.Id;
+          risultato.IdUtente = log.IdUtente;
+          risultato.NomeAzione = log.NomeAzione;
+          risultato.Effettuato = log.Effettuato;
+          risultato.Messaggio = log.Messaggio;
+          risultato.TimeStamp = log.TimeStamp;
+          risultati.Add(risultato);
+        }
+
+
+        return risultati;
+    }
+
 }
 ```
 
