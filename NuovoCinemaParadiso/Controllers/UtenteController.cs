@@ -63,4 +63,46 @@ public class UtenteController : ControllerBase
         return Ok(risultato);
     } 
 
+    [HttpPost("giftCard")]
+    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+            return BadRequest("Dati non validi");
+        }
+
+        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+            return NotFound("Utente o GiftCard non trovata");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = true,
+                Messaggio = "Operazione eseguita"
+            });
+
+        return Ok(risultato);
+    } 
+
 }

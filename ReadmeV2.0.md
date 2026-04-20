@@ -671,7 +671,7 @@ public class UtentiController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // Endpoint: POST api/utenti/abbonati
+    // Endpoint: POST api/utente/abbonati
     [HttpPost("abbonati")]
     public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
     {
@@ -723,6 +723,60 @@ public class UtentiController : ControllerBase
         });
 
         // 8. Risposta HTTP 200 con il risultato.
+        return Ok(risultato);
+    }
+
+    [HttpPost("giftCard")] // Endpoint: POST api/utente/giftCard
+    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    {
+        // Recupera l'ID dell'utente autenticato dal token (claims)
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Validazione input: controlla che il DTO esista e che GiftCardId non sia nullo o vuoto
+        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        {
+            // Logga l'azione come fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            // Restituisce errore 400 Bad Request
+            return BadRequest("Dati non validi");
+        }
+
+        // Chiama il servizio per eseguire la logica della gift card
+        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+
+        // Se il risultato è nullo, significa che qualcosa non è stato trovato (utente o gift card)
+        if (risultato == null)
+        {
+            // Logga l'azione come fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            // Restituisce errore 404 Not Found
+            return NotFound("Utente o GiftCard non trovata");
+        }
+
+        // Logga l'azione come riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "GiftCard",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        // Restituisce 200 OK con il risultato dell'operazione
         return Ok(risultato);
     }
 }
