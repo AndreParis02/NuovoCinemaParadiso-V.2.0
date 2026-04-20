@@ -9,7 +9,6 @@
 
 # AGGIORNARE IL README OGNI VOLTA CHE VIENE IMPLEMENTATO QUALCOSA.
 
-
 # Models
 
 ## GiftCard.cs // INTERO
@@ -52,7 +51,7 @@ public class GiftCard
 }
 ```
 
-## Utente.cs // AGGIUNTA
+## Utente.cs // SOLO AGGIUNTA
 
 ```c#
 /// <summary>
@@ -83,41 +82,13 @@ public GiftCard? GiftCard { get; set; }
 
 # Dtos 
 
-## DtoUtente.cs // INTERO
+## DtoUtente.cs // SOLO AGGIUNTA
 
 ```c#
-namespace NuovoCinemaParadiso.Dtos;
-
-/// <summary>
-/// DTO utilizzato per restituire le informazioni principali di un utente.
-/// Contiene sia dati anagrafici sia informazioni su abbonamenti e Gift Card.
-/// </summary>
-public class DtoUtente
-{
-    /// <summary>
-    /// Identificativo univoco dell'utente.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Nome e cognome dell'utente.
-    /// </summary>
-    public string NomeCompleto { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Data di inizio dell'abbonamento (se presente).
-    /// </summary>
-    public DateTimeOffset DataInizio { get; set; }
-
     /// <summary>
     /// Data di attivazione della Gift Card (se presente).
     /// </summary>
     public DateTimeOffset DataInizioGiftCard { get; set; }
-
-    /// <summary>
-    /// Indica se l'utente possiede un abbonamento attivo.
-    /// </summary>
-    public bool SeAbbonato { get; set; }
 
     /// <summary>
     /// Indica se l'utente possiede una Gift Card attiva.
@@ -125,37 +96,15 @@ public class DtoUtente
     public bool PossiedeGiftCard { get; set; } = false;
 
     /// <summary>
-    /// Email dell'utente.
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Età dell'utente.
-    /// </summary>
-    public int Eta { get; set; }
-
-    /// <summary>
-    /// Identificativo dell'abbonamento associato all'utente.
-    /// Può essere string.Empty se l'utente non è abbonato.
-    /// </summary>
-    public string AbbonamentoId { get; set; } = string.Empty;
-
-    /// <summary>
     /// Identificativo della Gift Card associata all'utente.
     /// Può essere string.Empty se l'utente non possiede una Gift Card.
     /// </summary>
     public string GiftCardId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Nome o tipologia dell'abbonamento (es. "Mensile", "Annuale").
-    /// </summary>
-    public string TipoAbbonamento { get; set; } = string.Empty;
     
     /// <summary>
     /// Nome o tipologia della GiftCard (es. "10 film", "20 film").
     /// </summary>
     public string TipoGiftCard { get; set; } = string.Empty;
-}
 ```
 
 ## DtoGiftCard.cs // INTERO
@@ -288,12 +237,240 @@ public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
 }
 ```
 
-## GiftCardService.cs
+## GiftCardService.cs // INTERO
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GiftCardService
+{
+    private readonly ContestoDb _contesto;
+
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // -----------------------------------------------------
+    // OTTIENI TUTTE LE GIFT CARD
+    // -----------------------------------------------------
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        // Recupera tutte le gift card dal database
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        // Mapping manuale verso DTO
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Durata = giftCardCorrente.Durata;
+            dto.Prezzo = giftCardCorrente.Prezzo;
+            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    // -----------------------------------------------------
+    // OTTIENI GIFT CARD TRAMITE ID SOLO SE APPARTIENE ALL’UTENTE
+    // -----------------------------------------------------
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupera la gift card
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        // Controlla se l’utente possiede questa gift card
+        foreach (var utente in giftCard.Utenti)
+        {
+            if (utente.Id == utenteId)
+            {
+                return new DtoGiftCard
+                {
+                    Id = giftCard.Id,
+                    Nome = giftCard.Nome,
+                    Durata = giftCard.Durata,
+                    Prezzo = giftCard.Prezzo,
+                    NumeroMovie = giftCard.NumeroMovie
+                };
+            }
+        }
+
+        return null;
+    }
+
+    // -----------------------------------------------------
+    // CREA UNA NUOVA GIFT CARD
+    // -----------------------------------------------------
+    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
+    {
+        GiftCard giftCard = new GiftCard();
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        _contesto.GiftCards.Add(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // -----------------------------------------------------
+    // MODIFICA GIFT CARD ESISTENTE
+    // -----------------------------------------------------
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // -----------------------------------------------------
+    // ELIMINA GIFT CARD
+    // -----------------------------------------------------
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return false;
+
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## AdminService.cs // SOLO AGGIUNTA
+
+```c#
+public async Task<DtoGiftCard?> OttieniGiftCardTramiteIdPerAdminAsync(string id)
+{
+    // Recupera la GiftCard tramite chiave primaria (ID).
+    // FindAsync è il metodo più veloce quando si cerca per PK.
+    GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+    // Se la GiftCard non esiste, restituisce null.
+    if (giftCard == null)
+    {
+        return null;
+    }
+
+    // Mapping manuale dell'entità GiftCard verso il DTO.
+    // Questo DTO contiene solo le informazioni principali della GiftCard.
+    DtoGiftCard dto = new DtoGiftCard();
+    dto.Id = giftCard.Id;
+    dto.Nome = giftCard.Nome;
+    dto.Durata = giftCard.Durata;
+    dto.Prezzo = giftCard.Prezzo;
+    dto.NumeroMovie = giftCard.NumeroMovie;
+
+    return dto;
+}
+
+public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
+{
+    // Recupera tutti gli utenti dal database.
+    // NOTA: questo approccio carica tutti gli utenti in memoria.
+    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+
+    // Recupera tutte le GiftCard dal database.
+    // Anche questo approccio carica tutte le gift card in memoria.
+    List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+    GiftCard? giftCardTrovata = null;
+
+    // Ricerca manuale della GiftCard tramite ciclo.
+    // Si interrompe appena viene trovata quella con l'ID richiesto.
+    for (int i = 0; i < giftCards.Count; i++)
+    {
+        GiftCard giftCardCorrente = giftCards[i];
+
+        if (giftCardCorrente.Id == giftCardId)
+        {
+            giftCardTrovata = giftCardCorrente;
+            break;
+        }
+    }
+
+    // Se la GiftCard non esiste, restituisce null.
+    if (giftCardTrovata == null)
+    {
+        return null;
+    }
+
+    List<DtoUtente> risultato = new List<DtoUtente>();
+
+    // Scorre tutti gli utenti per verificare chi possiede la GiftCard trovata.
+    for (int i = 0; i < utenti.Count; i++)
+    {
+        Utente utenteCorrente = utenti[i];
+
+        // Confronto diretto tra entità GiftCard.
+        // Questo funziona solo se EF Core ha tracciato entrambe le entità
+        // e se rappresentano lo stesso riferimento in memoria.
+        if (utenteCorrente.GiftCard == giftCardTrovata)
+        {
+            // Mapping dell'utente verso il DTO.
+            DtoUtente dto = new DtoUtente();
+            dto.Id = utenteCorrente.Id;
+            dto.NomeCompleto = utenteCorrente.NomeCompleto;
+            dto.Email = utenteCorrente.Email;
+            dto.Eta = utenteCorrente.Eta;
+
+            risultato.Add(dto);
+        }
+    }
+
+    return risultato;
+}
+```
 
 # Controllers
 
 ## GiftCardController.cs
-
 
 # Helpers
 
