@@ -85,7 +85,7 @@ builder.Services.AddScoped<UtenteService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<AbbonamentoService>();
 builder.Services.AddScoped<ProiezioneService>();
-
+builder.Services.AddScoped<GiftCardService>();
 
 var app = builder.Build();
 
