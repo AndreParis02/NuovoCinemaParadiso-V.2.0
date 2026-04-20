@@ -1,5 +1,32 @@
 # NuovoCinemaParadisoV2.0
 
+## Implementazione gift card.
+
+Implementare una funzionalità che permette agli utenti di acquistare una gift card che comprende un numero di biglietti prestabilito, ogni volta che acquisterà un nuovo biglietto, questo verrà scalato dal totale dei biglietti della gift card arrivato a 0 la gift card viene disabilitata.
+
+**Possibile implementazione: Funzionalità che permette agli utenti di regalare gift card ad altri utenti.** 
+
+- 10 Film , Prezzo 50£.
+- 25 Film , Prezzo 110£.
+- 50 film , Prezzo 200£.
+
+- Modello e riferimento nel ContestoDb.
+- Dtos.
+- Services e riferimento nel Program.cs.
+- Controller.
+- Calcolo nell'helper.
+
+## Implementazione Proiezione.
+
+Implementare una funzionalità che permette al gestore di creare, modificare o eliminare una proiezione.
+Essa comprende il film, la sala, il turno e la data di trasmissione.
+
+- Modello e riferimento nel ContestoDb.
+- Dtos.
+- Services e riferimento nel Program.cs.
+- Controller.
+- Calcolo nell'helper.
+
 ## Implementazione abbonamenti.
 
 Implementare una funzionalità che permette agli utenti di acquistare un abbonamento che permette una scontistica sul prezzo dei biglietti.
@@ -10,28 +37,10 @@ Gli abbonamenti saranno di tre livelli: mensile, semestrale, annuale, ognuno con
 - semestrale ( 50% ) , Prezzo 150£.
 - annuale ( 75% ) , Prezzo 350£.
 
-- Modello
-- Data
-- Dtos
-- Services
-- Controller
-- Calcolo nell'helper.
-
-# Implementazione gift card.
-
-Implementare una funzionalità che permette agli utenti di acquistare una gift card che comprende un numero di biglietti prestabilito, ogni volta che acquisterà un nuovo biglietto, questo verrà scalato dal totale dei biglietti della gift card arrivato a 0 la gift card viene disabilitata.
-
-**Possibile implementazione: Funzionalità che permette agli utenti di regalare gift card ad altri utenti.** 
-
-- 10 Film , Prezzo 50£.
-- 25 Film , Prezzo 110£.
-- 50 film , Prezzo 200£.
-
-- Modello
-- Data
-- Dtos
-- Services
-- Controller
+- Modello e riferimento nel ContestoDb.
+- Dtos.
+- Services e riferimento nel Program.cs.
+- Controller.
 - Calcolo nell'helper.
 
 # Models
@@ -249,42 +258,75 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuovoCinemaParadiso.Models;
 
+/// <summary>
+/// Rappresenta un acquisto effettuato da un utente per una specifica proiezione.
+/// Contiene informazioni su biglietti, prezzo finale, metodo di pagamento e timestamp.
+/// </summary>
 [Table("Acquisti")] 
-// ✔ Mappa la classe alla tabella "Acquisti" nel database
 public class Acquisto
 {
+    /// <summary>
+    /// Identificativo univoco dell'acquisto.
+    /// Viene generato automaticamente come stringa GUID.
+    /// </summary>
     [Key]
-    // ✔ Chiave primaria dell’acquisto, generata automaticamente come GUID stringa
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
+    /// <summary>
+    /// FK verso la proiezione acquistata.
+    /// </summary>
     [Required]
-    // ✔ FK verso la proiezione acquistata
     public string ProiezioneId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Navigazione verso la proiezione associata.
+    /// </summary>
     [ForeignKey("ProiezioneId")]
-    // ✔ Navigazione verso la proiezione associata
     public Proiezione Proiezione { get; set; }
 
+    /// <summary>
+    /// FK verso l'utente che ha effettuato l'acquisto.
+    /// </summary>
     [Required]
-    // ✔ FK verso l’utente che ha effettuato l’acquisto
     public string UtenteId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Navigazione verso l'utente proprietario dell'acquisto.
+    /// </summary>
     [ForeignKey("UtenteId")]
-    // ✔ Navigazione verso l’utente proprietario dell’acquisto
     public Utente Utente { get; set; }
 
+    /// <summary>
+    /// Numero di biglietti acquistati per questa proiezione.
+    /// </summary>
     [Required]
-    // ✔ Numero di biglietti acquistati per questa proiezione
     public int NumeroBiglietti { get; set; }
 
-    // ✔ Timestamp di creazione dell’acquisto
-    // ✔ Usa DateTimeOffset per mantenere il fuso orario
+    /// <summary>
+    /// Timestamp di creazione dell'acquisto.
+    /// Utilizza DateTimeOffset per mantenere il fuso orario.
+    /// </summary>
     public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
 
+    /// <summary>
+    /// Prezzo finale calcolato al momento dell'acquisto.
+    /// Include eventuali maggiorazioni, sconti e quantità di biglietti.
+    /// </summary>
     [Required]
-    // ✔ Prezzo finale calcolato al momento dell’acquisto
-    //   (include maggiorazioni sala, sconti, numero biglietti, ecc.)
     public decimal PrezzoFinale { get; set; }
+
+    /// <summary>
+    /// Metodo di pagamento scelto dall'utente per l'acquisto.
+    /// Valori possibili:
+    /// - "standard" → pagamento a prezzo pieno
+    /// - "abbonamento" → applica lo sconto previsto dal tipo di abbonamento
+    /// - "giftcard" → utilizza i film disponibili nella gift card
+    ///
+    /// Campo obbligatorio: permette al server di applicare la logica corretta,
+    /// soprattutto quando l'utente possiede sia un abbonamento che una gift card.
+    /// </summary>
+    [Required]
+    public string MetodoPagamento { get; set; } = "standard";
 }
 ```
 
@@ -345,7 +387,7 @@ namespace NuovoCinemaParadiso.Data
 
 # Dtos
 
-## DtoCreazioneGiftCard.cs // INTERO
+## DtoCreazioneGiftCard.cs
 
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
@@ -465,7 +507,7 @@ public class DtoCreazioneAbbonamento
 }
 ```
 
-## DtoProiezione 
+## DtoProiezione
 
 ```c#
 // DTO utilizzato per trasferire i dati di una proiezione verso/da il client 
@@ -664,42 +706,102 @@ public class DtoCreazioneTurno
 ## DtoAcquisto.cs
 
 ```c#
-// DTO restituito al client per rappresentare un acquisto già registrato
+namespace NuovoCinemaParadiso.Dtos;
+
+/// <summary>
+/// DTO utilizzato per restituire i dati di un acquisto al client.
+/// Contiene informazioni essenziali come prezzo finale, metodo di pagamento,
+/// numero di biglietti e timestamp.
+/// </summary>
 public class DtoAcquisto
 {
-    // Identificativo univoco dell’acquisto
+    /// <summary>
+    /// Identificativo univoco dell'acquisto.
+    /// </summary>
     public string Id { get; set; }
 
-    // Id della proiezione associata all’acquisto
+    /// <summary>
+    /// Identificativo della proiezione acquistata.
+    /// </summary>
     public string ProiezioneId { get; set; } = string.Empty;
 
-    // Id dell’utente che ha effettuato l’acquisto
+    /// <summary>
+    /// Identificativo dell'utente che ha effettuato l'acquisto.
+    /// </summary>
     public string UtenteId { get; set; } = string.Empty;
 
-    // Prezzo finale calcolato lato server (film + tipologia sala + quantità)
+    /// <summary>
+    /// Prezzo finale calcolato lato server.
+    /// Include eventuali sconti, maggiorazioni e quantità di biglietti.
+    /// </summary>
     public decimal PrezzoFinale { get; set; }
 
-    // Timestamp di creazione dell’acquisto (UTC)
+    /// <summary>
+    /// Timestamp di creazione dell'acquisto.
+    /// Utilizza DateTimeOffset per mantenere il fuso orario.
+    /// </summary>
     public DateTimeOffset OrarioCreazione { get; set; }
 
-    // Numero di biglietti acquistati
+    /// <summary>
+    /// Numero di biglietti acquistati.
+    /// </summary>
     public int NumeroBiglietti { get; set; }
+
+    /// <summary>
+    /// Metodo di pagamento utilizzato per l'acquisto.
+    /// Valori possibili:
+    /// - "standard" → pagamento a prezzo pieno
+    /// - "abbonamento" → applica lo sconto previsto dal tipo di abbonamento
+    /// - "giftcard" → utilizza i film disponibili nella gift card
+    ///
+    /// Questo valore viene salvato nel database e restituito al client
+    /// per mostrare come è stato effettuato il pagamento.
+    /// </summary>
+    public string MetodoPagamento { get; set; } = "standard";
 }
 ```
 
 ## DtoCreazioneAcquisto.cs
 
 ```c#
-// DTO usato per creare un nuovo acquisto: contiene solo i dati forniti dal client
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Dtos;
+
+/// <summary>
+/// DTO utilizzato dal client per creare un nuovo acquisto.
+/// Contiene solo i dati necessari per effettuare l’operazione:
+/// - la proiezione scelta
+/// - il numero di biglietti
+/// - il metodo di pagamento selezionato dall’utente
+/// </summary>
 public class DtoCreazioneAcquisto
 {
-    // Id della proiezione scelta dall’utente (obbligatorio)
+    /// <summary>
+    /// Identificativo della proiezione che l’utente desidera acquistare.
+    /// Campo obbligatorio.
+    /// </summary>
     [Required]
     public string ProiezioneId { get; set; } = string.Empty;
 
-    // Numero di biglietti richiesti (obbligatorio)
+    /// <summary>
+    /// Numero di biglietti richiesti dall’utente.
+    /// Campo obbligatorio.
+    /// </summary>
     [Required]
     public int NumeroBiglietti { get; set; }
+
+    /// <summary>
+    /// Metodo di pagamento scelto dall’utente.
+    /// Valori possibili:
+    /// - "standard" → pagamento a prezzo pieno
+    /// - "abbonamento" → applica lo sconto previsto dal tipo di abbonamento
+    /// - "giftcard" → utilizza i film disponibili nella gift card
+    ///
+    /// Questo campo permette all’utente di scegliere come pagare,
+    /// soprattutto quando possiede sia un abbonamento che una gift card.
+    /// </summary>
+    public string MetodoPagamento { get; set; } = "standard";
 }
 ```
 
@@ -1227,7 +1329,7 @@ public class UtentiController : ControllerBase
 
 ```
 
-## AdminController.cs 
+## AdminController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -3542,52 +3644,70 @@ public class TurnoService
 ## AcquistoService.cs
 
 ```c#
-// Servizio applicativo per la gestione degli acquisti: contiene la logica di business
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service responsabile della gestione degli acquisti.
+/// Include operazioni CRUD e calcolo del prezzo finale.
+/// </summary>
 public class AcquistoService
 {
-    // Riferimento al DbContext per operazioni sul database
     private readonly ContestoDb _contesto;
 
-    // Iniezione del contesto tramite costruttore
     public AcquistoService(ContestoDb contesto)
     {
         _contesto = contesto;
     }
 
-    // Restituisce tutti gli acquisti dell'utente specificato
+    // ---------------------------------------------------------
+    // OTTIENI TUTTI GLI ACQUISTI DI UN UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce tutti gli acquisti effettuati da un utente specifico.
+    /// </summary>
     public async Task<List<DtoAcquisto>> OttieniTutto(string utenteId)
     {
-        // Recupera tutti gli acquisti dal DB
+        // Recupera tutti gli acquisti
         List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
+
         List<DtoAcquisto> risultato = new List<DtoAcquisto>();
 
-        // Mappatura manuale con filtraggio per utente
+        // Ciclo manuale per mappare ogni acquisto
         for (int i = 0; i < acquisti.Count; i++)
         {
             Acquisto acquistoCorrente = acquisti[i];
 
-            // Recupero entità correlate necessarie al calcolo del prezzo
+            // Recupera entità correlate
             Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
             Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
             Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
             Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
             TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-            // Considera solo gli acquisti dell'utente richiesto
+            // Filtra solo gli acquisti dell’utente richiesto
             if (acquistoCorrente.UtenteId == utenteId)
             {
-                // Costruzione DTO risultato
                 DtoAcquisto dto = new DtoAcquisto();
                 dto.Id = acquistoCorrente.Id;
+                dto.UtenteId = utente.Id;
                 dto.ProiezioneId = acquistoCorrente.ProiezioneId;
+                dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
+                dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+                dto.MetodoPagamento = acquistoCorrente.MetodoPagamento;
+
+                // Calcolo del prezzo finale lato server
                 dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
                     movie.PrezzoMovie,
                     tipologiaSala.MaggiorazionePrezzo,
                     acquistoCorrente.NumeroBiglietti,
-                    utente
-                );
-                dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
-                dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+                    utente,
+                    acquistoCorrente.MetodoPagamento);
 
                 risultato.Add(dto);
             }
@@ -3596,139 +3716,155 @@ public class AcquistoService
         return risultato;
     }
 
-    // Restituisce un acquisto tramite id, solo se appartiene all'utente
+    // ---------------------------------------------------------
+    // OTTIENI ACQUISTO TRAMITE ID
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce un singolo acquisto se appartiene all’utente.
+    /// </summary>
     public async Task<DtoAcquisto> OttieniTramiteIdAsync(string id, string utenteId)
     {
-        // Recupero dell'acquisto
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
 
         if (acquisto == null)
-        {
             return null;
-        }
 
-        // Controllo che l'acquisto appartenga all'utente
+        // L’utente può vedere solo i propri acquisti
         if (acquisto.UtenteId != utenteId)
-        {
             return null;
-        }
 
-        // Recupero entità correlate
+        // Recupera entità correlate
         Utente? utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
         Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
         Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-        // Costruzione DTO
+        // Mappa DTO
         DtoAcquisto dto = new DtoAcquisto();
         dto.Id = acquisto.Id;
+        dto.UtenteId = utente.Id;
         dto.ProiezioneId = acquisto.ProiezioneId;
+        dto.OrarioCreazione = acquisto.OrarioCreazione;
+        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+        dto.MetodoPagamento = acquisto.MetodoPagamento;
+
         dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             acquisto.NumeroBiglietti,
-            utente
-        );
-        dto.OrarioCreazione = acquisto.OrarioCreazione;
-        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+            utente,
+            acquisto.MetodoPagamento);
 
         return dto;
     }
 
-    // Crea un nuovo acquisto per l'utente
+    // ---------------------------------------------------------
+    // CREAZIONE ACQUISTO
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Crea un nuovo acquisto e calcola il prezzo finale lato server.
+    /// </summary>
     public async Task<DtoAcquisto> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
     {
-        // Recupero entità necessarie al calcolo del prezzo
+        // Recupera entità necessarie
         Utente utente = await _contesto.Utenti.FindAsync(utenteId);
         Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-        // Creazione dell'entità Acquisto
+        // Crea l’acquisto
         Acquisto acquisto = new Acquisto();
         acquisto.UtenteId = utenteId;
         acquisto.ProiezioneId = proiezione.Id;
         acquisto.NumeroBiglietti = dto.NumeroBiglietti;
+        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
+        acquisto.MetodoPagamento = dto.MetodoPagamento;
+
+        // Calcolo del prezzo finale
         acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             dto.NumeroBiglietti,
-            utente
-        );
-        acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
+            utente,
+            dto.MetodoPagamento);
 
-        // Salvataggio nel DB
+        // Salva nel DB
         _contesto.Acquisti.Add(acquisto);
         await _contesto.SaveChangesAsync();
 
-        // Costruzione DTO risultato
-        DtoAcquisto risultato = new DtoAcquisto();
-        risultato.Id = acquisto.Id;
-        risultato.ProiezioneId = acquisto.ProiezioneId;
-        risultato.UtenteId = acquisto.UtenteId;
-        risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
-        risultato.PrezzoFinale = acquisto.PrezzoFinale;
-        risultato.OrarioCreazione = acquisto.OrarioCreazione;
-
-        return risultato;
+        // Restituisce DTO
+        return new DtoAcquisto
+        {
+            Id = acquisto.Id,
+            ProiezioneId = acquisto.ProiezioneId,
+            UtenteId = acquisto.UtenteId,
+            NumeroBiglietti = acquisto.NumeroBiglietti,
+            PrezzoFinale = acquisto.PrezzoFinale,
+            OrarioCreazione = acquisto.OrarioCreazione,
+            MetodoPagamento = acquisto.MetodoPagamento
+        };
     }
 
-    // Modifica un acquisto esistente (solo numero biglietti e prezzo)
+    // ---------------------------------------------------------
+    // MODIFICA ACQUISTO
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Modifica un acquisto esistente e ricalcola il prezzo finale.
+    /// </summary>
     public async Task<DtoAcquisto?> ModificaAsync(string id, DtoCreazioneAcquisto dto)
     {
-        // Recupero dell'acquisto
         Acquisto? acquistoEsistente = await _contesto.Acquisti.FindAsync(id);
 
         if (acquistoEsistente == null)
-        {
             return null;
-        }
 
-        // Aggiornamento numero biglietti
+        // Aggiorna numero biglietti
         acquistoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
 
-        // Recupero entità correlate aggiornate
+        // Recupera entità correlate
         Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         Utente? utente = await _contesto.Utenti.FindAsync(acquistoEsistente.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-        // Ricalcolo del prezzo finale
+        // Ricalcola prezzo
         acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             acquistoEsistente.NumeroBiglietti,
-            utente
-        );
+            utente,
+            acquistoEsistente.MetodoPagamento);
 
         await _contesto.SaveChangesAsync();
 
-        // Costruzione DTO risultato
-        DtoAcquisto risultato = new DtoAcquisto
+        // Restituisce DTO aggiornato
+        return new DtoAcquisto
         {
             Id = acquistoEsistente.Id,
             UtenteId = acquistoEsistente.UtenteId,
             ProiezioneId = acquistoEsistente.ProiezioneId,
             NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
             PrezzoFinale = acquistoEsistente.PrezzoFinale,
-            OrarioCreazione = acquistoEsistente.OrarioCreazione
+            OrarioCreazione = acquistoEsistente.OrarioCreazione,
+            MetodoPagamento = acquistoEsistente.MetodoPagamento
         };
-
-        return risultato;
     }
 
-    // Elimina un acquisto tramite id
+    // ---------------------------------------------------------
+    // ELIMINA ACQUISTO
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Elimina un acquisto tramite ID.
+    /// </summary>
     public async Task<bool> EliminazioneAsync(string id)
     {
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
 
         if (acquisto == null)
-        {
             return false;
-        }
 
         _contesto.Acquisti.Remove(acquisto);
         await _contesto.SaveChangesAsync();
@@ -3942,44 +4078,110 @@ public class LogAzioniService
 ## CalcoliHelper.cs
 
 ```c#
-// Classe helper che contiene funzioni di calcolo riutilizzabili nel progetto
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Helpers;
+
+/// <summary>
+/// Classe statica che contiene funzioni di utilità per calcoli
+/// relativi a prezzi, scadenze e gestione temporale.
+/// </summary>
 public static class Calcoli
 {
-    // Calcola il prezzo finale di un acquisto in base a:
-    // - prezzo base del film
-    // - maggiorazione della sala
-    // - numero di biglietti
-    // - eventuale sconto dell’abbonamento dell’utente
-    public static decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
+    /// <summary>
+    /// Calcola il prezzo finale dei biglietti in base al metodo di pagamento scelto.
+    /// Supporta tre modalità:
+    /// - "abbonamento": applica lo sconto previsto dal tipo di abbonamento
+    /// - "giftcard": scala i film disponibili e calcola eventuali biglietti rimanenti
+    /// - default: prezzo pieno
+    /// 
+    /// Aggiorna automaticamente lo stato della gift card (numero film rimanenti).
+    /// </summary>
+    public static Decimal CalcolaPrezzoFinale(
+        decimal prezzoMovie,
+        decimal maggiorazione,
+        int numeroBiglietti,
+        Utente utente,
+        string metodoPagamento)
     {
-        // Caso: utente NON abbonato → prezzo pieno
-        if (utente.SeAbbonato == false)
+        // Prezzo base del singolo biglietto (film + eventuale maggiorazione sala)
+        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+
+        // ---------------------------------------------------------
+        // PAGAMENTO CON ABBONAMENTO
+        // ---------------------------------------------------------
+        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
         {
-            decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-            return prezzoFinale;
-        }
-        else
-        {
-            // Caso: utente abbonato → applica sconto percentuale
-            decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+            // Calcolo dello sconto percentuale
             decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+
+            // Prezzo del biglietto dopo lo sconto
             decimal prezzoScontato = prezzoBiglietto - sconto;
-            decimal prezzoFinale = prezzoScontato * numeroBiglietti;
-            return prezzoFinale;
+
+            // Prezzo finale per il numero di biglietti richiesti
+            return prezzoScontato * numeroBiglietti;
         }
+
+        // ---------------------------------------------------------
+        // PAGAMENTO CON GIFT CARD
+        // ---------------------------------------------------------
+        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        {
+            // Caso 1: la gift card copre più biglietti di quelli richiesti
+            if (utente.GiftCard.NumeroMovie > numeroBiglietti)
+            {
+                utente.GiftCard.NumeroMovie -= numeroBiglietti;
+                return 0;
+            }
+
+            // Caso 2: la gift card copre esattamente i biglietti richiesti
+            else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
+            {
+                utente.GiftCard.NumeroMovie = 0;
+                utente.PossiedeGiftCard = false;
+                return 0;
+            }
+
+            // Caso 3: la gift card copre solo una parte dei biglietti
+            else
+            {
+                int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
+
+                // La gift card viene completamente consumata
+                utente.GiftCard.NumeroMovie = 0;
+                utente.PossiedeGiftCard = false;
+
+                // Si paga solo per i biglietti non coperti
+                return prezzoBiglietto * bigliettiRimanenti;
+            }
+        }
+
+        // ---------------------------------------------------------
+        // PAGAMENTO STANDARD (prezzo pieno)
+        // ---------------------------------------------------------
+        return prezzoBiglietto * numeroBiglietti;
     }
 
-    // Calcola la data di scadenza aggiungendo la durata in mesi
+    /// <summary>
+    /// Calcola la data di scadenza aggiungendo un numero di mesi
+    /// alla data di inizio (usato per abbonamenti e gift card).
+    /// </summary>
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
     }
 
-    // Restituisce quanti giorni mancano alla scadenza 
+    /// <summary>
+    /// Restituisce il numero di giorni rimanenti alla scadenza.
+    /// Se il valore è 0, significa che l'abbonamento/gift card è scaduto.
+    /// </summary>
     public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
+
+        // Differenza tra la data di scadenza e la data attuale
         TimeSpan differenza = dataScadenza - DateTime.Now;
+
         return (int)differenza.TotalDays;
     }
 }
@@ -3987,7 +4189,7 @@ public static class Calcoli
 
 # Seed
 
-## Data Seeder
+## DataSeeder.cs
 
 Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
 
@@ -3999,6 +4201,7 @@ await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22,
 ```
 
 ## AssicuraEsistenzaTurno
+
 ```c#
  private static async Task AssicuraEsistenzaTurno(
    ContestoDb context,
