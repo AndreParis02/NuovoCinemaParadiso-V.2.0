@@ -45,6 +45,13 @@ curl -s -X DELETE "http://localhost:5226/api/Auth/elimina" \
 -H "Authorization: Bearer $TOKEN" 
 ```
 
+## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
+
+```bash
+curl -s  -X DELETE "http://localhost:5226/api/Auth/eliminaUtente/Id Utente" \
+-H "Authorization: Bearer $TOKEN" 
+```
+
 ## Curl di Cambio ruolo utente (solo se Gestore)
 
 ```bash
@@ -506,13 +513,6 @@ curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: 
 curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
 -H "Authorization: Bearer $TOKEN" \
 -H "Accept: application/json"
-```
-
-## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
-
-```bash
-curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
--H "Authorization: Bearer $TOKEN" 
 ```
 
 ## Admin Acquisti

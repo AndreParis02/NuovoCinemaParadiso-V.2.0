@@ -75,36 +75,6 @@ public class AdminController : ControllerBase
         return Ok(utente);
     }
 
-    [HttpDelete("eliminaUtente/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> EliminaTramiteId(string Id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = false,
-                Messaggio = "Eliminazione profilo fallita"
-            });
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Eliminazione profilo",
-            Effettuato = true,
-            Messaggio = "Eliminazione profilo avvenuta"
-        });
-        return Ok(risultato);
-    }
-
     [HttpGet("acquisti")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTuttiGliAcquisti()
