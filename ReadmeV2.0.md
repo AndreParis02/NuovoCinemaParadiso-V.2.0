@@ -85,6 +85,8 @@ public class Proiezione
     // Navigazione verso il turno.
     [ForeignKey("TurnoId")]
     public Utente Turno { get; set; }
+    // lista degli acquisti relativi alla proiezione  (relazione 1-N)
+    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 }
 ```
 
@@ -193,9 +195,60 @@ public class Acquisto
     public decimal PrezzoFinale { get; set; }
 }
 ```
+# Data 
 
+## ContestoDb.cs
+```c#
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Models;
 
+namespace NuovoCinemaParadiso.Data
+{
+    public class ContestoDb : IdentityDbContext<Utente, IdentityRole, string>
+    {
+        public ContestoDb(DbContextOptions<ContestoDb> opzioni)
+            : base(opzioni)
+        {
+        }
+        // tabella dei movies
+        public DbSet<Movie> Movies { get; set; }
+        // tabella dei generi dei movies
+        public DbSet<GenereMovie> GeneriMovies { get; set; }
+        // tabella delle sale del cinema
+        public DbSet<Sala> Sale { get; set; }
+        // tabella delle tipologie di sala
+        public DbSet<TipologiaSala> TipologieSala { get; set; }
+        // tabella dei vari turni dove possono essere programmate le proiezioni
+        public DbSet<Turno> Turni { get; set; }
+        // tabella degli acquisti (scontrini) relativi ad una proiezione di un film
+        public DbSet<Acquisto> Acquisti { get; set; }
+        // tabella defli utenti
+        public DbSet<Utente> Utenti { get; set; }
+        // tabella degli abbonamenti degli utenti
+        public DbSet<Abbonamento> Abbonamenti {get;set;}
+        // tabella del Log
+        public DbSet<LogAzioni> LogAzioni {get;set;}
+        // tabella delle proiezioni dei film 
+        public DbSet<Proiezione> Proiezioni {get;set;}
+        // tabella delle gift card
+        public DbSet<GiftCard> GiftCards {get;set;}
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            /*quando si vuole eliminare una proiezione, bisognerà prima rimborsare tutti 
+            gli utenti che hanno gia comprato un biglietto per essa, di conseguenza bisogna inserire una restrizione*/
+            modelBuilder.Entity<Acquisto>()
+                .HasOne(a => a.Proiezione) // ogni acquisto appartiene ad una sola proiezione
+                .WithMany(p => p.Acquisti) // ad ogni proiezione appartengono più acquisti
+                .HasForeignKey(a => a.ProiezioneId) // la chiave esterna è ProiezioneId
+                .OnDelete(DeleteBehavior.Restrict); 
+                // 'Restrict' impedisce la cancellazione della proiezione se esistono degli acquisti relativi ad essa
+        }
+    }
+}
+```
 # Dtos
 
 ## DtoAbbonamento.cs
