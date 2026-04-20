@@ -92,35 +92,36 @@ public class Proiezione
 
 ## Utente.cs
 ```c#
-[Table("Utente")]
+
+[Table("Utenti")]
 public class Utente : IdentityUser
 {
-    // Nome completo dell’utente (obbligatorio, max 100 caratteri).
     [Required]
     [StringLength(100)]
     public string NomeCompleto { get; set; } = string.Empty;
-
-    // Età dell’utente con vincolo minimo e massimo.
     [Required]
-    [Range(14, 100)]
+    [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
     public int Eta { get; set; }
-
-    // Indica se l’utente ha un abbonamento attivo.
     [Required]
     public bool SeAbbonato { get; set; } = false;
+    [Required]
+    public bool PossiedeGiftCard { get; set; } = false;
 
-    // Data di inizio dell’abbonamento (se presente).
     public DateTimeOffset DataInizioAbbonamento { get; set; }
 
-    // Acquisti associati all’utente.
+    public DateTimeOffset DataInizioGiftCard { get; set; }
+
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
-    // Riferimento all’abbonamento (può essere nullo).
     public string? AbbonamentoId { get; set; }
 
-    // Navigazione verso l’entità Abbonamento.
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
+
+    public string? GiftCardId { get; set; }
+
+    [ForeignKey("GiftCardId")]
+    public GiftCard? GiftCard { get; set; }
 }
 ```
 ## Turno.cs
@@ -356,8 +357,9 @@ public class DtoUtente
     public bool Abbonato {get; set;}
     public string Email { get; set; } = string.Empty;
     public int Eta { get; set; }
-     public string AbbonamentoId {get; set;} = string.Empty;
+    public string AbbonamentoId {get; set;} = string.Empty;
     public string TipoAbbonamento {get; set;} = string.Empty;
+    public string TipoGiftCard { get; set; } = string.Empty;
 } 
 ```
 ## DtoCreazioneUtente.cs
@@ -446,17 +448,9 @@ public class DtoCreazioneAcquisto
     [Required]
     public string ProiezioneId { get; set; } = string.Empty;
 
-    // Id dell’utente che effettua l’acquisto (obbligatorio, ma ignorato lato server)
-    [Required]
-    public string? UtenteId { get; set; } = string.Empty;
-
     // Numero di biglietti richiesti (obbligatorio)
     [Required]
     public int NumeroBiglietti { get; set; }
-
-    // Prezzo finale calcolato dal client (obbligatorio ma NON usato: il server ricalcola sempre)
-    [Required]
-    public decimal PrezzoFinale { get; set; }
 }
 ```
 
