@@ -6,9 +6,9 @@ Implementare una funzionalità che permette agli utenti di acquistare una gift c
 
 **Possibile implementazione: Funzionalità che permette agli utenti di regalare gift card ad altri utenti.** 
 
-- 10 Film , Prezzo 50£.
-- 25 Film , Prezzo 110£.
-- 50 film , Prezzo 200£.
+- 10 Film , Prezzo 85£.
+- 25 Film , Prezzo 190£.
+- 50 film , Prezzo 325£.
 
 - Modello e riferimento nel ContestoDb.
 - Dtos.
@@ -33,9 +33,9 @@ Implementare una funzionalità che permette agli utenti di acquistare un abbonam
 Nella tabella utente ci sarà la foreign key che collega la corrispettiva tabella alla tabella abbonamenti.
 Gli abbonamenti saranno di tre livelli: mensile, semestrale, annuale, ognuno con il suo prezzo e la sua data di inizio e di scadenza.
 
-- mensile ( 25% ) , Prezzo 25£.
-- semestrale ( 50% ) , Prezzo 150£.
-- annuale ( 75% ) , Prezzo 350£.
+- mensile ( 25% Sconto ) , Prezzo 70£.
+- semestrale ( 50% Sconto ) , Prezzo 210£.
+- annuale ( 75% Sconto ) , Prezzo 300£.
 
 - Modello e riferimento nel ContestoDb.
 - Dtos.
@@ -4191,46 +4191,275 @@ public static class Calcoli
 
 ## DataSeeder.cs
 
-Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
-
 ```c#
-//Gli orari prima avevano solo 10, 13, 18; di seguito abbiamo aggiunto i minuti e i secondi che permettono di visualizzare gli orari corretti nella tabella
-await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0),"Mattina");
-await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0),"Pomeriggio");
-await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0),"Sera");
-```
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
 
-## AssicuraEsistenzaTurno
+namespace NuovoCinemaParadiso.Seed;
 
-```c#
- private static async Task AssicuraEsistenzaTurno(
-   ContestoDb context,
-   TimeOnly oraInizio, TimeOnly oraFine, string nome)
-   {
-    List<Turno> turni = await context.Turni.ToListAsync();
-    for (int i = 0; i < turni.Count; i++)
+/// <summary>
+/// Classe responsabile del popolamento iniziale del database.
+/// Crea ruoli, utenti, generi, tipologie sala, turni, abbonamenti e gift card.
+/// Viene eseguita all'avvio dell'applicazione.
+/// </summary>
+public static class DataSeeder
+{
+    /// <summary>
+    /// Metodo principale che avvia tutte le operazioni di seed.
+    /// </summary>
+    public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        Turno turnoCorrente = turni[i];
-        bool nomeUguale = string.Equals(
-            turnoCorrente.Nome,
-            nome,
-            StringComparison.OrdinalIgnoreCase);
-        if(nomeUguale || (turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine))
+        using IServiceScope scope = serviceProvider.CreateScope();
+
+        DateTime oggi = DateTime.Today;
+
+        // Recupero dei servizi necessari
+        ContestoDb contestoDb = scope.ServiceProvider.GetRequiredService<ContestoDb>();
+        UserManager<Utente> gestioneUtenti = scope.ServiceProvider.GetRequiredService<UserManager<Utente>>();
+        RoleManager<IdentityRole> gestioneRuoli = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        // ---------------------------------------------------------
+        // SEED RUOLI
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Gestore);
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Operatore);
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Utente);
+
+        // ---------------------------------------------------------
+        // SEED UTENTI
+        // ---------------------------------------------------------
+        Utente gestore = await AssicuraEsistenzaUtenteAsync(
+            gestioneUtenti,
+            "gestore@gmail.com",
+            "123456",
+            "Gestore",
+            60,
+            false);
+
+        Utente operatore = await AssicuraEsistenzaUtenteAsync(
+            gestioneUtenti,
+            "operatore@gmail.com",
+            "123456",
+            "Operatore",
+            35,
+            false);
+
+        Utente utente = await AssicuraEsistenzaUtenteAsync(
+            gestioneUtenti,
+            "utente1@gmail.com",
+            "123456",
+            "Utente Uno",
+            15,
+            false);
+
+        // Assegna ruolo unico a ciascun utente
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, gestore, Ruoli.Gestore);
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
+
+        // ---------------------------------------------------------
+        // SEED GENERI MOVIE
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
+        await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
+        await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+
+        // ---------------------------------------------------------
+        // SEED TIPOLOGIE SALA
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
+        await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
+        await AssicuraEsistenzaTipologiaSala(contestoDb, "IMAX", 4);
+
+        // ---------------------------------------------------------
+        // SEED TURNI
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0), "Mattina");
+        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0), "Pomeriggio");
+        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0), "Sera");
+
+        // ---------------------------------------------------------
+        // SEED ABBONAMENTI
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
+
+        // ---------------------------------------------------------
+        // SEED GIFT CARD
+        // ---------------------------------------------------------
+        await AssicuraEsistenzaGiftCard(contestoDb, "10 Film", 85, 10, 12);
+        await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
+        await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
+    }
+
+    // ---------------------------------------------------------
+    // METODI DI SUPPORTO
+    // ---------------------------------------------------------
+
+    /// <summary>
+    /// Crea un ruolo se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
+    {
+        bool seEsiste = await managerRuolo.RoleExistsAsync(nomeRuolo);
+        if (!seEsiste)
         {
-            return;
+            IdentityRole ruolo = new IdentityRole { Name = nomeRuolo };
+            await managerRuolo.CreateAsync(ruolo);
         }
     }
 
-    Turno nuovoTurno = new Turno
+    /// <summary>
+    /// Crea un utente se non esiste già.
+    /// </summary>
+    private static async Task<Utente> AssicuraEsistenzaUtenteAsync(
+        UserManager<Utente> gestioneUtenti,
+        string email,
+        string password,
+        string nomeCompleto,
+        int eta,
+        bool abbonato)
     {
-        Nome      = nome,
-        OraInizio = oraInizio,
-        OraFine   = oraFine
-    };
+        Utente? utenteEsistente = await gestioneUtenti.FindByEmailAsync(email);
 
-    context.Turni.Add(nuovoTurno);
-    await context.SaveChangesAsync();
-   }
+        if (utenteEsistente != null)
+            return utenteEsistente;
+
+        Utente utente = new Utente
+        {
+            UserName = email,
+            Email = email,
+            NomeCompleto = nomeCompleto,
+            Eta = eta,
+            SeAbbonato = abbonato,
+            AbbonamentoId = null
+        };
+
+        IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
+
+        if (!risultato.Succeeded)
+        {
+            List<string> errori = risultato.Errors.Select(e => e.Description).ToList();
+            string messaggio = string.Join("|", errori);
+            throw new Exception($"Errore durante il seed dell'utente {email} : {messaggio}");
+        }
+
+        return utente;
+    }
+
+    /// <summary>
+    /// Rimuove eventuali ruoli precedenti e assegna un ruolo unico all'utente.
+    /// </summary>
+    private static async Task ImpostaRuoloUnicoAsync(UserManager<Utente> gestioneUtenti, Utente utente, string ruoloTarget)
+    {
+        IList<string> ruoliCorrenti = await gestioneUtenti.GetRolesAsync(utente);
+
+        // Rimuove tutti i ruoli validi
+        foreach (string ruoloCorrente in ruoliCorrenti)
+        {
+            if (ruoloCorrente == Ruoli.Gestore || ruoloCorrente == Ruoli.Operatore || ruoloCorrente == Ruoli.Utente)
+            {
+                await gestioneUtenti.RemoveFromRoleAsync(utente, ruoloCorrente);
+            }
+        }
+
+        // Assegna il ruolo target se non già presente
+        if (!await gestioneUtenti.IsInRoleAsync(utente, ruoloTarget))
+        {
+            await gestioneUtenti.AddToRoleAsync(utente, ruoloTarget);
+        }
+    }
+
+    /// <summary>
+    /// Crea un genere movie se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaGenereMovie(ContestoDb context, string genere)
+    {
+        if (await context.GeneriMovies.AnyAsync(g => g.Genere.ToLower() == genere.ToLower()))
+            return;
+
+        context.GeneriMovies.Add(new GenereMovie { Genere = genere });
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea una tipologia sala se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaTipologiaSala(ContestoDb context, string nome, decimal maggiorazioneprezzo)
+    {
+        if (await context.TipologieSala.AnyAsync(t => t.Nome.ToLower() == nome.ToLower()))
+            return;
+
+        context.TipologieSala.Add(new TipologiaSala
+        {
+            Nome = nome,
+            MaggiorazionePrezzo = maggiorazioneprezzo
+        });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea un turno se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaTurno(ContestoDb context, TimeOnly oraInizio, TimeOnly oraFine, string nome)
+    {
+        if (await context.Turni.AnyAsync(t =>
+            t.Nome.ToLower() == nome.ToLower() ||
+            (t.OraInizio == oraInizio && t.OraFine == oraFine)))
+            return;
+
+        context.Turni.Add(new Turno
+        {
+            Nome = nome,
+            OraInizio = oraInizio,
+            OraFine = oraFine
+        });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea un abbonamento se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaAbbonamento(ContestoDb context, string nome, decimal prezzo, int sconto, int durata)
+    {
+        if (await context.Abbonamenti.AnyAsync(a => a.Nome.ToLower() == nome.ToLower()))
+            return;
+
+        context.Abbonamenti.Add(new Abbonamento
+        {
+            Nome = nome,
+            Prezzo = prezzo,
+            Sconto = sconto,
+            Durata = durata
+        });
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Crea una gift card se non esiste già.
+    /// </summary>
+    private static async Task AssicuraEsistenzaGiftCard(ContestoDb context, string nome, decimal prezzo, int numeroMovie, int durata)
+    {
+        if (await context.GiftCards.AnyAsync(g => g.Nome.ToLower() == nome.ToLower()))
+            return;
+
+        context.GiftCards.Add(new GiftCard
+        {
+            Nome = nome,
+            Prezzo = prezzo,
+            NumeroMovie = numeroMovie,
+            Durata = durata
+        });
+
+        await context.SaveChangesAsync();
+    }
+}
 ```
 
 # Program.cs
