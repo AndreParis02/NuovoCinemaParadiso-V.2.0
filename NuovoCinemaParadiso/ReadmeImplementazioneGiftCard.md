@@ -288,6 +288,103 @@ public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
 }
 ```
 
+## AuthService.cs // SOLO AGGIUNTA
+
+```c#
+public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
+{
+    // Recupera l’utente tramite email.
+    // Se non esiste, il login fallisce immediatamente.
+    Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+    
+    if (utente == null)
+    {
+        return null;
+    }
+
+    // ---------------------------------------------------------
+    // CONTROLLO SCADENZA ABBONAMENTO
+    // ---------------------------------------------------------
+    // Se l’utente risulta abbonato, calcoliamo la scadenza
+    // utilizzando la data di inizio e la durata dell’abbonamento.
+    if (utente.SeAbbonato == true)
+    {
+        // Calcola la data di scadenza dell’abbonamento.
+        DateTimeOffset? scadenzaAbbonamento =
+            Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+
+        // Calcola quanti giorni mancano alla scadenza.
+        int giorniMancanti =
+            Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+
+        // Se mancano 0 giorni, significa che l’abbonamento è scaduto.
+        if (giorniMancanti == 0)
+        {
+            utente.SeAbbonato = false;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // CONTROLLO SCADENZA GIFT CARD
+    // ---------------------------------------------------------
+    // Se l’utente possiede una gift card, calcoliamo la scadenza
+    // utilizzando la data di attivazione e la durata della gift card.
+    if (utente.PossiedeGiftCard == true)
+    {
+        // Calcola la data di scadenza della gift card.
+        DateTimeOffset? scadenzaGiftCard =
+            Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+
+        // Calcola quanti giorni mancano alla scadenza.
+        int giorniMancanti =
+            Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+
+        // Se mancano 0 giorni, la gift card è scaduta.
+        if (giorniMancanti == 0)
+        {
+            utente.PossiedeGiftCard = false;
+        }
+    }
+    
+    // ---------------------------------------------------------
+    // VERIFICA PASSWORD
+    // ---------------------------------------------------------
+    // Controlla che la password inserita sia corretta.
+    // Se fallisce, il login non procede.
+    SignInResult result =
+        await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
+
+    if (!result.Succeeded)
+    {
+        return null;
+    }
+
+    // ---------------------------------------------------------
+    // RECUPERO RUOLI UTENTE
+    // ---------------------------------------------------------
+    IList<string> ruoli = await _gestioneUtenti.GetRolesAsync(utente);
+
+    // ---------------------------------------------------------
+    // GENERAZIONE TOKEN JWT
+    // ---------------------------------------------------------
+    string token = _jwtHelper.GenerateToken(utente, ruoli);
+
+    // ---------------------------------------------------------
+    // COSTRUZIONE RISPOSTA DI LOGIN
+    // ---------------------------------------------------------
+    DtoAuthResponse response = new DtoAuthResponse();
+    response.Token = token;
+    response.Id = utente.Id;
+    response.NomeCompleto = utente.NomeCompleto;
+    response.Email = utente.Email ?? string.Empty;
+
+    // Se l’utente ha almeno un ruolo, restituiamo il primo.
+    response.Ruolo = ruoli.Count > 0 ? ruoli[0] : "";
+
+    return response;
+}
+```
+
 ## GiftCardService.cs
 
 # Controllers
@@ -297,7 +394,93 @@ public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
 
 # Helpers
 
-## CalcoliHelper.cs
+## CalcoliHelper.cs // SOLO AGGIUNTA
+
+```c#
+/// <summary>
+/// Calcola il prezzo finale di un acquisto in base a:
+/// - prezzo base del film
+/// - maggiorazione della tipologia sala
+/// - numero di biglietti acquistati
+/// - stato dell’utente (abbonato o possessore di gift card)
+/// 
+/// La logica gestisce tre casi:
+/// 1. Utente NON abbonato e senza gift card → paga tutto
+/// 2. Utente con gift card → scala i film disponibili
+/// 3. Utente abbonato → paga tutto (l’abbonamento non dà sconti sui biglietti)
+/// </summary>
+public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
+{
+    // ---------------------------------------------------------
+    // CASO 1: Utente NON abbonato e NON possessore di gift card
+    // ---------------------------------------------------------
+    // Se l’utente non è abbonato, si applica il prezzo pieno.
+    if (utente.SeAbbonato == false)
+    {
+        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
+        return prezzoFinale;
+    }
+
+    // ---------------------------------------------------------
+    // CASO 2: Utente possessore di gift card
+    // ---------------------------------------------------------
+    // Se l’utente ha una gift card attiva, si scala il numero di film disponibili.
+    else if (utente.PossiedeGiftCard == true)
+    {
+        // Se la gift card copre TUTTI i biglietti richiesti
+        if (utente.GiftCard.NumeroMovie > numeroBiglietti)
+        {
+            // Tutti i biglietti sono coperti → prezzo 0
+            Decimal prezzoFinale = 0;
+
+            // Scala i film rimanenti dalla gift card
+            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
+
+            return prezzoFinale;
+        }
+
+        // Se la gift card copre ESATTAMENTE il numero di biglietti richiesti
+        else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
+        {
+            // Tutti i biglietti sono coperti → prezzo 0
+            Decimal prezzoFinale = 0;
+
+            // La gift card viene completamente consumata
+            utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
+
+            // L’utente non possiede più una gift card attiva
+            utente.PossiedeGiftCard = false;
+
+            return prezzoFinale;
+        }
+
+        // Se la gift card copre SOLO una parte dei biglietti richiesti
+        else
+        {
+            // Calcola quanti biglietti NON sono coperti dalla gift card
+            int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
+
+            // Prezzo da pagare solo per i biglietti non coperti
+            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * bigliettiRimanenti;
+
+            // La gift card viene esaurita
+            utente.PossiedeGiftCard = false;
+
+            return prezzoFinale;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // CASO 3: Utente abbonato (ma senza gift card)
+    // ---------------------------------------------------------
+    // L’abbonamento NON dà sconti sui biglietti → paga tutto.
+    else
+    {
+        Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
+        return prezzoFinale;
+    }
+}
+```
 
 # Data
 

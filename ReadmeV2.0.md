@@ -50,6 +50,7 @@ public class Abbonamento
 ```
 
 ## Proiezione.cs
+
 ```c#
 [Table("Proiezioni")]
 public class Proiezione
@@ -89,6 +90,7 @@ public class Proiezione
 ```
 
 ## Utente.cs
+
 ```c#
 [Table("Utente")]
 public class Utente : IdentityUser
@@ -121,7 +123,9 @@ public class Utente : IdentityUser
     public Abbonamento? Abbonamento { get; set; }
 }
 ```
+
 ## Turno.cs
+
 ```c#
 // Mappa la classe alla tabella "Turni"
 [Table("Turni")]
@@ -147,6 +151,7 @@ public class Turno
     public List<Sala> Sale { get; set; } = new();
 }
 ```
+
 ## Acquisto.cs
 
 ```c#
@@ -193,8 +198,6 @@ public class Acquisto
     public decimal PrezzoFinale { get; set; }
 }
 ```
-
-
 
 # Dtos
 
@@ -267,7 +270,9 @@ public class DtoProiezione
     public string TurnoId {get; set; }
 }
 ```
+
 ## DtoCreazioneProiezione.cs
+
 ```c#
 // DTO utilizzato per la creazione di una nuova proiezione.
 // Contiene solo i campi necessari in input dal client.
@@ -291,7 +296,9 @@ public class DtoCreazioneProiezione
     public DateOnly DataProiezione { get; set; }
 }
 ```
+
 ## DtoUtente.cs
+
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
 
@@ -307,7 +314,9 @@ public class DtoUtente
     public string TipoAbbonamento {get; set;} = string.Empty;
 } 
 ```
+
 ## DtoCreazioneUtente.cs
+
 ```c#
 using System.ComponentModel.DataAnnotations;
 
@@ -655,6 +664,7 @@ public class AbbonamentoController : ControllerBase
 ```
 
 ## UtentiController.cs
+
 ```c#
 [ApiController]
 [Route("api/[controller]")]
@@ -730,6 +740,7 @@ public class UtentiController : ControllerBase
 ```
 
 ## AdminController.cs 
+
 ```c#
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -984,7 +995,9 @@ public class AdminController : ControllerBase
     }
 }
 ```
+
 ## ProiezioneController.cs
+
 ```c#
 [ApiController]
 [Route("api/[controller]")]
@@ -2314,7 +2327,9 @@ public class ProiezioneService
     }
 }
 ```
+
 ## TurnoService.cs
+
 ```c#
 // Servizio applicativo per la gestione dei turni: incapsula la logica di accesso al DB
 public class TurnoService
@@ -2438,7 +2453,9 @@ public class TurnoService
     }
 }
 ```
+
 ## AcquistoService.cs
+
 ```c#
 // Servizio applicativo per la gestione degli acquisti: contiene la logica di business
 public class AcquistoService
@@ -2635,7 +2652,9 @@ public class AcquistoService
     }
 }
 ```
+
 ## GiftCardService.cs
+
 ```c#
 // Servizio applicativo per la gestione delle GiftCard
 public class GiftCardService
@@ -2813,13 +2832,13 @@ public static class Calcoli
         }
     }
 
-    // Calcola la data di scadenza dell’abbonamento aggiungendo la durata in mesi
-    public static DateTimeOffset? CalcolaScadenzaAbbonamento(DateTimeOffset dataInizio, int durata)
+    // Calcola la data di scadenza aggiungendo la durata in mesi
+    public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
     }
 
-    // Restituisce quanti giorni mancano alla scadenza dell’abbonamento
+    // Restituisce quanti giorni mancano alla scadenza 
     public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
@@ -2829,6 +2848,7 @@ public static class Calcoli
 }
 ```
 
+# Seed
 Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
 
 ```c#
@@ -2837,6 +2857,7 @@ await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(10, 0, 0), new TimeOnly(13,
 await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0),"Pomeriggio");
 await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0),"Sera");
 ```
+
 ## AssicuraEsistenzaTurno
 ```c#
  private static async Task AssicuraEsistenzaTurno(
