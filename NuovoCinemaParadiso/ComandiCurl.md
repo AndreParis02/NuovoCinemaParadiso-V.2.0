@@ -218,7 +218,7 @@ curl -s -X POST "http://localhost:5226/api/Sala" \
 -d '{
     "Nome": "Sala 1",
     "Capienza": 100,
-    "TipologiaSalaId": "Id_Topologiasala"
+    "TipologiaSalaId": "Id_Tipologiasala"
 }' | jq
 ```
 ## Modifica Sala con id della sala:
@@ -376,10 +376,6 @@ curl -s -X PUT "http://localhost:5226/api/Abbonamento/Id Abbonamento" \
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
 ```
-## leggi informazioni Abbonamento per id come admin
-```bash
-curl -s -X GET "http://localhost:5226/api/Abbonamento/admin/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
-```
 
 # GiftCard
 
@@ -424,10 +420,6 @@ curl -s -X PUT "http://localhost:5226/api/GiftCard/Id GiftCard" \
 ## Elimina la GiftCard con id della GiftCard:
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/GiftCard/Id GiftCard" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
-```
-## leggi informazioni GiftCard per id come admin
-```bash
-curl -s -X GET "http://localhost:5226/api/GiftCard/admin/Id GiftCard" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
 
@@ -534,6 +526,19 @@ curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
 ```bash
 curl -s -X GET "http://localhost:5226/api/Admin/acquisti" -H "Authorization: Bearer $TOKEN"
 ```
+
+## Admin Abbonamento
+
+## leggi informazioni Abbonamento per id come admin
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
+```
+
+## Admin GiftCard
+
+## leggi informazioni GiftCard per id come admin
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/giftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN" | jq
 
 # Comandi Utente:
 
