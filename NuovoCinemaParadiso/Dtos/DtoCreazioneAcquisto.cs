@@ -8,5 +8,5 @@ public class DtoCreazioneAcquisto
     public string ProiezioneId { get; set; } = string.Empty;
     [Required]
     public int NumeroBiglietti { get; set; }
-    
+    public string MetodoPagamento { get; set; } = "standard";
 }

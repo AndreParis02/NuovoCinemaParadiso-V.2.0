@@ -69,20 +69,20 @@ curl -s -X GET "http://localhost:5226/api/Admin/log" -H "Authorization: Bearer $
 ## Leggi Generi Movies:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/GeneriMovies" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/GenereMovie" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi Genere Movie tramite Id del genere:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/GeneriMovies/Id Genere" \
+curl -s -X GET "http://localhost:5226/api/GenereMovie/Id Genere" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Crea Genere Movie:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/GeneriMovies" \
+curl -s -X POST "http://localhost:5226/api/GenereMovie" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{"genere":"Commedia"}'| jq
@@ -91,12 +91,12 @@ curl -s -X POST "http://localhost:5226/api/GeneriMovies" \
 ## Modifica Genere Movie tramite Id del genere:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/GeneriMovies/Id Genere" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"genere":"Horror"}'
+curl -s -X PUT "http://localhost:5226/api/GenereMovie/Id Genere" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"genere":"Horror"}'
 ```
 
 ## Elimina Genere Movie tramite Id del genere:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/GeneriMovies/Id Genere" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/GenereMovie/Id Genere" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Tipologia Sala
@@ -104,20 +104,20 @@ curl -s -X DELETE "http://localhost:5226/api/GeneriMovies/Id Genere" -H "Authori
 ## Leggi TipologieSala:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/TipologieSala" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/TipologiaSala" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi Tipologia Sala tramite Id della tipologia della sala:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" \
+curl -s -X GET "http://localhost:5226/api/TipologiaSala/Id Tipologia Sala" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Crea TipologiaSala:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/TipologieSala" \
+curl -s -X POST "http://localhost:5226/api/TipologiaSala" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{"nome":"3D", "maggiorazionePrezzo": 2.00}' | jq
@@ -126,13 +126,13 @@ curl -s -X POST "http://localhost:5226/api/TipologieSala" \
 ## Modifica Tipologia Sala tramite Id della tipologia della sala:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"nome":"3D 2.0", "maggiorazionePrezzo": 3.00}'
+curl -s -X PUT "http://localhost:5226/api/TipologiaSala/Id Tipologia Sala" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" -d '{"nome":"3D 2.0", "maggiorazionePrezzo": 3.00}'
 ```
 
 ## Elimina Tipologia Sala tramite Id della tipologia della sala:
 
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/TipologieSala/Id Tipologia Sala" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/TipologiaSala/Id Tipologia Sala" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Turno
@@ -185,27 +185,20 @@ curl -s -X DELETE "http://localhost:5226/api/Turno/Id Turno" -H "Authorization: 
 ## Leggi Sale:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Sale" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Sala" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi Sala tramite Id della sala:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Sale/Id Sala" \
--H "Authorization: Bearer $TOKEN"
-```
-
-## Leggi Sale tramite IdFasciaOraria :
-
-```bash
-curl -s -X GET "http://localhost:5226/api/Sale/fascia-oraria/Id Fascia Oraria" \
+curl -s -X GET "http://localhost:5226/api/Sala/Id Sala" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi Sale tramite IdTipologiaSala:
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Sale/tipologia/Id Tipologia Sala" \
+curl -s -X GET "http://localhost:5226/api/Sala/tipologia/Id Tipologia Sala" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -236,7 +229,7 @@ curl -s -X PUT "http://localhost:5226/api/Sala/Id_sala" \
 
 ## Elimina Sala con id della sala:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/Sale/Id Sala" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Sala/Id Sala" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Movie
@@ -294,12 +287,12 @@ curl -s -X DELETE "http://localhost:5226/api/Movie/Id Movie" -H "Authorization: 
 
 ## Leggi tutti gli Acquisti dell'utente loggato
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Acquisto" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## leggi informazioni Acquisto per id (accesso a tutti gli acquisti dell'utente loggato)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisti/Id Acquisto" \
+curl -s -X GET "http://localhost:5226/api/Acquisto/Id Acquisto" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -329,7 +322,7 @@ curl -s -X PUT "http://localhost:5226/api/Acquisto/Id_acquisto" \
 
 ## Elimina Movie con id dell'Acquisto:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/Acquisti/Id Acquisto" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Acquisto/Id Acquisto" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Abbonamenti
@@ -421,7 +414,6 @@ curl -s -X PUT "http://localhost:5226/api/GiftCard/Id GiftCard" \
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/GiftCard/Id GiftCard" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
 ```
-
 
 # Proiezione
 
@@ -524,7 +516,7 @@ curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
 
 ## Leggi tutti gli Acquisti di tutti gli utenti(solo gestore o operatore)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/acquisti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Admin/acquisto" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Admin Abbonamento

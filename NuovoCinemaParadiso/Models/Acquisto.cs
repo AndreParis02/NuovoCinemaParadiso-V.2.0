@@ -25,4 +25,5 @@ public class Acquisto
     public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
     [Required]
     public decimal PrezzoFinale {get; set;}
+    public string MetodoPagamento { get; set; } = "standard";
 }

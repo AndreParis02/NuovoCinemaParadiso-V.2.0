@@ -7,4 +7,5 @@ public class DtoAcquisto
     public decimal PrezzoFinale {get;set;}
     public DateTimeOffset OrarioCreazione {get;set;} 
     public int NumeroBiglietti {get;set;}
+    public string MetodoPagamento { get; set; } = "standard";
 }

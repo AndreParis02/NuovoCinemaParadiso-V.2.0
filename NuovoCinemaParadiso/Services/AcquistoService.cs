@@ -33,10 +33,17 @@ public class AcquistoService
             {
                 DtoAcquisto dto = new DtoAcquisto();
                 dto.Id = acquistoCorrente.Id;
+                dto.UtenteId = utente.Id;
                 dto.ProiezioneId = acquistoCorrente.ProiezioneId;
-                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
                 dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
                 dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+                dto.MetodoPagamento = acquistoCorrente.MetodoPagamento;
+                dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                    movie.PrezzoMovie,
+                    tipologiaSala.MaggiorazionePrezzo,
+                    acquistoCorrente.NumeroBiglietti,
+                    utente,
+                    acquistoCorrente.MetodoPagamento);
 
                 risultato.Add(dto);
             }
@@ -66,10 +73,17 @@ public class AcquistoService
 
         DtoAcquisto dto = new DtoAcquisto();
         dto.Id = acquisto.Id;
+        dto.UtenteId = utente.Id;
         dto.ProiezioneId = acquisto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+        dto.MetodoPagamento = acquisto.MetodoPagamento;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            acquisto.NumeroBiglietti,
+            utente,
+            acquisto.MetodoPagamento);
 
         return dto;
     }
@@ -88,8 +102,14 @@ public class AcquistoService
         acquisto.UtenteId = utenteId;
         acquisto.ProiezioneId = proiezione.Id;
         acquisto.NumeroBiglietti = dto.NumeroBiglietti;
-        acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente);
         acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
+        acquisto.MetodoPagamento = dto.MetodoPagamento;
+        acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie, 
+            tipologiaSala.MaggiorazionePrezzo, 
+            dto.NumeroBiglietti, 
+            utente,
+            dto.MetodoPagamento);
 
         // Calcola il prezzo finale lato server
 
@@ -105,6 +125,8 @@ public class AcquistoService
         risultato.NumeroBiglietti = acquisto.NumeroBiglietti;
         risultato.PrezzoFinale = acquisto.PrezzoFinale;
         risultato.OrarioCreazione = acquisto.OrarioCreazione;
+        risultato.MetodoPagamento = acquisto.MetodoPagamento;
+
 
         return risultato;
     }
@@ -124,7 +146,12 @@ public class AcquistoService
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
         // Aggiorna prezzo dal film
-        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoEsistente.NumeroBiglietti, utente);
+        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie, 
+            tipologiaSala.MaggiorazionePrezzo, 
+            acquistoEsistente.NumeroBiglietti, 
+            utente,
+            acquistoEsistente.MetodoPagamento);
 
         await _contesto.SaveChangesAsync();
 
@@ -135,7 +162,8 @@ public class AcquistoService
             ProiezioneId = acquistoEsistente.ProiezioneId,
             NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
             PrezzoFinale = acquistoEsistente.PrezzoFinale,
-            OrarioCreazione = acquistoEsistente.OrarioCreazione
+            OrarioCreazione = acquistoEsistente.OrarioCreazione,
+            MetodoPagamento =  acquistoEsistente.MetodoPagamento
         };
 
         return risultato;
