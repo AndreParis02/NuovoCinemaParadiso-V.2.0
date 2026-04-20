@@ -1,3 +1,14 @@
+## Implementazione Proiezione.
+
+Implementare una funzionalità che permette al gestore di creare, modificare o eliminare una proiezione.
+Essa comprende il film, la sala, il turno e la data di trasmissione.
+
+- Modello e riferimento nel ContestoDb.
+- Dtos.
+- Services e riferimento nel Program.cs.
+- Controller.
+- Calcolo nell'helper.
+
 entità proiezione con:
 
 IdProiezione;
@@ -37,7 +48,6 @@ Acquisto Nuovo:
 
 ProiezioneId;
 utenteId;
-
 
 # Task
 
