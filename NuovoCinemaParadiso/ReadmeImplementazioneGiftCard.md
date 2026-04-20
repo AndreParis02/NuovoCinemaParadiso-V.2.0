@@ -11,7 +11,7 @@
 
 # Models
 
-## GiftCard.cs // INTERO
+## GiftCard.cs // INTERO // INCLUSO
 
 ```c#
 using System.ComponentModel.DataAnnotations;
@@ -51,7 +51,7 @@ public class GiftCard
 }
 ```
 
-## Utente.cs // SOLO AGGIUNTA
+## Utente.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
 /// <summary>
@@ -82,7 +82,7 @@ public GiftCard? GiftCard { get; set; }
 
 # Dtos 
 
-## DtoUtente.cs // SOLO AGGIUNTA
+## DtoUtente.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
     /// <summary>
@@ -107,7 +107,7 @@ public GiftCard? GiftCard { get; set; }
     public string TipoGiftCard { get; set; } = string.Empty;
 ```
 
-## DtoGiftCard.cs // INTERO
+## DtoGiftCard.cs // INTERO // INCLUSO
 
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
@@ -145,7 +145,7 @@ public class DtoGiftCard
 }
 ```
 
-## DtoCreazioneGiftCard.cs // INTERO
+## DtoCreazioneGiftCard.cs // INTERO // INCLUSO
 
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
@@ -181,7 +181,7 @@ public class DtoCreazioneGiftCard
 
 # Services
 
-## UtenteService.cs // SOLO AGGIUNTA
+## UtenteService.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
 public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
@@ -237,7 +237,7 @@ public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
 }
 ```
 
-## AuthService.cs // SOLO AGGIUNTA
+## AuthService.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
 public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
@@ -334,15 +334,336 @@ public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
 }
 ```
 
-## GiftCardService.cs
+## GiftCardService.cs // INTERO // INCLUSO
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service dedicato alla gestione delle GiftCard.
+/// Contiene operazioni CRUD e metodi di recupero.
+/// </summary>
+public class GiftCardService
+{
+    private readonly ContestoDb _contesto;
+
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI TUTTE LE GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce tutte le GiftCard presenti nel sistema.
+    /// </summary>
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        // Recupera tutte le gift card dal database
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        // Mapping manuale GiftCard → DtoGiftCard
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Durata = giftCardCorrente.Durata;
+            dto.Prezzo = giftCardCorrente.Prezzo;
+            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI GIFT CARD TRAMITE ID (solo se appartiene all’utente)
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce una GiftCard tramite ID, ma solo se appartiene all’utente specificato.
+    /// </summary>
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupera la gift card tramite chiave primaria
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        // Controlla se l’utente possiede questa gift card
+        foreach (var utente in giftCard.Utenti)
+        {
+            if (utente.Id == utenteId)
+            {
+                return new DtoGiftCard
+                {
+                    Id = giftCard.Id,
+                    Nome = giftCard.Nome,
+                    Durata = giftCard.Durata,
+                    Prezzo = giftCard.Prezzo,
+                    NumeroMovie = giftCard.NumeroMovie
+                };
+            }
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------
+    // CREAZIONE GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Crea una nuova GiftCard nel sistema.
+    /// </summary>
+    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
+    {
+        // Crea nuova entità GiftCard
+        GiftCard giftCard = new GiftCard();
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        // Salva nel database
+        _contesto.GiftCards.Add(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO della gift card creata
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // ---------------------------------------------------------
+    // MODIFICA GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Modifica una GiftCard esistente tramite ID.
+    /// </summary>
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        // Recupera gift card tramite ID
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        // Aggiorna i campi modificabili
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        // Salva modifiche
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO aggiornato
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // ---------------------------------------------------------
+    // ELIMINA GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Elimina una GiftCard tramite ID.
+    /// </summary>
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        // Recupera gift card tramite ID
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return false;
+        }
+
+        // Rimuove dal database
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
 
 # Controllers
 
-## GiftCardController.cs
+## GiftCardController.cs // INTERO // INCLUSO
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize] // Tutte le azioni richiedono autenticazione
+public class GiftCardController : ControllerBase
+{
+    private readonly GiftCardService _giftCardService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public GiftCardController(GiftCardService giftCardService, LogAzioniService logAzioniService)
+    {
+        _giftCardService = giftCardService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI TUTTE LE GIFT CARD
+    // ---------------------------------------------------------
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeGiftCard()
+    {
+        // Recupera tutte le gift card
+        List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
+
+        // Recupera ID dell’utente loggato dal token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Registra log dell’azione
+        await Log(utenteId, "Ottieni tutte le GiftCard", true);
+
+        return Ok(giftCards);
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI GIFT CARD TRAMITE ID (solo se appartiene all’utente)
+    // ---------------------------------------------------------
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupera gift card solo se appartiene all’utente
+        var risultato = await _giftCardService.OttieniTramiteIdAsync(id, utenteId);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Ottieni GiftCard tramite id", false);
+            return NotFound($"GiftCard con id {id} non trovata");
+        }
+
+        await Log(utenteId, "Ottieni GiftCard tramite id", true);
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // CREAZIONE GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Crea nuova gift card
+        DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
+
+        // Registra log
+        await Log(utenteId, "Creazione GiftCard", true);
+
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // MODIFICA GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Modifica gift card
+        DtoGiftCard? risultato = await _giftCardService.ModificaAsync(id, dto);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Modifica GiftCard", false);
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+
+        await Log(utenteId, "Modifica GiftCard", true);
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // ELIMINA GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Elimina gift card
+        bool eliminato = await _giftCardService.EliminazioneAsync(id);
+
+        if (!eliminato)
+        {
+            await Log(utenteId, "Eliminazione GiftCard", false);
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+
+        await Log(utenteId, "Eliminazione GiftCard", true);
+        return NoContent();
+    }
+
+    // ---------------------------------------------------------
+    // METODO PRIVATO PER SALVARE LOG DELLE AZIONI
+    // ---------------------------------------------------------
+    public async Task Log(string utenteId, string azione, bool risultato)
+    {
+        // Messaggio da salvare nel log
+        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
+
+        // Salvataggio log tramite servizio dedicato
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = azione,
+            Effettuato = risultato,
+            Messaggio = messaggio
+        });
+    }
+}
+```
 
 # Helpers
 
-## CalcoliHelper.cs // SOLO AGGIUNTA
+## CalcoliHelper.cs // SOLO AGGIUNTA // INCLUSO
 
 ```c#
 /// <summary>
@@ -432,7 +753,7 @@ public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggioraz
 
 # Data
 
-## ContestoDb // SOLO AGGIUNTA
+## ContestoDb // SOLO AGGIUNTA // INCLUSO
 
 ```c#
 public DbSet<GiftCard> GiftCards { get; set; }
@@ -441,7 +762,7 @@ public DbSet<GiftCard> GiftCards { get; set; }
 // ✔ EF Core genererà automaticamente la tabella se non esiste (Code First)
 ```
 
-# Program.cs // SOLO AGGIUNTA
+# Program.cs // SOLO AGGIUNTA // INCLUSO
 ```c#
 builder.Services.AddScoped<ProiezioneService>();
 // ✔ Registra ProiezioneService nel Dependency Injection container

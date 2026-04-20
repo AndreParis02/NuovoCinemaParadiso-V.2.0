@@ -105,7 +105,7 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpGet("acquisti")]
+    [HttpGet("acquisto")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTuttiGliAcquisti()
     {
@@ -281,8 +281,5 @@ public class AdminController : ControllerBase
     {
         List<DtoLogAzioni> risultatiLog = await _logAzioniService.LetturaLogAzioneAsync();
         return Ok(risultatiLog);
-    }
-    
+    }   
 }
-        
-    

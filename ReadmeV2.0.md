@@ -5,11 +5,76 @@
 Implementare una funzionalità che permette agli utenti di acquistare un abbonamento che permette una scontistica sul prezzo dei biglietti.
 Nella tabella utente ci sarà la foreign key che collega la corrispettiva tabella alla tabella abbonamenti.
 Gli abbonamenti saranno di tre livelli: mensile, semestrale, annuale, ognuno con il suo prezzo e la sua data di inizio e di scadenza.
-- mensile (25%).
-- semestrale (50%).
-- annuale (75%).
+
+- mensile ( 25% ) , Prezzo 25£.
+- semestrale ( 50% ) , Prezzo 150£.
+- annuale ( 75% ) , Prezzo 350£.
+
+- Modello
+- Data
+- Dtos
+- Services
+- Controller
+- Calcolo nell'helper.
+
+# Implementazione gift card.
+
+Implementare una funzionalità che permette agli utenti di acquistare una gift card che comprende un numero di biglietti prestabilito, ogni volta che acquisterà un nuovo biglietto, questo verrà scalato dal totale dei biglietti della gift card arrivato a 0 la gift card viene disabilitata.
+
+**Possibile implementazione: Funzionalità che permette agli utenti di regalare gift card ad altri utenti.** 
+
+- 10 Film , Prezzo 50£.
+- 25 Film , Prezzo 110£.
+- 50 film , Prezzo 200£.
+
+- Modello
+- Data
+- Dtos
+- Services
+- Controller
+- Calcolo nell'helper.
 
 # Models
+
+## GiftCard.cs
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("GiftCard")]
+// ✔ Mappa la classe alla tabella "GiftCard" nel database
+public class GiftCard
+{
+    [Key]
+    // ✔ Chiave primaria della Gift Card, generata automaticamente come GUID stringa
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [Required]
+    [StringLength(50)]
+    // ✔ Nome identificativo della Gift Card (es. "Gift Card Silver")
+    // ✔ Limitato a 50 caratteri per coerenza con la UI e il DB
+    public string Nome { get; set; } = string.Empty;
+
+    [Required]
+    // ✔ Durata della Gift Card (giorni, settimane o mesi a seconda della logica di dominio)
+    public int Durata { get; set; }
+
+    [Required]
+    // ✔ Prezzo base della Gift Card
+    public decimal Prezzo { get; set; }
+
+    [Required]
+    // ✔ Numero di film inclusi nella Gift Card
+    public int NumeroMovie { get; set; }
+
+    // ✔ Lista degli utenti che possiedono questa Gift Card
+    // ✔ Relazione uno-a-molti (una Gift Card → più utenti)
+    public List<Utente> Utenti { get; set; } = new List<Utente>();
+}
+```
 
 ## Abbonamento.cs
 
@@ -104,6 +169,14 @@ public class Utente : IdentityUser
     [Required]
     [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
     public int Eta { get; set; }
+
+    /// <summary>
+    /// Booleano se l'utente possiede una Gift Card.
+    /// </summary>
+    [Required]
+    public bool PossiedeGiftCard { get; set; } = false;
+
+    // Indica se l’utente ha un abbonamento attivo.
     [Required]
     public bool SeAbbonato { get; set; } = false;
     [Required]
@@ -111,8 +184,13 @@ public class Utente : IdentityUser
 
     public DateTimeOffset DataInizioAbbonamento { get; set; }
 
+    /// <summary>
+    /// Data in cui la Gift Card è stata attivata dall'utente.
+    /// Usa DateTimeOffset per mantenere il fuso orario.
+    /// </summary>
     public DateTimeOffset DataInizioGiftCard { get; set; }
 
+    // Acquisti associati all’utente.
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
     public string? AbbonamentoId { get; set; }
@@ -120,9 +198,17 @@ public class Utente : IdentityUser
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
 
+    /// <summary>
+    /// Chiave esterna verso la Gift Card posseduta dall'utente.
+    /// Può essere null se l'utente non ha una Gift Card attiva.
+    /// </summary>
     public string? GiftCardId { get; set; }
 
     [ForeignKey("GiftCardId")]
+    /// <summary>
+    /// Navigazione verso la Gift Card associata all'utente.
+    /// Se GiftCardId è null, questa proprietà sarà null.
+    /// </summary>
     public GiftCard? GiftCard { get; set; }
 }
 ```
@@ -201,6 +287,7 @@ public class Acquisto
     public decimal PrezzoFinale { get; set; }
 }
 ```
+
 # Data 
 
 ## ContestoDb.cs
@@ -255,7 +342,80 @@ namespace NuovoCinemaParadiso.Data
     }
 }
 ```
+
 # Dtos
+
+## DtoCreazioneGiftCard.cs // INTERO
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+/// <summary>
+/// DTO utilizzato per la creazione di una nuova Gift Card.
+/// Contiene i dati necessari per la validazione e la persistenza.
+/// </summary>
+public class DtoCreazioneGiftCard
+{
+    /// <summary>
+    /// Nome identificativo della Gift Card (es. "Gift Card Silver").
+    /// </summary>
+    public string Nome { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Durata della Gift Card espressa in giorni o mesi 
+    /// (dipende dalla logica applicativa del dominio).
+    /// </summary>
+    public int Durata { get; set; }
+
+    /// <summary>
+    /// Prezzo base della Gift Card.
+    /// </summary>
+    public decimal Prezzo { get; set; }
+
+    /// <summary>
+    /// Numero di film inclusi nella Gift Card.
+    /// </summary>
+    public int NumeroMovie { get; set; }
+}
+```
+
+## DtoGiftCard.cs
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+/// <summary>
+/// DTO utilizzato per restituire i dati di una Gift Card.
+/// È la versione "di output" mostrata a client, admin o UI.
+/// </summary>
+public class DtoGiftCard
+{
+    /// <summary>
+    /// Identificativo univoco della Gift Card.
+    /// </summary>
+    public string Id { get; set; }
+
+    /// <summary>
+    /// Nome descrittivo della Gift Card (es. "Gift Card Gold").
+    /// </summary>
+    public string Nome { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Durata della Gift Card (giorni, settimane o mesi a seconda della logica di dominio).
+    /// </summary>
+    public int Durata { get; set; }
+
+    /// <summary>
+    /// Prezzo della Gift Card.
+    /// </summary>
+    public decimal Prezzo { get; set; }
+
+    /// <summary>
+    /// Numero di film inclusi nella Gift Card.
+    /// </summary>
+    public int NumeroMovie { get; set; }
+}
+```
 
 ## DtoAbbonamento.cs
 
@@ -358,18 +518,76 @@ public class DtoCreazioneProiezione
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
 
+/// <summary>
+/// DTO che rappresenta i dati pubblici di un utente.
+/// Viene utilizzato per restituire informazioni verso il frontend
+/// senza esporre dettagli sensibili o proprietà interne di Identity.
+/// </summary>
 public class DtoUtente
 {
+    /// <summary>
+    /// Identificativo univoco dell'utente (GUID generato da Identity).
+    /// </summary>
     public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nome e cognome dell'utente.
+    /// </summary>
     public string NomeCompleto { get; set; } = string.Empty;
-    public DateTimeOffset DataInizio {get; set;}
-    public bool Abbonato {get; set;}
+
+    /// <summary>
+    /// Data di inizio dell'abbonamento dell'utente.
+    /// Utilizza DateTimeOffset per mantenere il fuso orario.
+    /// </summary>
+    public DateTimeOffset DataInizio { get; set; }
+
+    /// <summary>
+    /// Data di attivazione della GiftCard dell'utente.
+    /// </summary>
+    public DateTimeOffset DataInizioGiftCard { get; set; }
+
+    /// <summary>
+    /// Indica se l'utente ha un abbonamento attivo.
+    /// </summary>
+    public bool SeAbbonato { get; set; }
+
+    /// <summary>
+    /// Indica se l'utente possiede una GiftCard attiva.
+    /// </summary>
+    public bool PossiedeGiftCard { get; set; } = false;
+
+    /// <summary>
+    /// Email dell'utente, utilizzata anche come username.
+    /// </summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Età dell'utente.
+    /// </summary>
     public int Eta { get; set; }
-    public string AbbonamentoId {get; set;} = string.Empty;
-    public string TipoAbbonamento {get; set;} = string.Empty;
+
+    /// <summary>
+    /// Identificativo dell'abbonamento associato all'utente.
+    /// Vuoto se l'utente non è abbonato.
+    /// </summary>
+    public string AbbonamentoId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Identificativo della GiftCard associata all'utente.
+    /// Vuoto se l'utente non possiede una GiftCard.
+    /// </summary>
+    public string GiftCardId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nome o tipo dell'abbonamento (es. "Mensile", "Annuale").
+    /// </summary>
+    public string TipoAbbonamento { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Nome o tipo della GiftCard (es. "Silver", "Gold", "Premium").
+    /// </summary>
     public string TipoGiftCard { get; set; } = string.Empty;
-} 
+}
 ```
 
 ## DtoCreazioneUtente.cs
@@ -379,18 +597,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuovoCinemaParadiso.Dtos;
 
+/// <summary>
+/// DTO utilizzato per aggiornare o creare i dati anagrafici di un utente.
+/// Non contiene informazioni sensibili come password o ruoli.
+/// </summary>
 public class DtoCreazioneUtente
 {
+    /// <summary>
+    /// Nome completo dell'utente.
+    /// Campo obbligatorio, massimo 100 caratteri.
+    /// </summary>
     [Required]
     [StringLength(100)]
-    public string NomeCompleto {get; set;} = string.Empty;
+    public string NomeCompleto { get; set; } = string.Empty;
     
+    /// <summary>
+    /// Età dell'utente.
+    /// Deve essere compresa tra 14 e 100 anni.
+    /// </summary>
     [Required]
     [Range(14, 100, ErrorMessage = "L'età deve essere compresa tra 14 e 100")]
-    public int Eta {get; set;} 
+    public int Eta { get; set; }
 }
 ```
+
 ## DtoTurno.cs
+
 ```c#
 // DTO usato per esporre i dati essenziali di un turno
 public class DtoTurno
@@ -408,7 +640,9 @@ public class DtoTurno
     public string Nome { get; set; } = string.Empty;
 }
 ```
+
 ## DtoCreazioneTurno.cs
+
 ```c#
 // DTO usato per creare un nuovo turno: contiene solo i campi richiesti in input
 public class DtoCreazioneTurno
@@ -426,7 +660,9 @@ public class DtoCreazioneTurno
     public string Nome { get; set; } = string.Empty;
 }
 ```
+
 ## DtoAcquisto.cs
+
 ```c#
 // DTO restituito al client per rappresentare un acquisto già registrato
 public class DtoAcquisto
@@ -450,7 +686,9 @@ public class DtoAcquisto
     public int NumeroBiglietti { get; set; }
 }
 ```
+
 ## DtoCreazioneAcquisto.cs
+
 ```c#
 // DTO usato per creare un nuovo acquisto: contiene solo i dati forniti dal client
 public class DtoCreazioneAcquisto
@@ -466,6 +704,153 @@ public class DtoCreazioneAcquisto
 ```
 
 # Controllers
+
+## GiftCardController.cs
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize] // Tutte le azioni richiedono autenticazione
+public class GiftCardController : ControllerBase
+{
+    private readonly GiftCardService _giftCardService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public GiftCardController(GiftCardService giftCardService, LogAzioniService logAzioniService)
+    {
+        _giftCardService = giftCardService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI TUTTE LE GIFT CARD
+    // ---------------------------------------------------------
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeGiftCard()
+    {
+        // Recupera tutte le gift card
+        List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
+
+        // Recupera ID dell’utente loggato dal token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Registra log dell’azione
+        await Log(utenteId, "Ottieni tutte le GiftCard", true);
+
+        return Ok(giftCards);
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI GIFT CARD TRAMITE ID (solo se appartiene all’utente)
+    // ---------------------------------------------------------
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupera gift card solo se appartiene all’utente
+        var risultato = await _giftCardService.OttieniTramiteIdAsync(id, utenteId);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Ottieni GiftCard tramite id", false);
+            return NotFound($"GiftCard con id {id} non trovata");
+        }
+
+        await Log(utenteId, "Ottieni GiftCard tramite id", true);
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // CREAZIONE GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Crea nuova gift card
+        DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
+
+        // Registra log
+        await Log(utenteId, "Creazione GiftCard", true);
+
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // MODIFICA GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Modifica gift card
+        DtoGiftCard? risultato = await _giftCardService.ModificaAsync(id, dto);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Modifica GiftCard", false);
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+
+        await Log(utenteId, "Modifica GiftCard", true);
+        return Ok(risultato);
+    }
+
+    // ---------------------------------------------------------
+    // ELIMINA GIFT CARD (solo Gestore o Operatore)
+    // ---------------------------------------------------------
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Elimina gift card
+        bool eliminato = await _giftCardService.EliminazioneAsync(id);
+
+        if (!eliminato)
+        {
+            await Log(utenteId, "Eliminazione GiftCard", false);
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+
+        await Log(utenteId, "Eliminazione GiftCard", true);
+        return NoContent();
+    }
+
+    // ---------------------------------------------------------
+    // METODO PRIVATO PER SALVARE LOG DELLE AZIONI
+    // ---------------------------------------------------------
+    public async Task Log(string utenteId, string azione, bool risultato)
+    {
+        // Messaggio da salvare nel log
+        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
+
+        // Salvataggio log tramite servizio dedicato
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = azione,
+            Effettuato = risultato,
+            Messaggio = messaggio
+        });
+    }
+}
+```
 
 ## AbbonamentiController.cs
 
@@ -1477,7 +1862,9 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
     }
 }
 ```
+
 ## TurnoController.cs
+
 ```c#
 // Controller API per la gestione dei turni: richiede autenticazione
 [ApiController]
@@ -1663,7 +2050,9 @@ public class TurnoController : ControllerBase
     }
 }
 ```
+
 ## AcquistoController.cs
+
 ```c#
 // Controller API per la gestione degli acquisti: richiede autenticazione
 [ApiController]
@@ -1841,8 +2230,421 @@ public class AcquistoController : ControllerBase
 
 ```
 
-
 # Service
+
+## GiftCardService.cs 
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service dedicato alla gestione delle GiftCard.
+/// Contiene operazioni CRUD e metodi di recupero.
+/// </summary>
+public class GiftCardService
+{
+    private readonly ContestoDb _contesto;
+
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI TUTTE LE GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce tutte le GiftCard presenti nel sistema.
+    /// </summary>
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        // Recupera tutte le gift card dal database
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        // Mapping manuale GiftCard → DtoGiftCard
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Durata = giftCardCorrente.Durata;
+            dto.Prezzo = giftCardCorrente.Prezzo;
+            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI GIFT CARD TRAMITE ID (solo se appartiene all’utente)
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce una GiftCard tramite ID, ma solo se appartiene all’utente specificato.
+    /// </summary>
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        // Recupera la gift card tramite chiave primaria
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        // Controlla se l’utente possiede questa gift card
+        foreach (var utente in giftCard.Utenti)
+        {
+            if (utente.Id == utenteId)
+            {
+                return new DtoGiftCard
+                {
+                    Id = giftCard.Id,
+                    Nome = giftCard.Nome,
+                    Durata = giftCard.Durata,
+                    Prezzo = giftCard.Prezzo,
+                    NumeroMovie = giftCard.NumeroMovie
+                };
+            }
+        }
+
+        return null;
+    }
+
+    // ---------------------------------------------------------
+    // CREAZIONE GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Crea una nuova GiftCard nel sistema.
+    /// </summary>
+    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
+    {
+        // Crea nuova entità GiftCard
+        GiftCard giftCard = new GiftCard();
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        // Salva nel database
+        _contesto.GiftCards.Add(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO della gift card creata
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // ---------------------------------------------------------
+    // MODIFICA GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Modifica una GiftCard esistente tramite ID.
+    /// </summary>
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        // Recupera gift card tramite ID
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        // Aggiorna i campi modificabili
+        giftCard.Nome = dto.Nome;
+        giftCard.Durata = dto.Durata;
+        giftCard.Prezzo = dto.Prezzo;
+        giftCard.NumeroMovie = dto.NumeroMovie;
+
+        // Salva modifiche
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO aggiornato
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Durata = giftCard.Durata,
+            Prezzo = giftCard.Prezzo,
+            NumeroMovie = giftCard.NumeroMovie
+        };
+    }
+
+    // ---------------------------------------------------------
+    // ELIMINA GIFT CARD
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Elimina una GiftCard tramite ID.
+    /// </summary>
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        // Recupera gift card tramite ID
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return false;
+        }
+
+        // Rimuove dal database
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## AuthService.cs 
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service responsabile della gestione dell’autenticazione e della gestione utenti.
+/// Include registrazione, login, modifica profilo, eliminazione e recupero dati.
+/// </summary>
+public class AuthService
+{
+    private readonly UserManager<Utente> _gestioneUtenti;
+    private readonly SignInManager<Utente> _gestioneAccesso;
+    private readonly JwtHelper _jwtHelper;
+    private readonly ContestoDb _contesto;
+
+    public AuthService(UserManager<Utente> gestioneUtenti, SignInManager<Utente> gestioneAccesso, JwtHelper jwtHelper, ContestoDb contesto)
+    {
+        _gestioneUtenti = gestioneUtenti;
+        _gestioneAccesso = gestioneAccesso;
+        _jwtHelper = jwtHelper;
+        _contesto = contesto;
+    }
+
+    // ---------------------------------------------------------
+    // REGISTRAZIONE UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Registra un nuovo utente nel sistema.
+    /// Controlla se l’email è già presente e assegna automaticamente il ruolo "Utente".
+    /// </summary>
+    public async Task<IdentityResult> RegistrazioneAsync(DtoRegistrazione dto)
+    {
+        // Verifica se esiste già un utente con la stessa email
+        Utente? esisteUtente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+
+        if (esisteUtente != null)
+        {
+            // Costruisce un errore personalizzato
+            IdentityError errore = new IdentityError
+            {
+                Description = "Utente già registrato."
+            };
+
+            return IdentityResult.Failed(errore);
+        }
+
+        // Creazione nuovo utente Identity
+        Utente utente = new Utente
+        {
+            UserName = dto.Email,
+            Email = dto.Email,
+            NomeCompleto = dto.NomeCompleto,
+            Eta = dto.Eta
+        };
+
+        // Creazione utente con password
+        IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
+
+        if (!risultato.Succeeded)
+        {
+            return risultato;
+        }
+
+        // Assegna ruolo base "Utente"
+        IdentityResult aggiuntaRisultatoRuolo = await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
+
+        if (!aggiuntaRisultatoRuolo.Succeeded)
+            return aggiuntaRisultatoRuolo;
+
+        return risultato;
+    }
+
+    // ---------------------------------------------------------
+    // LOGIN UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Effettua il login dell’utente verificando email, password e stato di abbonamento/gift card.
+    /// Genera un token JWT contenente i ruoli dell’utente.
+    /// </summary>
+    public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
+    {
+        // Recupera utente tramite email
+        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+        
+        if (utente == null)
+        {
+            return null;
+        }
+
+        // ---------------------------------------------------------
+        // CONTROLLO SCADENZA ABBONAMENTO
+        // ---------------------------------------------------------
+        if (utente.SeAbbonato == true)
+        {
+            DateTimeOffset? scadenzaAbbonamento =
+                Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+
+            int giorniMancanti =
+                Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+
+            // Se scaduto → disattiva abbonamento
+            if (giorniMancanti == 0)
+            {
+                utente.SeAbbonato = false;
+            }
+        }
+
+        // ---------------------------------------------------------
+        // CONTROLLO SCADENZA GIFT CARD
+        // ---------------------------------------------------------
+        if (utente.PossiedeGiftCard == true)
+        {
+            DateTimeOffset? scadenzaGiftCard =
+                Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+
+            int giorniMancanti =
+                Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+
+            // Se scaduta → disattiva gift card
+            if (giorniMancanti == 0)
+            {
+                utente.PossiedeGiftCard = false;
+            }
+        }
+        
+        // ---------------------------------------------------------
+        // VERIFICA PASSWORD
+        // ---------------------------------------------------------
+        SignInResult result =
+            await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
+
+        if (!result.Succeeded)
+        {
+            return null;
+        }
+
+        // Recupera ruoli dell’utente
+        IList<string> ruoli = await _gestioneUtenti.GetRolesAsync(utente);
+
+        // Genera token JWT
+        string token = _jwtHelper.GenerateToken(utente, ruoli);
+
+        // Costruisce risposta di autenticazione
+        DtoAuthResponse response = new DtoAuthResponse
+        {
+            Token = token,
+            Id = utente.Id,
+            NomeCompleto = utente.NomeCompleto,
+            Email = utente.Email ?? string.Empty,
+            Ruolo = ruoli.Count > 0 ? ruoli[0] : ""
+        };
+
+        return response;
+    }
+
+    // ---------------------------------------------------------
+    // OTTIENI UTENTE TRAMITE ID
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Restituisce i dati principali dell’utente tramite ID.
+    /// </summary>
+    public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+
+        if (utente == null)
+        {
+            return null;
+        }
+
+        return new DtoUtente
+        {
+            Id = utente.Id,
+            Email = utente.Email ?? string.Empty,
+            NomeCompleto = utente.NomeCompleto ?? string.Empty,
+            Eta = utente.Eta
+        };
+    }
+
+    // ---------------------------------------------------------
+    // MODIFICA DATI UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Modifica i dati principali dell’utente (nome completo, età).
+    /// </summary>
+    public async Task<IdentityResult> ModificaAsync(DtoCreazioneUtente dto, string idUtente)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(idUtente);
+
+        if (utente == null)
+        {
+            IdentityError error = new IdentityError();
+            return IdentityResult.Failed(error);
+        }
+
+        utente.NomeCompleto = dto.NomeCompleto;
+        utente.Eta = dto.Eta;
+
+        // Aggiorna utente tramite Identity
+        IdentityResult result = await _gestioneUtenti.UpdateAsync(utente);
+
+        return result;
+    }
+
+    // ---------------------------------------------------------
+    // ELIMINA UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Elimina un utente dal sistema tramite ID.
+    /// </summary>
+    public async Task<IdentityResult> EliminaAsync(string userId)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(userId);
+
+        if (utente == null)
+        {
+            IdentityError errore = new IdentityError();
+            return IdentityResult.Failed(errore);
+        }
+
+        // Eliminazione tramite Identity
+        IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
+
+        return risultato;
+    }
+}
+```
 
 ## AbbonamentoService.cs
 
@@ -2008,71 +2810,151 @@ public class AbbonamentoService
 ## UtenteService.cs
 
 ```c#
-public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service dedicato alla gestione delle operazioni sugli utenti
+/// che non riguardano autenticazione o ruoli (gestiti da AuthService).
+/// Include assegnazione abbonamenti e gift card.
+/// </summary>
+public class UtenteService
 {
-    // 1. Recupero tutti gli abbonamenti dal database.
-    //    Non usi LINQ, quindi fai un ToListAsync e poi cerchi manualmente.
-    List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-    Abbonamento? abbonamentoTrovato = null;
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
 
-    // 2. Ciclo manuale per trovare l'abbonamento con l'ID richiesto.
-    for (int i = 0; i < abbonamenti.Count; i++)
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
-        Abbonamento abbonamentoCorrente = abbonamenti[i];
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
 
-        if (abbonamentoCorrente.Id == abbonamentoId)
+    // ---------------------------------------------------------
+    // ASSEGNAZIONE ABBONAMENTO A UN UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Assegna un abbonamento a un utente.
+    /// Imposta la data di inizio e abilita il flag SeAbbonato.
+    /// </summary>
+    public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        // Recupera tutti gli abbonamenti dal database
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        Abbonamento? abbonamentoTrovato = null;
+
+        // Ricerca manuale dell'abbonamento tramite ID
+        for (int i = 0; i < abbonamenti.Count; i++)
         {
-            abbonamentoTrovato = abbonamentoCorrente;
-            break; // appena trovato, esco dal ciclo
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+            if (abbonamentoCorrente.Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamentoCorrente;
+                break;
+            }
         }
-    }
 
-    // 3. Se non ho trovato l'abbonamento, interrompo e restituisco null.
-    if (abbonamentoTrovato == null)
-    {
-        return null;
-    }
-
-    // 4. Recupero tutti gli utenti dal database.
-    List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-    Utente? utenteTrovato = null;
-
-    // 5. Ciclo manuale per trovare l'utente con l'ID richiesto.
-    for (int i = 0; i < utenti.Count; i++)
-    {
-        if (utenti[i].Id == utenteId)
+        // Se non trovato → ritorna null
+        if (abbonamentoTrovato == null)
         {
-            utenteTrovato = utenti[i];
-            break;
+            return null;
         }
+
+        // Recupera l’utente tramite Identity
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteTrovato == null)
+        {
+            return null;
+        }
+
+        // Assegna abbonamento all’utente
+        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+
+        // Salva modifiche nel database
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO aggiornato
+        return new DtoUtente()
+        {
+            Id = utenteTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            SeAbbonato = utenteTrovato.SeAbbonato,
+            DataInizio = utenteTrovato.DataInizioAbbonamento,
+            AbbonamentoId = utenteTrovato.AbbonamentoId,
+            TipoAbbonamento = abbonamentoTrovato.Nome
+        };
     }
 
-    // 6. Se l'utente non esiste, restituisco null.
-    if (utenteTrovato == null)
+    // ---------------------------------------------------------
+    // ASSEGNAZIONE GIFT CARD A UN UTENTE
+    // ---------------------------------------------------------
+    /// <summary>
+    /// Assegna una gift card a un utente.
+    /// Imposta la data di attivazione e abilita il flag PossiedeGiftCard.
+    /// </summary>
+    public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
     {
-        return null;
+        // Recupera tutte le gift card dal database
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+        GiftCard? giftCardTrovata = null;
+
+        // Ricerca manuale della gift card tramite ID
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            if (giftCardCorrente.Id == giftCardId)
+            {
+                giftCardTrovata = giftCardCorrente;
+                break;
+            }
+        }
+
+        // Se non trovata → ritorna null
+        if (giftCardTrovata == null)
+        {
+            return null;
+        }
+
+        // Recupera l’utente tramite Identity
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteTrovato == null)
+        {
+            return null;
+        }
+
+        // Assegna gift card all’utente
+        utenteTrovato.GiftCardId = giftCardTrovata.Id;
+        utenteTrovato.PossiedeGiftCard = true;
+        utenteTrovato.DataInizioGiftCard = DateTimeOffset.UtcNow;
+
+        // Salva modifiche nel database
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce DTO aggiornato
+        return new DtoUtente()
+        {
+            Id = utenteTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
+            DataInizio = utenteTrovato.DataInizioGiftCard,
+            GiftCardId = utenteTrovato.GiftCardId,
+            TipoGiftCard = giftCardTrovata.Nome
+        };
     }
-
-    // 7. Aggiorno i campi dell'utente per segnare l'abbonamento.
-    utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
-    utenteTrovato.SeAbbonato = true;
-    utenteTrovato.DataInizio = DateTimeOffset.UtcNow;
-
-    // 8. Salvo le modifiche nel database.
-    await _contesto.SaveChangesAsync();
-
-    // 9. Restituisco un DTO completo dell'utente aggiornato.
-    return new DtoUtente()
-    {
-        Id = utenteTrovato.Id,
-        NomeCompleto = utenteTrovato.NomeCompleto,
-        Email = utenteTrovato.Email,
-        Eta = utenteTrovato.Eta,
-        Abbonato = utenteTrovato.SeAbbonato,
-        DataInizio = utenteTrovato.DataInizio,
-        AbbonamentoId = utenteTrovato.AbbonamentoId,
-        TipoAbbonamento = abbonamentoTrovato.Nome
-    };
 }
 ```
 
@@ -3104,6 +3986,9 @@ public static class Calcoli
 ```
 
 # Seed
+
+## Data Seeder
+
 Nel DataSeeder è stata apportata una piccola modifica nel settaggio degli orari per i turni, i quali vanno inizializzati già nel data seeder siccome sqLite non legge i time only. Di seguito riporto le linee che sono state modificate e il suo metodo.
 
 ```c#
@@ -3143,4 +4028,158 @@ await AssicuraEsistenzaTurno(contestoDb,new TimeOnly(18, 0, 0), new TimeOnly(22,
     context.Turni.Add(nuovoTurno);
     await context.SaveChangesAsync();
    }
+```
+
+# Program.cs
+
+```c#
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Seed;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ---------------------------------------------------------
+// CONFIGURAZIONE CONTROLLERS
+// ---------------------------------------------------------
+builder.Services.AddControllers();
+
+// ---------------------------------------------------------
+// CONFIGURAZIONE DATABASE (SQLite)
+// ---------------------------------------------------------
+builder.Services.AddDbContext<ContestoDb>(options =>
+{
+    // Usa la connection string definita in appsettings.json
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+// ---------------------------------------------------------
+// CONFIGURAZIONE IDENTITY (gestione utenti e ruoli)
+// ---------------------------------------------------------
+builder.Services.AddIdentityCore<Utente>(options =>
+{
+    // Requisiti password semplificati
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+})
+.AddRoles<IdentityRole>()                      // Abilita i ruoli
+.AddSignInManager<SignInManager<Utente>>()      // Gestione login
+.AddEntityFrameworkStores<ContestoDb>()         // Usa EF Core come store
+.AddDefaultTokenProviders();                    // Necessario per reset password, ecc.
+
+// ---------------------------------------------------------
+// CONFIGURAZIONE JWT
+// ---------------------------------------------------------
+string? jwtKey = builder.Configuration["Jwt:Key"];
+string? jwtIssuer = builder.Configuration["Jwt:Issuer"];
+string? jwtAudience = builder.Configuration["Jwt:Audience"];
+
+// Controllo che i parametri JWT siano presenti
+if (string.IsNullOrWhiteSpace(jwtKey) ||
+    string.IsNullOrWhiteSpace(jwtIssuer) ||
+    string.IsNullOrWhiteSpace(jwtAudience))
+{
+    throw new Exception("Configurazione JWT mancante in appsettings.json");
+}
+
+// Abilita autenticazione tramite JWT Bearer
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // Parametri di validazione del token
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+
+            // Chiave segreta per validare la firma del token
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+
+// Abilita autorizzazione (necessaria per [Authorize])
+builder.Services.AddAuthorization();
+
+// ---------------------------------------------------------
+// CONFIGURAZIONE CORS (per Angular in locale)
+// ---------------------------------------------------------
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200") // Dominio Angular
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// ---------------------------------------------------------
+// REGISTRAZIONE DEI SERVIZI (Dependency Injection)
+// ---------------------------------------------------------
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<GenereMovieService>();
+builder.Services.AddScoped<TipologiaSalaService>();
+builder.Services.AddScoped<TurnoService>();
+builder.Services.AddScoped<SalaService>();
+builder.Services.AddScoped<MovieService>();
+builder.Services.AddScoped<AcquistoService>();
+builder.Services.AddScoped<RuoloUtenteService>(); // Gestione ruoli utenti
+builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<LogAzioniService>();
+builder.Services.AddScoped<UtenteService>();
+builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<AbbonamentoService>();
+builder.Services.AddScoped<ProiezioneService>();
+builder.Services.AddScoped<GiftCardService>();
+
+var app = builder.Build();
+
+// ---------------------------------------------------------
+// MIDDLEWARE PIPELINE
+// ---------------------------------------------------------
+
+// Abilita CORS per Angular
+app.UseCors("AllowAngularApp");
+
+// Redirect automatico a HTTPS
+app.UseHttpsRedirection();
+
+// Abilita autenticazione e autorizzazione
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Mappa i controller
+app.MapControllers();
+
+// ---------------------------------------------------------
+// MIGRAZIONI AUTOMATICHE ALLO START
+// ---------------------------------------------------------
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ContestoDb>();
+    db.Database.Migrate(); // Applica automaticamente le migrazioni
+}
+
+// ---------------------------------------------------------
+// SEED DATI INIZIALI (ruoli, utenti, interessi, ecc.)
+// ---------------------------------------------------------
+await DataSeeder.SeedAsync(app.Services);
+
+// Avvia l'applicazione
+app.Run();
 ```

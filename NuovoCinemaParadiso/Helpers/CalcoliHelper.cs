@@ -4,41 +4,40 @@ namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente)
+    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
     {
-        if (utente.SeAbbonato == false)
+        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+
+        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
         {
-            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-            return prezzoFinale;
+            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            decimal prezzoScontato = prezzoBiglietto - sconto;
+            return prezzoScontato * numeroBiglietti;
         }
-        else if (utente.PossiedeGiftCard == true)
+
+        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
         {
             if (utente.GiftCard.NumeroMovie > numeroBiglietti)
             {
-                Decimal prezzoFinale = 0;
                 utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
-                return prezzoFinale;
+                return 0;
             }
             else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
             {
-                Decimal prezzoFinale = 0;
-                utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
+                utente.GiftCard.NumeroMovie = 0;
                 utente.PossiedeGiftCard = false;
-                return prezzoFinale;
+                return 0;
             }
             else
             {
                 int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
-                Decimal prezzoFinale = (prezzoMovie + maggiorazione) * bigliettiRimanenti;
+                utente.GiftCard.NumeroMovie = 0;
                 utente.PossiedeGiftCard = false;
-                return prezzoFinale;
+                return prezzoBiglietto * bigliettiRimanenti;
             }
         }
-        else
-        {
-            Decimal prezzoFinale = (prezzoMovie + maggiorazione) * numeroBiglietti;
-            return prezzoFinale;
-        }
+           
+        return prezzoBiglietto * numeroBiglietti;
     }
 
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
