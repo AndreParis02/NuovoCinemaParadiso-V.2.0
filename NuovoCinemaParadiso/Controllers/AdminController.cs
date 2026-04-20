@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -155,7 +154,7 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpGet("utenti/{id}")]
+    [HttpGet("utenti/{abbonamentoid}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
@@ -224,6 +223,51 @@ public class AdminController : ControllerBase
         {
             IdUtente = utenteId,
             NomeAzione = "Ottieni abbonamenti tramite id admin",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        return Ok(risultato);
+    }
+    
+    [HttpGet("utenti/{giftcardId}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(giftcardId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente= utenteId,
+                NomeAzione = "Ottieni gli utenti per giftcard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return BadRequest("giftcardId non valido");
+        }
+
+        var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "Ottieni gli utenti per giftcard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            return NotFound("Nessun utente trovato per questa giftcard");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "Ottieni gli utenti per giftcard",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
         });
