@@ -39,6 +39,16 @@ terza fase
 | |Francesco|Proiezione |Creazione/Modifica/Elimina(testare i curl)|
 
 
+quarta fase 20/04/2026
+
+|Assegnato| user | task | feedback |
+|---|---|---|---|
+| |Greg| Log - Testare il curl di lettura del log e aggiungerlo nei comandi curl, aggiornare il readme 2.0 con le modifiche del logservice|
+| |Marco||        |
+| |Simeone|          |        |
+| |Francesco|GiftCardController - creare gli endpoint - aggiornare il readme 2.0||
+
+
 
 
 

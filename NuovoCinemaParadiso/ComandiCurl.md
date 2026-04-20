@@ -218,7 +218,7 @@ curl -s -X POST "http://localhost:5226/api/Sala" \
 -d '{
     "Nome": "Sala 1",
     "Capienza": 100,
-    "TipologiaSalaId": "Id_Topologiasala"
+    "TipologiaSalaId": "Id_Tipologiasala"
 }' | jq
 ```
 ## Modifica Sala con id della sala:
@@ -376,56 +376,51 @@ curl -s -X PUT "http://localhost:5226/api/Abbonamento/Id Abbonamento" \
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
 ```
-## leggi informazioni Abbonamento per id come admin
+
+# GiftCard
+
+## Leggi tutte le giftCard
 ```bash
-curl -s -X GET "http://localhost:5226/api/Abbonamento/admin/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
+curl -s -X GET "http://localhost:5226/api/GiftCard" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
-# Comandi Admin: 
-
-## Leggi tutti gli utenti
+## leggi informazioni GiftCard per id (accesso a tutti gli acquisti dell'utente loggato)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/GiftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Lettura di un profilo tramite id inserito (solo da Gestore o Operatore)
-```bash
-curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
--H "Authorization: Bearer $TOKEN" \
--H "Accept: application/json"
-```
-
-## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
+## Crea GiftCard:
 
 ```bash
-curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
--H "Authorization: Bearer $TOKEN" 
-```
-
-## Admin Acquisti
-
-## leggi informazioni Acquisto per id (accesso a tutti gli acquisti di ogni utente) (solo gestore o operatore)
-```bash
-curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
--H "Authorization: Bearer $TOKEN"
-```
-
-## Leggi tutti gli Acquisti di tutti gli utenti(solo gestore o operatore)
-```bash
-curl -s -X GET "http://localhost:5226/api/Admin/acquisti" -H "Authorization: Bearer $TOKEN"
-```
-
-# Comandi Utente:
-```bash
-curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
+curl -s -X POST "http://localhost:5226/api/GiftCard" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-  "abbonamentoId": "id abbonamento"
-}'
+    "Nome": "GiftCard 1",
+    "Durata": 420,
+    "Prezzo": 32.50,
+    "NUmeroMovie" : 10
+}' | jq
 ```
 
+## Modifica GiftCard con id dell'abbonamento:
 
+```bash
+curl -s -X PUT "http://localhost:5226/api/GiftCard/Id GiftCard" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+    "Nome": "GiftCard 1 modificata",
+    "Durata": 520,
+    "Prezzo": 36.99,
+    "NUmeroMovie" : 20
+}' | jq
+```
+
+## Elimina la GiftCard con id della GiftCard:
+```bash
+curl -s -X DELETE "http://localhost:5226/api/GiftCard/Id GiftCard" -H "Content-Type: application/json" -H "Authorization: Bearer $TOKEN" | jq 
+```
 
 
 # Proiezione
@@ -496,3 +491,80 @@ curl -s -X PUT "http://localhost:5226/api/Proiezione/Id Proiezione" \
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Authorization: Bearer $TOKEN" 
 ```
+
+
+# Comandi Admin: 
+
+## Leggi tutti gli utenti
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: Bearer $TOKEN"
+```
+
+## Lettura di un profilo tramite id inserito (solo da Gestore o Operatore)
+```bash
+curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
+-H "Authorization: Bearer $TOKEN" \
+-H "Accept: application/json"
+```
+
+## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
+
+```bash
+curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
+-H "Authorization: Bearer $TOKEN" 
+```
+
+## Admin Acquisti
+
+## leggi informazioni Acquisto per id (accesso a tutti gli acquisti di ogni utente) (solo gestore o operatore)
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
+-H "Authorization: Bearer $TOKEN"
+```
+
+## Leggi tutti gli Acquisti di tutti gli utenti(solo gestore o operatore)
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/acquisti" -H "Authorization: Bearer $TOKEN"
+```
+
+## Admin Abbonamento
+
+## leggi informazioni Abbonamento per id come admin
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
+```
+
+## Admin GiftCard
+
+## leggi informazioni GiftCard per id come admin
+```bash
+curl -s -X GET "http://localhost:5226/api/Admin/giftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN" | jq
+
+# Comandi Utente:
+
+## Abbonati
+
+```bash
+curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+  "abbonamentoId": "id abbonamento"
+}'
+```
+
+## GiftCard:
+
+```bash
+curl -s -X POST "http://localhost:5226/api/Utenti/giftcard" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+  "giftCardId": "id giftCardId"
+}'
+```
+
+
+
+
+

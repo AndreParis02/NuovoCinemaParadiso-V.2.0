@@ -9,7 +9,6 @@
 
 # AGGIORNARE IL README OGNI VOLTA CHE VIENE IMPLEMENTATO QUALCOSA.
 
-
 # Models
 
 ## GiftCard.cs // INTERO
@@ -52,7 +51,7 @@ public class GiftCard
 }
 ```
 
-## Utente.cs // AGGIUNTA
+## Utente.cs // SOLO AGGIUNTA
 
 ```c#
 /// <summary>
@@ -83,41 +82,13 @@ public GiftCard? GiftCard { get; set; }
 
 # Dtos 
 
-## DtoUtente.cs // INTERO
+## DtoUtente.cs // SOLO AGGIUNTA
 
 ```c#
-namespace NuovoCinemaParadiso.Dtos;
-
-/// <summary>
-/// DTO utilizzato per restituire le informazioni principali di un utente.
-/// Contiene sia dati anagrafici sia informazioni su abbonamenti e Gift Card.
-/// </summary>
-public class DtoUtente
-{
-    /// <summary>
-    /// Identificativo univoco dell'utente.
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Nome e cognome dell'utente.
-    /// </summary>
-    public string NomeCompleto { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Data di inizio dell'abbonamento (se presente).
-    /// </summary>
-    public DateTimeOffset DataInizio { get; set; }
-
     /// <summary>
     /// Data di attivazione della Gift Card (se presente).
     /// </summary>
     public DateTimeOffset DataInizioGiftCard { get; set; }
-
-    /// <summary>
-    /// Indica se l'utente possiede un abbonamento attivo.
-    /// </summary>
-    public bool SeAbbonato { get; set; }
 
     /// <summary>
     /// Indica se l'utente possiede una Gift Card attiva.
@@ -125,37 +96,15 @@ public class DtoUtente
     public bool PossiedeGiftCard { get; set; } = false;
 
     /// <summary>
-    /// Email dell'utente.
-    /// </summary>
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Età dell'utente.
-    /// </summary>
-    public int Eta { get; set; }
-
-    /// <summary>
-    /// Identificativo dell'abbonamento associato all'utente.
-    /// Può essere string.Empty se l'utente non è abbonato.
-    /// </summary>
-    public string AbbonamentoId { get; set; } = string.Empty;
-
-    /// <summary>
     /// Identificativo della Gift Card associata all'utente.
     /// Può essere string.Empty se l'utente non possiede una Gift Card.
     /// </summary>
     public string GiftCardId { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Nome o tipologia dell'abbonamento (es. "Mensile", "Annuale").
-    /// </summary>
-    public string TipoAbbonamento { get; set; } = string.Empty;
     
     /// <summary>
     /// Nome o tipologia della GiftCard (es. "10 film", "20 film").
     /// </summary>
     public string TipoGiftCard { get; set; } = string.Empty;
-}
 ```
 
 ## DtoGiftCard.cs // INTERO
@@ -390,7 +339,6 @@ public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
 # Controllers
 
 ## GiftCardController.cs
-
 
 # Helpers
 

@@ -86,6 +86,8 @@ public class Proiezione
     // Navigazione verso il turno.
     [ForeignKey("TurnoId")]
     public Utente Turno { get; set; }
+    // lista degli acquisti relativi alla proiezione  (relazione 1-N)
+    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 }
 ```
 
@@ -198,7 +200,60 @@ public class Acquisto
     public decimal PrezzoFinale { get; set; }
 }
 ```
+# Data 
 
+## ContestoDb.cs
+```c#
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Data
+{
+    public class ContestoDb : IdentityDbContext<Utente, IdentityRole, string>
+    {
+        public ContestoDb(DbContextOptions<ContestoDb> opzioni)
+            : base(opzioni)
+        {
+        }
+        // tabella dei movies
+        public DbSet<Movie> Movies { get; set; }
+        // tabella dei generi dei movies
+        public DbSet<GenereMovie> GeneriMovies { get; set; }
+        // tabella delle sale del cinema
+        public DbSet<Sala> Sale { get; set; }
+        // tabella delle tipologie di sala
+        public DbSet<TipologiaSala> TipologieSala { get; set; }
+        // tabella dei vari turni dove possono essere programmate le proiezioni
+        public DbSet<Turno> Turni { get; set; }
+        // tabella degli acquisti (scontrini) relativi ad una proiezione di un film
+        public DbSet<Acquisto> Acquisti { get; set; }
+        // tabella defli utenti
+        public DbSet<Utente> Utenti { get; set; }
+        // tabella degli abbonamenti degli utenti
+        public DbSet<Abbonamento> Abbonamenti {get;set;}
+        // tabella del Log
+        public DbSet<LogAzioni> LogAzioni {get;set;}
+        // tabella delle proiezioni dei film 
+        public DbSet<Proiezione> Proiezioni {get;set;}
+        // tabella delle gift card
+        public DbSet<GiftCard> GiftCards {get;set;}
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            /*quando si vuole eliminare una proiezione, bisognerà prima rimborsare tutti 
+            gli utenti che hanno gia comprato un biglietto per essa, di conseguenza bisogna inserire una restrizione*/
+            modelBuilder.Entity<Acquisto>()
+                .HasOne(a => a.Proiezione) // ogni acquisto appartiene ad una sola proiezione
+                .WithMany(p => p.Acquisti) // ad ogni proiezione appartengono più acquisti
+                .HasForeignKey(a => a.ProiezioneId) // la chiave esterna è ProiezioneId
+                .OnDelete(DeleteBehavior.Restrict); 
+                // 'Restrict' impedisce la cancellazione della proiezione se esistono degli acquisti relativi ad essa
+        }
+    }
+}
+```
 # Dtos
 
 ## DtoAbbonamento.cs
@@ -681,7 +736,7 @@ public class UtentiController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // Endpoint: POST api/utenti/abbonati
+    // Endpoint: POST api/utente/abbonati
     [HttpPost("abbonati")]
     public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
     {
@@ -733,6 +788,60 @@ public class UtentiController : ControllerBase
         });
 
         // 8. Risposta HTTP 200 con il risultato.
+        return Ok(risultato);
+    }
+
+    [HttpPost("giftCard")] // Endpoint: POST api/utente/giftCard
+    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    {
+        // Recupera l'ID dell'utente autenticato dal token (claims)
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Validazione input: controlla che il DTO esista e che GiftCardId non sia nullo o vuoto
+        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        {
+            // Logga l'azione come fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            // Restituisce errore 400 Bad Request
+            return BadRequest("Dati non validi");
+        }
+
+        // Chiama il servizio per eseguire la logica della gift card
+        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+
+        // Se il risultato è nullo, significa che qualcosa non è stato trovato (utente o gift card)
+        if (risultato == null)
+        {
+            // Logga l'azione come fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+            {
+                IdUtente = utenteId,
+                NomeAzione = "GiftCard",
+                Effettuato = false,
+                Messaggio = "Operazione fallita"
+            });
+
+            // Restituisce errore 404 Not Found
+            return NotFound("Utente o GiftCard non trovata");
+        }
+
+        // Logga l'azione come riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        {
+            IdUtente = utenteId,
+            NomeAzione = "GiftCard",
+            Effettuato = true,
+            Messaggio = "Operazione eseguita"
+        });
+
+        // Restituisce 200 OK con il risultato dell'operazione
         return Ok(risultato);
     }
 }
@@ -2796,9 +2905,61 @@ public class GiftCardService
     }
 }
 
+```c#
+// Servizio applicativo per la gestione dei log: incapsula la logica di accesso al DB
+public class LogAzioniService
+{
+    // Riferimento al DbContext per operazioni CRUD
+    private readonly ContestoDb _contesto;
+
+    // Iniezione del contesto tramite costruttore
+    public LogAzioniService(ContestoDb contesto) 
+    {
+      _contesto = contesto; 
+    }
+
+    // Salva i log passati come dto all'interno del database
+    public async Task SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
+    {
+        // Trasforma il log passato com dto nel modello LogAzioni
+        LogAzioni log = new LogAzioni();
+        log.IdUtente = dto.IdUtente;
+        log.NomeAzione = dto.NomeAzione;
+        log.Effettuato = dto.Effettuato;
+        log.Messaggio = dto.Messaggio;
+        log.TimeStamp = DateTimeOffset.UtcNow;
+
+        // Salvataggio all'interno del database
+        _contesto.LogAzioni.Add(log);
+        await _contesto.SaveChangesAsync();
+    }
+    // Prende tutti i log dal database e li passa passa come una lista di dto log
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {   // Prende tutti i log dal database e li racchiude in una lista
+        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        // Prepara una lista di dto per contenere tutti i log
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        // Per ogni log presente nel DB
+        foreach (LogAzioni log in logs)
+        {
+          // Inserimento di ogni dato del log all'interno del dto 
+          DtoLogAzioni risultato = new DtoLogAzioni();
+          risultato.Id = log.Id;
+          risultato.IdUtente = log.IdUtente;
+          risultato.NomeAzione = log.NomeAzione;
+          risultato.Effettuato = log.Effettuato;
+          risultato.Messaggio = log.Messaggio;
+          risultato.TimeStamp = log.TimeStamp;
+          // Inserisce il dto dentro la lista da ritornare
+          risultati.Add(risultato);
+        }
+
+        // Ritorna la lista con tutti i log passati tramite dto
+        return risultati;
+    }
+
+}
 ```
-
-
 
 # Helpers
 

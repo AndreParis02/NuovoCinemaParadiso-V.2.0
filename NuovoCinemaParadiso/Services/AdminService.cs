@@ -168,7 +168,7 @@ public class AdminService
 
         return risultato;
     }
-    
+
     public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
@@ -186,5 +186,68 @@ public class AdminService
         dto.Sconto = abbonamento.Sconto;
 
         return dto;
+    }
+    public async Task<DtoGiftCard?> OttieniGiftCardTramiteIdPerAdminAsync(string id)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        DtoGiftCard dto = new DtoGiftCard();
+        dto.Id = giftCard.Id;
+        dto.Nome = giftCard.Nome;
+        dto.Durata = giftCard.Durata;
+        dto.Prezzo = giftCard.Prezzo;
+        dto.NumeroMovie = giftCard.NumeroMovie;
+
+        return dto;
+    }
+
+    public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
+    {
+
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        GiftCard? giftCardTrovata = null;
+
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            if (giftCardCorrente.Id == giftCardId)
+            {
+                giftCardTrovata = giftCardCorrente;
+                break;
+            }
+        }
+
+        if (giftCardTrovata == null)
+        {
+            return null;
+        }
+
+        List<DtoUtente> risultato = new List<DtoUtente>();
+
+        for (int i = 0; i < utenti.Count; i++)
+        {
+            Utente utenteCorrente = utenti[i];
+
+            if (utenteCorrente.GiftCard == giftCardTrovata)
+            {
+                DtoUtente dto = new DtoUtente();
+                dto.Id = utenteCorrente.Id;
+                dto.NomeCompleto = utenteCorrente.NomeCompleto;
+                dto.Email = utenteCorrente.Email;
+                dto.Eta = utenteCorrente.Eta;
+
+                risultato.Add(dto);
+            }
+        }
+
+        return risultato;
     }
 }

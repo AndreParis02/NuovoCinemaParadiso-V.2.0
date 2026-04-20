@@ -28,4 +28,6 @@ public class Proiezione
 
     [ForeignKey("TurnoId")]
     public Turno Turno { get; set; }
+
+    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 }
