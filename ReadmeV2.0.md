@@ -5,9 +5,34 @@
 Implementare una funzionalità che permette agli utenti di acquistare un abbonamento che permette una scontistica sul prezzo dei biglietti.
 Nella tabella utente ci sarà la foreign key che collega la corrispettiva tabella alla tabella abbonamenti.
 Gli abbonamenti saranno di tre livelli: mensile, semestrale, annuale, ognuno con il suo prezzo e la sua data di inizio e di scadenza.
-- mensile (25%).
-- semestrale (50%).
-- annuale (75%).
+
+- mensile ( 25% ) , Prezzo 25£.
+- semestrale ( 50% ) , Prezzo 150£.
+- annuale ( 75% ) , Prezzo 350£.
+
+- Modello
+- Data
+- Dtos
+- Services
+- Controller
+- Calcolo nell'helper.
+
+# Implementazione gift card.
+
+Implementare una funzionalità che permette agli utenti di acquistare una gift card che comprende un numero di biglietti prestabilito, ogni volta che acquisterà un nuovo biglietto, questo verrà scalato dal totale dei biglietti della gift card arrivato a 0 la gift card viene disabilitata.
+
+**Possibile implementazione: Funzionalità che permette agli utenti di regalare gift card ad altri utenti.** 
+
+- 10 Film , Prezzo 50£.
+- 25 Film , Prezzo 110£.
+- 50 film , Prezzo 200£.
+
+- Modello
+- Data
+- Dtos
+- Services
+- Controller
+- Calcolo nell'helper.
 
 # Models
 

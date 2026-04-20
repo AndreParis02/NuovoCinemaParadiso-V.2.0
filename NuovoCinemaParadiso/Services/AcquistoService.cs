@@ -127,7 +127,6 @@ public class AcquistoService
         risultato.OrarioCreazione = acquisto.OrarioCreazione;
         risultato.MetodoPagamento = acquisto.MetodoPagamento;
 
-
         return risultato;
     }
 
@@ -168,8 +167,6 @@ public class AcquistoService
 
         return risultato;
     }
-
-
 
     public async Task<bool> EliminazioneAsync(string id)
     {
