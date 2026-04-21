@@ -28,25 +28,13 @@ public class GestoreUtentiController : ControllerBase
 
         if (nuovoRuolo == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Cambio ruolo",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Cambio ruolo",false);
 
             return BadRequest(new { messaggio = "Utente o ruolo non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Cambio ruolo",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Cambio ruolo",true);
+        
         return Ok(new
         {
             messaggio = "Ruolo aggiornato correttamente.",

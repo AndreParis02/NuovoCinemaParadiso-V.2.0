@@ -4672,3 +4672,410 @@ await DataSeeder.SeedAsync(app.Services);
 // Avvia l'applicazione
 app.Run();
 ```
+
+# Controller
+## AuthController.cs (leggere modifiche su logAzioni)
+```c#
+// Importa le funzionalità base per creare controller API MVC
+using Microsoft.AspNetCore.Mvc;
+// Importa le funzionalità per lavorare con i claim dell'utente loggato
+using System.Security.Claims;
+// Importa IdentityResult e altri tipi legati all'identità
+using Microsoft.AspNetCore.Identity;
+// Importa il servizio di autenticazione personalizzato
+using NuovoCinemaParadiso.Services;
+// Importa i DTO usati per scambiare dati con il client
+using NuovoCinemaParadiso.Dtos;
+// Importa gli attributi per la gestione dell'autorizzazione
+using Microsoft.AspNetCore.Authorization;
+
+// Definisce il namespace del progetto per i controller
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che questa classe è un controller API
+[ApiController]
+// Definisce la route base: /api/Auth
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    // Campo per il servizio di autenticazione
+    private readonly AuthService _authService;
+    // Campo per il servizio di log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Costruttore che riceve i servizi tramite dependency injection
+    public AuthController(AuthService authService, LogAzioniService logAzioniService)
+    {
+        // Assegna il servizio di autenticazione al campo privato
+        _authService = authService;
+        // Assegna il servizio di log al campo privato
+        _logAzioniService = logAzioniService;
+    }
+
+    // Espone un endpoint POST su /api/Auth/registrazione
+    [HttpPost("registrazione")]
+    // Metodo asincrono per registrare un nuovo utente
+    public async Task<IActionResult> Registrazione(DtoRegistrazione dto)
+    {
+        // Chiama il servizio di autenticazione per eseguire la registrazione
+        IdentityResult result = await _authService.RegistrazioneAsync(dto);
+        // Non c'è ancora un utente loggato, quindi l'Id è nullo
+        string? utenteId = null;
+
+        // Se la registrazione non è andata a buon fine
+        if (!result.Succeeded)
+        {
+            // Salva un log di registrazione fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", false);
+            // Restituisce BadRequest con gli errori di Identity
+            return BadRequest(result.Errors);
+        }
+
+        // Salva un log di registrazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", true);
+        // Restituisce 200 OK con un messaggio di conferma
+        return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
+    }
+
+    // Espone un endpoint POST su /api/Auth/login
+    [HttpPost("login")]
+    // Metodo asincrono per eseguire il login
+    public async Task<IActionResult> Login([FromBody] DtoLogin dto)
+    {
+        // Chiama il servizio di autenticazione per validare le credenziali e generare il token
+        DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+
+        // Se le credenziali non sono valide o il login fallisce
+        if (risposta == null)
+        {
+            // Salva un log di login fallito (senza Id utente perché non noto)
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            // Restituisce 401 Unauthorized con messaggio di errore
+            return Unauthorized(new { messaggio = "Email o password non validi." });
+        }
+
+        // Salva un log di login riuscito usando l'Id utente restituito dal servizio
+        await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
+        // Restituisce 200 OK con il DTO di risposta (token, email, ruolo, ecc.)
+        return Ok(risposta);
+    }
+
+    // Espone un endpoint GET su /api/Auth/profilo
+    [HttpGet("profilo")]
+    // Metodo asincrono per ottenere il profilo dell'utente loggato
+    public async Task<IActionResult> RicercaProfiloLoggato()
+    {
+        // Recupera l'Id utente dai claim del token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Chiede al servizio di autenticazione i dati dell'utente tramite Id
+        DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
+
+        // Se l'utente non esiste nel database
+        if (utente == null)
+        {
+            // Salva un log di ricerca profilo fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo loggato", false);
+            // Restituisce 404 NotFound con messaggio
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        // Salva un log di ricerca profilo riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo loggato", true);
+        // Restituisce 200 OK con il DTO dell'utente
+        return Ok(utente);
+    }
+
+    // Espone un endpoint PUT su /api/Auth/modifica
+    [HttpPut("modifica")]
+    // Metodo asincrono per modificare il profilo dell'utente loggato
+    public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
+    {
+        // Recupera l'Id utente dai claim del token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Chiede al servizio di autenticazione di modificare i dati dell'utente
+        var risultato = await _authService.ModificaAsync(dto, utenteId);
+
+        // Se l'utente non è stato trovato o la modifica non è riuscita
+        if (risultato == null)
+        {
+            // Salva un log di modifica fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", false);
+            // Restituisce 404 NotFound con messaggio
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        // Salva un log di modifica riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", true);
+        // Restituisce 200 OK con il risultato (DTO aggiornato)
+        return Ok(risultato);
+    }
+
+    // Espone un endpoint DELETE su /api/Auth/elimina
+    [HttpDelete("elimina")]
+    // Metodo asincrono per eliminare il profilo dell'utente loggato
+    public async Task<IActionResult> Elimina()
+    {
+        // Recupera l'Id utente dai claim del token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Chiede al servizio di autenticazione di eliminare l'utente
+        var risultato = await _authService.EliminaAsync(utenteId);
+
+        // Se l'utente non è stato trovato
+        if (risultato == null)
+        {
+            // Restituisce 404 NotFound con messaggio
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        // Salva un log di eliminazione profilo riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
+        // Restituisce 200 OK con il risultato (eventuale DTO o conferma)
+        return Ok(risultato);
+    }
+}
+```
+
+## GestoreUtentiController.cs (modifiche logAzioni)
+```c#
+// Importa autorizzazioni e gestione ruoli
+using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
+using System.Security.Claims;
+// Importa i DTO utilizzati dal controller
+using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che è un controller API
+[ApiController]
+// Route base: /api/GestoreUtenti
+[Route("api/[controller]")]
+// Accesso consentito solo al ruolo Gestore
+[Authorize(Roles = Ruoli.Gestore)]
+public class GestoreUtentiController : ControllerBase
+{
+    // Service per modificare i ruoli degli utenti
+    private readonly RuoloUtenteService _ruoloUtenteService;
+    // Service per salvare i log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Iniezione dei servizi tramite costruttore
+    public GestoreUtentiController(RuoloUtenteService ruoloUtenteService, LogAzioniService logAzioniService)
+    {
+        _ruoloUtenteService = ruoloUtenteService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Endpoint PUT: modifica il ruolo di un utente
+    [HttpPut("cambia-ruolo")]
+    public async Task<IActionResult> CambiaRuolo([FromBody] DtoModificaRuoloUtente dto)
+    {
+        // Richiede al service di aggiornare il ruolo dell’utente
+        string? nuovoRuolo = await _ruoloUtenteService.ModificaRuoloUtente(dto);
+
+        // Recupera l’Id del gestore loggato tramite token
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se il ruolo non è stato aggiornato (utente o ruolo inesistente)
+        if (nuovoRuolo == null)
+        {
+            // Registra log di operazione fallita
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Cambio ruolo", false);
+
+            // Restituisce errore al client
+            return BadRequest(new { messaggio = "Utente o ruolo non valido." });
+        }
+
+        // Registra log di operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Cambio ruolo", true);
+        
+        // Restituisce conferma al client con i dati aggiornati
+        return Ok(new
+        {
+            messaggio = "Ruolo aggiornato correttamente.",
+            email = dto.Email,
+            ruolo = nuovoRuolo
+        });
+    }
+}
+```
+
+## GenereMovieController.cs (modifiche logAzioni)
+```c#
+// Importa autorizzazioni e gestione ruoli
+using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
+using System.Security.Claims;
+// Importa i DTO utilizzati dal controller
+using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che è un controller API
+[ApiController]
+// Route base: /api/GenereMovie
+[Route("api/[controller]")]
+// Richiede autenticazione per accedere agli endpoint
+[Authorize]
+public class GenereMovieController : ControllerBase
+{
+    // Service per la gestione dei generi dei film
+    private readonly GenereMovieService _genereMovieService;
+    // Service per la registrazione dei log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Iniezione dei servizi tramite costruttore
+    public GenereMovieController(GenereMovieService genereMovieService, LogAzioniService logAzioniService)
+    {
+        _genereMovieService = genereMovieService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Endpoint GET: restituisce tutti i generi
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        // Recupera tutti i generi tramite il service
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
+        // Recupera l'Id dell'utente loggato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Registra log di operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i generi", true);
+
+        // Restituisce la lista dei generi
+        return Ok(generiMovie);
+    }
+
+    // Endpoint GET: restituisce un genere tramite Id
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        // Recupera il genere tramite Id
+        var risultato = await _genereMovieService.OttieniTramiteIdAsync(id);
+        // Recupera l'Id dell'utente loggato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se il genere non esiste
+        if (risultato == null)
+        {
+            // Registra log fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni genere tramite id", false);
+
+            // Restituisce errore 404
+            return NotFound($"GenereMovie con id {id} non trovato");
+        }
+
+        // Registra log riuscito
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni genere tramite id", true);
+
+        // Restituisce il genere trovato
+        return Ok(risultato);
+    }
+
+    // Endpoint POST: crea un nuovo genere
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
+    {
+        // Recupera l'Id dell'utente loggato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Recupera tutti i generi esistenti
+        List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
+
+        // Controlla se il genere esiste già
+        foreach (var generiMovies in generiMovie)
+        {
+            if (generiMovies.Genere.Contains(dto.Genere))
+            {
+                // Log fallito
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", false);
+
+                // Restituisce errore
+                return BadRequest(new { messaggio = "Genere già presente." });
+            }
+        }
+        
+        // Crea il nuovo genere tramite service
+        DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
+
+        // Se la creazione non è valida
+        if (risultato == null)
+        {
+            // Log fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", false);
+
+            // Restituisce errore
+            return BadRequest(new { messaggio = "Genere non valido." });
+        }
+
+        // Log riuscito
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", true);
+
+        // Restituisce il genere creato
+        return Ok(risultato);
+    }
+
+    // Endpoint PUT: modifica un genere esistente
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
+    {
+        // Modifica il genere tramite service
+        DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
+        // Recupera l'Id dell'utente loggato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se il genere non esiste
+        if (risultato == null)
+        {
+            // Log fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica genere", false);
+
+            // Restituisce errore
+            return NotFound(new { messaggio = "Genere non trovato." });
+        }
+
+        // Log riuscito
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica genere", true);
+
+        // Restituisce il genere modificato
+        return Ok(risultato);
+    }
+
+    // Endpoint DELETE: elimina un genere tramite Id
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        // Richiede al service di eliminare il genere
+        bool eliminato = await _genereMovieService.EliminaAsync(id);
+        // Recupera l'Id dell'utente loggato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se il genere non esiste
+        if (!eliminato)
+        {
+            // Log fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", false);
+
+            // Restituisce errore
+            return NotFound(new { messaggio = "Genere non trovato." });
+        }
+
+        // Log riuscito
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", true);
+
+        // Restituisce 204 NoContent
+        return NoContent();
+    }
+}
+```
