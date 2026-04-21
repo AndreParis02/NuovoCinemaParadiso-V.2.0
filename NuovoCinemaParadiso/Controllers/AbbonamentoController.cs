@@ -28,7 +28,7 @@ public class AbbonamentoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
@@ -48,7 +48,7 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
     {
         var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (risultato == null)
         {
@@ -77,7 +77,7 @@ public class AbbonamentoController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
@@ -109,7 +109,7 @@ public class AbbonamentoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
         DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
 
         if (risultato == null)
@@ -141,7 +141,7 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
         DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (risultato == null)
         {
@@ -172,7 +172,7 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (!eliminato)
         {

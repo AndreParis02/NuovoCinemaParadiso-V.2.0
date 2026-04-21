@@ -79,7 +79,7 @@ public class AdminService
         for (int i = 0; i < acquisti.Count; i++)
         {
             Acquisto acquistoCorrente = acquisti[i];
-            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+            Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
             Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
             Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);

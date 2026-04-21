@@ -8,14 +8,14 @@ public static class Calcoli
     {
         decimal prezzoBiglietto = prezzoMovie + maggiorazione;
 
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
+        if (metodoPagamento == "abbonamento" && utente.SeAbbonato && utente.Abbonamento != null)
         {
             decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
             decimal prezzoScontato = prezzoBiglietto - sconto;
             return prezzoScontato * numeroBiglietti;
         }
 
-        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard && utente.GiftCard != null)
         {
             if (utente.GiftCard.NumeroMovie > numeroBiglietti)
             {

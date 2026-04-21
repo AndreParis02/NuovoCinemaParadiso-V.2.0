@@ -12,13 +12,13 @@ public class Acquisto
     public string ProiezioneId { get; set; } = string.Empty;
 
     [ForeignKey("ProiezioneId")]
-    public Proiezione Proiezione { get; set; }
+    public Proiezione? Proiezione { get; set; }
 
     [Required]
     public string UtenteId { get; set; } = string.Empty;
 
     [ForeignKey("UtenteId")]
-    public Utente Utente { get; set; }
+    public Utente? Utente { get; set; }
 
     [Required]
     public int NumeroBiglietti {get;set;}

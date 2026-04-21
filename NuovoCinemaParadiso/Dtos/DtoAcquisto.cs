@@ -1,7 +1,7 @@
 namespace NuovoCinemaParadiso.Dtos;
 public class DtoAcquisto
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string ProiezioneId { get; set; } = string.Empty;
     public string UtenteId { get; set; } = string.Empty;
     public decimal PrezzoFinale {get;set;}

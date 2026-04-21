@@ -17,5 +17,5 @@ public class Sala
     public string TipologiaSalaId {get; set;} = string.Empty;
 
     [ForeignKey("TipologiaSalaId")]
-    public TipologiaSala TipologiaSala {get; set;}
+    public TipologiaSala? TipologiaSala {get; set;}
 }
