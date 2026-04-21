@@ -26,13 +26,7 @@ public class SalaController : ControllerBase
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le sale",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
     }
@@ -44,13 +38,7 @@ public class SalaController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(tipologiaId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni le sale per tipologia",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Ottieni sala per tipologia", false);
 
             return BadRequest("TipologiaId non valido");
         }
@@ -59,24 +47,12 @@ public class SalaController : ControllerBase
 
         if (risultato == null || risultato.Count == 0)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni le sale per tipologia",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Ottieni sala per tipologia", false);
 
             return NotFound("Nessuna sala trovata per questa tipologia");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni le sale per tipologia",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Ottieni sala per tipologia", true);
 
         return Ok(risultato);
     }
@@ -89,25 +65,12 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni sala tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await Log(utenteId, "Ottieni sala tramite id", false);
 
             return NotFound($"Sala con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni sala tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Ottieni sala tramite id", true);
 
         return Ok(risultato);
     }
@@ -121,24 +84,12 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione sala",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Creazione sala", false);
 
             return BadRequest(new { messaggio = "Sala non valida." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione sala",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Creazione sala", true);
 
         return Ok(risultato);
     }
@@ -152,24 +103,12 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica sala",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Modifica sala", false);
 
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica sala",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Modifica sala", true);
 
         return Ok(risultato);
     }
@@ -183,25 +122,26 @@ public class SalaController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina sala",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Elimina sala", false);
 
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
+        await Log(utenteId, "Elimina sala", true);
+
+        return NoContent();
+    }
+    public async Task Log(string utenteId, string azione, bool risultato)
+    {
+        string messaggio = "Operazione fallita";
+        if (risultato) messaggio = "Operazione eseguita";
+
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina sala",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
+            NomeAzione = azione,
+            Effettuato = risultato,
+            Messaggio = messaggio
         });
-
-        return NoContent();
     }
 }

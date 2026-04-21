@@ -807,6 +807,352 @@ public class DtoCreazioneAcquisto
 
 # Controllers
 
+## TipologiaSalaController.cs
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+/// <summary>
+/// Controller responsabile della gestione delle tipologie di sala.
+/// Tutte le operazioni richiedono autenticazione.
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TipologiaSalaController : ControllerBase
+{
+    private readonly TipologiaSalaService _tipologiaSalaService;
+    private readonly LogAzioniService _logAzioniService;
+
+    /// <summary>
+    /// Costruttore del controller. Inietta i servizi necessari.
+    /// </summary>
+    public TipologiaSalaController(TipologiaSalaService tipologiaSalaService, LogAzioniService logAzioniService)
+    {
+        _tipologiaSalaService = tipologiaSalaService;
+        _logAzioniService = logAzioniService;
+    }
+
+    /// <summary>
+    /// Restituisce la lista completa delle tipologie di sala.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        // Recupero di tutte le tipologie dal servizio
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+
+        // Identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Log dell'operazione
+        await Log(utenteId, "Ottieni tutte le tipologie", true);
+
+        return Ok(tipologieSala);
+    }
+
+    /// <summary>
+    /// Restituisce una tipologia tramite il suo identificatore.
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        var risultato = await _tipologiaSalaService.OttieniTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Ottieni tipologie tramite id", false);
+            return NotFound($"TipologiaSala con id {id} non trovato");
+        }
+
+        await Log(utenteId, "Ottieni tipologie tramite id", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Crea una nuova tipologia di sala. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupero di tutte le tipologie per verificare duplicati
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+
+        // Controllo duplicati (case-sensitive, Contains)
+        foreach (var tipologiaSala in tipologieSala)
+        {
+            if (tipologiaSala.Nome.Contains(dto.Nome))
+            {
+                await Log(utenteId, "Creazione tipologia", false);
+                return BadRequest(new { messaggio = "Tipologia sala già presente." });
+            }
+        }
+
+        // Creazione della nuova tipologia
+        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Creazione tipologia", false);
+            return BadRequest(new { messaggio = "Tipologia sala non valida." });
+        }
+
+        await Log(utenteId, "Creazione tipologia", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Modifica una tipologia esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
+    {
+        DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Modifica tipologia", false);
+            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+        }
+
+        await Log(utenteId, "Modifica tipologia", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Elimina una tipologia esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!eliminato)
+        {
+            await Log(utenteId, "Elimina tipologia", false);
+            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+        }
+
+        await Log(utenteId, "Elimina tipologia", true);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Metodo interno per registrare un log tramite LogAzioniService.
+    /// </summary>
+    private async Task Log(string utenteId, string azione, bool risultato)
+    {
+        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            idUtente: utenteId,
+            nomeAzione: azione,
+            effettuato: risultato,
+            messaggio: messaggio
+        );
+    }
+}
+```
+
+## SalaController.cs
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+/// <summary>
+/// Controller responsabile della gestione delle sale.
+/// Tutte le operazioni richiedono autenticazione.
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class SalaController : ControllerBase
+{
+    private readonly SalaService _salaService;
+    private readonly LogAzioniService _logAzioniService;
+
+    /// <summary>
+    /// Costruttore del controller. Inietta i servizi necessari.
+    /// </summary>
+    public SalaController(SalaService salaService, LogAzioniService logAzioniService)
+    {
+        _salaService = salaService;
+        _logAzioniService = logAzioniService;
+    }
+
+    /// <summary>
+    /// Restituisce la lista completa delle sale.
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        // Recupero di tutte le sale dal servizio
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
+
+        // Identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Log dell'operazione
+        await Log(utenteId, "Ottieni tutte le sale", true);
+
+        return Ok(sale);
+    }
+
+    /// <summary>
+    /// Restituisce tutte le sale appartenenti a una specifica tipologia.
+    /// </summary>
+    [HttpGet("tipologia/{tipologiaId}")]
+    public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Validazione dell'input
+        if (string.IsNullOrWhiteSpace(tipologiaId))
+        {
+            await Log(utenteId, "Ottieni sala per tipologia", false);
+            return BadRequest("TipologiaId non valido");
+        }
+
+        // Recupero delle sale filtrate per tipologia
+        var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await Log(utenteId, "Ottieni sala per tipologia", false);
+            return NotFound("Nessuna sala trovata per questa tipologia");
+        }
+
+        await Log(utenteId, "Ottieni sala per tipologia", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Restituisce una sala tramite il suo identificatore.
+    /// </summary>
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        var risultato = await _salaService.OttieniTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Ottieni sala tramite id", false);
+            return NotFound($"Sala con id {id} non trovato");
+        }
+
+        await Log(utenteId, "Ottieni sala tramite id", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Crea una nuova sala. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
+    {
+        // Creazione della sala tramite servizio
+        DtoSala? risultato = await _salaService.CreazioneAsync(dto);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Creazione sala", false);
+            return BadRequest(new { messaggio = "Sala non valida." });
+        }
+
+        await Log(utenteId, "Creazione sala", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Modifica una sala esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
+    {
+        DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await Log(utenteId, "Modifica sala", false);
+            return NotFound(new { messaggio = "Sala non trovata." });
+        }
+
+        await Log(utenteId, "Modifica sala", true);
+
+        return Ok(risultato);
+    }
+
+    /// <summary>
+    /// Elimina una sala esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _salaService.EliminaAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!eliminato)
+        {
+            await Log(utenteId, "Elimina sala", false);
+            return NotFound(new { messaggio = "Sala non trovata." });
+        }
+
+        await Log(utenteId, "Elimina sala", true);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Metodo interno per registrare un log tramite LogAzioniService.
+    /// </summary>
+    private async Task Log(string utenteId, string azione, bool risultato)
+    {
+        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            idUtente: utenteId,
+            nomeAzione: azione,
+            effettuato: risultato,
+            messaggio: messaggio
+        );
+    }
+}
+```
+
 ## GiftCardController.cs
 
 ```c#
@@ -1968,42 +2314,56 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
 ## TurnoController.cs
 
 ```c#
-// Controller API per la gestione dei turni: richiede autenticazione
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Services;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+/// <summary>
+/// Controller responsabile della gestione dei turni.
+/// Tutte le operazioni richiedono autenticazione.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class TurnoController : ControllerBase
 {
-    // Servizi applicativi usati dal controller
     private readonly TurnoService _turnoService;
     private readonly LogAzioniService _logAzioniService;
 
-    // Iniezione dei servizi necessari
+    /// <summary>
+    /// Costruttore del controller. Inietta i servizi necessari.
+    /// </summary>
     public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
     {
         _turnoService = turnoService;
         _logAzioniService = logAzioniService;
     }
 
-    // Restituisce tutti i turni presenti nel sistema
+    /// <summary>
+    /// Restituisce la lista completa dei turni.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
+        // Recupero di tutti i turni dal servizio
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+
+        // Identificativo dell'utente autenticato
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte i turni",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        // Log dell'operazione
+        await Log(utenteId, "Ottieni tutti i turni", true);
 
         return Ok(turni);
     }
 
-    // Restituisce un turno tramite il suo id
+    /// <summary>
+    /// Restituisce un turno tramite il suo identificatore.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
@@ -2012,82 +2372,58 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni turno tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            // Log operazione fallita
+            await Log(utenteId, "Ottieni turno tramite id", false);
 
             return NotFound($"Turno con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni turno tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        // Log operazione riuscita
+        await Log(utenteId, "Ottieni turno tramite id", true);
 
         return Ok(risultato);
     }
 
-    // Crea un nuovo turno (solo Gestore o Operatore)
+    /// <summary>
+    /// Crea un nuovo turno. Accessibile solo a Gestore o Operatore.
+    /// </summary>
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync(); // lettura turni esistenti
 
-        // Verifica unicità del nome turno
+        // Recupero di tutti i turni per verificare duplicati
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+
+        // Controllo se esiste già un turno con lo stesso nome (case-insensitive)
         foreach (var turno in turni)
         {
             bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
             if (stringheUguali)
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione turno",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
-
+                await Log(utenteId, "Creazione Turno", false);
                 return BadRequest(new { messaggio = "Turno già presente." });
             }
         }
 
-        // Creazione del turno tramite servizio applicativo
+        // Creazione del nuovo turno
         DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await Log(utenteId, "Creazione Turno", false);
             return BadRequest(new { messaggio = "Turno non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Creazione Turno", true);
 
         return Ok(risultato);
     }
 
-    // Modifica un turno esistente
+    /// <summary>
+    /// Modifica un turno esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
@@ -2097,29 +2433,18 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await Log(utenteId, "Modifica Turno", false);
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Modifica Turno", true);
 
         return Ok(risultato);
     }
 
-    // Elimina un turno tramite id
+    /// <summary>
+    /// Elimina un turno esistente. Accessibile solo a Gestore o Operatore.
+    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
@@ -2129,26 +2454,28 @@ public class TurnoController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await Log(utenteId, "Elimina Turno", false);
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Elimina Turno", true);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Metodo interno per registrare un log tramite LogAzioniService.
+    /// </summary>
+    private async Task Log(string utenteId, string azione, bool risultato)
+    {
+        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            idUtente: utenteId,
+            nomeAzione: azione,
+            effettuato: risultato,
+            messaggio: messaggio
+        );
     }
 }
 ```
@@ -4072,7 +4399,9 @@ public class LogAzioniService
 
 }
 ```
+
 ## LogAzioniService
+
 ```c#
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
