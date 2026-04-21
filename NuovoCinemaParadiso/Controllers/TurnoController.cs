@@ -26,13 +26,7 @@ public class TurnoController : ControllerBase
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte i turni",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Ottieni tutti i turni", true);
 
         return Ok(turni);
     }
@@ -45,24 +39,12 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni turno tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Ottieni turno tramite id", false);
 
             return NotFound($"Turno con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni turno tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Ottieni turno tramite id", true);
 
         return Ok(risultato);
     }
@@ -71,51 +53,33 @@ public class TurnoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
-        
+
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();//legge la lista di tutti i turni
 
-        
+
         //controlla che il nome turno fornito dal DTO non sia già presente nella lista dei turni del db. Se trovato, restituisce errore
         foreach (var turno in turni)
         {
-            bool stringheUguali=string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
+            bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
             if (stringheUguali)
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione turno",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
+                await Log(utenteId, "Creazione Turno", false);
 
                 return BadRequest(new { messaggio = "Turno già presente." });
             }
         }
 
         DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);//creazione nuovo turno. Se fallisce, ritorna errore
-        
+
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Creazione Turno", false);
 
             return BadRequest(new { messaggio = "Turno non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Creazione Turno", true);
 
         return Ok(risultato);
     }
@@ -129,24 +93,12 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Modifica Turno", false);
 
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await Log(utenteId, "Modifica Turno", true);
 
         return Ok(risultato);
     }
@@ -160,24 +112,26 @@ public class TurnoController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await Log(utenteId, "Elimina Turno", false);
 
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
+        await Log(utenteId, "Elimina Turno", true);
+
+        return NoContent();
+    }
+    public async Task Log(string utenteId, string azione, bool risultato)
+    {
+        string messaggio = "Operazione fallita";
+        if (risultato) messaggio = "Operazione eseguita";
+
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
-            NomeAzione = "Elimina turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
+            NomeAzione = azione,
+            Effettuato = risultato,
+            Messaggio = messaggio
         });
-        return NoContent();
     }
 }
