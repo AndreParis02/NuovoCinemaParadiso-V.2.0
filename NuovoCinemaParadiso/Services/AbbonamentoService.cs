@@ -85,7 +85,7 @@ public class AbbonamentoService
         return risultato;
     }
 
-    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+    public async Task<DtoAbbonamento?> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 

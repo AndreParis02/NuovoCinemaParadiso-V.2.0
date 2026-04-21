@@ -35,7 +35,7 @@ namespace NuovoCinemaParadiso.Services
             return risultato;
         }
 
-        public async Task<DtoTurno> OttieniTramiteIdAsync(string id) 
+        public async Task<DtoTurno?> OttieniTramiteIdAsync(string id) 
         {
             Turno? turno = await _contesto.Turni.FindAsync(id);
             if (turno == null)

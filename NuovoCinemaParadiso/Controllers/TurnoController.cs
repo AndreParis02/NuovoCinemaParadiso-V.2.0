@@ -24,7 +24,7 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -41,7 +41,7 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         var risultato = await _turnoService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -72,7 +72,7 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
         
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();//legge la lista di tutti i turni
 
         
@@ -111,7 +111,6 @@ public class TurnoController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
-            IdUtente = utenteId,
             NomeAzione = "Creazione turno",
             Effettuato = true,
             Messaggio = "Operazione eseguita"
@@ -125,7 +124,7 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
         DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -156,7 +155,7 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _turnoService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (!eliminato)
         {
