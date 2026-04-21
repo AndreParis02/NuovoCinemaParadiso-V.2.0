@@ -3,3 +3,8 @@
 bin
 obj
 .DS_Store
+
+*.db
+*.sqlite
+*.mdf
+*.ldf
