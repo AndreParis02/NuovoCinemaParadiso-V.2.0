@@ -14,8 +14,7 @@ public static class Calcoli
             decimal prezzoScontato = prezzoBiglietto - sconto;
             return prezzoScontato * numeroBiglietti;
         }
-
-        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        else if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
         {
             if (utente.GiftCard.NumeroMovie > numeroBiglietti)
             {
@@ -36,8 +35,10 @@ public static class Calcoli
                 return prezzoBiglietto * bigliettiRimanenti;
             }
         }
-           
-        return prezzoBiglietto * numeroBiglietti;
+        else
+        {
+            return prezzoBiglietto * numeroBiglietti;   
+        }
     }
 
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
