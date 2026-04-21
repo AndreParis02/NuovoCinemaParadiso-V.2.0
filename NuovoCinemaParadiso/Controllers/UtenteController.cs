@@ -24,7 +24,7 @@ public class UtenteController : ControllerBase
     [HttpPost("abbonati")]
     public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
         {
@@ -66,7 +66,7 @@ public class UtenteController : ControllerBase
     [HttpPost("giftCard")]
     public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
         {

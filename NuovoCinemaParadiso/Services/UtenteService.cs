@@ -17,7 +17,7 @@ public class UtenteService
         _gestioneUtenti = gestioneUtenti;
     }
 
-    public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+    public async Task<DtoUtente?> AbbonatiAsync(string abbonamentoId, string utenteId)
     {
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
         Abbonamento? abbonamentoTrovato = null;
@@ -53,8 +53,8 @@ public class UtenteService
         return new DtoUtente()
         {
             Id = utenteTrovato.Id,
-            NomeCompleto = utenteTrovato.NomeCompleto,
-            Email = utenteTrovato.Email,
+            NomeCompleto = utenteTrovato.NomeCompleto ?? string.Empty,
+            Email = utenteTrovato.Email ?? string.Empty,
             Eta = utenteTrovato.Eta,
             SeAbbonato = utenteTrovato.SeAbbonato,
             DataInizio = utenteTrovato.DataInizioAbbonamento,
@@ -62,7 +62,7 @@ public class UtenteService
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
-    public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
+    public async Task<DtoUtente?> GiftCardAsync(string giftCardId, string utenteId)
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
         GiftCard? giftCardTrovata = null;
@@ -98,8 +98,8 @@ public class UtenteService
         return new DtoUtente()
         {
             Id = utenteTrovato.Id,
-            NomeCompleto = utenteTrovato.NomeCompleto,
-            Email = utenteTrovato.Email,
+            NomeCompleto = utenteTrovato.NomeCompleto ?? string.Empty,
+            Email = utenteTrovato.Email ?? string.Empty,
             Eta = utenteTrovato.Eta,
             PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
             DataInizio = utenteTrovato.DataInizioGiftCard,

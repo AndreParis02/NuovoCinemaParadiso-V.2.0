@@ -80,10 +80,17 @@ public class AdminService
         {
             Acquisto acquistoCorrente = acquisti[i];
             Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+            if (proiezione == null) continue;
+
             Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+            if (movie == null) continue;
+
             Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+            if (sala == null) continue;
+
             Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+            if (tipologiaSala == null) continue;
 
             DtoAcquisto dto = new DtoAcquisto();
             dto.Id = acquistoCorrente.Id;
@@ -99,19 +106,26 @@ public class AdminService
         return risultato;
     }
 
-    public async Task<DtoAcquisto> OttieniAcquistoTramiteIdAsync(string id)
+    public async Task<DtoAcquisto?> OttieniAcquistoTramiteIdAsync(string id)
     {
         Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
-        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
-        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId);
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
         if (acquisto == null)
         {
             return null;
         }
+
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        if (proiezione == null) return null;
+
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return null;
+
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return null;
+
+        Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId);
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return null;
 
         DtoAcquisto dto = new DtoAcquisto();
         dto.Id = acquisto.Id;
@@ -158,8 +172,8 @@ public class AdminService
             {
                 DtoUtente dto = new DtoUtente();
                 dto.Id = utenteCorrente.Id;
-                dto.NomeCompleto = utenteCorrente.NomeCompleto;
-                dto.Email = utenteCorrente.Email;
+                dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
+                dto.Email = utenteCorrente.Email ?? string.Empty;
                 dto.Eta = utenteCorrente.Eta;
 
                 risultato.Add(dto);
@@ -169,7 +183,7 @@ public class AdminService
         return risultato;
     }
 
-    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
+    public async Task<DtoAbbonamento?> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
@@ -206,7 +220,7 @@ public class AdminService
         return dto;
     }
 
-    public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
+    public async Task<List<DtoUtente>?> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
     {
 
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
@@ -240,8 +254,8 @@ public class AdminService
             {
                 DtoUtente dto = new DtoUtente();
                 dto.Id = utenteCorrente.Id;
-                dto.NomeCompleto = utenteCorrente.NomeCompleto;
-                dto.Email = utenteCorrente.Email;
+                dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
+                dto.Email = utenteCorrente.Email ?? string.Empty;
                 dto.Eta = utenteCorrente.Eta;
 
                 risultato.Add(dto);

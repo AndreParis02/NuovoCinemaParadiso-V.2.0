@@ -4,18 +4,18 @@ namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
+    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente? utente, string? metodoPagamento)
     {
         decimal prezzoBiglietto = prezzoMovie + maggiorazione;
 
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato && utente.Abbonamento != null)
+        if (metodoPagamento == "abbonamento" && utente != null && utente.SeAbbonato && utente.Abbonamento != null)
         {
             decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
             decimal prezzoScontato = prezzoBiglietto - sconto;
             return prezzoScontato * numeroBiglietti;
         }
 
-        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard && utente.GiftCard != null)
+        if (metodoPagamento == "giftcard" && utente != null && utente.PossiedeGiftCard && utente.GiftCard != null)
         {
             if (utente.GiftCard.NumeroMovie > numeroBiglietti)
             {
@@ -36,7 +36,6 @@ public static class Calcoli
                 return prezzoBiglietto * bigliettiRimanenti;
             }
         }
-           
         return prezzoBiglietto * numeroBiglietti;
     }
 
