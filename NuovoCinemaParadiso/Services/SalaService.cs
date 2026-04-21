@@ -29,6 +29,7 @@ public class SalaService
             dto.Nome = salaCorrente.Nome;
             dto.Capienza = salaCorrente.Capienza;
             dto.NomeTipologia = tipologiaSala?.Nome ?? "";
+            dto.TipologiaSalaId = tipologiaSala?.Id ?? "";
 
             risultato.Add(dto);
         }
@@ -44,13 +45,14 @@ public class SalaService
         }
 
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
+        Console.WriteLine(sala.TipologiaSalaId);
         DtoSala risultato = new DtoSala
         {
             Id = sala.Id,
             Nome = sala.Nome,
             Capienza = sala.Capienza,
             NomeTipologia = tipologiaSala?.Nome ?? "",
+            TipologiaSalaId = tipologiaSala?.Id ?? ""
         };
         return risultato;
     }
