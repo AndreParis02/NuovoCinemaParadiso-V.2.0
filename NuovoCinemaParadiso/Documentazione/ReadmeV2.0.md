@@ -954,7 +954,7 @@ public class GiftCardController : ControllerBase
 }
 ```
 
-## AbbonamentiController.cs
+## AbbonamentoController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -997,13 +997,7 @@ public class AbbonamentoController : ControllerBase
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
         // ✔ Log dell’azione
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli abbonamenti utente",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli abbonamenti utente" ,true);
 
         return Ok(abbonamenti);
     }
@@ -1023,25 +1017,14 @@ public class AbbonamentoController : ControllerBase
         if (risultato == null)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni abbonamenti tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",false);
 
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni abbonamenti tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",true);
+
 
         return Ok(risultato);
     }
@@ -1061,25 +1044,15 @@ public class AbbonamentoController : ControllerBase
         if (risultato == null)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni abbonamenti tramite id utente",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id utente",false);
+
 
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni abbonamenti tramite id utente",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id utente",true);
+
 
         return Ok(risultato);
     }
@@ -1100,25 +1073,15 @@ public class AbbonamentoController : ControllerBase
         if (risultato == null)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync( utenteId,"Creazione abbonamento",false);
+
 
             return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione abbonamento",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync( utenteId,"Creazione abbonamento",true);
+
 
         return Ok(risultato);
     }
@@ -1137,25 +1100,14 @@ public class AbbonamentoController : ControllerBase
         if (risultato == null)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica abbonamento",false);
+
 
             return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica abbonamento",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica abbonamento",true);
 
         return Ok(risultato);
     }
@@ -1174,25 +1126,15 @@ public class AbbonamentoController : ControllerBase
         if (!eliminato)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina abbonamento", false);
+
 
             return NotFound(new { messaggio = "Abbonamento non trovato." });
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina abbonamento",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina abbonamento", true);
+
 
         return NoContent();
     }
