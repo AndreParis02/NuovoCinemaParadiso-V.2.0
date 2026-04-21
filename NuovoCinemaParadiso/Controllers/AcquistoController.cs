@@ -28,13 +28,7 @@ public class AcquistoController : ControllerBase
 
         List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli acquisti utente",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti utente",true);
 
         return Ok(acquisti);
     }
@@ -48,24 +42,12 @@ public class AcquistoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni acquisti tramite id utente",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",false);
 
             return NotFound($"Acquisto con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni acquisti tramite id utente",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",true);
 
         return Ok(risultato);
     }
@@ -78,24 +60,12 @@ public class AcquistoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione acquisto",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto",false);
 
             return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione acquisto",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto",true);
 
         return Ok(risultato);
     }
@@ -109,24 +79,10 @@ public class AcquistoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica acquisto",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound(new { messaggio = "Acquisto non trovato." });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica acquisto",false);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica acquisto",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica acquisto",true);
 
         return Ok(risultato);
     }
@@ -140,24 +96,12 @@ public class AcquistoController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina acquisto",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina acquisto",false);
 
             return NotFound(new { messaggio = "Acquisto non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina acquisto",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina acquisto",true);
 
         return NoContent();
     }
