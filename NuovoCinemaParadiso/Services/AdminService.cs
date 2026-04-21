@@ -89,7 +89,7 @@ public class AdminService
             dto.Id = acquistoCorrente.Id;
             dto.ProiezioneId = acquistoCorrente.ProiezioneId;
             dto.UtenteId = acquistoCorrente.UtenteId;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente);
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente, acquistoCorrente.MetodoPagamento);
             dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
 
@@ -117,7 +117,7 @@ public class AdminService
         dto.Id = acquisto.Id;
         dto.UtenteId = acquisto.UtenteId;
         dto.ProiezioneId = acquisto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente);
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente, acquisto.MetodoPagamento);
         dto.OrarioCreazione = acquisto.OrarioCreazione;
         dto.NumeroBiglietti = acquisto.NumeroBiglietti;
 
