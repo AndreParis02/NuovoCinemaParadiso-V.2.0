@@ -15,21 +15,7 @@ public class LogAzioniService
   }
 
   
-    public async Task SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
-    {
-        LogAzioni log = new LogAzioni();
-
-        log.IdUtente = dto.IdUtente;
-        log.NomeAzione = dto.NomeAzione;
-        log.Effettuato = dto.Effettuato;
-        log.Messaggio = dto.Messaggio;
-        log.TimeStamp = DateTimeOffset.UtcNow;
-
-      
-
-        _contesto.LogAzioni.Add(log);
-        await _contesto.SaveChangesAsync();
-    }
+    
 
     public async Task SalvataggioLogAzioneAsync(string idUtente, string azione, bool effettuato)
   {

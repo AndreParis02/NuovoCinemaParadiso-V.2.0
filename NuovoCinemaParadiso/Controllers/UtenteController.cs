@@ -28,13 +28,7 @@ public class UtenteController : ControllerBase
 
         if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Abbonati",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
 
@@ -42,26 +36,13 @@ public class UtenteController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Abbonati",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return NotFound("Utente o abbonamento non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Abbonati",
-                Effettuato = true,
-                Messaggio = "Operazione eseguita"
-            });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
         return Ok(risultato);
-    } 
+    }
 
     [HttpPost("giftCard")]
     public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
@@ -70,13 +51,7 @@ public class UtenteController : ControllerBase
 
         if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "GiftCard",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
             return BadRequest("Dati non validi");
         }
 
@@ -84,25 +59,11 @@ public class UtenteController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "GiftCard",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
             return NotFound("Utente o GiftCard non trovata");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "GiftCard",
-                Effettuato = true,
-                Messaggio = "Operazione eseguita"
-            });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
         return Ok(risultato);
-    } 
-
+    }
 }
