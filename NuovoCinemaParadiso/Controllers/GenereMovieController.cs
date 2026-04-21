@@ -24,7 +24,7 @@ public class GenereMovieController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -41,7 +41,7 @@ public class GenereMovieController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         var risultato = await _genereMovieService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -71,7 +71,7 @@ public class GenereMovieController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
         List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
 
         foreach (var generiMovies in generiMovie)
@@ -121,7 +121,7 @@ public class GenereMovieController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
         DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -152,7 +152,7 @@ public class GenereMovieController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _genereMovieService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (!eliminato)
         {

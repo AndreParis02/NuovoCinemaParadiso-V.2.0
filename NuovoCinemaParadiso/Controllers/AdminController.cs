@@ -25,7 +25,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
         List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -50,7 +50,7 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> RicercaProfiloTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
         DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
 
         if (utente == null)
@@ -79,7 +79,7 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> EliminaTramiteId(string Id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
 
@@ -110,7 +110,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniTuttiGliAcquisti()
     {
         List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -128,7 +128,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
     {
         var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (risultato == null)
         {
@@ -158,7 +158,7 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (string.IsNullOrWhiteSpace(abbonamentoId))
         {
@@ -204,7 +204,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
     {
         var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (risultato == null)
         {
@@ -234,7 +234,7 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
         if (string.IsNullOrWhiteSpace(giftcardId))
         {

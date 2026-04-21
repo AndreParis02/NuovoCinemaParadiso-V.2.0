@@ -74,7 +74,7 @@ public class AuthController : ControllerBase
     [HttpGet("profilo")]
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
 
@@ -105,7 +105,7 @@ public class AuthController : ControllerBase
     [HttpPut("modifica")]
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         var risultato = await _authService.ModificaAsync(dto, utenteId);
 
@@ -143,7 +143,7 @@ public class AuthController : ControllerBase
     [HttpDelete("elimina")]
     public async Task<IActionResult> Elimina()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         var risultato = await _authService.EliminaAsync(utenteId);
 

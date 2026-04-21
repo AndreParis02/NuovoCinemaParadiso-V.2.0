@@ -24,7 +24,7 @@ public class SalaController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -40,7 +40,7 @@ public class SalaController : ControllerBase
     [HttpGet("tipologia/{tipologiaId}")]
     public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (string.IsNullOrWhiteSpace(tipologiaId))
         {
@@ -85,7 +85,7 @@ public class SalaController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         var risultato = await _salaService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -117,7 +117,7 @@ public class SalaController : ControllerBase
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
         DtoSala? risultato = await _salaService.CreazioneAsync(dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -148,7 +148,7 @@ public class SalaController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
         DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -179,7 +179,7 @@ public class SalaController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _salaService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (!eliminato)
         {

@@ -24,7 +24,7 @@ public class GestoreUtentiController : ControllerBase
     public async Task<IActionResult> CambiaRuolo([FromBody] DtoModificaRuoloUtente dto)
     {
         string? nuovoRuolo = await _ruoloUtenteService.ModificaRuoloUtente(dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (nuovoRuolo == null)
         {

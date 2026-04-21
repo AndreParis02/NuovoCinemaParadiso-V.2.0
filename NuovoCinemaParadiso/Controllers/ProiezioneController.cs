@@ -25,7 +25,7 @@ public class ProiezioneController : ControllerBase
     public async Task<IActionResult> OttieniTutteLeProiezioni()
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -41,7 +41,7 @@ public class ProiezioneController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
 
@@ -71,7 +71,7 @@ public class ProiezioneController : ControllerBase
     [HttpGet("turno/{turnoId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (string.IsNullOrEmpty(turnoId))
         {
@@ -115,7 +115,7 @@ public class ProiezioneController : ControllerBase
     [HttpGet("sala/{salaId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (string.IsNullOrEmpty(salaId))
         {
@@ -159,7 +159,7 @@ public class ProiezioneController : ControllerBase
     [HttpGet("movie/{movieId}")]
     public async Task<ActionResult<List<DtoProiezione>>>OttieniPerFilm(string movieId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (string.IsNullOrEmpty(movieId))
         {
@@ -205,7 +205,7 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
         foreach (var proiezione in proiezioni)
@@ -254,7 +254,7 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id,dto);
 
@@ -286,7 +286,7 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         bool eliminato = await _proiezioneService.EliminaAsync(id);
 

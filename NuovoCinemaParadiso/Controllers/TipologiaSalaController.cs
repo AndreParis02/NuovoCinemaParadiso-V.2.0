@@ -25,7 +25,7 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
@@ -42,7 +42,7 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         var risultato = await _tipologiaSalaService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -72,7 +72,7 @@ public class TipologiaSalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
         
         foreach (var tipologiaSala in tipologieSala)
@@ -122,7 +122,7 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
     {
         DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (risultato == null)
         {
@@ -153,7 +153,7 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier)?? "";
 
         if (!eliminato)
         {
