@@ -1758,21 +1758,23 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
-
+// Controller API per la gestione degli acquisti: richiede autenticazione
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class GiftCardController : ControllerBase
 {
+    // Servizi applicativi utilizzati dal controller
     private readonly GiftCardService _giftCardService;
     private readonly LogAzioniService _logAzioniService;
 
+    // Iniezione dei servizi tramite costruttore
     public GiftCardController(GiftCardService giftCardService, LogAzioniService logAzioniService)
     {
         _giftCardService = giftCardService;
         _logAzioniService = logAzioniService;
     }
-
+    // restituisce tutte le GiftCard presenti nel db
     [HttpGet]
     public async Task<IActionResult> OttieniTutteLeGiftCard()
     {
@@ -1783,7 +1785,7 @@ public class GiftCardController : ControllerBase
 
         return Ok(giftCards);
     }
-
+    // restituisce tutte le GiftCard relative ad un utente
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
@@ -1801,7 +1803,7 @@ public class GiftCardController : ControllerBase
         return Ok(risultato);
     }
     
-
+    // crea una GiftCard e la assegna all'utente che la ha comprata
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
@@ -1815,7 +1817,7 @@ public class GiftCardController : ControllerBase
         return Ok(risultato);
     }
 
-
+    // modifica le info di una GiftCard in base al suo id
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
@@ -1833,7 +1835,7 @@ public class GiftCardController : ControllerBase
 
         return Ok(risultato);
     }
-
+    // elimina una GiftCard in base al suo id
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
@@ -1854,12 +1856,13 @@ public class GiftCardController : ControllerBase
 
         return NoContent();
     }
-
+    // funzione di log semplificata, così da non dover creare un dto ogni volta,
+    //  bisognerà poi modificare il service del log, così da non dover essere più necessario. 
     public async Task Log(string utenteId, string azione, bool risultato)
     {
         string messaggio =  "Operazione fallita";
         if (risultato) messaggio =  "Operazione eseguita";
-       
+       // chiama al service del log
         await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
         {
             IdUtente = utenteId,
