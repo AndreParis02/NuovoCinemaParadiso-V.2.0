@@ -146,6 +146,23 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
     
+    [HttpGet("giftcard/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniGiftCardTramiteIdPerAdmin(string id)
+    {
+        var risultato = await _adminService.OttieniGiftCardTramiteIdPerAdminAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",false);
+            return NotFound($"Giftcard con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",true);
+        return Ok(risultato);
+    }
+
     [HttpGet("utenti/giftCard/{giftcardId}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)

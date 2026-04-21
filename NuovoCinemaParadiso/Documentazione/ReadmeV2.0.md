@@ -1317,22 +1317,12 @@ public class AdminController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Registro nel log che la ricerca è stata effettuata.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ricerca profili",
-            Effettuato = true,
-            Messaggio = "Ricerca avvenuta"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profili",true);
+
 
         // Secondo log (puoi unificarli se vuoi).
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i profili",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili",true);
+
 
         // Restituisco la lista degli utenti.
         return Ok(utenti);
@@ -1353,25 +1343,15 @@ public class AdminController : ControllerBase
         // Se non trovato → log fallimento + 404.
         if (utente == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ricerca profilo",
-                Effettuato = false,
-                Messaggio = "Ricerca fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",false);
+
 
             return NotFound(new { messaggio = "Utente non trovato." });
         }
 
         // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ricerca profilo",
-            Effettuato = true,
-            Messaggio = "Ricerca avvenuta"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",true);
+
 
         return Ok(utente);
     }
@@ -1391,25 +1371,15 @@ public class AdminController : ControllerBase
         // Se non trovato → log fallimento + 404.
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = false,
-                Messaggio = "Eliminazione profilo fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",false);
+
 
             return NotFound(new { messaggio = "Utente non trovato." });
         }
 
         // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Eliminazione profilo",
-            Effettuato = true,
-            Messaggio = "Eliminazione profilo avvenuta"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",true);
+
 
         return Ok(risultato);
     }
@@ -1427,13 +1397,9 @@ public class AdminController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Log dell’operazione.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti gli acquisti admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti admin",true);
+
+
 
         return Ok(acquisti);
     }
@@ -1451,25 +1417,15 @@ public class AdminController : ControllerBase
         // Se non trovato → log fallimento + 404.
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni acquisti tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",false);
+
 
             return NotFound($"Acquisto con id {id} non trovato");
         }
 
         // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni acquisti tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",true);
+
 
         return Ok(risultato);
     }
@@ -1477,7 +1433,7 @@ public class AdminController : ControllerBase
     // ------------------------------------------------------------
     // 6) OTTIENI UTENTI TRAMITE ABBONAMENTO
     // ------------------------------------------------------------
-    [HttpGet("utenti/{abbonamentoid}")]
+    [HttpGet("utenti/abbonamenti/{abbonamentoid}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
     {
@@ -1486,13 +1442,7 @@ public class AdminController : ControllerBase
         // Validazione dell’ID.
         if (string.IsNullOrWhiteSpace(abbonamentoId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente= utenteId,
-                NomeAzione = "Ottieni gli utenti per abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
 
             return BadRequest("AbbonamentoId non valido");
         }
@@ -1503,29 +1453,44 @@ public class AdminController : ControllerBase
         // Se nessuno trovato → log fallimento + 404.
         if (risultato == null || risultato.Count == 0)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni gli utenti per abbonamento",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
+
 
             return NotFound("Nessun utente trovato per questo abbonamento");
         }
 
         // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",true);
+
+
+        return Ok(risultato);
+    }
+    // ------------------------------------------------------------
+    // 7) OTTIENI ABBONAMENTO TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpGet("abbonamento/{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
+    {
+        // chiamo il service per trovare l'abbonamento
+        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // validazione dell'ID
+        if (risultato == null)
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni gli utenti per abbonamento",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",false);
+            // ritorno un 404 quando non riesco a trovarlo
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+        // log di successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",true);
 
         return Ok(risultato);
     }
 
+    // ------------------------------------------------------------
+    // 8) OTTIENI GIFTCARD TRAMITE ID
+    // ------------------------------------------------------------
     [HttpGet("giftcard/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniGiftCardTramiteIdPerAdmin(string id)
@@ -1539,31 +1504,22 @@ public class AdminController : ControllerBase
         // Se la gift card non esiste, logga l’operazione come fallita e ritorna 404
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni giftcard tramite id admin",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",false);
 
             return NotFound($"Giftcard con id {id} non trovato");
         }
 
         // Se la gift card esiste, logga l’operazione come riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni giftcard tramite id admin",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",true);
+
 
         // Restituisce la gift card trovata
         return Ok(risultato);
-}
-
-    [HttpGet("utenti/{giftcardId}")]
+    }
+    // ------------------------------------------------------------
+    // 9) OTTIENI UTENTI TRAMITE L'ID DELLA GIFTCARD 
+    // ------------------------------------------------------------
+    [HttpGet("utenti/giftCard/{giftcardId}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
     {
@@ -1574,13 +1530,8 @@ public class AdminController : ControllerBase
         if (string.IsNullOrWhiteSpace(giftcardId))
         {
             // Log operazione fallita per parametro non valido
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni gli utenti per giftcard",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
+
 
             return BadRequest("giftcardId non valido");
         }
@@ -1591,25 +1542,15 @@ public class AdminController : ControllerBase
         // Se non ci sono utenti associati, logga fallimento e ritorna 404
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni gli utenti per giftcard",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
+
 
             return NotFound("Nessun utente trovato per questa giftcard");
         }
 
         // Log operazione riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni gli utenti per giftcard",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",true);
+
 
         // Restituisce la lista degli utenti trovati
         return Ok(risultato);
