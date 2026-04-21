@@ -4,7 +4,7 @@ namespace NuovoCinemaParadiso.Dtos;
 
 public class DtoSala
 {
-    public string Id {get; set;}
+    public string Id {get; set;} = string.Empty;
 
     [StringLength(100)]
     public string Nome {get; set;} = string.Empty;

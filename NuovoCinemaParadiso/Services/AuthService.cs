@@ -66,7 +66,7 @@ public class AuthService
             return null;
         }
 
-        if (utente.SeAbbonato == true)
+        if (utente.SeAbbonato == true && utente.Abbonamento != null)
         {
             DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
             int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
@@ -77,7 +77,7 @@ public class AuthService
             }
         }
 
-        if (utente.PossiedeGiftCard == true)
+        if (utente.PossiedeGiftCard == true && utente.GiftCard != null)
         {
             DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
             int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);

@@ -82,7 +82,7 @@ public class SalaService
         return risultato;
     }
 
-    public async Task<DtoSala> CreazioneAsync(DtoCreazioneSala dto)
+    public async Task<DtoSala?> CreazioneAsync(DtoCreazioneSala dto)
     {
         Sala sala = new Sala
         {
@@ -102,7 +102,7 @@ public class SalaService
             Nome = sala.Nome,
             Capienza = sala.Capienza,
             TipologiaSalaId = tipologiaSala?.Id ?? "",
-            NomeTipologia = sala.TipologiaSala?.Nome ?? ""
+            NomeTipologia = tipologiaSala?.Nome ?? ""
         };
 
         return risultato;
@@ -130,7 +130,7 @@ public class SalaService
         risultato.Nome = salaEsistente.Nome;
         risultato.Capienza = salaEsistente.Capienza;
         risultato.TipologiaSalaId = salaEsistente.TipologiaSalaId;
-        risultato.NomeTipologia = tipologiaSala.Nome;
+        risultato.NomeTipologia = tipologiaSala?.Nome ?? "";
 
         return risultato;
     }
