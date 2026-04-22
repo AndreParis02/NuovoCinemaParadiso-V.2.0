@@ -142,12 +142,23 @@ public class AuthService
         {
             return null;
         }
+        
+        Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        GiftCard giftCard       = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
 
         DtoUtente dto = new DtoUtente();
-        dto.Id = utente.Id;
-        dto.Email = utente.Email ?? string.Empty;
-        dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
-        dto.Eta = utente.Eta;
+        dto.Id                    = utente.Id;
+        dto.Email                 = utente.Email ?? string.Empty;
+        dto.NomeCompleto          = utente.NomeCompleto ?? string.Empty;
+        dto.Eta                   = utente.Eta;
+        dto.SeAbbonato            = utente.SeAbbonato;
+        dto.AbbonamentoId         = utente?.AbbonamentoId ?? "";
+        dto.TipoAbbonamento       = abbonamento?.Nome ?? "";
+        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.PossiedeGiftCard      = utente.PossiedeGiftCard;
+        dto.GiftCardId            = utente?.GiftCardId ?? "";
+        dto.TipoGiftCard          = giftCard?.Nome ?? "";
+        dto.DataInizioGiftCard    = utente.DataInizioGiftCard;
 
         return dto;
     }
