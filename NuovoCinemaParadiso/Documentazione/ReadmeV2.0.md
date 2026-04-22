@@ -2864,6 +2864,20 @@ public class AuthService
         {
             return null;
         }
+        
+        // controllo su abbonamenti o giftcard collegati all'utente
+        Abbonamento? abbonamento = null;
+        GiftCard? giftCard = null;
+
+        if (!string.IsNullOrEmpty(utente.AbbonamentoId))
+        {
+            abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        }
+
+        if (!string.IsNullOrEmpty(utente.GiftCardId))
+        {
+            giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
+        }
 
         // ---------------------------------------------------------
         // CONTROLLO SCADENZA ABBONAMENTO
@@ -2871,13 +2885,13 @@ public class AuthService
         if (utente.SeAbbonato == true)
         {
             DateTimeOffset? scadenzaAbbonamento =
-                Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+                Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
 
             int giorniMancanti =
-                Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+                Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
 
             // Se scaduto → disattiva abbonamento
-            if (giorniMancanti == 0)
+            if (giorniMancanti <= 0)
             {
                 utente.SeAbbonato = false;
             }
@@ -2895,7 +2909,7 @@ public class AuthService
                 Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
 
             // Se scaduta → disattiva gift card
-            if (giorniMancanti == 0)
+            if (giorniMancanti <= 0)
             {
                 utente.PossiedeGiftCard = false;
             }
