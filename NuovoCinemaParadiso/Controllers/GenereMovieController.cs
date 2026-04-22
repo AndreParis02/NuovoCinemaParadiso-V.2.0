@@ -80,7 +80,7 @@ public class GenereMovieController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",true);
-       
+    
 
         return Ok(risultato);
     }
@@ -101,7 +101,7 @@ public class GenereMovieController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica genere",true);
         
-           
+        
         return Ok(risultato);
     }
 
@@ -120,8 +120,8 @@ public class GenereMovieController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", true);
-       
+    
 
-        return NoContent();
+        return Ok(new {message = "Il Genere è stato eliminato correttamente"});
     }
 }
