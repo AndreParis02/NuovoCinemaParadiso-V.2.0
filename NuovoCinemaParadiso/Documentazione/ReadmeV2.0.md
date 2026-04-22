@@ -1192,7 +1192,8 @@ public class GiftCardController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Registra log dell’azione
-        await Log(utenteId, "Ottieni tutte le GiftCard", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutte le giftcards" ,true);
+
 
         return Ok(giftCards);
     }
@@ -1210,11 +1211,12 @@ public class GiftCardController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Ottieni GiftCard tramite id", false);
-            return NotFound($"GiftCard con id {id} non trovata");
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
+            return NotFound($"GiftCard con id {id} non trovato");
         }
 
-        await Log(utenteId, "Ottieni GiftCard tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
+
         return Ok(risultato);
     }
 
@@ -1231,7 +1233,7 @@ public class GiftCardController : ControllerBase
         DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
 
         // Registra log
-        await Log(utenteId, "Creazione GiftCard", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione di una giftcard" ,true);
 
         return Ok(risultato);
     }
@@ -1250,11 +1252,12 @@ public class GiftCardController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica GiftCard", false);
-            return NotFound(new { messaggio = "GiftCard non trovata." });
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica giftcard" ,false);
+          return NotFound(new { messaggio = "GiftCard non trovata." });
         }
 
-        await Log(utenteId, "Modifica GiftCard", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica GiftCard", true );
+
         return Ok(risultato);
     }
 
@@ -1271,31 +1274,16 @@ public class GiftCardController : ControllerBase
         bool eliminato = await _giftCardService.EliminazioneAsync(id);
 
         if (!eliminato)
-        {
-            await Log(utenteId, "Eliminazione GiftCard", false);
+         {
+            await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", false );
+
+
             return NotFound(new { messaggio = "GiftCard non trovata." });
-        }
+         }
 
-        await Log(utenteId, "Eliminazione GiftCard", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", true );
+
         return NoContent();
-    }
-
-    // ---------------------------------------------------------
-    // METODO PRIVATO PER SALVARE LOG DELLE AZIONI
-    // ---------------------------------------------------------
-    public async Task Log(string utenteId, string azione, bool risultato)
-    {
-        // Messaggio da salvare nel log
-        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
-
-        // Salvataggio log tramite servizio dedicato
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = azione,
-            Effettuato = risultato,
-            Messaggio = messaggio
-        });
     }
 }
 ```
@@ -2057,13 +2045,7 @@ public class ProiezioneController : ControllerBase
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le proiezioni",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+       await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
 
         return Ok(proiezioni);
     }
@@ -2073,28 +2055,17 @@ public class ProiezioneController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezione tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id",false);
 
             return NotFound($"Proiezione con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezione tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", true);
 
         return Ok(risultato);
     }
@@ -2107,96 +2078,67 @@ public class ProiezioneController : ControllerBase
 
         if (string.IsNullOrEmpty(turnoId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", false);
 
             return BadRequest("TurnoId non valido");
         }
 
-        var risultato = await _proiezioneService.OttieniTramiteTurno(turnoId);
+        var risultato = await _proiezioneService.OttieniTramiteTurnoAsync(turnoId);
 
-         if (risultato == null)
+        if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoid", false);
 
             return NotFound("Nessuna proiezione trovata per questo turno");
+        }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", true);
         return Ok(risultato);
     }
 
     // Endpoint GET: restituisce tutte le proiezioni associate a una sala specifica
-[HttpGet("sala/{salaId}")]
-public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
-{
-    // Recupera l'ID dell'utente autenticato dai claims (token JWT)
-    string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    // Controllo di validità del parametro salaId
-    if (string.IsNullOrEmpty(salaId))
+    [HttpGet("sala/{salaId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
-        // Log dell'azione fallita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        // Recupera l'ID dell'utente autenticato dai claims (token JWT)
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Controllo di validità del parametro salaId
+        if (string.IsNullOrEmpty(salaId))
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per sala",
-            Effettuato = false,
-            Messaggio = "Operazione fallita"
-        });
+            // Log dell'azione fallita
+            if (string.IsNullOrEmpty(salaId))
+           {
+             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+             return BadRequest("SalaId non valido");
+           }
 
-        // Restituisce errore 400 Bad Request
-        return BadRequest("SalaId non valido");
-    }
+            // Restituisce errore 400 Bad Request
+            return BadRequest("SalaId non valido");
+        }
 
-    // Chiama il service per ottenere le proiezioni della sala
-    var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
+        // Chiama il service per ottenere le proiezioni della sala
+        var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
 
-    // Se non viene trovato nulla
-    if (risultato == null)
-    {
-        // Log dell'azione fallita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        // Se non viene trovato nulla
+        if (risultato == null)
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per sala",
-            Effettuato = false,
-            Messaggio = "Operazione fallita"
-        });
+            // Log dell'azione fallita
+            {
+             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+             return NotFound("Nessuna proiezione trovata per questa sala");
+            }
 
-        // Restituisce errore 404 Not Found
-        return NotFound("Nessuna proiezione trovata per questa sala");
+            // Restituisce errore 404 Not Found
+            return NotFound("Nessuna proiezione trovata per questa sala");
+        }
+
+        // Log dell'azione completata con successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", true);
+
+        // Restituisce risultato con status 200 OK
+        return Ok(risultato);
     }
-
-    // Log dell'azione completata con successo
-    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-    {
-        IdUtente = utenteId,
-        NomeAzione = "Ottieni proiezioni per sala",
-        Effettuato = true,
-        Messaggio = "Operazione eseguita"
-    });
-
-    // Restituisce risultato con status 200 OK
-    return Ok(risultato);
-}
 
 
 // Endpoint GET: restituisce tutte le proiezioni associate a un film specifico
@@ -2210,16 +2152,14 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
     if(string.IsNullOrEmpty(movieId))
     {
         // Log dell'azione fallita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        if (string.IsNullOrEmpty(movieId))
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per film",
-            Effettuato = false,
-            Messaggio = "Operazione fallita"
-        });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return BadRequest("MovieId non valido");
+        
         // Restituisce errore 400 Bad Request
         return BadRequest("MovieId non valido");
+        }
     }
 
     // Chiama il service per ottenere le proiezioni del film
@@ -2229,28 +2169,18 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
     if (risultato == null)
     {
         // Log dell'azione fallita
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        if (risultato == null)
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per film",
-            Effettuato = false,
-            Messaggio = "Operazione fallita"
-        });
-
-        // Restituisce errore 404 Not Found
-        return NotFound("Nessuna proiezione trovata per questo film");
+         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+         // Restituisce errore 404 Not Found
+         return NotFound("Nessuna proiezione trovata per questo film");
+        }
     }
 
     // Log dell'azione completata con successo
-    await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-    {
-        IdUtente = utenteId,
-        NomeAzione = "Ottieni proiezioni per film",
-        Effettuato = true,
-        Messaggio = "Operazione eseguita"
-    });
+    await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
 
-    // Restituisce risultato con status 200 OK
+        // Restituisce risultato con status 200 OK
     return Ok(risultato);
 }
 
@@ -2265,17 +2195,14 @@ public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movie
         // Controllo duplicati: stessa sala, stesso turno, stessa data.
         foreach (var proiezione in proiezioni)
         {
-            if (proiezione.TurnoId == dto.TurnoId &&
-                proiezione.SalaId == dto.SalaId &&
-                proiezione.DataProiezione == dto.DataProiezione)
-            {
-                return BadRequest(new { messaggio = "Proiezione già presente." });
-            }
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+            return BadRequest(new { messaggio = "Proiezione già presente." });
         }
 
         DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
 
         if (risultato == null)
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
             return BadRequest(new { messaggio = "Proiezione non valida." });
 
         return Ok(risultato);
@@ -2656,10 +2583,217 @@ public class AcquistoController : ControllerBase
         return NoContent();
     }
 }
-
 ```
+## MovieController.cs
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
 
-# Service
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class MovieController : ControllerBase
+{
+    private readonly MovieService _movieService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public MovieController(MovieService movieService, LogAzioniService logAzioniService)
+    {
+        _movieService = movieService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTuttiIMovies()
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupera tutti i film dal servizio
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        // Registra l'azione dell'utente nel log
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+
+        // Restituisce la lista dei film
+        return Ok(movies);
+    }
+
+    [HttpGet("genere/{genereId}")]
+    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Controlla che il parametro genereId sia valido
+        if (string.IsNullOrWhiteSpace(genereId))
+        {
+            // Registra tentativo non valido nel log
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni movie per genereId" ,false);
+
+            // Restituisce errore 400 per parametro non valido
+            return BadRequest("GenereId non valido");
+        }
+
+        // Recupera i film filtrati per genere
+        var risultato = await _movieService.OttieniTramiteGenere(genereId);
+
+        // Verifica se il risultato è nullo
+        if (risultato == null)
+        {
+            // Registra nel log l'esito negativo
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
+
+            // Restituisce 404 se non ci sono risultati
+            return NotFound("Nessun film trovato per questo genere");
+        }
+
+        // Verifica se la lista dei film è vuota
+        if (risultato.Count == 0)
+        {
+            // Registra nel log l'azione completata
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);
+
+            // Restituisce una lista vuota con stato 200
+            return Ok(new List<DtoMovie>());
+        }
+
+        // Registra nel log l'azione completata con successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);
+
+        // Restituisce la lista dei film trovati
+        return Ok(risultato);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupera il film tramite id
+        var risultato = await _movieService.OttieniTramiteIdAsync(id);
+
+        // Controlla se il film esiste
+        if (risultato == null)
+        {
+            // Registra nel log il fallimento della ricerca
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", false);
+
+            // Restituisce 404 se il film non esiste
+            return NotFound($"Film con id {id} non trovato");
+        }
+
+        // Registra nel log il successo dell'operazione
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", true);
+
+        // Restituisce il film trovato
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupera tutti i film esistenti
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        // Controlla se esiste già un film con titolo simile
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo))
+            {
+                // Registra nel log il fallimento della creazione
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+
+                // Restituisce errore se il film esiste già
+                return BadRequest(new { messaggio = "Film già presente." });
+            }
+        }
+
+        // Crea un nuovo film tramite il servizio
+        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
+
+        // Controlla se la creazione è andata a buon fine
+        if (risultato == null)
+        {
+            // Registra nel log il fallimento della creazione
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+
+            // Restituisce errore di validazione
+            return BadRequest(new { messaggio = "Film non valido." });
+        }
+
+        // Registra nel log la creazione avvenuta con successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
+
+        // Restituisce il film creato
+        return Ok(risultato);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Aggiorna il film con i nuovi dati
+        DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
+
+        // Controlla se il film esiste
+        if (risultato == null)
+        {
+            // Registra nel log il fallimento della modifica
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+
+            // Restituisce 404 se il film non esiste
+            return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        // Registra nel log la modifica avvenuta con successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+
+        // Restituisce il film aggiornato
+        return Ok(risultato);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        // Recupera l'identificativo dell'utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Elimina il film tramite id
+        bool eliminato = await _movieService.EliminaAsync(id);
+
+        // Controlla se l'eliminazione è avvenuta
+        if (!eliminato)
+        {
+            // Registra nel log il fallimento dell'eliminazione
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", false);
+
+            // Restituisce 404 se il film non esiste
+            return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        // Registra nel log l'eliminazione avvenuta con successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
+
+        // Restituisce 204 senza contenuto
+        return NoContent();
+    }
+}
+```Service
 
 ## GiftCardService.cs 
 
