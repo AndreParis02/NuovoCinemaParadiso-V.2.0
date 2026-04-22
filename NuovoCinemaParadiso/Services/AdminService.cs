@@ -194,44 +194,7 @@ public class AdminService
 
         return risultato;
     }
-
-    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
-    {
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-        if (abbonamento == null)
-        {
-            return null;
-        }
-
-        DtoAbbonamento dto = new DtoAbbonamento();
-        dto.Id = abbonamento.Id;
-        dto.Nome = abbonamento.Nome;
-        dto.Durata = abbonamento.Durata;
-        dto.Prezzo = abbonamento.Prezzo;
-        dto.Sconto = abbonamento.Sconto;
-
-        return dto;
-    }
-    public async Task<DtoGiftCard?> OttieniGiftCardTramiteIdPerAdminAsync(string id)
-    {
-        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
-
-        if (giftCard == null)
-        {
-            return null;
-        }
-
-        DtoGiftCard dto = new DtoGiftCard();
-        dto.Id = giftCard.Id;
-        dto.Nome = giftCard.Nome;
-        dto.Durata = giftCard.Durata;
-        dto.Prezzo = giftCard.Prezzo;
-        dto.NumeroMovie = giftCard.NumeroMovie;
-
-        return dto;
-    }
-
+    
     public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
     {
 
