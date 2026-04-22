@@ -38,27 +38,8 @@ public class AbbonamentoController : ControllerBase
         return Ok(abbonamenti);
     }
 
-    [HttpGet("admin/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
-    {
-        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",false);
-
-            return NotFound($"Abbonamento con id {id} non trovato");
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",true);
-
-        return Ok(risultato);
-    }
-
     [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteIdPerUtente(string id)
+    public async Task<IActionResult> OttieniTramiteId(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 

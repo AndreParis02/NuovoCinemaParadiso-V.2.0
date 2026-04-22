@@ -46,22 +46,33 @@ public class AbbonamentoService
             return null;
         }
 
-        foreach (var utente in abbonamento.Utenti)
-        {
-            if (utente.Id == utenteId)
-            {
-                DtoAbbonamento risultato = new DtoAbbonamento();
-                risultato.Id = abbonamento.Id;
-                risultato.Nome = abbonamento.Nome;
-                risultato.Durata = abbonamento.Durata;
-                risultato.Prezzo = abbonamento.Prezzo;
-                risultato.Sconto = abbonamento.Sconto;
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
 
-                return risultato;
+        bool trovato = false;
+
+        for (int i = 0; i < utenti.Count; i++)
+        {
+            if (utenti[i].AbbonamentoId == abbonamento.Id &&
+                utenti[i].Id == utenteId)
+            {
+                trovato = true;
+                break;
             }
         }
 
-        return null;
+        if (!trovato)
+        {
+            return null;
+        }
+
+        DtoAbbonamento risultato = new DtoAbbonamento();
+        risultato.Id = abbonamento.Id;
+        risultato.Nome = abbonamento.Nome;
+        risultato.Durata = abbonamento.Durata;
+        risultato.Prezzo = abbonamento.Prezzo;
+        risultato.Sconto = abbonamento.Sconto;
+
+        return risultato;
     }
 
     public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
