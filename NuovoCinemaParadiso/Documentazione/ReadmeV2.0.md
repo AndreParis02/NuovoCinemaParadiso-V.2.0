@@ -853,7 +853,7 @@ public class TipologiaSalaController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Log dell'operazione
-        await Log(utenteId, "Ottieni tutte le tipologie", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
 
         return Ok(tipologieSala);
     }
@@ -869,11 +869,11 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Ottieni tipologie tramite id", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", false);
             return NotFound($"TipologiaSala con id {id} non trovato");
         }
 
-        await Log(utenteId, "Ottieni tipologie tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", true);
 
         return Ok(risultato);
     }
@@ -895,7 +895,7 @@ public class TipologiaSalaController : ControllerBase
         {
             if (tipologiaSala.Nome.Contains(dto.Nome))
             {
-                await Log(utenteId, "Creazione tipologia", false);
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
                 return BadRequest(new { messaggio = "Tipologia sala già presente." });
             }
         }
@@ -905,11 +905,11 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Creazione tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
             return BadRequest(new { messaggio = "Tipologia sala non valida." });
         }
 
-        await Log(utenteId, "Creazione tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", true);
 
         return Ok(risultato);
     }
@@ -926,11 +926,11 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", false);
             return NotFound(new { messaggio = "Tipologia sala non trovata." });
         }
 
-        await Log(utenteId, "Modifica tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", true);
 
         return Ok(risultato);
     }
@@ -947,29 +947,15 @@ public class TipologiaSalaController : ControllerBase
 
         if (!eliminato)
         {
-            await Log(utenteId, "Elimina tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", false);
             return NotFound(new { messaggio = "Tipologia sala non trovata." });
         }
 
-        await Log(utenteId, "Elimina tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", true);
 
         return NoContent();
     }
 
-    /// <summary>
-    /// Metodo interno per registrare un log tramite LogAzioniService.
-    /// </summary>
-    private async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(
-            idUtente: utenteId,
-            nomeAzione: azione,
-            effettuato: risultato,
-            messaggio: messaggio
-        );
-    }
 }
 ```
 
@@ -1018,7 +1004,7 @@ public class SalaController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Log dell'operazione
-        await Log(utenteId, "Ottieni tutte le sale", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
     }
@@ -1034,7 +1020,7 @@ public class SalaController : ControllerBase
         // Validazione dell'input
         if (string.IsNullOrWhiteSpace(tipologiaId))
         {
-            await Log(utenteId, "Ottieni sala per tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
             return BadRequest("TipologiaId non valido");
         }
 
@@ -1043,11 +1029,11 @@ public class SalaController : ControllerBase
 
         if (risultato == null || risultato.Count == 0)
         {
-            await Log(utenteId, "Ottieni sala per tipologia", false);
+            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Ottieni sala per tipologia", false);
             return NotFound("Nessuna sala trovata per questa tipologia");
         }
 
-        await Log(utenteId, "Ottieni sala per tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", true);
 
         return Ok(risultato);
     }
@@ -1063,11 +1049,11 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Ottieni sala tramite id", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala tramite id", false);
             return NotFound($"Sala con id {id} non trovato");
         }
 
-        await Log(utenteId, "Ottieni sala tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala tramite id", true);
 
         return Ok(risultato);
     }
@@ -1085,11 +1071,11 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Creazione sala", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", false);
             return BadRequest(new { messaggio = "Sala non valida." });
         }
 
-        await Log(utenteId, "Creazione sala", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", true);
 
         return Ok(risultato);
     }
@@ -1106,11 +1092,11 @@ public class SalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica sala", false);
+            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Modifica sala", false);
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
-        await Log(utenteId, "Modifica sala", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
 
         return Ok(risultato);
     }
@@ -1127,28 +1113,13 @@ public class SalaController : ControllerBase
 
         if (!eliminato)
         {
-            await Log(utenteId, "Elimina sala", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", false);
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
-        await Log(utenteId, "Elimina sala", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", true);
 
         return NoContent();
-    }
-
-    /// <summary>
-    /// Metodo interno per registrare un log tramite LogAzioniService.
-    /// </summary>
-    private async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(
-            idUtente: utenteId,
-            nomeAzione: azione,
-            effettuato: risultato,
-            messaggio: messaggio
-        );
     }
 }
 ```
@@ -2166,7 +2137,7 @@ public class TurnoController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Log dell'operazione
-        await Log(utenteId, "Ottieni tutti i turni", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
 
         return Ok(turni);
     }
@@ -2183,13 +2154,13 @@ public class TurnoController : ControllerBase
         if (risultato == null)
         {
             // Log operazione fallita
-            await Log(utenteId, "Ottieni turno tramite id", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", false);
 
             return NotFound($"Turno con id {id} non trovato");
         }
 
         // Log operazione riuscita
-        await Log(utenteId, "Ottieni turno tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", true);
 
         return Ok(risultato);
     }
@@ -2212,7 +2183,7 @@ public class TurnoController : ControllerBase
             bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
             if (stringheUguali)
             {
-                await Log(utenteId, "Creazione Turno", false);
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
                 return BadRequest(new { messaggio = "Turno già presente." });
             }
         }
@@ -2222,11 +2193,11 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Creazione Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
             return BadRequest(new { messaggio = "Turno non valido." });
         }
 
-        await Log(utenteId, "Creazione Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true);
 
         return Ok(risultato);
     }
@@ -2243,11 +2214,11 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await Log(utenteId, "Modifica Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true);
 
         return Ok(risultato);
     }
@@ -2264,29 +2235,15 @@ public class TurnoController : ControllerBase
 
         if (!eliminato)
         {
-            await Log(utenteId, "Elimina Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", false);
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await Log(utenteId, "Elimina Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
 
         return NoContent();
     }
 
-    /// <summary>
-    /// Metodo interno per registrare un log tramite LogAzioniService.
-    /// </summary>
-    private async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio = risultato ? "Operazione eseguita" : "Operazione fallita";
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(
-            idUtente: utenteId,
-            nomeAzione: azione,
-            effettuato: risultato,
-            messaggio: messaggio
-        );
-    }
 }
 ```
 
