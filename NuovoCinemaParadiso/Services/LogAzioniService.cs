@@ -32,7 +32,7 @@ public class LogAzioniService
     }
 
     public async Task SalvataggioLogAzioneAsync(string idUtente, string azione, bool effettuato)
-  {
+    {
       string messaggio = "operazione fallita";
       if(effettuato) messaggio = "operazione eseguita";
 
@@ -46,7 +46,7 @@ public class LogAzioniService
 
         _contesto.LogAzioni.Add(log);
       await _contesto.SaveChangesAsync();
-  }
+    }
 
     public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
     {

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -27,7 +26,7 @@ public class GiftCardController : ControllerBase
         List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await Log (utenteId, "Ottieni tutte le GiftCard", true );
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutte le giftcard" ,true);
 
         return Ok(giftCards);
     }
@@ -41,11 +40,12 @@ public class GiftCardController : ControllerBase
 
         if (risultato == null)
         {
-            await Log (utenteId, "Ottieni GiftCard tramite id", false );
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
             return NotFound($"GiftCard con id {id} non trovato");
         }
 
-        await Log (utenteId, "Ottieni GiftCard tramite id", true );
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
+
         return Ok(risultato);
     }
     
@@ -58,7 +58,7 @@ public class GiftCardController : ControllerBase
         
         DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
 
-        await Log (utenteId, "Creazione GiftCard", true );
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione di una giftcard" ,true);
 
         return Ok(risultato);
     }
@@ -74,10 +74,10 @@ public class GiftCardController : ControllerBase
 
         if (risultato == null)
         {
-            await Log (utenteId, "Modifica GiftCard", false );
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica giftcard" ,false);
             return NotFound(new { messaggio = "GiftCard non trovata." });
         }
-        await Log (utenteId, "Modifica GiftCard", true );
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica GiftCard", true );
 
         return Ok(risultato);
     }
@@ -92,28 +92,13 @@ public class GiftCardController : ControllerBase
 
         if (!eliminato)
         {
-            await Log (utenteId, "eliminazione GiftCard", false );
-
-
+            await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", false );
             return NotFound(new { messaggio = "GiftCard non trovata." });
         }
 
-        await Log (utenteId, "eliminazione GiftCard", true );
+        await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", true );
 
         return NoContent();
     }
 
-    public async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio =  "Operazione fallita";
-        if (risultato) messaggio =  "Operazione eseguita";
-       
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = azione,
-            Effettuato = risultato,
-            Messaggio = messaggio
-        });
-    }
 }

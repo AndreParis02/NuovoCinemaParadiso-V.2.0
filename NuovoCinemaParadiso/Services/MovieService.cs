@@ -143,12 +143,6 @@ public class MovieService
         risultato.PrezzoMovie = movieEsistente.PrezzoMovie;
         risultato.GenereId = movieEsistente.GenereId;
         risultato.Genere = genereMovie?.Genere ?? "";
-        Console.WriteLine(risultato.DurataMinuti.GetType());
-        Console.WriteLine(risultato.PrezzoMovie.GetType());
-        Console.WriteLine((int)risultato.DurataMinuti);
-        Console.WriteLine((int)risultato.PrezzoMovie);
-
-
 
         return risultato;
     }
