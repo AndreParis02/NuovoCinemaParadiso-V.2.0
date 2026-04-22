@@ -5,6 +5,8 @@ obj
 .DS_Store
 
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.mdf
 *.ldf
