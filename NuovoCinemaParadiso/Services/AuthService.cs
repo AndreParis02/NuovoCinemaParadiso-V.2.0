@@ -60,18 +60,31 @@ public class AuthService
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
     {
         Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
-        
+
         if (utente == null)
         {
             return null;
         }
 
+        Abbonamento? abbonamento = null;
+        GiftCard? giftCard = null;
+
+        if (!string.IsNullOrEmpty(utente.AbbonamentoId))
+        {
+            abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        }
+
+        if (!string.IsNullOrEmpty(utente.GiftCardId))
+        {
+            giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
+        }
+
         if (utente.SeAbbonato == true)
         {
-            DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
-            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, utente.Abbonamento.Durata);
+            DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
+            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
 
-            if (giorniMancanti == 0)
+            if (giorniMancanti <= 0)
             {
                 utente.SeAbbonato = false;
             }
@@ -79,15 +92,15 @@ public class AuthService
 
         if (utente.PossiedeGiftCard == true)
         {
-            DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
-            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, utente.GiftCard.Durata);
+            DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
+            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
 
-            if (giorniMancanti == 0)
+            if (giorniMancanti <= 0)
             {
                 utente.PossiedeGiftCard = false;
             }
         }
-        
+
         SignInResult result = await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
 
         if (!result.Succeeded)
