@@ -57,9 +57,10 @@ public class UtenteService
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
             SeAbbonato = utenteTrovato.SeAbbonato,
-            DataInizio = utenteTrovato.DataInizioAbbonamento,
+            DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             GiftCardId = utenteTrovato.GiftCardId,
+            TipoGiftCard = utenteTrovato.GiftCard.Nome,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
@@ -103,10 +104,12 @@ public class UtenteService
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
             PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
-            DataInizio = utenteTrovato.DataInizioGiftCard,
+            DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
+            DataInizioGiftCard = utenteTrovato.DataInizioGiftCard,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             GiftCardId = utenteTrovato.GiftCardId,
-            TipoGiftCard = giftCardTrovata.Nome
+            TipoGiftCard = giftCardTrovata.Nome,
+            TipoAbbonamento = utenteTrovato.Abbonamento.Nome
         };
     }
 }

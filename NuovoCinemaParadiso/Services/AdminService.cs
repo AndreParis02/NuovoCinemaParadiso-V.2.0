@@ -22,17 +22,27 @@ public class AdminService
     {
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
 
+
         List<DtoUtente> risultato = new List<DtoUtente>();
 
         for (int i = 0; i < utenti.Count; i++)
         {
             Utente utenteCorrente = utenti[i];
 
+            Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
+            GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteCorrente.GiftCardId);
+
             DtoUtente dto = new DtoUtente();
             dto.Id = utenteCorrente.Id;
             dto.Email = utenteCorrente.Email ?? string.Empty;
             dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
             dto.Eta = utenteCorrente.Eta;
+            dto.AbbonamentoId = utenteCorrente.AbbonamentoId;
+            dto.GiftCardId = utenteCorrente.GiftCardId;
+            dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
+            dto.DataInizioGiftCard = utenteCorrente.DataInizioGiftCard;
+            dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+            dto.TipoGiftCard = giftCard?.Nome ?? string.Empty;
 
             risultato.Add(dto);
         }
@@ -42,6 +52,8 @@ public class AdminService
     public async Task<DtoUtente?> OttieniUtenteTramiteIdAsync(string id)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+        Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        GiftCard giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
 
         if (utente == null)
         {
@@ -53,6 +65,12 @@ public class AdminService
         dto.Email = utente.Email ?? string.Empty;
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
+        dto.AbbonamentoId = utente.AbbonamentoId;
+        dto.GiftCardId = utente.GiftCardId;
+        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.DataInizioGiftCard = utente.DataInizioGiftCard;
+        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+        dto.TipoGiftCard = giftCard?.Nome ?? string.Empty;
 
         return dto;
     }
@@ -153,6 +171,8 @@ public class AdminService
         for (int i = 0; i < utenti.Count; i++)
         {
             Utente utenteCorrente = utenti[i];
+            Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
+            GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteCorrente.GiftCardId);
 
             if (utenteCorrente.Abbonamento == abbonamentoTrovato)
             {
@@ -163,8 +183,10 @@ public class AdminService
                 dto.Eta = utenteCorrente.Eta;
                 dto.AbbonamentoId = utenteCorrente.AbbonamentoId;
                 dto.GiftCardId = utenteCorrente.GiftCardId;
-                dto.DataInizio = utenteCorrente.DataInizioAbbonamento;
+                dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
                 dto.DataInizioGiftCard = utenteCorrente.DataInizioGiftCard;
+                dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+                dto.TipoGiftCard = giftCard?.Nome ?? string.Empty;
 
                 risultato.Add(dto);
             }
@@ -239,6 +261,8 @@ public class AdminService
         for (int i = 0; i < utenti.Count; i++)
         {
             Utente utenteCorrente = utenti[i];
+            Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
+            GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteCorrente.GiftCardId);
 
             if (utenteCorrente.GiftCard == giftCardTrovata)
             {
@@ -247,6 +271,12 @@ public class AdminService
                 dto.NomeCompleto = utenteCorrente.NomeCompleto;
                 dto.Email = utenteCorrente.Email;
                 dto.Eta = utenteCorrente.Eta;
+                dto.AbbonamentoId = utenteCorrente.AbbonamentoId;
+                dto.GiftCardId = utenteCorrente.GiftCardId;
+                dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
+                dto.DataInizioGiftCard = utenteCorrente.DataInizioGiftCard;
+                dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+                dto.TipoGiftCard = giftCard?.Nome ?? string.Empty;
 
                 risultato.Add(dto);
             }

@@ -4,7 +4,7 @@ public class DtoUtente
 {
     public string Id { get; set; } = string.Empty;
     public string NomeCompleto { get; set; } = string.Empty;
-    public DateTimeOffset DataInizio { get; set; }
+    public DateTimeOffset DataInizioAbbonamento { get; set; }
     public DateTimeOffset DataInizioGiftCard { get; set; }
     public bool SeAbbonato { get; set; }
     public bool PossiedeGiftCard { get; set; } = false;

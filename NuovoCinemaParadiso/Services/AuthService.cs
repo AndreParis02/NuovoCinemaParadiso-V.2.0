@@ -104,6 +104,10 @@ public class AuthService
         response.NomeCompleto = utente.NomeCompleto;
         response.Email = utente.Email ?? string.Empty;
         response.Eta = utente.Eta;
+        response.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        response.DataInizioGiftCard = utente.DataInizioGiftCard;
+        response.SeAbbonato = utente.SeAbbonato;
+        response.PossiedeGiftCard = utente.PossiedeGiftCard;
 
         if (ruoli.Count > 0)
         {
