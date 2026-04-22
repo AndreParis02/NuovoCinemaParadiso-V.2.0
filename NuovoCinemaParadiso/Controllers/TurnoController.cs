@@ -26,7 +26,7 @@ public class TurnoController : ControllerBase
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await Log(utenteId, "Ottieni tutti i turni", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
 
         return Ok(turni);
     }
@@ -39,12 +39,12 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Ottieni turno tramite id", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", false);
 
             return NotFound($"Turno con id {id} non trovato");
         }
 
-        await Log(utenteId, "Ottieni turno tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", true);
 
         return Ok(risultato);
     }
@@ -55,31 +55,29 @@ public class TurnoController : ControllerBase
     {
 
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();//legge la lista di tutti i turni
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
 
-
-        //controlla che il nome turno fornito dal DTO non sia già presente nella lista dei turni del db. Se trovato, restituisce errore
         foreach (var turno in turni)
         {
             bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
             if (stringheUguali)
             {
-                await Log(utenteId, "Creazione Turno", false);
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
 
                 return BadRequest(new { messaggio = "Turno già presente." });
             }
         }
 
-        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);//creazione nuovo turno. Se fallisce, ritorna errore
+        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
-            await Log(utenteId, "Creazione Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
 
             return BadRequest(new { messaggio = "Turno non valido." });
         }
 
-        await Log(utenteId, "Creazione Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true);
 
         return Ok(risultato);
     }
@@ -93,12 +91,12 @@ public class TurnoController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
 
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await Log(utenteId, "Modifica Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true);
 
         return Ok(risultato);
     }
@@ -112,26 +110,13 @@ public class TurnoController : ControllerBase
 
         if (!eliminato)
         {
-            await Log(utenteId, "Elimina Turno", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", false);
 
             return NotFound(new { messaggio = "Turno non trovato." });
         }
 
-        await Log(utenteId, "Elimina Turno", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
 
         return NoContent();
-    }
-    public async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio = "Operazione fallita";
-        if (risultato) messaggio = "Operazione eseguita";
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = azione,
-            Effettuato = risultato,
-            Messaggio = messaggio
-        });
     }
 }

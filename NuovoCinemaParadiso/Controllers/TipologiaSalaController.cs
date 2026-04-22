@@ -27,7 +27,7 @@ public class TipologiaSalaController : ControllerBase
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await Log(utenteId, "Ottieni tutte le tipologie", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
 
         return Ok(tipologieSala);
     }
@@ -40,12 +40,12 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Ottieni tipologie tramite id", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", false);
 
             return NotFound($"TipologiaSala con id {id} non trovato");
         }
 
-        await Log(utenteId, "Ottieni tipologie tramite id", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", true);
 
         return Ok(risultato);
     }
@@ -61,7 +61,7 @@ public class TipologiaSalaController : ControllerBase
         {
             if (tipologiaSala.Nome.Contains(dto.Nome))
             {
-                await Log(utenteId, "Creazione tipologia", false);
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
 
                 return BadRequest(new { messaggio = "Tipologia sala già presente." });
             }
@@ -71,12 +71,12 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Creazione tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
 
             return BadRequest(new { messaggio = "Tipologia sala non valida." });
         }
 
-        await Log(utenteId, "Creazione tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", true);
 
         return Ok(risultato);
     }
@@ -90,12 +90,12 @@ public class TipologiaSalaController : ControllerBase
 
         if (risultato == null)
         {
-            await Log(utenteId, "Modifica tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", false);
 
             return NotFound(new { messaggio = "Tipologia sala non trovata." });
         }
 
-        await Log(utenteId, "Modifica tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", true);
 
         return Ok(risultato);
     }
@@ -109,26 +109,14 @@ public class TipologiaSalaController : ControllerBase
 
         if (!eliminato)
         {
-            await Log(utenteId, "Elimina tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", false);
 
             return NotFound(new { messaggio = "Tipologia sala non trovata." });
         }
 
-        await Log(utenteId, "Elimina tipologia", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", true);
 
         return NoContent();
     }
-    public async Task Log(string utenteId, string azione, bool risultato)
-    {
-        string messaggio = "Operazione fallita";
-        if (risultato) messaggio = "Operazione eseguita";
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = azione,
-            Effettuato = risultato,
-            Messaggio = messaggio
-        });
-    }
 }
