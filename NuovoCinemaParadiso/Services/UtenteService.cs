@@ -59,6 +59,7 @@ public class UtenteService
             SeAbbonato = utenteTrovato.SeAbbonato,
             DataInizio = utenteTrovato.DataInizioAbbonamento,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
+            GiftCardId = utenteTrovato.GiftCardId,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
@@ -103,6 +104,7 @@ public class UtenteService
             Eta = utenteTrovato.Eta,
             PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
             DataInizio = utenteTrovato.DataInizioGiftCard,
+            AbbonamentoId = utenteTrovato.AbbonamentoId,
             GiftCardId = utenteTrovato.GiftCardId,
             TipoGiftCard = giftCardTrovata.Nome
         };

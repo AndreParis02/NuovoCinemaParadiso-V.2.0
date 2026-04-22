@@ -161,6 +161,10 @@ public class AdminService
                 dto.NomeCompleto = utenteCorrente.NomeCompleto;
                 dto.Email = utenteCorrente.Email;
                 dto.Eta = utenteCorrente.Eta;
+                dto.AbbonamentoId = utenteCorrente.AbbonamentoId;
+                dto.GiftCardId = utenteCorrente.GiftCardId;
+                dto.DataInizio = utenteCorrente.DataInizioAbbonamento;
+                dto.DataInizioGiftCard = utenteCorrente.DataInizioGiftCard;
 
                 risultato.Add(dto);
             }

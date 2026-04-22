@@ -103,6 +103,7 @@ public class AuthService
         response.Id = utente.Id;
         response.NomeCompleto = utente.NomeCompleto;
         response.Email = utente.Email ?? string.Empty;
+        response.Eta = utente.Eta;
 
         if (ruoli.Count > 0)
         {
