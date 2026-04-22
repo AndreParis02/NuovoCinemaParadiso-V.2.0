@@ -39,8 +39,14 @@ public class UtenteService
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteTrovato.GiftCardId);
 
         if (utenteTrovato == null)
+        {
+            return null;
+        }   
+
+        if(utenteTrovato.SeAbbonato)
         {
             return null;
         }
@@ -50,21 +56,22 @@ public class UtenteService
         utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
         await _contesto.SaveChangesAsync();
 
-        GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteTrovato.GiftCardId);
         return new DtoUtente()
         {
             Id = utenteTrovato.Id,
             NomeCompleto = utenteTrovato.NomeCompleto,
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
-            SeAbbonato = utenteTrovato.SeAbbonato,
+            PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
             DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
+            DataInizioGiftCard = utenteTrovato.DataInizioGiftCard,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             GiftCardId = utenteTrovato.GiftCardId,
             TipoGiftCard = giftCard?.Nome ?? string.Empty,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
+
     public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
@@ -87,9 +94,15 @@ public class UtenteService
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
-        Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utenteTrovato.AbbonamentoId);
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteTrovato.AbbonamentoId);
 
         if (utenteTrovato == null)
+        {
+            return null;
+        }
+
+        
+        if(utenteTrovato.PossiedeGiftCard)
         {
             return null;
         }
@@ -111,7 +124,7 @@ public class UtenteService
             AbbonamentoId = utenteTrovato.AbbonamentoId,
             GiftCardId = utenteTrovato.GiftCardId,
             TipoGiftCard = giftCardTrovata.Nome,
-            TipoAbbonamento = abbonamento?.Nome = string.Empty
+            TipoAbbonamento = abbonamento?.Nome ?? string.Empty
         };
     }
 }
