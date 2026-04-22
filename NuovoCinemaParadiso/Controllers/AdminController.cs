@@ -100,7 +100,7 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpGet("utenti/abbonamenti/{abbonamentoid}")]
+    [HttpGet("utenti/abbonamento/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
@@ -146,7 +146,7 @@ public class AdminController : ControllerBase
         return Ok(risultato);
     }
     
-    [HttpGet("utenti/giftCard/{giftcardId}")]
+    [HttpGet("utenti/giftCard/{Id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
     {

@@ -64,9 +64,9 @@ public static class DataSeeder
         await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
 
-        await AssicuraEsistenzaAbbonamento(contestoDb, "10 Film", 85, 10, 12);
-        await AssicuraEsistenzaAbbonamento(contestoDb, "25 Film", 190, 25, 12);
-        await AssicuraEsistenzaAbbonamento(contestoDb, "50 Film", 325, 50, 12);
+        await AssicuraEsistenzaGiftCard(contestoDb, "10 Film", 85, 10, 12);
+        await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
+        await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)

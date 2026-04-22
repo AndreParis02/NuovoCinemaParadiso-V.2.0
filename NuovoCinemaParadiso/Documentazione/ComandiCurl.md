@@ -1,4 +1,4 @@
-# Comandi Curl (cambiare la porta localhost per farlo funzionare):
+# Comandi Curl:
 
 # Utente:
 
@@ -53,7 +53,7 @@ curl -s -X PUT "http://localhost:5226/api/GestoreUtenti/cambia-ruolo" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
     "email":"mariorossi@gmail.com", 
-    "nuovoRuolo":"Opera"
+    "nuovoRuolo":"Operatore"
     }' | jq
 ```
 
@@ -444,7 +444,7 @@ curl -s -X GET "http://localhost:5226/api/Proiezione/turno/Id Turno" \
 curl -s -X GET "http://localhost:5226/api/Proiezione/sala/Id Sala" \
 ```
 
-## ottieni proiezione per film
+## ottieni proiezione per movie
 
 ```bash
 curl -s -X GET "http://localhost:5226/api/Proiezione/movie/Id Movie" \
@@ -529,7 +529,7 @@ curl -s -X GET "http://localhost:5226/api/Admin/abbonamento/Id Abbonamento" -H "
 
 ## Leggi Utenti Per Id Abbonamento
 ```bash
-curl -X GET "https://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
+curl -X GET "http://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json"
   ```
@@ -543,7 +543,7 @@ curl -s -X GET "http://localhost:5226/api/Admin/giftCard/Id GiftCard" -H "Author
 
 ## Leggi Utenti Per Id GiftCard
 ```bash
-curl -X GET "https://localhost:5226/Admin/utenti/giftCard/Id_giftCard" \
+curl -X GET "http://localhost:5226/Admin/utenti/giftCard/Id_giftCard" \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json"
   ```
@@ -553,7 +553,7 @@ curl -X GET "https://localhost:5226/Admin/utenti/giftCard/Id_giftCard" \
 ## Abbonati
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
+curl -s -X POST "http://localhost:5226/api/Utente/abbonati" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -564,15 +564,10 @@ curl -s -X POST "http://localhost:5226/api/Utenti/abbonati" \
 ## GiftCard:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Utenti/giftcard" \
+curl -s -X POST "http://localhost:5226/api/Utente/giftcard" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
   "giftCardId": "id giftCardId"
 }'
 ```
-
-
-
-
-
