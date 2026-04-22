@@ -5408,3 +5408,113 @@ public class GenereMovieController : ControllerBase
     }
 }
 ```
+
+## UtenteController.cs (modifica log azioni)
+
+```c#
+// Importa gli attributi per la gestione dell'autorizzazione
+using Microsoft.AspNetCore.Authorization;
+// Importa le funzionalità base dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell'utente loggato dal token
+using System.Security.Claims;
+// Importa il servizio applicativo per la gestione degli utenti
+using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati per scambiare dati con il client
+using NuovoCinemaParadiso.Dtos;
+// Importa i modelli del dominio (se necessari in questo controller)
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che questa classe è un controller API
+[ApiController]
+// Definisce la route base: /api/Utente
+[Route("api/[controller]")]
+// Richiede che l'utente sia autenticato per accedere a tutti gli endpoint del controller
+[Authorize]
+public class UtenteController : ControllerBase
+{
+    // Riferimento al servizio che gestisce la logica sugli utenti
+    private readonly UtenteService _utenteService;
+    // Riferimento al servizio che registra i log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Costruttore con dependency injection dei servizi necessari
+    public UtenteController(UtenteService utenteService, LogAzioniService logAzioniService)
+    {
+        // Assegna il servizio utenti al campo privato
+        _utenteService = utenteService;
+        // Assegna il servizio log al campo privato
+        _logAzioniService = logAzioniService;
+    }
+
+    // Endpoint POST: permette all'utente loggato di abbonarsi
+    [HttpPost("abbonati")]
+    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    {
+        // Recupera l'Id dell'utente loggato dai claim del token
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Verifica che il DTO non sia nullo e che l'Id dell'abbonamento sia valorizzato
+        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        {
+            // Registra un log di operazione fallita per l'azione "Abbonati"
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            // Restituisce una risposta 400 BadRequest con messaggio di errore
+            return BadRequest("Dati non validi");
+        }
+
+        // Richiede al servizio di associare l'abbonamento all'utente loggato
+        var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
+
+        // Se il servizio non trova utente o abbonamento, o l'operazione fallisce
+        if (risultato == null)
+        {
+            // Registra un log di operazione fallita per l'azione "Abbonati"
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            // Restituisce una risposta 404 NotFound con messaggio di errore
+            return NotFound("Utente o abbonamento non trovato");
+        }
+
+        // Registra un log di operazione riuscita per l'azione "Abbonati"
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
+        // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
+        return Ok(risultato);
+    }
+
+    // Endpoint POST: permette all'utente loggato di associare una GiftCard
+    [HttpPost("giftCard")]
+    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    {
+        // Recupera l'Id dell'utente loggato dai claim del token
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Verifica che il DTO non sia nullo e che l'Id della GiftCard sia valorizzato
+        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        {
+            // Registra un log di operazione fallita per l'azione "GiftCard"
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+            // Restituisce una risposta 400 BadRequest con messaggio di errore
+            return BadRequest("Dati non validi");
+        }
+
+        // Richiede al servizio di associare la GiftCard all'utente loggato
+        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+
+        // Se il servizio non trova utente o GiftCard, o l'operazione fallisce
+        if (risultato == null)
+        {
+            // Registra un log di operazione fallita per l'azione "GiftCard"
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+            // Restituisce una risposta 404 NotFound con messaggio di errore
+            return NotFound("Utente o GiftCard non trovata");
+        }
+
+        // Registra un log di operazione riuscita per l'azione "GiftCard"
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
+        // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
+        return Ok(risultato);
+    }
+}
+```
