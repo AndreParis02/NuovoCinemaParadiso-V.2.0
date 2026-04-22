@@ -26,13 +26,7 @@ public class GenereMovieController : ControllerBase
         List<DtoGenereMovie> generiMovie = await _genereMovieService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i generi",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i generi",true);
 
         return Ok(generiMovie);
     }
@@ -45,24 +39,16 @@ public class GenereMovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni genere tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni genere tramite id",false);
+
+            
 
             return NotFound($"GenereMovie con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni genere tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni genere tramite id",true);
+
+        
 
         return Ok(risultato);
     }
@@ -78,13 +64,7 @@ public class GenereMovieController : ControllerBase
         {
             if (generiMovies.Genere.Contains(dto.Genere))
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione genere",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",false);
 
                 return BadRequest(new { messaggio = "Genere già presente." });
             }
@@ -94,24 +74,13 @@ public class GenereMovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",false);
 
             return BadRequest(new { messaggio = "Genere non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione genere",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",true);
+    
 
         return Ok(risultato);
     }
@@ -125,25 +94,14 @@ public class GenereMovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica genere",false);
 
             return NotFound(new { messaggio = "Genere non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica genere",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica genere",true);
+        
+        
         return Ok(risultato);
     }
 
@@ -156,25 +114,14 @@ public class GenereMovieController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", false);
 
             return NotFound(new { messaggio = "Genere non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina genere",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", true);
+    
 
-        return NoContent();
+        return Ok(new {message = "Il Genere è stato eliminato correttamente"});
     }
 }

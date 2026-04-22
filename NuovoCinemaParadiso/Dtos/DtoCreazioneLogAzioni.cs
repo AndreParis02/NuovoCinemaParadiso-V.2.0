@@ -6,7 +6,5 @@ public class DtoCreazioneLogAzioni
     public string NomeAzione { get; set; } = string.Empty;
     public bool   Effettuato { get; set; }
     public string Messaggio { get; set; } = string.Empty;
-
     public DateTimeOffset TimeStamp { get; set; }
-
 }

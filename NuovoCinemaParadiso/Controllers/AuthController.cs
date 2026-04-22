@@ -24,25 +24,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Registrazione(DtoRegistrazione dto)
     {
         IdentityResult result = await _authService.RegistrazioneAsync(dto);
+        string? utenteId = null;
 
         if (!result.Succeeded)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                NomeAzione = "Registrazione utente",
-                Effettuato = false,
-                Messaggio = "Registrazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", false);
             return BadRequest(result.Errors);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            NomeAzione = "Registrazione utente",
-            Effettuato = true,
-            Messaggio = "Registrazione avvenuta"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", true);
         return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
     }
 
@@ -50,24 +40,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] DtoLogin dto)
     {
         DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+
         if (risposta == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                NomeAzione = "Login",
-                Effettuato = false,
-                Messaggio = "Login fallito"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
             return Unauthorized(new { messaggio = "Email o password non validi." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = risposta.Id,
-            NomeAzione = "Login",
-            Effettuato = true,
-            Messaggio = "Login avvenuto"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
         return Ok(risposta);
     }
 
@@ -75,30 +55,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
 
         if (utente == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ricerca profilo loggato",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo loggato", false);
             return NotFound(new { messaggio = "Utente non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utente.Id,  
-                NomeAzione = "Ricerca profilo loggato",
-                Effettuato = true,
-                Messaggio  = "Ricerca avvenuta"
-            });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo loggato", true);
         return Ok(utente);
     }
 
@@ -106,37 +71,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         var risultato = await _authService.ModificaAsync(dto, utenteId);
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica utente",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", false);
             return NotFound(new { messaggio = "Utente non trovato." });
         }
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Modifica profilo",
-                Effettuato = true,
-                Messaggio  = "Modifica profilo avvenuta"
-            });
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica utente",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", true);
         return Ok(risultato);
     }
 
@@ -144,21 +87,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Elimina()
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         var risultato = await _authService.EliminaAsync(utenteId);
 
         if (risultato == null)
-        {   
+        {
             return NotFound(new { messaggio = "Utente non trovato." });
         }
-        
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {   
-                IdUtente   = utenteId,
-                NomeAzione = "Eliminazione profilo",
-                Effettuato = true,
-                Messaggio  = "Eliminazione profilo avvenuta"
-            });
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
         return Ok(risultato);
     }
 }

@@ -26,14 +26,7 @@ public class MovieController : ControllerBase
         List<DtoMovie> movies = await _movieService.OttieniTutto();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutti i movies",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
         return Ok(movies);
     }
 
@@ -44,39 +37,27 @@ public class MovieController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(genereId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest("GenereId non valido");
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni movie per genereId" ,false);
+          return BadRequest("GenereId non valido");
         }
 
         var risultato = await _movieService.OttieniTramiteGenere(genereId);
 
-        if (risultato == null || risultato.Count == 0)
+        if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movies per genere",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
 
-            return NotFound("Nessun film trovato per questo genere");
+          return NotFound("Nessun film trovato per questo genere");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
+        if (risultato.Count == 0)
         {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni movies per genere",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);
+
+          return Ok(new List<DtoMovie>());
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);;
 
         return Ok(risultato);
     }
@@ -90,25 +71,11 @@ public class MovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni movie tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound($"Film con id {id} non trovato");
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", false);
+          return NotFound($"Film con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni movie tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", true);
         return Ok(risultato);
     }
 
@@ -123,15 +90,8 @@ public class MovieController : ControllerBase
         {
             if (movie.Titolo.Contains(dto.Titolo))
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione movie",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
-
-                return BadRequest(new { messaggio = "Film già presente." });
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "Film già presente." });
             }
         }
         
@@ -139,25 +99,11 @@ public class MovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione movie",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return BadRequest(new { messaggio = "Film non valido." });
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+          return BadRequest(new { messaggio = "Film non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione movie",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
         return Ok(risultato);
     }
 
@@ -171,25 +117,11 @@ public class MovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica movie",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
-            return NotFound(new { messaggio = "Film non trovato." });
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+          return NotFound(new { messaggio = "Film non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica movie",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
         return Ok(risultato);
     }
 
@@ -203,25 +135,11 @@ public class MovieController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina movie",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", false);
             return NotFound(new { messaggio = "Film non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina movie",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
         return NoContent();
     }
 }

@@ -27,13 +27,7 @@ public class ProiezioneController : ControllerBase
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni tutte le proiezioni",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
 
         return Ok(proiezioni);
     }
@@ -47,27 +41,16 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezione tramite id",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id",false);
 
             return NotFound($"Proiezione con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezione tramite id",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", true);
 
         return Ok(risultato);
     }
+
     [HttpGet("turno/{turnoId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
     {
@@ -75,13 +58,7 @@ public class ProiezioneController : ControllerBase
 
         if (string.IsNullOrEmpty(turnoId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", false);
 
             return BadRequest("TurnoId non valido");
         }
@@ -90,25 +67,12 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per turno",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoid", false);
 
             return NotFound("Nessuna proiezione trovata per questo turno");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per turno",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", true);
         return Ok(risultato);
     }
 
@@ -119,14 +83,7 @@ public class ProiezioneController : ControllerBase
 
         if (string.IsNullOrEmpty(salaId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per sala",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
             return BadRequest("SalaId non valido");
         }
 
@@ -134,24 +91,11 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per sala",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
             return NotFound("Nessuna proiezione trovata per questa sala");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per sala",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", true);
 
         return Ok(risultato);
     }
@@ -163,14 +107,7 @@ public class ProiezioneController : ControllerBase
 
         if (string.IsNullOrEmpty(movieId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per film",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
             return BadRequest("MovieId non valido");
         }
 
@@ -178,24 +115,11 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Ottieni proiezioni per film",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
             return NotFound("Nessuna proiezione trovata per questo film");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Ottieni proiezioni per film",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
 
         return Ok(risultato);
     }
@@ -212,13 +136,7 @@ public class ProiezioneController : ControllerBase
         {
             if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-                {
-                    IdUtente = utenteId,
-                    NomeAzione = "Creazione movie",
-                    Effettuato = false,
-                    Messaggio = "Operazione fallita"
-                });
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
                 return BadRequest(new { messaggio = "Proiezione già presente." });
             }
@@ -228,25 +146,11 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Creazione proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
             return BadRequest(new { messaggio = "Proiezione non valida." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Creazione proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
         return Ok(risultato);
     }
 
@@ -260,24 +164,12 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Modifica proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", false);
 
             return NotFound(new { messaggio = "Proiezione non trovata." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Modifica proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
 
         return Ok(risultato);
     }
@@ -292,24 +184,12 @@ public class ProiezioneController : ControllerBase
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-            {
-                IdUtente = utenteId,
-                NomeAzione = "Elimina proiezione",
-                Effettuato = false,
-                Messaggio = "Operazione fallita"
-            });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
 
             return NotFound(new { messaggio = "Proiezione non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(new DtoCreazioneLogAzioni
-        {
-            IdUtente = utenteId,
-            NomeAzione = "Elimina proiezione",
-            Effettuato = true,
-            Messaggio = "Operazione eseguita"
-        });
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
 
         return NoContent();
     }
