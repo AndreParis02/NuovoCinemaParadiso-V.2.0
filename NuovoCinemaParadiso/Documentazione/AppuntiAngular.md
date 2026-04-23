@@ -198,20 +198,20 @@ TipoDato|Model|Dto In|Dto Out|
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
 |---|---|---|---|
 |POST|Auth/registrazione| No| Nessuno|
-|GET|Auth/profilo| Si | Tutti|
-|PUT|Auth/modifica| Si | Gestore o operatore|
-|DELETE|Auth/elimina | Si | Tutti|
+|GET|Auth/profilo| Richiesto | Qualsiasi|
+|PUT|Auth/modifica| Richiesto[Authorize] | Gestore o operatore|
+|DELETE|Auth/elimina | Richiesto | Qualsiasi|
 
 
 ## GenereMovie
 
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
 |---|---|---|---|
-|GET|/GenereMovie| Si| |
-|GET|/GenereMovie/{id}| Si | Utente|
-|POST|/GenereMovie| Si | Gestore o operatore|
-|PUT|/GenereMovie/{id} | Si | Gestore o Operatore |
-|DELETE|/GenereMovie/{id} | Si | Gestore o Operatore |
+|GET|/GenereMovie| Richiesto| Qualsiasi |
+|GET|/GenereMovie/{id}| Richiesto | Qualsiasi|
+|POST|/GenereMovie| Richiesto[Authorize] | Gestore o operatore|
+|PUT|/GenereMovie/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/GenereMovie/{id} | Richiesto[Authorize] | Gestore o Operatore |
 
 ## Movie
 
@@ -252,3 +252,72 @@ TipoDato|Model|Dto In|Dto Out|
 |GET|/Admin/utenti/abbonamento/Id_abbonamento|SI|GestoreOrOperatore|
 |GET|/Admin/utenti/giftCard/Id_giftCard|SI|GestoreOrOperatore|
 |GET|/Admin/log|SI|Gestore|
+|GET|/Movie| Richiesto|Qualsiasi|
+|GET|/Movie/{Id}| Richiesto | Qualsiasi|
+|GET|/Movie/genereMovie/{genereId}| Richiesto | Qualsiasi|
+|POST|/Movie| Richiesto[Authorize] | Gestore o operatore|
+|PUT|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
+
+## Acquisto
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Acquisto| Richiesto|Qualsiasi|
+|GET|/Acquisto/{id}| Richiesto |Qualsiasi|
+|POST|/Acquisto| Richiesto |Qualsiasi|
+|PUT|/Acquisto/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/Acquisto/{id} | Richiesto[Authorize] | Gestore o Operatore |
+
+## GiftCard
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/GiftCard| Richiesto|Qualsiasi|
+|GET|/GiftCard/{id}| Richiesto |Qualsiasi|
+|POST|/GiftCard| Richiesto[Authorize] |Gestore o Operatore|
+|PUT|/GiftCard/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/GiftCard/{id} | Richiesto[Authorize] | Gestore o Operatore |
+
+## TipologiaSalaController.cs
+
+|Tipo chiamata|Endpoint|Login richiesto|Ruolo richiesto|
+|---|---|---|---|
+|GET|TipologiaSala|Richiesto|Qualsiasi|
+|GET|TipologiaSala/id|Richiesto|Qualsiasi|
+|POST|TipologiaSala|Richiesto[Authorize]|GestoreoOperatore|
+|PUT|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+|DELETE|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+
+## TurnoController.cs
+|Tipo chiamata|Endpoint|Login richiesto|Ruolo richiesto|
+|---|---|---|---|
+|GET|TipologiaSala|Richiesto|Qualsiasi|
+|GET|TipologiaSala/id|Richiesto|Qualsiasi|
+|POST|TipologiaSala|Richiesto[Authorize]|GestoreoOperatore|
+|PUT|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+|DELETE|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+
+## Sala
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Sala|Richiesto|Qualsiasi|
+|GET|/Sala/TipologiaSala/{tipologiaId}|Richiesto| |
+|GET|/Sala/{Id}|Richiesto|Qualsiasi|
+|POST|/Sala/|Richiesto[Authorize]| Gestore o Operatore |
+|PUT|/Sala/{Id}|Richiesto[Authorize]| Gestore o Operatore |
+|DELETE|/Sala/{Id}|Richiesto[Authorize]| Gestore o Operatore |
+
+## Proiezione
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Proiezione|Richiesto|Qualsiasi|
+|GET|/Proiezione/{id}|Richiesto|Qualsiasi|
+|GET|/Proiezione/turno/{TurnoId}|Richiesto|Qualsiasi|
+|GET|/Proiezione/sala/{salaId}|Richiesto|Qualsiasi|
+|GET|/Proiezione/movie/{movieId}|Richiesto|Qualsiasi|
+|POST|/Proiezione|Richiesto[Authorize]| Gestore o Operatore |
+|PUT|/Proiezione/{id}|Richiesto[Authorize]| Gestore o Operatore |
+|DELETE|/Proiezione/{id}|Richiesto[Authorize]| Gestore o Operatore |
