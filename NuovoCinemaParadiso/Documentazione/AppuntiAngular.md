@@ -11,4 +11,16 @@ Prima di tutto si definiscono queste cose:
 
 - leggere tutti i dto e creare le interfacce typescript;
 
+|Assegnato| user | task |
+|---|---|---|
+| |Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
+| |Andrea P.|Abbonamento, Acquisto, GiftCard|
+| |Fabio|AuthResponse, GenereMovie, Movie| 
+| |Greg|Proiezione, Registrazione, Sala|
+| |Lorenzo|TipologiaSala, Turno, Utente| 
+
+
+
+|Model|Dto In|Dto Out|
+|---|---|---|
 
