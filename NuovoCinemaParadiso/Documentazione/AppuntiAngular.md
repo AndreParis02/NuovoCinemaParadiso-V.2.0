@@ -101,3 +101,67 @@ TipoDato|Model|Dto In|Dto Out|
 |decimal|Prezzo|Prezzo|Prezzo|
 |int|NumeroMovie|NumeroMovie|NumeroMovie|
 |List<Utente>|Utenti| | |
+
+|Proiezione.cs| DtoCreazioneProiezione.cs|Dtoproiezione.cs|
+||DtoRegostrazione.cs||
+|Sala.cs|DtoCreazioneSala.cs|DtoSala.cs|
+
+## Proiezione
+
+### Model
+
+- Id -> Guid
+- DataProiezione
+- MovieId -> ForeignKey
+- SalaId -> ForeignKey
+- TurnoId -> ForeignKey
+- List<Acquisti>
+
+### DtoIn
+
+- MovieId
+- SalaId
+- TurnoId
+- DataProiezione
+
+### Dtoout
+
+- Id
+- DataProiezione
+- MovieId
+- SalaId
+- TurnoId
+
+## Registrazione
+
+### Model
+NULL
+
+### DtoIn
+- Email -> [EmailAddress] [Required]
+- Password -> [Required] [StringLength(100, MinimumLength = 6)]
+- NomeCompleto -> [Required] [StringLength(100)]
+- Eta
+### Dtoout
+NULL
+## Sala
+
+
+### Model
+- Id -> Guid
+- Nome -> [Required] [StringLength(100)]
+- Capienza
+- List<Acquisti>
+- TipologiaSalaId -> ForeignKey
+
+### DtoIn
+- Nome -> [Required] [StringLength(100)]
+- Capienza
+- TipologiaSalaId
+
+### Dtoout
+- Id
+- Nome -> [StringLength(100)]
+- Capienza
+- TipologiaSalaId
+- NomeTipologia
