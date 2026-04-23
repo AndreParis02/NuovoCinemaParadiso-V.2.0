@@ -17,7 +17,6 @@ public class Utente : IdentityUser
     public bool SeAbbonato { get; set; } = false;
     [Required]
     public bool PossiedeGiftCard { get; set; } = false;
-
     public DateTimeOffset DataInizioAbbonamento { get; set; }
     public DateTimeOffset DataInizioGiftCard { get; set; }
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
