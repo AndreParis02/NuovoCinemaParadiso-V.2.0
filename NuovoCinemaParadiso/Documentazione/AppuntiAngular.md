@@ -120,6 +120,45 @@ TipoDato|Model|Dto In|Dto Out|
 |int|NumeroBiglietti|NumeroBiglietti|NumeroBiglietti|
 |string|MetodoPagamento|MetodoPagamento|MetodoPagamento|
 
+## LogAzioni
+
+|LogAzioni|DtoLogAzioni|DtoCreazioneLogAzioni|
+|---|---|---|
+|string|Id|Id|Id|
+|string|IdUtente|IdUtente|IdUtente|
+|string|NomeAzione|NomeAzione|NomeAzione|
+|bool|Effettuato|Effettuato|Effettuato|
+|string|Messaggio|Messaggio|Messaggio|
+|DateTimeOffset|TimeStamp|TimeStamp|TimeStamp|
+
+## Login
+
+|TipoDato|Utente|DtoLogin|DtoAuthResponse|
+|---|---|---|---|
+|string||Id|
+|string|NomeCompleto||NomeCompleto|
+|string|||Token|
+|int|Eta||Eta|
+|string||Email|Email|
+|string||Password||
+|string|||Ruolo|
+|DateTimeOffset|DataInizioAbbonamento||DataInizioAbbonamento|
+|DateTimeOffset|DataInizioGiftCard||DataInizioGiftCard|
+|bool|SeAbbonato||SeAbbonato|
+|bool|PossiedeGiftCard||PossiedeGiftCard|
+|List<Acquisto>|Acquisti|||
+|string|AbbonamentoId|||
+|Abbonamento|Abbonamento|||
+|string|GiftCardId|||
+|GiftCard|GiftCard|||
+
+## ModificaRuoloUtente
+
+|TipoDato|Utente|DtoModificaRuoloUtente|DtoModificaRuoloUtente|
+|---|---|---|---|
+|string||Email|Email|
+|string||NuovoRuolo|Ruolo|
+|string|||messaggio|
 ## GiftCard
 TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
