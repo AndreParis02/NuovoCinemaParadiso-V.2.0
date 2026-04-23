@@ -12,6 +12,4 @@ public class DtoAuthResponse
    public DateTimeOffset DataInizioGiftCard { get; set; }
    public bool SeAbbonato { get; set; }
    public bool PossiedeGiftCard { get; set; } = false;
-
-
 }

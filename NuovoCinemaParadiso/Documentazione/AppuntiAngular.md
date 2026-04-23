@@ -13,61 +13,82 @@ Prima di tutto si definiscono queste cose:
 
 |Assegnato| user | task |
 |---|---|---|
-| |Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
+|x|Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
 |x|Andrea P.|Abbonamento, Acquisto, GiftCard|
-| |Fabio|AuthResponse, GenereMovie, Movie| 
+|x|Fabio|AuthResponse, GenereMovie, Movie| 
 | |Greg|Proiezione, Registrazione, Sala|
-| |Lorenzo|TipologiaSala, Turno, Utente| 
+|x|Lorenzo|TipologiaSala, Turno, Utente| 
 
 
 ## TipologiaSala
-|Model|Dto In|Dto Out|
-|---|---|---|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
 |string Id|string Nome|string Id
 |string Nome|decimal MaggiorazionePrezzo|string Nome
 |decimal MaggiorazionePrezzo||decimal MaggiorazionePrezzo
 |List Sale||
 
 ## Turno
-|Model|Dto In|Dto Out|
-|---|---|---|
-|string Id|Required TimeOnly OraInizio|string Id
-|Required TimeOnly OraInizio|Required TimeOnly OraFine|TimeOnly OraInizio
-|Required TimeOnly OraFine|string Nome|TimeOnly OraFine
-|string Nome||string Nome
-|List Sale||
-
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Nome|Nome|Nome|
+|decimal|MaggiorazionePrezzo|MaggiorazionePrezzo|MaggiorazionePrezzo|
+|List<Sala>|Sale|||
 
 ## Utente
-|Model|Dto In|Dto Out|
-|---|---|---|
-|string NomeCompleto|Required string NomeCompleto|string Id
-|int Eta|Required Eta|string NomeCompleto
-|bool SeAbbonato||DateTimeOffset DataInizioAbbonamento
-|bool PossiedeGiftCard||DateTimeOffset DataInizioGiftCard
-|DateTimeOffset DataInizioAbbonamento||bool SeAbbonato
-|DateTimeOffset DataInizioGiftCard||bool PossiedeGiftCard
-|List Acquisti||string Email
-|Abbonamento? Abbonamento||int Eta
-|string GiftCard||string AbbonamentoId
-|GiftCard? GiftCard||string GiftCard
-|||string TipoAbbonamento
-|||string TipoGiftCard
-## Authresponse
-|Model|Dto In|Dto Out|
-|---|---|---|
-||(DTOLOGIN) string Email, string Password|string Id, string NomeCompleto, string Token, int Eta, string Email , string Ruolo , DateTimeOffset DataInizioAbbonamento, DateTimeOffset DataInizioGiftCard, bool SeAbbonato,bool PossiedeGiftCard|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|NomeCompleto|NomeCompleto|NomeCompleto|
+|string|Email||Email|
+|int|Eta|Eta|Eta|
+|DateTimeOffset|DataInizioAbbonamento||DataInizioAbbonamento|
+|DateTimeOffset|DataInizioGiftCard||DataInizioGiftCard|
+|bool|SeAbbonato||SeAbbonato|
+|bool|PossiedeGiftCard||PossiedeGiftCard|
+|string|AbbonamentoId||AbbonamentoId|
+|Abbonamento|Abbonamento|||
+|string|||TipoAbbonamento|
+|string|GiftCardId||GiftCardId|
+|GiftCard|GiftCard|||
+|string|||TipoGiftCard|
+|List<Acquisto>|Acquisti|||
 
+## Authresponse
+|TipoDato|Model (Utente)|Dto In(DtoLogin)|Dto Out|
+|---|---|---|---|
+|string|||Id|
+|string|NomeCompleto||NomeCompleto|
+|string|||Token|
+|int|Eta||Eta|
+|string|Email|Email|Email|
+|string||Password||
+|string|||Ruolo|
+|DateTimeOffset|||DataInizioAbbonamento|
+|DateTimeOffset|||DataInizioGiftCard|
+|bool|||SeAbbonato|
+|bool|||PossiedeGiftCard|
 
 ## GenereMovie
-|Model|Dto In|Dto Out|
-|---|---|---|
-|Guid String, string Genere, List Movies|string Genere|string Id, string Genere|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Genere|Genere|Genere|
+|List<Movie>|Movies|||
 
 ## Movie
-|Model|Dto In|Dto Out|
-|---|---|---|
-|Guid String, string Titolo, int DurataMinuti, String Descrizione, decimal PrezzoMovie, string GenereId, string Genere[foreign key], List Acquisti|string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere |string Id, string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Titolo|Titolo|Titolo|
+|string|Descrizione|Descrizione|Descrizione|
+|int|DurataMinuti|DurataMinuti|DurataMinuti|
+|decimal|PrezzoMovie|PrezzoMovie|PrezzoMovie|
+|string|GenereId|GenereId|GenereId|
+|string|||Genere|
+|GenereMovie|Genere|||
+|List<Acquisto>|Acquisti|||
 
 ## Abbonamento
 TipoDato|Model|Dto In|Dto Out|
@@ -91,6 +112,43 @@ TipoDato|Model|Dto In|Dto Out|
 |DateTimeOffset|OrarioCreazione||OrarioCreazione|
 |int|NumeroBiglietti|NumeroBiglietti|NumeroBiglietti|
 |string|MetodoPagamento|MetodoPagamento|MetodoPagamento|
+
+## LogAzioni
+|LogAzioni|DtoLogAzioni|DtoCreazioneLogAzioni|
+|---|---|---|
+|string|Id|Id|Id|
+|string|IdUtente|IdUtente|IdUtente|
+|string|NomeAzione|NomeAzione|NomeAzione|
+|bool|Effettuato|Effettuato|Effettuato|
+|string|Messaggio|Messaggio|Messaggio|
+|DateTimeOffset|TimeStamp|TimeStamp|TimeStamp|
+
+## Login
+|TipoDato|Utente|DtoLogin|DtoAuthResponse|
+|---|---|---|---|
+|string||Id|
+|string|NomeCompleto||NomeCompleto|
+|string|||Token|
+|int|Eta||Eta|
+|string||Email|Email|
+|string||Password||
+|string|||Ruolo|
+|DateTimeOffset|DataInizioAbbonamento||DataInizioAbbonamento|
+|DateTimeOffset|DataInizioGiftCard||DataInizioGiftCard|
+|bool|SeAbbonato||SeAbbonato|
+|bool|PossiedeGiftCard||PossiedeGiftCard|
+|List<Acquisto>|Acquisti|||
+|string|AbbonamentoId|||
+|Abbonamento|Abbonamento|||
+|string|GiftCardId|||
+|GiftCard|GiftCard|||
+
+## ModificaRuoloUtente
+|TipoDato|Utente|DtoModificaRuoloUtente|DtoModificaRuoloUtente|
+|---|---|---|---|
+|string||Email|Email|
+|string||NuovoRuolo|Ruolo|
+|string|||messaggio|
 
 ## GiftCard
 TipoDato|Model|Dto In|Dto Out|
@@ -123,3 +181,86 @@ TipoDato|Model|Dto In|Dto Out|
 |DELETE|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
 
 
+## Proiezione
+
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|DataProiezione|DataProiezione|DataProiezione|
+|ForeignKey|MovieId|MovieId|MovieId|
+|ForeignKey|SalaId|SalaId|SalaId|
+|ForeignKey|TurnoId|TurnoId|TurnoId|
+|List|Acquisti|||
+
+## Registrazione
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string||Email||
+|string||Password||
+|string||NomeCompleto||
+|int||Eta||
+
+## Sala
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Nome|Nome|Nome|
+|int|Capeinza|Capeinza|Capeinza|
+|List|Acquisti|||
+|String|TipologiaSalaId|TipologiaSalaId|TipologiaSalaId|
+
+# ENDPOINT
+
+|Controller|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|---|
+
+## AuthController
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|POST|Auth/registrazione| No| Nessuno|
+|GET|Auth/profilo| Si | Tutti|
+|PUT|Auth/modifica| Si | Gestore o operatore|
+|DELETE|Auth/elimina | Si | Tutti|
+
+
+## GenereMovie
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/GenereMovie| Si| |
+|GET|/GenereMovie/{id}| Si | Utente|
+|POST|/GenereMovie| Si | Gestore o operatore|
+|PUT|/GenereMovie/{id} | Si | Gestore o Operatore |
+|DELETE|/GenereMovie/{id} | Si | Gestore o Operatore |
+
+## Movie
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Movie| Si| |
+|GET|/Movie/{Id}| Si | Utente|
+|GET|/Movie/genereMovie/{genereId}| Si | Utente|
+|POST|/Movie| Si | Gestore o operatore|
+|PUT|/Movie/{id} | Si | Gestore o Operatore |
+|DELETE|/Movie/{id} | Si | Gestore o Operatore |
+
+## Acquisto
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Acquisto| Si|Utente|
+|GET|/Acquisto/{id}| Si |Utente|
+|POST|/Acquisto| Si |Utente|
+|PUT|/Acquisto/{id} | Si | Gestore o Operatore |
+|DELETE|/Acquisto/{id} | Si | Gestore o Operatore |
+
+## GiftCard
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/GiftCard| Si|Utente|
+|GET|/GiftCard/{id}| Si |Utente|
+|POST|/GiftCard| Si |Gestore o Operatore|
+|PUT|/GiftCard/{id} | Si | Gestore o Operatore |
+|DELETE|/GiftCard/{id} | Si | Gestore o Operatore |
