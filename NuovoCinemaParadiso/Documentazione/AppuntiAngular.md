@@ -223,3 +223,23 @@ TipoDato|Model|Dto In|Dto Out|
 |POST|/Movie| Si | Gestore o operatore|
 |PUT|/Movie/{id} | Si | Gestore o Operatore |
 |DELETE|/Movie/{id} | Si | Gestore o Operatore |
+
+## Acquisto
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Acquisto| Si|Utente|
+|GET|/Acquisto/{id}| Si |Utente|
+|POST|/Acquisto| Si |Utente|
+|PUT|/Acquisto/{id} | Si | Gestore o Operatore |
+|DELETE|/Acquisto/{id} | Si | Gestore o Operatore |
+
+## GiftCard
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/GiftCard| Si|Utente|
+|GET|/GiftCard/{id}| Si |Utente|
+|POST|/GiftCard| Si |Gestore o Operatore|
+|PUT|/GiftCard/{id} | Si | Gestore o Operatore |
+|DELETE|/GiftCard/{id} | Si | Gestore o Operatore |
