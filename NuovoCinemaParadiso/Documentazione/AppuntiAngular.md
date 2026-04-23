@@ -101,11 +101,12 @@ TipoDato|Model|Dto In|Dto Out|
 |decimal|Prezzo|Prezzo|Prezzo|
 |int|NumeroMovie|NumeroMovie|NumeroMovie|
 |List<Utente>|Utenti| | |
-
+# Greg
+|Model|Dto In|Dto Out|
+|---|---|---|
 |Proiezione.cs| DtoCreazioneProiezione.cs|Dtoproiezione.cs|
 ||DtoRegostrazione.cs||
 |Sala.cs|DtoCreazioneSala.cs|DtoSala.cs|
-
 ## Proiezione
 
 ### Model
