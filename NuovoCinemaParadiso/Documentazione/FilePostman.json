@@ -10,14 +10,14 @@
       "name": "GenereMovie",
       "item": [
         {
-          "name": "AggiuntaGenereMovie",
+          "name": "CreazioneGenereMovie",
           "request": {
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImJlMzAzYTgwLWYxZDQtNGRiMS04NzY4LWUzYWEyZGU4NjNmOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnZXN0b3JlQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Imdlc3RvcmVAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiR2VzdG9yZSIsImV4cCI6MTc3NjY4MzM2NSwiaXNzIjoiTnVvdm9DaW5lbWFQYXJhZGlzbyIsImF1ZCI6Ik51b3ZvQ2luZW1hUGFyYWRpc29Bbmd1bGFyIn0.KDYh1B2LmmhsMkHitad_0fZZ8Rv0xnGDgxaNzUZjVd8",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -56,7 +56,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -64,7 +64,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/d13fd13e-0586-4178-bcde-a12419020225",
+              "raw": "http://localhost:5226/api/GenereMovie/92e33e0c-1a6d-43a9-803e-302d9f2c96d1",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -73,7 +73,7 @@
               "path": [
                 "api",
                 "GenereMovie",
-                "d13fd13e-0586-4178-bcde-a12419020225"
+                "92e33e0c-1a6d-43a9-803e-302d9f2c96d1"
               ]
             }
           },
@@ -87,7 +87,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjdkNzEyMzA4LTllN2YtNDM0Zi05MGRlLTBjNWQzYmQzZDUzZiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnZXN0b3JlQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Imdlc3RvcmVAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiR2VzdG9yZSIsImV4cCI6MTc3Njc1OTUxMSwiaXNzIjoiTnVvdm9DaW5lbWFQYXJhZGlzbyIsImF1ZCI6Ik51b3ZvQ2luZW1hUGFyYWRpc29Bbmd1bGFyIn0.Ptumq5AQWBTzm4qj4mRtjA3P7LBaaQYCGNsx39tNts0",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -117,7 +117,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImJlMzAzYTgwLWYxZDQtNGRiMS04NzY4LWUzYWEyZGU4NjNmOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnZXN0b3JlQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Imdlc3RvcmVAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiR2VzdG9yZSIsImV4cCI6MTc3NjY4MzM2NSwiaXNzIjoiTnVvdm9DaW5lbWFQYXJhZGlzbyIsImF1ZCI6Ik51b3ZvQ2luZW1hUGFyYWRpc29Bbmd1bGFyIn0.KDYh1B2LmmhsMkHitad_0fZZ8Rv0xnGDgxaNzUZjVd8",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -125,7 +125,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/",
+              "raw": "http://localhost:5226/api/GenereMovie/a1fd62ff-3d4f-47d8-a22a-710056ec5757",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -134,7 +134,7 @@
               "path": [
                 "api",
                 "GenereMovie",
-                ""
+                "a1fd62ff-3d4f-47d8-a22a-710056ec5757"
               ]
             }
           },
@@ -148,7 +148,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImJlMzAzYTgwLWYxZDQtNGRiMS04NzY4LWUzYWEyZGU4NjNmOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnZXN0b3JlQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Imdlc3RvcmVAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiR2VzdG9yZSIsImV4cCI6MTc3NjY4MzM2NSwiaXNzIjoiTnVvdm9DaW5lbWFQYXJhZGlzbyIsImF1ZCI6Ik51b3ZvQ2luZW1hUGFyYWRpc29Bbmd1bGFyIn0.KDYh1B2LmmhsMkHitad_0fZZ8Rv0xnGDgxaNzUZjVd8",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -157,7 +157,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"genere\":\"Horror 2\"}",
+              "raw": "{\"genere\":\"Crime 2\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -165,7 +165,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/",
+              "raw": "http://localhost:5226/api/GenereMovie/a1fd62ff-3d4f-47d8-a22a-710056ec5757",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -174,7 +174,7 @@
               "path": [
                 "api",
                 "GenereMovie",
-                ""
+                "a1fd62ff-3d4f-47d8-a22a-710056ec5757"
               ]
             }
           },
@@ -193,7 +193,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImJlMzAzYTgwLWYxZDQtNGRiMS04NzY4LWUzYWEyZGU4NjNmOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJnZXN0b3JlQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6Imdlc3RvcmVAZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiR2VzdG9yZSIsImV4cCI6MTc3NjY4MzM2NSwiaXNzIjoiTnVvdm9DaW5lbWFQYXJhZGlzbyIsImF1ZCI6Ik51b3ZvQ2luZW1hUGFyYWRpc29Bbmd1bGFyIn0.KDYh1B2LmmhsMkHitad_0fZZ8Rv0xnGDgxaNzUZjVd8",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -330,7 +330,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"utente1@gmail.com\",\"password\":\"123456\"}",
+              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -360,7 +360,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"mariorossi@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"Mario Rossi\",\"eta\":\"45\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
+              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"Utente Prova\",\"eta\":\"45\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -496,46 +496,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "CambiaRuolo",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"email\":\"utente1@gmail.com\", \r\n    \"nuovoRuolo\":\"Utente\"\r\n    }",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/GestoreUtenti/cambia-ruolo",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GestoreUtenti",
-                "cambia-ruolo"
-              ]
-            }
-          },
-          "response": []
         }
       ]
     },
@@ -588,7 +548,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/86bd1b4f-92ba-4d71-9da1-18192be2a578",
+              "raw": "http://localhost:5226/api/TipologiaSala/fd909dce-18e6-4803-a548-5dd698d5b205",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -597,7 +557,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "86bd1b4f-92ba-4d71-9da1-18192be2a578"
+                "fd909dce-18e6-4803-a548-5dd698d5b205"
               ]
             }
           },
@@ -667,7 +627,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/5b039917-09f5-4a66-ac5d-056b9ec2dc12",
+              "raw": "http://localhost:5226/api/TipologiaSala/858f2d73-0eed-4ac9-936f-cec9f5c5001d",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -676,7 +636,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "5b039917-09f5-4a66-ac5d-056b9ec2dc12"
+                "858f2d73-0eed-4ac9-936f-cec9f5c5001d"
               ]
             }
           },
@@ -698,7 +658,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/5b039917-09f5-4a66-ac5d-056b9ec2dc12",
+              "raw": "http://localhost:5226/api/TipologiaSala/858f2d73-0eed-4ac9-936f-cec9f5c5001d",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -707,7 +667,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "5b039917-09f5-4a66-ac5d-056b9ec2dc12"
+                "858f2d73-0eed-4ac9-936f-cec9f5c5001d"
               ]
             }
           },
@@ -764,7 +724,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Turno/bf6beb20-d11a-44b8-9450-bf6640a8f3a2",
+              "raw": "http://localhost:5226/api/Turno/69acfafa-5cb2-4084-9cf9-6ef7be3af916",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -773,7 +733,7 @@
               "path": [
                 "api",
                 "Turno",
-                "bf6beb20-d11a-44b8-9450-bf6640a8f3a2"
+                "69acfafa-5cb2-4084-9cf9-6ef7be3af916"
               ]
             }
           },
@@ -843,7 +803,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Turno/51dd520b-c8cd-4ad0-92bc-5a178bc3699d",
+              "raw": "http://localhost:5226/api/Turno/215f1dca-8392-4316-900d-1fa48f339164",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -852,7 +812,7 @@
               "path": [
                 "api",
                 "Turno",
-                "51dd520b-c8cd-4ad0-92bc-5a178bc3699d"
+                "215f1dca-8392-4316-900d-1fa48f339164"
               ]
             }
           },
@@ -878,7 +838,7 @@
               "raw": "{\r\n    \"oraInizio\": \"16:30:00\",\r\n    \"oraFine\": \"18:00:00\",\r\n    \"nome\": \"Pomeriggio 3\"\r\n}"
             },
             "url": {
-              "raw": "http://localhost:5226/api/Turno/51dd520b-c8cd-4ad0-92bc-5a178bc3699d",
+              "raw": "http://localhost:5226/api/Turno/215f1dca-8392-4316-900d-1fa48f339164",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -887,7 +847,7 @@
               "path": [
                 "api",
                 "Turno",
-                "51dd520b-c8cd-4ad0-92bc-5a178bc3699d"
+                "215f1dca-8392-4316-900d-1fa48f339164"
               ]
             }
           },
@@ -1876,7 +1836,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/36a85691-f798-4944-9c08-c2e9aefee593",
+              "raw": "http://localhost:5226/api/Abbonamento/6c062c32-997a-4849-8483-e4177edfbbb2",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1885,7 +1845,7 @@
               "path": [
                 "api",
                 "Abbonamento",
-                "36a85691-f798-4944-9c08-c2e9aefee593"
+                "6c062c32-997a-4849-8483-e4177edfbbb2"
               ]
             }
           },
@@ -1947,7 +1907,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Prova\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"Sconto\" : 47\r\n}",
+              "raw": "{\r\n    \"Nome\": \"Prova 1\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"Sconto\" : 47\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2229,7 +2189,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Admin/ricercaProfilo/5cd40df1-1e8b-4d64-a01d-164b547f28a7",
+              "raw": "http://localhost:5226/api/Admin/ricercaProfilo/fe95779a-d007-42fc-893d-4eaa9c2f27f9",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2239,7 +2199,7 @@
                 "api",
                 "Admin",
                 "ricercaProfilo",
-                "5cd40df1-1e8b-4d64-a01d-164b547f28a7"
+                "fe95779a-d007-42fc-893d-4eaa9c2f27f9"
               ]
             }
           },
@@ -2261,7 +2221,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Admin/eliminaUtente/78dc7b0e-67ac-4ece-9fc6-cad65ca7f031",
+              "raw": "http://localhost:5226/api/Admin/eliminaUtente/c9abc33e-9dcc-44cc-a494-e98ae286e3e1",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2271,7 +2231,7 @@
                 "api",
                 "Admin",
                 "eliminaUtente",
-                "78dc7b0e-67ac-4ece-9fc6-cad65ca7f031"
+                "c9abc33e-9dcc-44cc-a494-e98ae286e3e1"
               ]
             }
           },
@@ -2356,7 +2316,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Admin/abbonamento/109e6298-f5c0-4570-be98-7b28b925f9d7",
+              "raw": "http://localhost:5226/api/Admin/abbonamento/b55a86c5-404d-41b5-b9f7-b068786b2d4a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2366,7 +2326,7 @@
                 "api",
                 "Admin",
                 "abbonamento",
-                "109e6298-f5c0-4570-be98-7b28b925f9d7"
+                "b55a86c5-404d-41b5-b9f7-b068786b2d4a"
               ]
             }
           },
@@ -2550,6 +2510,51 @@
                 "api",
                 "Utente",
                 "giftcard"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "GestoreUtenti",
+      "item": [
+        {
+          "name": "CambiaRuolo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\":\"utente1@gmail.com\", \r\n    \"nuovoRuolo\":\"Operatore\"\r\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/GestoreUtenti/cambia-ruolo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GestoreUtenti",
+                "cambia-ruolo"
               ]
             }
           },
