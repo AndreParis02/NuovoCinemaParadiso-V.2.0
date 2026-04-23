@@ -520,13 +520,6 @@ curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
 curl -s -X GET "http://localhost:5226/api/Admin/acquisto" -H "Authorization: Bearer $TOKEN"
 ```
 
-## Admin Abbonamento
-
-## leggi informazioni Abbonamento per id come admin
-```bash
-curl -s -X GET "http://localhost:5226/api/Admin/abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
-```
-
 ## Leggi Utenti Per Id Abbonamento
 ```bash
 curl -X GET "http://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
@@ -535,11 +528,6 @@ curl -X GET "http://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
   ```
 
 ## Admin GiftCard
-
-## leggi informazioni GiftCard per id come admin
-```bash
-curl -s -X GET "http://localhost:5226/api/Admin/giftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN" | jq
-```
 
 ## Leggi Utenti Per Id GiftCard
 ```bash

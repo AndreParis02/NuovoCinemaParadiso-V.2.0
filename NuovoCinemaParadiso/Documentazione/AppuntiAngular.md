@@ -217,6 +217,41 @@ TipoDato|Model|Dto In|Dto Out|
 
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
 |---|---|---|---|
+|GET|/Movie| Si| |
+|GET|/Movie/{Id}| Si | Utente|
+|GET|/Movie/genereMovie/{genereId}| Si | Utente|
+|POST|/Movie| Si | Gestore o operatore|
+|PUT|/Movie/{id} | Si | Gestore o Operatore |
+|DELETE|/Movie/{id} | Si | Gestore o Operatore |
+
+## Abbonamento
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|GET|/Abbonamento|SI|Utente|
+|GET|/Abbonamento/Id|SI|Utente|
+|POST|/Abbonamento|SI|GestoreOrOperatore|
+|PUT|/Abbonamento/Id|SI|GestoreOrOperatore|
+|DELETE|/Abbonamento/Id|SI|GestoreOrOperatore|
+
+## GestoreUtenti
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|PUT|/GestoreUtenti/cambia-ruolo|SI|Gestore|
+
+## Admin
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|GET|/Admin/listaUtenti|SI|GestoreOrOperatore|
+|GET|/Admin/ricercaProfilo/Id|SI|GestoreOrOperatore|
+|DELETE|/Admin/eliminaUtente/Id|SI|GestoreOrOperatore|
+|GET|/Admin/acquisto|SI|GestoreOrOperatore|
+|GET|/Admin/acquisto/Id|SI|GestoreOrOperatore|
+|GET|/Admin/utenti/abbonamento/Id_abbonamento|SI|GestoreOrOperatore|
+|GET|/Admin/utenti/giftCard/Id_giftCard|SI|GestoreOrOperatore|
+|GET|/Admin/log|SI|Gestore|
 |GET|/Movie| Richiesto|Qualsiasi|
 |GET|/Movie/{Id}| Richiesto | Qualsiasi|
 |GET|/Movie/genereMovie/{genereId}| Richiesto | Qualsiasi|
