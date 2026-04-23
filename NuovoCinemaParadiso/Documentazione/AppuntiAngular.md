@@ -129,3 +129,39 @@ TipoDato|Model|Dto In|Dto Out|
 |decimal|Prezzo|Prezzo|Prezzo|
 |int|NumeroMovie|NumeroMovie|NumeroMovie|
 |List<Utente>|Utenti| | |
+# Greg
+|Model|Dto In|Dto Out|
+|---|---|---|
+|Proiezione.cs| DtoCreazioneProiezione.cs|Dtoproiezione.cs|
+||DtoRegostrazione.cs||
+|Sala.cs|DtoCreazioneSala.cs|DtoSala.cs|
+## Proiezione
+
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|DataProiezione|DataProiezione|DataProiezione|
+|ForeignKey|MovieId|MovieId|MovieId|
+|ForeignKey|SalaId|SalaId|SalaId|
+|ForeignKey|TurnoId|TurnoId|TurnoId|
+|List|Acquisti|||
+
+## Registrazione
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string||Email||
+|string||Password||
+|string||NomeCompleto||
+|int||Eta||
+
+
+
+
+## Sala
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Nome|Nome|Nome|
+|int|Capeinza|Capeinza|Capeinza|
+|List|Acquisti|||
+|String|TipologiaSalaId|TipologiaSalaId|TipologiaSalaId|
