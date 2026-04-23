@@ -245,6 +245,7 @@ TipoDato|Model|Dto In|Dto Out|
 |PUT|/Movie/{id} | Si | Gestore o Operatore |
 |DELETE|/Movie/{id} | Si | Gestore o Operatore |
 
+<<<<<<< Updated upstream
 ## Acquisto
 
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
@@ -264,3 +265,31 @@ TipoDato|Model|Dto In|Dto Out|
 |POST|/GiftCard| Si |Gestore o Operatore|
 |PUT|/GiftCard/{id} | Si | Gestore o Operatore |
 |DELETE|/GiftCard/{id} | Si | Gestore o Operatore |
+=======
+
+
+
+## Sala
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Sala|Si| |
+|GET|/Sala/TipologiaSala/{tipologiaId}|Si| |
+|GET|/Sala/{Id}|Si| |
+|POST|/Sala/|Si| Gestore o Operatore |
+|PUT|/Sala/{Id}|Si| Gestore o Operatore |
+|DELETE|/Sala/{Id}|Si| Gestore o Operatore |
+
+## Proiezione
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Proiezione|Si| |
+|GET|/Proiezione/{id}|Si| |
+|GET|/Proiezione/turno/{TurnoId}|Si| |
+|GET|/Proiezione/sala/{salaId}|Si| |
+|GET|/Proiezione/movie/{movieId}|Si| |
+|POST|/Proiezione|Si| Gestore o Operatore |
+|PUT|/Proiezione/{id}|Si| Gestore o Operatore |
+|DELETE|/Proiezione/{id}|Si| Gestore o Operatore |
+>>>>>>> Stashed changes
