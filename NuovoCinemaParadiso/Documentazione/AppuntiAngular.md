@@ -160,6 +160,27 @@ TipoDato|Model|Dto In|Dto Out|
 |int|NumeroMovie|NumeroMovie|NumeroMovie|
 |List<Utente>|Utenti| | |
 
+
+## TipologiaSalaController.cs
+
+|Tipo chiamata|Endpoint|Login richiesto|Ruolo richiesto|
+|---|---|---|---|
+|GET|TipologiaSala|Richiesto|Qualsiasi|
+|GET|TipologiaSala/id|Richiesto|Qualsiasi|
+|POST|TipologiaSala|Richiesto[Authorize]|GestoreoOperatore|
+|PUT|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+|DELETE|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+
+## TurnoController.cs
+|Tipo chiamata|Endpoint|Login richiesto|Ruolo richiesto|
+|---|---|---|---|
+|GET|TipologiaSala|Richiesto|Qualsiasi|
+|GET|TipologiaSala/id|Richiesto|Qualsiasi|
+|POST|TipologiaSala|Richiesto[Authorize]|GestoreoOperatore|
+|PUT|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+|DELETE|TipologiaSala/id|Richiesto[Authorize]|GestoreoOperatore|
+
+
 ## Proiezione
 
 |TipoDato|Model|Dto In|Dto Out|
