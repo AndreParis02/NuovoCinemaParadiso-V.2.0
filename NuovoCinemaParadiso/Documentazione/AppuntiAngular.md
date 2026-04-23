@@ -13,61 +13,89 @@ Prima di tutto si definiscono queste cose:
 
 |Assegnato| user | task |
 |---|---|---|
-| |Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
+|x|Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
 |x|Andrea P.|Abbonamento, Acquisto, GiftCard|
-| |Fabio|AuthResponse, GenereMovie, Movie| 
+|x|Fabio|AuthResponse, GenereMovie, Movie| 
 | |Greg|Proiezione, Registrazione, Sala|
-| |Lorenzo|TipologiaSala, Turno, Utente| 
+|x|Lorenzo|TipologiaSala, Turno, Utente| 
 
 
 ## TipologiaSala
-|Model|Dto In|Dto Out|
-|---|---|---|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
 |string Id|string Nome|string Id
 |string Nome|decimal MaggiorazionePrezzo|string Nome
 |decimal MaggiorazionePrezzo||decimal MaggiorazionePrezzo
 |List Sale||
 
 ## Turno
-|Model|Dto In|Dto Out|
-|---|---|---|
-|string Id|Required TimeOnly OraInizio|string Id
-|Required TimeOnly OraInizio|Required TimeOnly OraFine|TimeOnly OraInizio
-|Required TimeOnly OraFine|string Nome|TimeOnly OraFine
-|string Nome||string Nome
-|List Sale||
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Nome|Nome|Nome|
+|decimal|MaggiorazionePrezzo|MaggiorazionePrezzo|MaggiorazionePrezzo|
+|List<Sala>|Sale|||
 
+
+||string|Id||Id|
+||string|Nome|Nome|Nome|
+||TimeOnly|OraInizio|OraInizio|OraInizio|
+||TimeOnly|OraFine|OraFine|OraFine|
+||List<Sala>|Sale|||
 
 ## Utente
-|Model|Dto In|Dto Out|
-|---|---|---|
-|string NomeCompleto|Required string NomeCompleto|string Id
-|int Eta|Required Eta|string NomeCompleto
-|bool SeAbbonato||DateTimeOffset DataInizioAbbonamento
-|bool PossiedeGiftCard||DateTimeOffset DataInizioGiftCard
-|DateTimeOffset DataInizioAbbonamento||bool SeAbbonato
-|DateTimeOffset DataInizioGiftCard||bool PossiedeGiftCard
-|List Acquisti||string Email
-|Abbonamento? Abbonamento||int Eta
-|string GiftCard||string AbbonamentoId
-|GiftCard? GiftCard||string GiftCard
-|||string TipoAbbonamento
-|||string TipoGiftCard
-## Authresponse
-|Model|Dto In|Dto Out|
-|---|---|---|
-||(DTOLOGIN) string Email, string Password|string Id, string NomeCompleto, string Token, int Eta, string Email , string Ruolo , DateTimeOffset DataInizioAbbonamento, DateTimeOffset DataInizioGiftCard, bool SeAbbonato,bool PossiedeGiftCard|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|NomeCompleto|NomeCompleto|NomeCompleto|
+|string|Email||Email|
+|int|Eta|Eta|Eta|
+|DateTimeOffset|DataInizioAbbonamento||DataInizioAbbonamento|
+|DateTimeOffset|DataInizioGiftCard||DataInizioGiftCard|
+|bool|SeAbbonato||SeAbbonato|
+|bool|PossiedeGiftCard||PossiedeGiftCard|
+|string|AbbonamentoId||AbbonamentoId|
+|Abbonamento|Abbonamento|||
+|string|||TipoAbbonamento|
+|string|GiftCardId||GiftCardId|
+|GiftCard|GiftCard|||
+|string|||TipoGiftCard|
+|List<Acquisto>|Acquisti|||
 
+## Authresponse
+|TipoDato|Model (Utente)|Dto In(DtoLogin)|Dto Out|
+|---|---|---|---|
+|string|||Id|
+|string|NomeCompleto||NomeCompleto|
+|string|||Token|
+|int|Eta||Eta|
+|string|Email|Email|Email|
+|string||Password||
+|string|||Ruolo|
+|DateTimeOffset|||DataInizioAbbonamento|
+|DateTimeOffset|||DataInizioGiftCard|
+|bool|||SeAbbonato|
+|bool|||PossiedeGiftCard|
 
 ## GenereMovie
-|Model|Dto In|Dto Out|
-|---|---|---|
-|Guid String, string Genere, List Movies|string Genere|string Id, string Genere|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Genere|Genere|Genere|
+|List<Movie>|Movies|||
 
 ## Movie
-|Model|Dto In|Dto Out|
-|---|---|---|
-|Guid String, string Titolo, int DurataMinuti, String Descrizione, decimal PrezzoMovie, string GenereId, string Genere[foreign key], List Acquisti|string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere |string Id, string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere|
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Titolo|Titolo|Titolo|
+|string|Descrizione|Descrizione|Descrizione|
+|int|DurataMinuti|DurataMinuti|DurataMinuti|
+|decimal|PrezzoMovie|PrezzoMovie|PrezzoMovie|
+|string|GenereId|GenereId|GenereId|
+|string|||Genere|
+|GenereMovie|Genere|||
+|List<Acquisto>|Acquisti|||
 
 ## Abbonamento
 TipoDato|Model|Dto In|Dto Out|
