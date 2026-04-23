@@ -224,41 +224,6 @@ TipoDato|Model|Dto In|Dto Out|
 |PUT|/Movie/{id} | Si | Gestore o Operatore |
 |DELETE|/Movie/{id} | Si | Gestore o Operatore |
 
-## Abbonamento
-
-|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
-|---|---|---|---|
-|GET|/Abbonamento|SI|Utente|
-|GET|/Abbonamento/Id|SI|Utente|
-|POST|/Abbonamento|SI|GestoreOrOperatore|
-|PUT|/Abbonamento/Id|SI|GestoreOrOperatore|
-|DELETE|/Abbonamento/Id|SI|GestoreOrOperatore|
-
-## GestoreUtenti
-
-|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
-|---|---|---|---|
-|PUT|/GestoreUtenti/cambia-ruolo|SI|Gestore|
-
-## Admin
-
-|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
-|---|---|---|---|
-|GET|/Admin/listaUtenti|SI|GestoreOrOperatore|
-|GET|/Admin/ricercaProfilo/Id|SI|GestoreOrOperatore|
-|DELETE|/Admin/eliminaUtente/Id|SI|GestoreOrOperatore|
-|GET|/Admin/acquisto|SI|GestoreOrOperatore|
-|GET|/Admin/acquisto/Id|SI|GestoreOrOperatore|
-|GET|/Admin/utenti/abbonamento/Id_abbonamento|SI|GestoreOrOperatore|
-|GET|/Admin/utenti/giftCard/Id_giftCard|SI|GestoreOrOperatore|
-|GET|/Admin/log|SI|Gestore|
-|GET|/Movie| Richiesto|Qualsiasi|
-|GET|/Movie/{Id}| Richiesto | Qualsiasi|
-|GET|/Movie/genereMovie/{genereId}| Richiesto | Qualsiasi|
-|POST|/Movie| Richiesto[Authorize] | Gestore o operatore|
-|PUT|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
-|DELETE|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
-
 ## Acquisto
 
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
@@ -321,3 +286,38 @@ TipoDato|Model|Dto In|Dto Out|
 |POST|/Proiezione|Richiesto[Authorize]| Gestore o Operatore |
 |PUT|/Proiezione/{id}|Richiesto[Authorize]| Gestore o Operatore |
 |DELETE|/Proiezione/{id}|Richiesto[Authorize]| Gestore o Operatore |
+
+## Abbonamento
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|GET|/Abbonamento|Richiesto|Utente|
+|GET|/Abbonamento/Id|Richiesto|Utente|
+|POST|/Abbonamento|Richiesto[Authorize]|GestoreOrOperatore|
+|PUT|/Abbonamento/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|DELETE|/Abbonamento/Id|Richiesto[Authorize]|GestoreOrOperatore|
+
+## GestoreUtenti
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|PUT|/GestoreUtenti/cambia-ruolo|Richiesto[Authorize]|Gestore|
+
+## Admin
+
+|TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
+|---|---|---|---|
+|GET|/Admin/listaUtenti|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/ricercaProfilo/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|DELETE|/Admin/eliminaUtente/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/acquisto|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/acquisto/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/utenti/abbonamento/Id_abbonamento|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/utenti/giftCard/Id_giftCard|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Admin/log|Richiesto[Authorize]|Gestore|
+|GET|/Movie| Richiesto|Qualsiasi|
+|GET|/Movie/{Id}| Richiesto | Qualsiasi|
+|GET|/Movie/genereMovie/{genereId}| Richiesto | Qualsiasi|
+|POST|/Movie| Richiesto[Authorize] | Gestore o operatore|
+|PUT|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
