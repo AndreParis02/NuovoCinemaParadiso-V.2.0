@@ -14,7 +14,7 @@ Prima di tutto si definiscono queste cose:
 |Assegnato| user | task |
 |---|---|---|
 | |Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
-| |Andrea P.|Abbonamento, Acquisto, GiftCard|
+|x|Andrea P.|Abbonamento, Acquisto, GiftCard|
 | |Fabio|AuthResponse, GenereMovie, Movie| 
 | |Greg|Proiezione, Registrazione, Sala|
 | |Lorenzo|TipologiaSala, Turno, Utente| 
@@ -36,3 +36,35 @@ Prima di tutto si definiscono queste cose:
 |---|---|---|
 |Guid String, string Titolo, int DurataMinuti, String Descrizione, decimal PrezzoMovie, string GenereId, string Genere[foreign key], List Acquisti|string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere |string Id, string Titolo, string Descrizione, int DurataMinuti, decimal PrezzoMovie, string GenereId, string Genere|
 
+## Abbonamento
+TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id| |Id|
+|string|Nome|Nome|Nome|
+|int|Durata|Durata|Durata|
+|decimal|Prezzo|Prezzo|Prezzo|
+|int|Sconto|Sconto|Sconto|
+|List<Utente>|Utenti| | |
+
+## Acquisto
+TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id| |Id|
+|string|ProiezioneId|ProiezioneId|ProiezioneId|
+|Proiezione|Proiezione| | |
+|string|UtenteId||UtenteId|
+|Utente|Utente| | |
+|decimal|PrezzoFinale||PrezzoFinale|
+|DateTimeOffset|OrarioCreazione||OrarioCreazione|
+|int|NumeroBiglietti|NumeroBiglietti|NumeroBiglietti|
+|string|MetodoPagamento|MetodoPagamento|MetodoPagamento|
+
+## GiftCard
+TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id| |Id|
+|string|Nome|Nome|Nome|
+|int|Durata|Durata|Durata|
+|decimal|Prezzo|Prezzo|Prezzo|
+|int|NumeroMovie|NumeroMovie|NumeroMovie|
+|List<Utente>|Utenti| | |
