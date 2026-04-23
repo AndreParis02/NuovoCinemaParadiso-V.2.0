@@ -36,13 +36,6 @@ Prima di tutto si definiscono queste cose:
 |decimal|MaggiorazionePrezzo|MaggiorazionePrezzo|MaggiorazionePrezzo|
 |List<Sala>|Sale|||
 
-
-||string|Id||Id|
-||string|Nome|Nome|Nome|
-||TimeOnly|OraInizio|OraInizio|OraInizio|
-||TimeOnly|OraFine|OraFine|OraFine|
-||List<Sala>|Sale|||
-
 ## Utente
 |TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
@@ -121,7 +114,6 @@ TipoDato|Model|Dto In|Dto Out|
 |string|MetodoPagamento|MetodoPagamento|MetodoPagamento|
 
 ## LogAzioni
-
 |LogAzioni|DtoLogAzioni|DtoCreazioneLogAzioni|
 |---|---|---|
 |string|Id|Id|Id|
@@ -132,7 +124,6 @@ TipoDato|Model|Dto In|Dto Out|
 |DateTimeOffset|TimeStamp|TimeStamp|TimeStamp|
 
 ## Login
-
 |TipoDato|Utente|DtoLogin|DtoAuthResponse|
 |---|---|---|---|
 |string||Id|
@@ -153,12 +144,12 @@ TipoDato|Model|Dto In|Dto Out|
 |GiftCard|GiftCard|||
 
 ## ModificaRuoloUtente
-
 |TipoDato|Utente|DtoModificaRuoloUtente|DtoModificaRuoloUtente|
 |---|---|---|---|
 |string||Email|Email|
 |string||NuovoRuolo|Ruolo|
 |string|||messaggio|
+
 ## GiftCard
 TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
@@ -168,12 +159,7 @@ TipoDato|Model|Dto In|Dto Out|
 |decimal|Prezzo|Prezzo|Prezzo|
 |int|NumeroMovie|NumeroMovie|NumeroMovie|
 |List<Utente>|Utenti| | |
-# Greg
-|Model|Dto In|Dto Out|
-|---|---|---|
-|Proiezione.cs| DtoCreazioneProiezione.cs|Dtoproiezione.cs|
-||DtoRegostrazione.cs||
-|Sala.cs|DtoCreazioneSala.cs|DtoSala.cs|
+
 ## Proiezione
 
 |TipoDato|Model|Dto In|Dto Out|
@@ -192,9 +178,6 @@ TipoDato|Model|Dto In|Dto Out|
 |string||Password||
 |string||NomeCompleto||
 |int||Eta||
-
-
-
 
 ## Sala
 |TipoDato|Model|Dto In|Dto Out|
