@@ -187,3 +187,39 @@ TipoDato|Model|Dto In|Dto Out|
 |int|Capeinza|Capeinza|Capeinza|
 |List|Acquisti|||
 |String|TipologiaSalaId|TipologiaSalaId|TipologiaSalaId|
+
+# ENDPOINT
+
+|Controller|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|---|
+
+## AuthController
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|POST|Auth/registrazione| No| Nessuno|
+|GET|Auth/profilo| Si | Tutti|
+|PUT|Auth/modifica| Si | Gestore o operatore|
+|DELETE|Auth/elimina | Si | Tutti|
+
+
+## GenereMovie
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/GenereMovie| Si| |
+|GET|/GenereMovie/{id}| Si | Utente|
+|POST|/GenereMovie| Si | Gestore o operatore|
+|PUT|/GenereMovie/{id} | Si | Gestore o Operatore |
+|DELETE|/GenereMovie/{id} | Si | Gestore o Operatore |
+
+## Movie
+
+|Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
+|---|---|---|---|
+|GET|/Movie| Si| |
+|GET|/Movie/{Id}| Si | Utente|
+|GET|/Movie/genereMovie/{genereId}| Si | Utente|
+|POST|/Movie| Si | Gestore o operatore|
+|PUT|/Movie/{id} | Si | Gestore o Operatore |
+|DELETE|/Movie/{id} | Si | Gestore o Operatore |
