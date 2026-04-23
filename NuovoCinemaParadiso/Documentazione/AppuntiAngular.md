@@ -109,60 +109,31 @@ TipoDato|Model|Dto In|Dto Out|
 |Sala.cs|DtoCreazioneSala.cs|DtoSala.cs|
 ## Proiezione
 
-### Model
-
-- Id -> Guid
-- DataProiezione
-- MovieId -> ForeignKey
-- SalaId -> ForeignKey
-- TurnoId -> ForeignKey
-- List<Acquisti>
-
-### DtoIn
-
-- MovieId
-- SalaId
-- TurnoId
-- DataProiezione
-
-### Dtoout
-
-- Id
-- DataProiezione
-- MovieId
-- SalaId
-- TurnoId
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|DataProiezione|DataProiezione|DataProiezione|
+|ForeignKey|MovieId|MovieId|MovieId|
+|ForeignKey|SalaId|SalaId|SalaId|
+|ForeignKey|TurnoId|TurnoId|TurnoId|
+|List|Acquisti|||
 
 ## Registrazione
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string||Email||
+|string||Password||
+|string||NomeCompleto||
+|int||Eta||
 
-### Model
-NULL
 
-### DtoIn
-- Email -> [EmailAddress] [Required]
-- Password -> [Required] [StringLength(100, MinimumLength = 6)]
-- NomeCompleto -> [Required] [StringLength(100)]
-- Eta
-### Dtoout
-NULL
+
+
 ## Sala
-
-
-### Model
-- Id -> Guid
-- Nome -> [Required] [StringLength(100)]
-- Capienza
-- List<Acquisti>
-- TipologiaSalaId -> ForeignKey
-
-### DtoIn
-- Nome -> [Required] [StringLength(100)]
-- Capienza
-- TipologiaSalaId
-
-### Dtoout
-- Id
-- Nome -> [StringLength(100)]
-- Capienza
-- TipologiaSalaId
-- NomeTipologia
+|TipoDato|Model|Dto In|Dto Out|
+|---|---|---|---|
+|string|Id||Id|
+|string|Nome|Nome|Nome|
+|int|Capeinza|Capeinza|Capeinza|
+|List|Acquisti|||
+|String|TipologiaSalaId|TipologiaSalaId|TipologiaSalaId|
