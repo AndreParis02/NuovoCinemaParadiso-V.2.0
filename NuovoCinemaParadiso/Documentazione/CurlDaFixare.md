@@ -6,11 +6,11 @@
 
 - Abbonamento/LeggiAbbonamentoTramiteIdAbbonamento
 
-- Utente/GiftCard (Da l'errore sbagliato se i hai l'abbonamento)
+- Utente/GiftCard (Da l'errore sbagliato se hai già l'abbonamento)
 
-- Utente/Abbonati (Da l'errore sbagliato se i hai l'abbonamento)
+- Utente/Abbonati (Da l'errore sbagliato se hai già l'abbonamento)
 
-- Admin/LeggiProfiloTramiteIdUtente (Da errore se non trova l'utente)
+- Admin/LeggiProfiloTramiteIdUtente (Da errore in runtime se non trova l'utente)
 
 - Admin/LeggiAbbonamentoPerIdAbbonamento
 
