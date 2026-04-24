@@ -25,3 +25,4 @@
 ## Generale
 
 - Nella migrations builder viene creato turnoID ma non esiste nel modello
+- Aggiungere foreingKet in proiezioni del modello sala;
