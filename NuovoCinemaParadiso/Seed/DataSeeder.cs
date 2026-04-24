@@ -52,7 +52,9 @@ public static class DataSeeder
         await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
         await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
 
-        
+        await AssicuraEsistenzaMovie(contestoDb,"Movie1", "Film del drago", 60, 10, "fd782537-00ca-4ae1-a44b-25087967b924");
+        await AssicuraEsistenzaMovie(contestoDb,"Movie2", "Film del lupo", 80, 12, "da75be9d-bec0-4bed-b7f1-e9f9d9f53e91");
+        await AssicuraEsistenzaMovie(contestoDb,"Movie3", "Film del cane", 100, 14, "7eb751da-9a08-4430-b83b-c362a110ddf3");
 
         await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
         await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
@@ -317,6 +319,39 @@ public static class DataSeeder
         };
 
         context.GiftCards.Add(nuovaGiftCard);
+        await context.SaveChangesAsync();
+    }
+    
+    private static async Task AssicuraEsistenzaProiezione(
+    ContestoDb context,
+    DateOnly dataProiezione,
+    string movieId,
+    string salaId,
+    string turnoId)
+    {
+        List<Movie> movies = await context.Movies.ToListAsync();
+        for (int i = 0; i < movies.Count; i++)
+        {
+   /*         Movie movieCorrente = movies[i];
+            bool movieUguale = string.Equals(
+                movieCorrente.Id,
+                movieId,
+                StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+            {
+                return;
+            }
+        } */
+
+        Proiezione nuovaProiezione = new Proiezione
+        {
+            DataProiezione = dataProiezione,
+            MovieId = movieId,
+            SalaId = salaId,
+            TurnoId = turnoId,
+        };
+
+        context.Proiezioni.Add(nuovaProiezione);
         await context.SaveChangesAsync();
     }
 }
