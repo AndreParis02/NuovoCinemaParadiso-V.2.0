@@ -67,6 +67,10 @@ public static class DataSeeder
         await AssicuraEsistenzaGiftCard(contestoDb, "10 Film", 85, 10, 12);
         await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
         await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
+
+        await AssicuraEsistenzaSala(contestoDb, "Sala 1", 100, "2D");
+        await AssicuraEsistenzaSala(contestoDb, "Sala 2", 80, "3D");
+        await AssicuraEsistenzaSala(contestoDb, "Sala 3", 50, "4D");
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -280,6 +284,34 @@ public static class DataSeeder
         };
 
         context.GiftCards.Add(nuovaGiftCard);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task AssicuraEsistenzaSala(ContestoDb context, string nome, int capienza, string tipologiaSalaId)
+    {
+        List<Sala> sale = await context.Sale.ToListAsync();
+        for (int i = 0; i < sale.Count; i++)
+        {
+            Sala salaCorrente = sale[i];
+            bool nomeUguale = string.Equals(
+                salaCorrente.Nome,
+                nome,
+                StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+            {
+                return;
+            }
+
+        }
+
+        Sala nuovaSala = new Sala
+        {
+            Nome = nome,
+            Capienza = capienza,
+            TipologiaSalaId = tipologiaSalaId
+        };
+
+        context.Sale.Add(nuovaSala);
         await context.SaveChangesAsync();
     }
 }
