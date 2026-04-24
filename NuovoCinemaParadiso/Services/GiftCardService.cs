@@ -46,22 +46,33 @@ public class GiftCardService
             return null;
         }
 
-        foreach (var utente in giftCard.Utenti)
-        {
-            if (utente.Id == utenteId)
-            {
-                DtoGiftCard risultato = new DtoGiftCard();
-                risultato.Id = giftCard.Id;
-                risultato.Nome = giftCard.Nome;
-                risultato.Durata = giftCard.Durata;
-                risultato.Prezzo = giftCard.Prezzo;
-                risultato.NumeroMovie = giftCard.NumeroMovie;
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
 
-                return risultato;
+        bool trovato = false;
+
+        for (int i = 0; i < utenti.Count; i++)
+        {
+            if (utenti[i].GiftCardId == giftCard.Id &&
+                utenti[i].Id == utenteId)
+            {
+                trovato = true;
+                break;
             }
         }
 
-        return null;
+        if (!trovato)
+        {
+            return null;
+        }
+
+        DtoGiftCard risultato = new DtoGiftCard();
+        risultato.Id = giftCard.Id;
+        risultato.Nome = giftCard.Nome;
+        risultato.Durata = giftCard.Durata;
+        risultato.Prezzo = giftCard.Prezzo;
+        risultato.NumeroMovie = giftCard.NumeroMovie;
+
+        return risultato;
     }
 
     public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)

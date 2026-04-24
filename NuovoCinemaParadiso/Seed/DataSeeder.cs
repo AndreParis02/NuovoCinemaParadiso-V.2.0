@@ -52,6 +52,8 @@ public static class DataSeeder
         await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
         await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
 
+        
+
         await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
         await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
         await AssicuraEsistenzaTipologiaSala(contestoDb, "IMAX", 4);
@@ -166,6 +168,41 @@ public static class DataSeeder
         };
 
         context.GeneriMovies.Add(nuovoGenere);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task AssicuraEsistenzaMovie(
+    ContestoDb context,
+    string titolo,
+    string descrizione,
+    int durataMinuti,
+    decimal prezzoMovie,
+    string genereId)
+    {
+        List<Movie> movies = await context.Movies.ToListAsync();
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            bool nomeUguale = string.Equals(
+                movieCorrente.Titolo,
+                titolo,
+                StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+            {
+                return;
+            }
+        }
+
+        Movie nuovoMovie = new Movie
+        {
+            Titolo = titolo,
+            Descrizione = descrizione,
+            DurataMinuti = durataMinuti,
+            PrezzoMovie = prezzoMovie,
+            GenereId = genereId,
+        };
+
+        context.Movies.Add(nuovoMovie);
         await context.SaveChangesAsync();
     }
 
