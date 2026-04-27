@@ -36,7 +36,7 @@ public class UtenteService
 
         if (abbonamentoTrovato == null)
         {
-            return null;
+            throw new NotFoundException("Abbonamento", abbonamentoId);
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
@@ -44,12 +44,13 @@ public class UtenteService
 
         if (utenteTrovato == null)
         {
-            return null;
+            throw new NotFoundException("Utente", utenteId);
+
         }   
 
         if(utenteTrovato.SeAbbonato)
         {
-            return null; // cambiare
+            throw new AbbonamentoAlredyexist("Abbonamento", abbonamentoId);
         }
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;

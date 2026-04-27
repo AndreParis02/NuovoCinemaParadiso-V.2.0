@@ -20,7 +20,7 @@ public class GiftCardAlredyexis : AppException
 public class AbbonamentoAlredyexist : AppException
 {
     public AbbonamentoAlredyexist(string risorsa, string id)
-        : base($"La {risorsa} con ID '{id}' è già collegata all'utente") { }
+        : base($"L'{risorsa} con ID '{id}' è già collegata all'utente") { }
 }
 
 
