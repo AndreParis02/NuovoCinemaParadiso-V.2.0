@@ -2301,38 +2301,6 @@
           "response": []
         },
         {
-          "name": "LeggiAbbonamentoPerIdAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Admin/abbonamento/b55a86c5-404d-41b5-b9f7-b068786b2d4a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Admin",
-                "abbonamento",
-                "b55a86c5-404d-41b5-b9f7-b068786b2d4a"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "LeggiUtentiPerIdAbbonamento",
           "request": {
             "auth": {
@@ -2360,38 +2328,6 @@
                 "utenti",
                 "abbonamento",
                 "83fe579f-059c-48b0-a22e-f060ebc3a13d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiGiftCardTramiteIdGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Admin/giftCard/d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Admin",
-                "giftCard",
-                "d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a"
               ]
             }
           },
