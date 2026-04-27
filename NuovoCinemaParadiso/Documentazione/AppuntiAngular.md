@@ -16,17 +16,17 @@ Prima di tutto si definiscono queste cose:
 |x|Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
 |x|Andrea P.|Abbonamento, Acquisto, GiftCard|
 |x|Fabio|AuthResponse, GenereMovie, Movie| 
-| |Greg|Proiezione, Registrazione, Sala|
+|x|Greg|Proiezione, Registrazione, Sala|
 |x|Lorenzo|TipologiaSala, Turno, Utente| 
 
 
 ## TipologiaSala
 |TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
-|string Id|string Nome|string Id
-|string Nome|decimal MaggiorazionePrezzo|string Nome
-|decimal MaggiorazionePrezzo||decimal MaggiorazionePrezzo
-|List Sale||
+|string|Id| |Id|
+|string|Nome|Nome|Nome|
+|decimal|MaggiorazionePrezzo|MaggiorazionePrezzo|MaggiorazionePrezzo|
+|List<Sala>|Sale|||
 
 ## Turno
 |TipoDato|Model|Dto In|Dto Out|
@@ -321,3 +321,11 @@ TipoDato|Model|Dto In|Dto Out|
 |POST|/Movie| Richiesto[Authorize] | Gestore o operatore|
 |PUT|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
 |DELETE|/Movie/{id} | Richiesto[Authorize] | Gestore o Operatore |
+
+
+
+Creare una tabella per le operazioni crud per entità
+
+Levare l'autorizzazione per gli ottieni tutti (per renderli visibili anehe senza registrazione) e integrare l'implementazione dell'età
+
+le Modifiche su che dati lavorano e di cosa ho bisogno

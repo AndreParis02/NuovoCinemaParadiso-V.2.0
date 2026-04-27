@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class prova : Migration
+    public partial class sestaMigrazione : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -72,7 +72,7 @@ namespace NuovoCinemaParadiso.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    IdUtente = table.Column<string>(type: "TEXT", nullable: false),
+                    IdUtente = table.Column<string>(type: "TEXT", nullable: true),
                     NomeAzione = table.Column<string>(type: "TEXT", nullable: false),
                     Effettuato = table.Column<bool>(type: "INTEGER", nullable: false),
                     Messaggio = table.Column<string>(type: "TEXT", nullable: false),

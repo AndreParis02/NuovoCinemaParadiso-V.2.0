@@ -48,7 +48,7 @@ public class UtenteService
 
         if(utenteTrovato.SeAbbonato)
         {
-            return null;
+            return null; // cambiare
         }
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
@@ -105,7 +105,7 @@ public class UtenteService
         
         if(utenteTrovato.PossiedeGiftCard)
         {
-            return null;
+            return null; // cambiare
         }
 
         utenteTrovato.GiftCardId = giftCardTrovata.Id;

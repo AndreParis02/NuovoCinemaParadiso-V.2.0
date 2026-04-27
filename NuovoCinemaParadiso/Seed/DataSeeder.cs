@@ -48,17 +48,25 @@ public static class DataSeeder
         await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
 
-        await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
-        await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
-        await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAzione = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
+        var genereHorror = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
+        var genereCommedia = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
 
-        await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
-        await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
-        await AssicuraEsistenzaTipologiaSala(contestoDb, "IMAX", 4);
+        var movie1 = await AssicuraEsistenzaMovie(contestoDb, "Movie1", "Film del drago", 60, 10, genereAzione.Id);
+        var movie2 = await AssicuraEsistenzaMovie(contestoDb, "Movie2", "Film del lupo", 80, 12, genereHorror.Id);
+        var movie3 = await AssicuraEsistenzaMovie(contestoDb, "Movie3", "Film del cane", 100, 14, genereCommedia.Id);
 
-        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0), "Mattina");
-        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0), "Pomeriggio");
-        await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0), "Sera");
+        var tipologia2D = await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
+        var tipologia3D = await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
+        var tipologiaImax = await AssicuraEsistenzaTipologiaSala(contestoDb, "IMAX", 4);
+
+        var turnoMattina = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(10, 0, 0), new TimeOnly(13, 0, 0), "Mattina");
+        var turnoPomeriggio = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(13, 0, 0), new TimeOnly(18, 0, 0), "Pomeriggio");
+        var turnoSera = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0), "Sera");
+
+        var sala1 = await AssicuraEsistenzaSala(contestoDb, "Sala1", 30, tipologia2D.Id);
+        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia2D.Id);
+        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologia2D.Id);
 
         await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
@@ -71,6 +79,13 @@ public static class DataSeeder
         await AssicuraEsistenzaSala(contestoDb, "Sala 1", 100, "2D");
         await AssicuraEsistenzaSala(contestoDb, "Sala 2", 80, "3D");
         await AssicuraEsistenzaSala(contestoDb, "Sala 3", 50, "4D");
+        var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
+        var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
+        var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
+
+        await AssicuraEsistenzaAcquisto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
+        await AssicuraEsistenzaAcquisto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
+        await AssicuraEsistenzaAcquisto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -146,7 +161,7 @@ public static class DataSeeder
         }
     }
 
-    private static async Task AssicuraEsistenzaGenereMovie(
+    private static async Task<GenereMovie> AssicuraEsistenzaGenereMovie(
     ContestoDb context,
     string genere)
     {
@@ -160,7 +175,7 @@ public static class DataSeeder
                 StringComparison.OrdinalIgnoreCase);
             if (nomeUguale)
             {
-                return;
+                return genereCorrente;
             }
         }
 
@@ -171,9 +186,48 @@ public static class DataSeeder
 
         context.GeneriMovies.Add(nuovoGenere);
         await context.SaveChangesAsync();
+
+        return nuovoGenere;
     }
 
-    private static async Task AssicuraEsistenzaTipologiaSala(
+    private static async Task<Movie> AssicuraEsistenzaMovie(
+    ContestoDb context,
+    string titolo,
+    string descrizione,
+    int durataMinuti,
+    decimal prezzoMovie,
+    string genereId)
+    {
+        List<Movie> movies = await context.Movies.ToListAsync();
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            bool nomeUguale = string.Equals(
+                movieCorrente.Titolo,
+                titolo,
+                StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+            {
+                return movieCorrente;
+            }
+        }
+
+        Movie nuovoMovie = new Movie
+        {
+            Titolo = titolo,
+            Descrizione = descrizione,
+            DurataMinuti = durataMinuti,
+            PrezzoMovie = prezzoMovie,
+            GenereId = genereId,
+        };
+
+        context.Movies.Add(nuovoMovie);
+        await context.SaveChangesAsync();
+
+        return nuovoMovie;
+    }
+
+    private static async Task<TipologiaSala> AssicuraEsistenzaTipologiaSala(
      ContestoDb context,
      string nome, decimal maggiorazioneprezzo)
     {
@@ -187,7 +241,7 @@ public static class DataSeeder
                 StringComparison.OrdinalIgnoreCase);
             if (nomeUguale)
             {
-                return;
+                return tipologiaCorrente;
             }
         }
 
@@ -199,9 +253,44 @@ public static class DataSeeder
 
         context.TipologieSala.Add(nuovaTipologia);
         await context.SaveChangesAsync();
+
+        return nuovaTipologia;
     }
 
-    private static async Task AssicuraEsistenzaTurno(
+    private static async Task<Sala> AssicuraEsistenzaSala(
+        ContestoDb context,
+        string nome,
+        int capienza,
+        string tipologiaSalaId)
+    {
+        List<Sala> sale = await context.Sale.ToListAsync();
+        for (int i = 0; i < sale.Count; i++)
+        {
+            Sala salaCorrente = sale[i];
+            bool nomeUguale = string.Equals(
+                salaCorrente.Nome,
+                nome,
+                StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+            {
+                return salaCorrente;
+            }
+        }
+
+        Sala nuovaSala = new Sala
+        {
+            Nome = nome,
+            Capienza = capienza,
+            TipologiaSalaId = tipologiaSalaId,
+        };
+
+        context.Sale.Add(nuovaSala);
+        await context.SaveChangesAsync();
+
+        return nuovaSala;
+    }
+
+    private static async Task<Turno> AssicuraEsistenzaTurno(
      ContestoDb context,
      TimeOnly oraInizio, TimeOnly oraFine, string nome)
     {
@@ -215,7 +304,7 @@ public static class DataSeeder
                 StringComparison.OrdinalIgnoreCase);
             if (nomeUguale || (turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine))
             {
-                return;
+                return turnoCorrente;
             }
         }
 
@@ -228,6 +317,8 @@ public static class DataSeeder
 
         context.Turni.Add(nuovoTurno);
         await context.SaveChangesAsync();
+
+        return nuovoTurno;
     }
 
     private static async Task AssicuraEsistenzaAbbonamento(ContestoDb context, string nome, decimal prezzo, int sconto, int durata)
@@ -272,7 +363,6 @@ public static class DataSeeder
             {
                 return;
             }
-
         }
 
         GiftCard nuovaGiftCard = new GiftCard
@@ -312,6 +402,64 @@ public static class DataSeeder
         };
 
         context.Sale.Add(nuovaSala);
+    private static async Task<Proiezione> AssicuraEsistenzaProiezione(
+    ContestoDb context,
+    DateOnly dataProiezione,
+    string movieId,
+    string salaId,
+    string turnoId)
+    {
+        List<Proiezione> proiezioni = await context.Proiezioni.ToListAsync();
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezione = proiezioni[i];
+
+            bool stessaSala = proiezione.SalaId == salaId;
+            bool stessoMovie = proiezione.MovieId == movieId;
+            bool stessoTurno = proiezione.TurnoId == turnoId;
+
+            if (stessaSala && stessoMovie && stessoTurno)
+            {
+                return proiezione;
+            }
+        }
+
+        Proiezione nuovaProiezione = new Proiezione
+        {
+            DataProiezione = dataProiezione,
+            MovieId = movieId,
+            SalaId = salaId,
+            TurnoId = turnoId,
+        };
+
+        context.Proiezioni.Add(nuovaProiezione);
+        await context.SaveChangesAsync();
+
+        return nuovaProiezione;
+    }
+
+    private static async Task AssicuraEsistenzaAcquisto(
+    ContestoDb context,
+    string proiezioneId,
+    string utenteId,
+    int numeroBiglietti,
+    DateTimeOffset orarioCreazione,
+    decimal prezzoFinale,
+    string metodoPagamento)
+    {
+        List<Acquisto> acquisti = await context.Acquisti.ToListAsync();
+
+        Acquisto nuovoAcquisto = new Acquisto
+        {
+            ProiezioneId = proiezioneId,
+            UtenteId = utenteId,
+            NumeroBiglietti = numeroBiglietti,
+            OrarioCreazione = orarioCreazione,
+            PrezzoFinale = prezzoFinale,
+            MetodoPagamento = metodoPagamento,
+        };
+
+        context.Acquisti.Add(nuovoAcquisto);
         await context.SaveChangesAsync();
     }
 }
