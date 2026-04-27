@@ -4,6 +4,7 @@ using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -54,16 +55,21 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
             return BadRequest("Dati non validi");
         }
-
-        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
-
-        if (risultato == null)
+        try
+        {
+            var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
-            return NotFound("Utente o GiftCard non trovata");
+            return NotFound(new { errore = ex.Message });
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
-        return Ok(risultato);
+        catch (GiftCardAlredyexis ex)
+        {
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+            return NotFound(new { errore = ex.Message });
+        }
     }
 }
