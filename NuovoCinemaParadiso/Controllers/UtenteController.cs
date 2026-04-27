@@ -32,17 +32,16 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
-
+        try{
         var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
-            return NotFound("Utente o abbonamento non trovato");
-        }
-
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
         return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            return NotFound(new { errore = ex.Message });
+        }
     }
 
     [HttpPost("giftCard")]
@@ -52,23 +51,23 @@ public class UtenteController : ControllerBase
 
         if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return BadRequest("Dati non validi");
         }
         try
         {
             var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", true);
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return NotFound(new { errore = ex.Message });
         }
         catch (GiftCardAlredyexis ex)
         {
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
+        await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return NotFound(new { errore = ex.Message });
         }
     }
