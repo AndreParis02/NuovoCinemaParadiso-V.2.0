@@ -203,8 +203,7 @@ namespace NuovoCinemaParadiso.Migrations
                     Id = table.Column<string>(type: "TEXT", nullable: false),
                     Nome = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Capienza = table.Column<int>(type: "INTEGER", nullable: false),
-                    TipologiaSalaId = table.Column<string>(type: "TEXT", nullable: false),
-                    TurnoId = table.Column<string>(type: "TEXT", nullable: true)
+                    TipologiaSalaId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -215,11 +214,6 @@ namespace NuovoCinemaParadiso.Migrations
                         principalTable: "TipologieSala",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Sale_Turni_TurnoId",
-                        column: x => x.TurnoId,
-                        principalTable: "Turni",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -350,9 +344,7 @@ namespace NuovoCinemaParadiso.Migrations
                     NumeroBiglietti = table.Column<int>(type: "INTEGER", nullable: false),
                     OrarioCreazione = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     PrezzoFinale = table.Column<decimal>(type: "TEXT", nullable: false),
-                    MetodoPagamento = table.Column<string>(type: "TEXT", nullable: false),
-                    MovieId = table.Column<string>(type: "TEXT", nullable: true),
-                    SalaId = table.Column<string>(type: "TEXT", nullable: true)
+                    MetodoPagamento = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -364,37 +356,17 @@ namespace NuovoCinemaParadiso.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Acquisti_Movies_MovieId",
-                        column: x => x.MovieId,
-                        principalTable: "Movies",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_Acquisti_Proiezioni_ProiezioneId",
                         column: x => x.ProiezioneId,
                         principalTable: "Proiezioni",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Acquisti_Sale_SalaId",
-                        column: x => x.SalaId,
-                        principalTable: "Sale",
-                        principalColumn: "Id");
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Acquisti_MovieId",
-                table: "Acquisti",
-                column: "MovieId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Acquisti_ProiezioneId",
                 table: "Acquisti",
                 column: "ProiezioneId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Acquisti_SalaId",
-                table: "Acquisti",
-                column: "SalaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Acquisti_UtenteId",
@@ -472,11 +444,6 @@ namespace NuovoCinemaParadiso.Migrations
                 name: "IX_Sale_TipologiaSalaId",
                 table: "Sale",
                 column: "TipologiaSalaId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Sale_TurnoId",
-                table: "Sale",
-                column: "TurnoId");
         }
 
         /// <inheritdoc />
@@ -519,6 +486,9 @@ namespace NuovoCinemaParadiso.Migrations
                 name: "Sale");
 
             migrationBuilder.DropTable(
+                name: "Turni");
+
+            migrationBuilder.DropTable(
                 name: "Abbonamenti");
 
             migrationBuilder.DropTable(
@@ -529,9 +499,6 @@ namespace NuovoCinemaParadiso.Migrations
 
             migrationBuilder.DropTable(
                 name: "TipologieSala");
-
-            migrationBuilder.DropTable(
-                name: "Turni");
         }
     }
 }

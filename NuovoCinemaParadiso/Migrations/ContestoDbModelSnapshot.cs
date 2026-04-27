@@ -178,9 +178,6 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("MovieId")
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("NumeroBiglietti")
                         .HasColumnType("INTEGER");
 
@@ -194,20 +191,13 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SalaId")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("UtenteId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MovieId");
-
                     b.HasIndex("ProiezioneId");
-
-                    b.HasIndex("SalaId");
 
                     b.HasIndex("UtenteId");
 
@@ -360,14 +350,9 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("TurnoId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TipologiaSalaId");
-
-                    b.HasIndex("TurnoId");
 
                     b.ToTable("Sale");
                 });
@@ -557,19 +542,11 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Acquisto", b =>
                 {
-                    b.HasOne("NuovoCinemaParadiso.Models.Movie", null)
-                        .WithMany("Acquisti")
-                        .HasForeignKey("MovieId");
-
                     b.HasOne("NuovoCinemaParadiso.Models.Proiezione", "Proiezione")
                         .WithMany("Acquisti")
                         .HasForeignKey("ProiezioneId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("NuovoCinemaParadiso.Models.Sala", null)
-                        .WithMany("Acquisti")
-                        .HasForeignKey("SalaId");
 
                     b.HasOne("NuovoCinemaParadiso.Models.Utente", "Utente")
                         .WithMany("Acquisti")
@@ -596,19 +573,19 @@ namespace NuovoCinemaParadiso.Migrations
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Proiezione", b =>
                 {
                     b.HasOne("NuovoCinemaParadiso.Models.Movie", "Movie")
-                        .WithMany()
+                        .WithMany("Proiezioni")
                         .HasForeignKey("MovieId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NuovoCinemaParadiso.Models.Sala", "Sala")
-                        .WithMany()
+                        .WithMany("Proiezioni")
                         .HasForeignKey("SalaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NuovoCinemaParadiso.Models.Turno", "Turno")
-                        .WithMany()
+                        .WithMany("Proiezioni")
                         .HasForeignKey("TurnoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -627,10 +604,6 @@ namespace NuovoCinemaParadiso.Migrations
                         .HasForeignKey("TipologiaSalaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("NuovoCinemaParadiso.Models.Turno", null)
-                        .WithMany("Sale")
-                        .HasForeignKey("TurnoId");
 
                     b.Navigation("TipologiaSala");
                 });
@@ -667,7 +640,7 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Movie", b =>
                 {
-                    b.Navigation("Acquisti");
+                    b.Navigation("Proiezioni");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Proiezione", b =>
@@ -677,7 +650,7 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Sala", b =>
                 {
-                    b.Navigation("Acquisti");
+                    b.Navigation("Proiezioni");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.TipologiaSala", b =>
@@ -687,7 +660,7 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Turno", b =>
                 {
-                    b.Navigation("Sale");
+                    b.Navigation("Proiezioni");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Utente", b =>

@@ -76,9 +76,6 @@ public static class DataSeeder
         await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
         await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
 
-        await AssicuraEsistenzaSala(contestoDb, "Sala 1", 100, "2D");
-        await AssicuraEsistenzaSala(contestoDb, "Sala 2", 80, "3D");
-        await AssicuraEsistenzaSala(contestoDb, "Sala 3", 50, "4D");
         var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
         var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
@@ -377,31 +374,8 @@ public static class DataSeeder
         await context.SaveChangesAsync();
     }
 
-    private static async Task AssicuraEsistenzaSala(ContestoDb context, string nome, int capienza, string tipologiaSalaId)
-    {
-        List<Sala> sale = await context.Sale.ToListAsync();
-        for (int i = 0; i < sale.Count; i++)
-        {
-            Sala salaCorrente = sale[i];
-            bool nomeUguale = string.Equals(
-                salaCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return;
-            }
+    
 
-        }
-
-        Sala nuovaSala = new Sala
-        {
-            Nome = nome,
-            Capienza = capienza,
-            TipologiaSalaId = tipologiaSalaId
-        };
-
-        context.Sale.Add(nuovaSala);
     private static async Task<Proiezione> AssicuraEsistenzaProiezione(
     ContestoDb context,
     DateOnly dataProiezione,

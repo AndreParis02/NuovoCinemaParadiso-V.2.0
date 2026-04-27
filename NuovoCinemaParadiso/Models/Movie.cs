@@ -16,7 +16,7 @@ public class Movie
     public string Descrizione {get;set;} = string.Empty;
     public int DurataMinuti {get;set;} 
     public decimal PrezzoMovie {get;set;}
-    public List<Acquisto> Acquisti {get;set;} = new List<Acquisto>();
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
     public string GenereId {get;set;} = string.Empty;
     
     [ForeignKey("GenereId")]

@@ -13,7 +13,7 @@ public class Sala
     [StringLength(100)]
     public string Nome {get; set;} = string.Empty;
     public int Capienza {get; set;}
-    public List<Acquisto> Acquisti {get; set;} = new List<Acquisto>();
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
     public string TipologiaSalaId {get; set;} = string.Empty;
 
     [ForeignKey("TipologiaSalaId")]

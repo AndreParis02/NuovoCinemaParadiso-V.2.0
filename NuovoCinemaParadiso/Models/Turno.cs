@@ -14,9 +14,9 @@ public class Turno
 
     [Required]
     public TimeOnly OraFine { get; set; }
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
 
     [StringLength(50)]
     public string Nome { get; set; } = string.Empty; // es: "Sera", "Pomeriggio"
 
-    public List<Sala> Sale { get; set; } = new();
 }
