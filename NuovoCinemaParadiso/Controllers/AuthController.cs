@@ -54,7 +54,10 @@ public class AuthController : ControllerBase
     [HttpGet("profilo")]
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
 
         if (utente == null)
@@ -70,7 +73,10 @@ public class AuthController : ControllerBase
     [HttpPut("modifica")]
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         var risultato = await _authService.ModificaAsync(dto, utenteId);
 
         if (risultato == null)
@@ -86,7 +92,10 @@ public class AuthController : ControllerBase
     [HttpDelete("elimina")]
     public async Task<IActionResult> Elimina()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         var risultato = await _authService.EliminaAsync(utenteId);
 
         if (risultato == null)

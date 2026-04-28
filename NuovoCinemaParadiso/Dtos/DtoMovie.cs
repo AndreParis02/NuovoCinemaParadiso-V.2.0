@@ -2,7 +2,7 @@ namespace NuovoCinemaParadiso.Dtos;
 
 public class DtoMovie
 {
-    public string Id {get;set;}
+    public string? Id {get;set;}
     public string Titolo {get;set;} = string.Empty;
     public string Descrizione {get;set;} = string.Empty;
     public int DurataMinuti {get;set;}

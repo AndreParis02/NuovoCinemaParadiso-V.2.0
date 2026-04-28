@@ -25,7 +25,10 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
         List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profili",true);
 
@@ -38,7 +41,10 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> RicercaProfiloTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
 
         if (utente == null)
@@ -55,7 +61,9 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> EliminaTramiteId(string Id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
 
@@ -74,7 +82,10 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniTuttiGliAcquisti()
     {
         List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti admin",true);
 
@@ -86,7 +97,10 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
     {
         var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (risultato == null)
         {
@@ -104,7 +118,9 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrWhiteSpace(abbonamentoId))
         {
@@ -131,7 +147,9 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrWhiteSpace(giftcardId))
         {

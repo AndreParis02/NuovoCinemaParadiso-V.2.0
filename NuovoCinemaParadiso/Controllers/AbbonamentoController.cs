@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -28,20 +29,23 @@ public class AbbonamentoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli abbonamenti utente" ,true);
        
-
         return Ok(abbonamenti);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
@@ -61,7 +65,10 @@ public class AbbonamentoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
 
         if (risultato == null)
@@ -81,7 +88,10 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
         DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (risultato == null)
         {
@@ -100,7 +110,10 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (!eliminato)
         {
