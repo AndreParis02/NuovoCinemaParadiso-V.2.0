@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -35,7 +36,7 @@ public class UtenteService
 
         if (abbonamentoTrovato == null)
         {
-            return null;
+            throw new NotFoundException("Abbonamento", abbonamentoId);
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
@@ -43,12 +44,13 @@ public class UtenteService
 
         if (utenteTrovato == null)
         {
-            return null;
+            throw new NotFoundException("Utente", utenteId);
+
         }   
 
         if(utenteTrovato.SeAbbonato)
         {
-            return null; // cambiare
+            throw new AbbonamentoAlredyexist("Abbonamento", abbonamentoId);
         }
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
@@ -91,7 +93,7 @@ public class UtenteService
 
         if (giftCardTrovata == null)
         {
-            return null;
+            throw new NotFoundException("GiftCard", giftCardId);
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
@@ -99,13 +101,13 @@ public class UtenteService
 
         if (utenteTrovato == null)
         {
-            return null;
+            throw new NotFoundException("Utente", utenteId);
         }
 
         
         if(utenteTrovato.PossiedeGiftCard)
         {
-            return null; // cambiare
+            throw new GiftCardAlredyexis("GiftCard", giftCardId);
         }
 
         utenteTrovato.GiftCardId = giftCardTrovata.Id;
