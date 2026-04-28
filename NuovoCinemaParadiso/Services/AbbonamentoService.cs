@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -101,8 +102,7 @@ public class AbbonamentoService
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
         if (abbonamento == null)
-            return null;
-
+            throw new NotFoundException("Abbonamento", id);
 
         abbonamento.Nome = dto.Nome;
         abbonamento.Durata = dto.Durata;

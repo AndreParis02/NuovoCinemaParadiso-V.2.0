@@ -24,7 +24,9 @@ public class GiftCardController : ControllerBase
     public async Task<IActionResult> OttieniTutteLeGiftCard()
     {
         List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutte le giftcard" ,true);
 
@@ -34,7 +36,9 @@ public class GiftCardController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _giftCardService.OttieniTramiteIdAsync(id, utenteId);
 
@@ -54,7 +58,9 @@ public class GiftCardController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         
         DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
 
@@ -68,7 +74,9 @@ public class GiftCardController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         DtoGiftCard? risultato = await _giftCardService.ModificaAsync(id,dto);
 
@@ -86,7 +94,9 @@ public class GiftCardController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         bool eliminato = await _giftCardService.EliminazioneAsync(id);
 

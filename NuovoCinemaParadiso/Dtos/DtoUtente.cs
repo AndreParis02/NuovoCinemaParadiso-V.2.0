@@ -8,7 +8,6 @@ public class DtoUtente
     public DateTimeOffset DataInizioGiftCard { get; set; }
     public bool SeAbbonato { get; set; }
     public bool PossiedeGiftCard { get; set; } = false;
-
     public string Email { get; set; } = string.Empty;
     public int Eta { get; set; }
     public string AbbonamentoId { get; set; } = string.Empty;

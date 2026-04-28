@@ -24,7 +24,9 @@ public class AcquistoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
 
@@ -36,7 +38,9 @@ public class AcquistoController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
 
@@ -55,7 +59,10 @@ public class AcquistoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
 
         if (risultato == null)
@@ -75,7 +82,10 @@ public class AcquistoController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
     {
         DtoAcquisto? risultato = await _acquistoService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (risultato == null)
         {
@@ -92,7 +102,10 @@ public class AcquistoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _acquistoService.EliminazioneAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (!eliminato)
         {

@@ -23,7 +23,6 @@ public class AbbonamentoAlredyexist : AppException
         : base($"L'{risorsa} con ID '{id}' è già collegata all'utente") { }
 }
 
-
 public class ConflictException : AppException
 {
     public ConflictException(string message) : base(message) { }

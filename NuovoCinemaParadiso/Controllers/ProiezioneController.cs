@@ -25,7 +25,9 @@ public class ProiezioneController : ControllerBase
     public async Task<IActionResult> OttieniTutteLeProiezioni()
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
 
@@ -35,7 +37,9 @@ public class ProiezioneController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
 
@@ -54,7 +58,9 @@ public class ProiezioneController : ControllerBase
     [HttpGet("turno/{turnoId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrEmpty(turnoId))
         {
@@ -79,7 +85,9 @@ public class ProiezioneController : ControllerBase
     [HttpGet("sala/{salaId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrEmpty(salaId))
         {
@@ -103,7 +111,9 @@ public class ProiezioneController : ControllerBase
     [HttpGet("movie/{movieId}")]
     public async Task<ActionResult<List<DtoProiezione>>>OttieniPerFilm(string movieId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrEmpty(movieId))
         {
@@ -129,7 +139,10 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
         foreach (var proiezione in proiezioni)
@@ -158,7 +171,9 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id,dto);
 
@@ -178,7 +193,9 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         bool eliminato = await _proiezioneService.EliminaAsync(id);
 

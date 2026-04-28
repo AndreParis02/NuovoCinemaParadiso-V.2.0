@@ -3,7 +3,6 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace NuovoCinemaParadiso.Services;
 
 public class LogAzioniService
@@ -14,10 +13,7 @@ public class LogAzioniService
     _contesto = contesto; 
   }
 
-  
-    
-
-    public async Task SalvataggioLogAzioneAsync(string idUtente, string azione, bool effettuato)
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
     {
       string messaggio = "operazione fallita";
       if(effettuato) messaggio = "operazione eseguita";
@@ -50,8 +46,6 @@ public class LogAzioniService
           risultati.Add(risultato);
         }
 
-
         return risultati;
     }
-
 }

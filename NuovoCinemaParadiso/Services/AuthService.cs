@@ -4,6 +4,7 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Helpers;
 using NuovoCinemaParadiso.Data;
 using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -63,7 +64,7 @@ public class AuthService
 
         if (utente == null)
         {
-            return null;
+            throw new NotFoundException("Utente", dto.Email);
         }
 
         Abbonamento? abbonamento = null;
@@ -79,7 +80,7 @@ public class AuthService
             giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
         }
 
-        if (utente.SeAbbonato == true)
+        if (utente.SeAbbonato == true && abbonamento != null)
         {
             DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
             int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
@@ -90,7 +91,7 @@ public class AuthService
             }
         }
 
-        if (utente.PossiedeGiftCard == true)
+        if (utente.PossiedeGiftCard == true && giftCard != null)
         {
             DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
             int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
@@ -105,8 +106,9 @@ public class AuthService
 
         if (!result.Succeeded)
         {
-            return null;
+            throw new ConflictException("Password errata");
         }
+
         IList<string> ruoli = await _gestioneUtenti.GetRolesAsync(utente);
 
         string token = _jwtHelper.GenerateToken(utente, ruoli);
@@ -140,25 +142,25 @@ public class AuthService
 
         if (utente == null)
         {
-            return null;
+            throw new NotFoundException("Utente", id);
         }
-        
-        Abbonamento abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        GiftCard giftCard       = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
+
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
 
         DtoUtente dto = new DtoUtente();
-        dto.Id                    = utente.Id;
-        dto.Email                 = utente.Email ?? string.Empty;
-        dto.NomeCompleto          = utente.NomeCompleto ?? string.Empty;
-        dto.Eta                   = utente.Eta;
-        dto.SeAbbonato            = utente.SeAbbonato;
-        dto.AbbonamentoId         = utente?.AbbonamentoId ?? "";
-        dto.TipoAbbonamento       = abbonamento?.Nome ?? "";
+        dto.Id = utente.Id;
+        dto.Email = utente.Email ?? string.Empty;
+        dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
+        dto.Eta = utente.Eta;
+        dto.SeAbbonato = utente.SeAbbonato;
+        dto.AbbonamentoId = utente?.AbbonamentoId ?? "";
+        dto.TipoAbbonamento = abbonamento?.Nome ?? "";
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
-        dto.PossiedeGiftCard      = utente.PossiedeGiftCard;
-        dto.GiftCardId            = utente?.GiftCardId ?? "";
-        dto.TipoGiftCard          = giftCard?.Nome ?? "";
-        dto.DataInizioGiftCard    = utente.DataInizioGiftCard;
+        dto.PossiedeGiftCard = utente.PossiedeGiftCard;
+        dto.GiftCardId = utente?.GiftCardId ?? "";
+        dto.TipoGiftCard = giftCard?.Nome ?? "";
+        dto.DataInizioGiftCard = utente.DataInizioGiftCard;
 
         return dto;
     }
@@ -191,7 +193,6 @@ public class AuthService
         }
 
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
-
         return risultato;
     }
 }

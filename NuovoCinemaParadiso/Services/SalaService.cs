@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Services;
@@ -125,7 +126,8 @@ public class SalaService
 
         await _contesto.SaveChangesAsync();
 
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId);
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId)
+            ?? throw new NotFoundException("TipologiaSala", salaEsistente.TipologiaSalaId);
 
         DtoSala risultato = new DtoSala();
         risultato.Id = salaEsistente.Id;

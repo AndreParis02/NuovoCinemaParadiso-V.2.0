@@ -24,7 +24,9 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
 
@@ -35,7 +37,9 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         var risultato = await _turnoService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (risultato == null)
         {
@@ -53,8 +57,9 @@ public class TurnoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
-
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
 
         foreach (var turno in turni)
@@ -87,7 +92,9 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
         DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (risultato == null)
         {
@@ -106,7 +113,9 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _turnoService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (!eliminato)
         {

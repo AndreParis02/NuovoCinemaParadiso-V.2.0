@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Services
@@ -35,12 +36,12 @@ namespace NuovoCinemaParadiso.Services
             return risultato;
         }
 
-        public async Task<DtoTurno> OttieniTramiteIdAsync(string id) 
+        public async Task<DtoTurno> OttieniTramiteIdAsync(string id)
         {
             Turno? turno = await _contesto.Turni.FindAsync(id);
             if (turno == null)
             {
-                return null;
+                throw new NotFoundException("Turno", id);
             }
 
             DtoTurno dto = new DtoTurno();
@@ -77,7 +78,7 @@ namespace NuovoCinemaParadiso.Services
 
             if (turnoEsistente == null)
             {
-                return null;
+                throw new NotFoundException("Turno", id);
             }
 
             turnoEsistente.OraInizio = dto.OraInizio;
@@ -95,13 +96,13 @@ namespace NuovoCinemaParadiso.Services
             return risultato;
         }
 
-        public async Task<bool> EliminaAsync(string id) 
+        public async Task<bool> EliminaAsync(string id)
         {
             Turno? turno = await _contesto.Turni.FindAsync(id);
 
             if (turno == null)
             {
-                return false;
+                throw new NotFoundException("Turno", id);
             }
 
             _contesto.Turni.Remove(turno);

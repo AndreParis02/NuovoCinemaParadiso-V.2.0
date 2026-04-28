@@ -24,7 +24,9 @@ public class MovieController : ControllerBase
     public async Task<IActionResult> OttieniTuttiIMovies()
     {
         List<DtoMovie> movies = await _movieService.OttieniTutto();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
         return Ok(movies);
@@ -33,7 +35,9 @@ public class MovieController : ControllerBase
     [HttpGet("genere/{genereId}")]
     public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrWhiteSpace(genereId))
         {
@@ -65,7 +69,9 @@ public class MovieController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _movieService.OttieniTramiteIdAsync(id);
 
@@ -83,7 +89,10 @@ public class MovieController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
         foreach (var movie in movies)
@@ -111,7 +120,9 @@ public class MovieController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
 
@@ -129,7 +140,9 @@ public class MovieController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         bool eliminato = await _movieService.EliminaAsync(id);
 
