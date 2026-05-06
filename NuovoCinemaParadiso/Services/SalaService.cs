@@ -112,32 +112,52 @@ public class SalaService
     }
 
     public async Task<DtoSala?> ModificaAsync(string id, DtoCreazioneSala dto)
-    {
-        Sala? salaEsistente = await _contesto.Sale.FindAsync(id);
+{
+    
+    Sala? salaEsistente = await _contesto.Sale.FindAsync(id);
 
-        if (salaEsistente == null)
+    if (salaEsistente == null)
+    {
+        return null;
+    }
+
+    List<Sala> listaSale = await _contesto.Sale.ToListAsync();
+
+   
+    for (int i = 0; i < listaSale.Count; i++)
+    {
+        Sala salaCorrente = listaSale[i];
+
+       
+        if (salaCorrente.Nome == dto.Nome && salaCorrente.Id != id)
         {
+          
             return null;
         }
-
-        salaEsistente.Nome = dto.Nome;
-        salaEsistente.Capienza = dto.Capienza;
-        salaEsistente.TipologiaSalaId = dto.TipologiaSalaId;
-
-        await _contesto.SaveChangesAsync();
-
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId)
-            ?? throw new NotFoundException("TipologiaSala", salaEsistente.TipologiaSalaId);
-
-        DtoSala risultato = new DtoSala();
-        risultato.Id = salaEsistente.Id;
-        risultato.Nome = salaEsistente.Nome;
-        risultato.Capienza = salaEsistente.Capienza;
-        risultato.TipologiaSalaId = salaEsistente.TipologiaSalaId;
-        risultato.NomeTipologia = tipologiaSala.Nome;
-
-        return risultato;
     }
+
+    
+    salaEsistente.Nome = dto.Nome;
+    salaEsistente.Capienza = dto.Capienza;
+    salaEsistente.TipologiaSalaId = dto.TipologiaSalaId;
+
+    await _contesto.SaveChangesAsync();
+
+   
+    TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId)
+        ?? throw new NotFoundException("TipologiaSala", salaEsistente.TipologiaSalaId);
+
+  
+    DtoSala risultato = new DtoSala();
+    risultato.Id = salaEsistente.Id;
+    risultato.Nome = salaEsistente.Nome;
+    risultato.Capienza = salaEsistente.Capienza;
+    risultato.TipologiaSalaId = salaEsistente.TipologiaSalaId;
+    risultato.NomeTipologia = tipologiaSala.Nome;
+
+    return risultato;
+}
+
 
     public async Task<bool> EliminaAsync(string id)
     {
