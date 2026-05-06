@@ -15,11 +15,11 @@ Auth; (da fare)
 
 ## Andrea P:
 
-GenereMovie; (da fare)
+GenereMovie; (Fatto)
 
-GestoreUtenti; (da fare)
+GestoreUtenti; (Fatto)
 
-Utente; (da fare)
+Utente; (Fatto)
 
 
 ## Francesco: 

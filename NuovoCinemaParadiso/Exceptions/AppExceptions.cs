@@ -21,3 +21,13 @@ public class ConflictException : AppException
 {
     public ConflictException(string message) : base(message) { }
 }
+
+public class ModificaException : AppException
+{
+    public ModificaException(string message) : base($"E' gia presente un {message} con lo stesso nome") { }
+}
+
+public class ItemNotFoundException : AppException
+{
+    public ItemNotFoundException(string message) : base($"{message} non trovato.") { }
+}
