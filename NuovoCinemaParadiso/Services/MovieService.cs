@@ -44,7 +44,7 @@ public class MovieService
     public async Task<DtoMovie?> OttieniTramiteIdAsync(string id)
     {
         
-        var movie = await _contesto.Movies.FindAsync(id);
+        Movie? movie = await _contesto.Movies.FindAsync(id);
 
         if (movie == null)
         {

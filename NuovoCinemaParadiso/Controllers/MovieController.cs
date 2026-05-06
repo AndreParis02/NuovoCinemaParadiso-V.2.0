@@ -67,7 +67,7 @@ public class MovieController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        var risultato = await _movieService.OttieniTramiteIdAsync(id);
+        DtoMovie? risultato = await _movieService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
