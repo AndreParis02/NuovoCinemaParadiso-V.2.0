@@ -157,7 +157,7 @@ curl -s -X POST "http://localhost:5226/api/Turno" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-    "oraInizio": "15:30:00",
+    "oraInizio": "13:00:00",
     "oraFine": "18:00:00",
     "nome": "Pomeriggio"
 }' | jq
