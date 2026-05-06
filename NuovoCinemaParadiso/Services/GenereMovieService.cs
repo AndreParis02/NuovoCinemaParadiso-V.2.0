@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -78,7 +79,19 @@ public class GenereMovieService
         GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(id);
         if (genereMovie == null)
         {
-            return null;
+            throw new ItemNotFoundException("Genere");
+        }
+
+        List<GenereMovie> generiMovies = _contesto.GeneriMovies.ToList();
+
+        for (int i = 0; i < generiMovies.Count; i++)
+        {
+            GenereMovie genereMoviecorrente = generiMovies[i];
+            bool stessoNome = string.Equals(genereMoviecorrente.Genere, dto.Genere, StringComparison.OrdinalIgnoreCase);
+            if (stessoNome)
+            {
+                throw new ModificaException("genere");
+            }
         }
 
         genereMovie.Genere = dto.Genere;

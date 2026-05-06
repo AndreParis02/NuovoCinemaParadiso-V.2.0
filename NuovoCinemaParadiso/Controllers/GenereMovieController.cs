@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -28,7 +29,7 @@ public class GenereMovieController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i generi",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i generi", true);
 
         return Ok(generiMovie);
     }
@@ -43,12 +44,12 @@ public class GenereMovieController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni genere tramite id",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni genere tramite id", false);
 
             return NotFound($"GenereMovie con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni genere tramite id",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni genere tramite id", true);
 
         return Ok(risultato);
     }
@@ -67,23 +68,23 @@ public class GenereMovieController : ControllerBase
         {
             if (generiMovies.Genere.Contains(dto.Genere))
             {
-                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",false);
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", false);
 
                 return BadRequest(new { messaggio = "Genere già presente." });
             }
         }
-        
+
         DtoGenereMovie? risultato = await _genereMovieService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", false);
 
             return BadRequest(new { messaggio = "Genere non valido." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione genere",true);
-    
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione genere", true);
+
         return Ok(risultato);
     }
 
@@ -91,21 +92,33 @@ public class GenereMovieController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
-        DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica genere",false);
+            DtoGenereMovie? risultato = await _genereMovieService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica genere", true);
 
-            return NotFound(new { messaggio = "Genere non trovato." });
+            return Ok(risultato);
+
+        }
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica genere", false);
+            return BadRequest(new { message = ex.Message });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica genere",true);
-        
-        return Ok(risultato);
+        catch (ItemNotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica genere", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
     }
 
     [HttpDelete("{id}")]
@@ -125,7 +138,7 @@ public class GenereMovieController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", true);
-    
-        return Ok(new {message = "Il Genere è stato eliminato correttamente"});
+
+        return Ok(new { message = "Il Genere è stato eliminato correttamente" });
     }
 }
