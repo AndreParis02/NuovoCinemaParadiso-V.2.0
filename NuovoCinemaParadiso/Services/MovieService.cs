@@ -70,7 +70,6 @@ public class MovieService
         List<DtoMovie> risultato = new List<DtoMovie>();
 
         List<DtoMovie> movies = await OttieniTutto();
-        Console.WriteLine($"Numero di film trovati: {movies.Count}");
 
         foreach (var movie in movies)
         {
@@ -79,7 +78,6 @@ public class MovieService
                 risultato.Add(movie);
             }
         }
-        Console.WriteLine($"Numero di film trovati per il genere {genereId}: {risultato.Count}");
         return risultato;
     }
 
