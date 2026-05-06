@@ -39,6 +39,8 @@ public class AdminService
             dto.Eta = utenteCorrente.Eta;
             dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
             dto.GiftCardId = utenteCorrente.GiftCardId ?? string.Empty;
+            dto.SeAbbonato = utenteCorrente.SeAbbonato;
+            dto.PossiedeGiftCard = utenteCorrente.PossiedeGiftCard;
             dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
             dto.DataInizioGiftCard = utenteCorrente.DataInizioGiftCard;
             dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
@@ -53,13 +55,13 @@ public class AdminService
     public async Task<DtoUtente?> OttieniUtenteTramiteIdAsync(string id)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
-            ?? throw new NotFoundException("Utente" , id);
+            ?? throw new NotFoundException("Utente", id);
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
         GiftCard? giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
 
         if (utente == null)
         {
-            throw new NotFoundException("Utente" , id);
+            throw new NotFoundException("Utente", id);
         }
 
         DtoUtente dto = new DtoUtente();
@@ -67,6 +69,8 @@ public class AdminService
         dto.Email = utente.Email ?? string.Empty;
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
+        dto.SeAbbonato = utente.SeAbbonato;
+        dto.PossiedeGiftCard = utente.PossiedeGiftCard;
         dto.AbbonamentoId = utente.AbbonamentoId ?? string.Empty;
         dto.GiftCardId = utente.GiftCardId ?? string.Empty;
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
@@ -209,7 +213,7 @@ public class AdminService
 
         return risultato;
     }
-    
+
     public async Task<List<DtoUtente>> OttieniUtentiTramiteGiftCardAsync(string giftCardId)
     {
 
@@ -231,7 +235,7 @@ public class AdminService
 
         if (giftCardTrovata == null)
         {
-            throw new NotFoundException("GiftCard" , giftCardId);
+            throw new NotFoundException("GiftCard", giftCardId);
         }
 
         List<DtoUtente> risultato = new List<DtoUtente>();
@@ -249,6 +253,8 @@ public class AdminService
                 dto.NomeCompleto = utenteCorrente.NomeCompleto;
                 dto.Email = utenteCorrente.Email ?? string.Empty;
                 dto.Eta = utenteCorrente.Eta;
+                dto.SeAbbonato = utenteCorrente.SeAbbonato;
+                dto.PossiedeGiftCard = utenteCorrente.PossiedeGiftCard;
                 dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
                 dto.GiftCardId = utenteCorrente.GiftCardId ?? string.Empty;
                 dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
