@@ -8,7 +8,7 @@ Abbonamento; (fatto)
 
 Giftcard; (fatto)
 
-Admin; (da fare) 
+Admin; (fatto) 
 
 Auth; (da fare)
 
