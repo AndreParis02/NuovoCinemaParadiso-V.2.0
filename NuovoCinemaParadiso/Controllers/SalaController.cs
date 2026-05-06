@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -106,21 +107,44 @@ public class SalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
-        DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+            DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
 
-            return NotFound(new { messaggio = "Sala non trovata." });
+            return Ok(risultato);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+            return BadRequest(new { message = ex.Message });
+        }
 
-        return Ok(risultato);
+        catch (ItemNotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
+        catch (NotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
     }
 
     [HttpDelete("{id}")]

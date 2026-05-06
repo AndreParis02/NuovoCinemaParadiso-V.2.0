@@ -118,21 +118,28 @@ public class SalaService
 
     if (salaEsistente == null)
     {
-        return null;
+         throw new ItemNotFoundException("Sala");
     }
 
-    
+    TipologiaSala? tipologia = await _contesto.TipologieSala.FindAsync(dto.TipologiaSalaId);
+    if (tipologia == null)
+    {
+        throw new NotFoundException("TipologiaSala", dto.TipologiaSalaId);
+    }
+
+
     List<Sala> listaSale = await _contesto.Sale.ToListAsync();
 
     for (int i = 0; i < listaSale.Count; i++)
     {
         Sala salaCorrente = listaSale[i];
+        bool stessoNome = string.Equals(salaCorrente.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
 
        
-        if (salaCorrente.Nome == dto.Nome && salaCorrente.Id != id)
+        if (stessoNome)
         {
             
-            throw new Exception("Esiste già una sala con questo nome.");
+            throw new ModificaException("sala");
         }
     }
 
