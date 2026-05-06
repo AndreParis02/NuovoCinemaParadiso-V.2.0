@@ -86,8 +86,7 @@ public class AdminService
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
         if (utente == null)
         {
-            IdentityError errore = new IdentityError();  //
-            return IdentityResult.Failed(errore);  //
+            throw new NotFoundException("Utente", id);
         }
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
 

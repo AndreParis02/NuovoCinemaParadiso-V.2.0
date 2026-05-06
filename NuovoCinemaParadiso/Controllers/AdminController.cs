@@ -25,14 +25,14 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
         List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
-        
+
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profili",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profili", true);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili", true);
 
         return Ok(utenti);
     }
@@ -44,17 +44,17 @@ public class AdminController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
-        DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
-
-        if (utente == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",false);
+            DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo", true);
+            return Ok(utente);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo", false);
             return NotFound(new { messaggio = "Utente non trovato." });
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",true);
-        return Ok(utente);
     }
 
     [HttpDelete("eliminaUtente/{id}")]
@@ -64,17 +64,17 @@ public class AdminController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
-        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
-
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",false);
-
+            var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
+            return Ok(risultato);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", false);
             return NotFound(new { messaggio = "Utente non trovato." });
         }
-         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",true);
-        return Ok(risultato);
     }
 
     [HttpGet("acquisto")]
@@ -87,8 +87,7 @@ public class AdminController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti admin",true);
-
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti gli acquisti admin", true);
         return Ok(acquisti);
     }
 
@@ -96,22 +95,23 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
     {
-        var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
 
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",false);
-
+            var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti tramite id admin", true);
+            return Ok(risultato);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti tramite id admin", false);
             return NotFound($"Acquisto con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",true);
 
-        return Ok(risultato);
     }
 
     [HttpGet("utenti/abbonamento/{abbonamentoId}")]
@@ -124,7 +124,7 @@ public class AdminController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(abbonamentoId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", false);
 
             return BadRequest("AbbonamentoId non valido");
         }
@@ -133,12 +133,12 @@ public class AdminController : ControllerBase
 
         if (risultato == null || risultato.Count == 0)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", false);
 
             return NotFound("Nessun utente trovato per questo abbonamento");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", true);
 
         return Ok(risultato);
     }
@@ -153,23 +153,21 @@ public class AdminController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(giftcardId))
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", false);
 
             return BadRequest("giftcardId non valido");
         }
-
-        var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
-
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
-
+            var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", true);
+            return Ok(risultato);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", false);
             return NotFound("Nessun utente trovato per questa giftcard");
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",true);
-
-        return Ok(risultato);
     }
 
     [HttpGet("log")]
@@ -178,5 +176,5 @@ public class AdminController : ControllerBase
     {
         List<DtoLogAzioni> risultatiLog = await _logAzioniService.LetturaLogAzioneAsync();
         return Ok(risultatiLog);
-    }   
+    }
 }
