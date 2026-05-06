@@ -13,6 +13,7 @@ public class MovieController : ControllerBase
 {
     private readonly MovieService _movieService;
     private readonly LogAzioniService _logAzioniService;
+    
 
     public MovieController(MovieService movieService, LogAzioniService logAzioniService)
     {
@@ -47,18 +48,11 @@ public class MovieController : ControllerBase
 
         var risultato = await _movieService.OttieniTramiteGenere(genereId);
 
-        if (risultato == null)
+        if (risultato.Count() == 0)
         {
           await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
 
           return NotFound("Nessun film trovato per questo genere");
-        }
-
-        if (risultato.Count == 0)
-        {
-          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);
-
-          return Ok(new List<DtoMovie>());
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);;
@@ -73,7 +67,7 @@ public class MovieController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        var risultato = await _movieService.OttieniTramiteIdAsync(id);
+        DtoMovie? risultato = await _movieService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
@@ -109,7 +103,7 @@ public class MovieController : ControllerBase
         if (risultato == null)
         {
           await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
-          return BadRequest(new { messaggio = "Film non valido." });
+          return BadRequest(new { messaggio = "id del genere non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
@@ -124,6 +118,17 @@ public class MovieController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo) && movie.Id != id)
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
+            }
+        }
+        
         DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
 
         if (risultato == null)
