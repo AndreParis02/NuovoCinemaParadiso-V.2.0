@@ -38,9 +38,14 @@ Sala; (da fare)
 
 ## Simeone: 
 
-Turno; (da fare)
+Turno:
+Se provavo ad eliminare un turno che aveva una proiezione associata tramite ForeignKey, giustamente, non mi permetteva di fare il curl DELETE, ma invece di darmi un errore lineare crashava il tutto e dava 500 Internal Server Error. Adesso, avendo modificato in TurnoService.ts e TurnoController.cs, da un messaggio di errore più chiaro e lineare senza far crashare l'intera webapi rstituendo un 400 Bad Request.
 
-Acquisto; (da fare)
+Piccolo plus: In TurnoService.cs ho aggiunto dei controlli logici in CreazioneAsync e ModificaAsync per far sì che non ci siano turni omonimi.
+
+
+
+Acquisto; (Fabio??)
 
 
 

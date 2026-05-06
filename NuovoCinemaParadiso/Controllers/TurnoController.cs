@@ -23,33 +23,30 @@ public class TurnoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
-
         return Ok(turni);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", false);
-
-            return NotFound($"Turno con id {id} non trovato");
+            return NotFound(new { messaggio = $"Turno con id {id} non trovato" });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", true);
-
         return Ok(risultato);
     }
 
@@ -58,32 +55,23 @@ public class TurnoController : ControllerBase
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        foreach (var turno in turni)
+        var (risultato, errore) = await _turnoService.CreazioneAsync(dto);
+
+        if (errore != null)
         {
-            bool stringheUguali = string.Equals(turno.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
-            if (stringheUguali)
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
-
-                return BadRequest(new { messaggio = "Turno già presente." });
-            }
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
+            return BadRequest(new { messaggio = errore });
         }
-
-        DtoTurno? risultato = await _turnoService.CreazioneAsync(dto);
 
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
-
-            return BadRequest(new { messaggio = "Turno non valido." });
+            return StatusCode(500, new { messaggio = "Errore generico durante la creazione." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true);
-
         return Ok(risultato);
     }
 
@@ -91,20 +79,23 @@ public class TurnoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
-        DtoTurno? risultato = await _turnoService.ModificaAsync(id, dto);
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        if (risultato == null)
+        var (risultato, errore) = await _turnoService.ModificaAsync(id, dto);
+
+        if (errore == "Turno non trovato.")
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
-
-            return NotFound(new { messaggio = "Turno non trovato." });
+            return NotFound(new { messaggio = errore });
+        }
+        else if (errore != null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
+            return BadRequest(new { messaggio = errore });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true);
-
         return Ok(risultato);
     }
 
@@ -112,20 +103,26 @@ public class TurnoController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _turnoService.EliminaAsync(id);
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        if (!eliminato)
+        var (successo, errore) = await _turnoService.EliminaAsync(id);
+
+        if (!successo)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", false);
-
-            return NotFound(new { messaggio = "Turno non trovato." });
+            
+            if (errore == "Turno non trovato.")
+            {
+                return NotFound(new { messaggio = errore });
+            }
+            else
+            {
+                return BadRequest(new { messaggio = errore });
+            }
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
-
         return NoContent();
     }
 }
