@@ -50,7 +50,7 @@ public class UtenteService
 
         if(utenteTrovato.SeAbbonato)
         {
-            throw new AbbonamentoAlredyexist("Abbonamento", abbonamentoId);
+            throw new ItemAlredyexist("Abbonamento");
         }
 
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
@@ -107,7 +107,7 @@ public class UtenteService
         
         if(utenteTrovato.PossiedeGiftCard)
         {
-            throw new GiftCardAlredyexis("GiftCard", giftCardId);
+            throw new ItemAlredyexist("GiftCard");
         }
 
         utenteTrovato.GiftCardId = giftCardTrovata.Id;

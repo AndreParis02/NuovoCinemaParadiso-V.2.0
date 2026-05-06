@@ -11,16 +11,10 @@ public class NotFoundException : AppException
         : base($"{risorsa} con ID '{id}' non trovato.") { }
 }
 
-public class GiftCardAlredyexis : AppException
+public class ItemAlredyexist : AppException
 {
-    public GiftCardAlredyexis(string risorsa, string id)
-        : base($"La {risorsa} con ID '{id}' è già collegata all'utente") { }
-}
-
-public class AbbonamentoAlredyexist : AppException
-{
-    public AbbonamentoAlredyexist(string risorsa, string id)
-        : base($"L'{risorsa} con ID '{id}' è già collegata all'utente") { }
+    public ItemAlredyexist(string risorsa)
+        : base($"Una {risorsa} è già collegata all'utente") { }
 }
 
 public class ConflictException : AppException

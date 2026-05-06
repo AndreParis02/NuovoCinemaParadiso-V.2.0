@@ -44,7 +44,7 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
-        catch(AbbonamentoAlredyexist ex)
+        catch(ItemAlredyexist ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
@@ -74,7 +74,7 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return NotFound(new { errore = ex.Message });
         }
-        catch (GiftCardAlredyexis ex)
+        catch (ItemAlredyexist ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return NotFound(new { errore = ex.Message });
