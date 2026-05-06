@@ -12,7 +12,7 @@ Testarli per vedere tutte le risposte errate; (Marco)
 
 - Admin/LeggiGiftCardTramiteIdGiftCard
 
-- collegare i bool dell'utente a gift card e abbonamento per il quale è collegato
-
 - CONTROLLARE FUNZIONI POST SE E' SBAGLIATO L'ID DA ERRORE IN RUNTIME (Francesco)
+
+
 
