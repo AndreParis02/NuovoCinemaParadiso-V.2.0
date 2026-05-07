@@ -127,6 +127,6 @@ public class TipologiaSalaController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Tipologia sala eliminata con successo!" });
     }
 }
