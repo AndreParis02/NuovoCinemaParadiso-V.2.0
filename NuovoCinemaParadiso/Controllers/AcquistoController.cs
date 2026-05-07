@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -30,51 +31,76 @@ public class AcquistoController : ControllerBase
 
         List<DtoAcquisto> acquisti = await _acquistoService.OttieniTutto(utenteId);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti utente",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti gli acquisti utente", true);
 
+        if (acquisti.Count == 0)
+        {
+            return Ok(new { messaggio = "Non sono presenti acquisti." });
+        }
         return Ok(acquisti);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
-
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",false);
+            string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            return NotFound($"Acquisto con id {id} non trovato");
+            if (utenteId == null)
+                return Unauthorized("Utente non autenticato.");
+
+            var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni acquisti tramite id utente",
+                true
+            );
+
+            return Ok(risultato);
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",true);
-
-        return Ok(risultato);
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
     {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
-
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto",false);
+            string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (utenteId == null)
+                return Unauthorized("Utente non autenticato.");
 
-            return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
+            DtoAcquisto? risultato = await _acquistoService.CreazioneAsync(dto, utenteId);
+
+            if (risultato == null)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", false);
+
+                return BadRequest(new { messaggio = "Acquisto già presente oppure non valido." });
+            }
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", true);
+
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto",true);
-
-        return Ok(risultato);
     }
 
     [HttpPut("{id}")]
@@ -89,10 +115,10 @@ public class AcquistoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica acquisto",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", false);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica acquisto",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", true);
 
         return Ok(risultato);
     }
@@ -102,19 +128,19 @@ public class AcquistoController : ControllerBase
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _acquistoService.EliminazioneAsync(id);
-        
+
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
         if (!eliminato)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina acquisto",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", false);
 
             return NotFound(new { messaggio = "Acquisto non trovato." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina acquisto",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", true);
 
         return NoContent();
     }
