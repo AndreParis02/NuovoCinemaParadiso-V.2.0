@@ -1,0 +1,12 @@
+export interface DtoAuthResponse {
+   id: string;
+   nomeCompleto: string;
+   token: string;
+   eta: number;
+   email: string;
+   ruolo: string;
+   dataInizioAbbonamento: string;
+   dataInizioGiftCard: string;
+   seAbbonato: boolean;
+   possiedeGiftCard: boolean;
+}
