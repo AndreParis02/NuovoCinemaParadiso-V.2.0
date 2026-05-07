@@ -31,3 +31,8 @@ public class ItemNotFoundException : AppException
 {
     public ItemNotFoundException(string message) : base($"{message} non trovato.") { }
 }
+
+public class InvalidEmail : AppException
+{
+    public InvalidEmail(string message) : base($"L'email {message} non è valida") { }
+}
