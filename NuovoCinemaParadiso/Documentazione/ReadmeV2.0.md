@@ -2278,32 +2278,50 @@ public class AcquistoController : ControllerBase
         // Log dell’operazione
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti utente",true);
 
-
+        if (acquisti.Count == 0)
+        {
+            return Ok(new { messaggio = "Non sono presenti acquisti." });
+        }
+        
         return Ok(acquisti);
     }
 
-    // Restituisce un acquisto tramite id, solo se appartiene all’utente
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
-
-        // Se non trovato o non appartenente all’utente
-        if (risultato == null)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",false);
+            // Recupera l'id dell'utente dal token JWT
+            string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            // Se l'utente non è autenticato, ritorna 401 Unauthorized
+            if (utenteId == null)
+                return Unauthorized("Utente non autenticato.");
 
-            return NotFound($"Acquisto con id {id} non trovato");
+            // Chiama il service per ottenere l'acquisto
+            // Il service verifica anche che l'utente abbia accesso ai dati
+            var risultato = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
+
+            // Salva un log dell'azione eseguita con successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni acquisti tramite id utente",
+                true
+            );
+
+            // Restituisce il risultato con HTTP 200 OK
+            return Ok(risultato);
         }
-
-        // Log operazione riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id utente",true);
-
-
-        return Ok(risultato);
+        catch (NotFoundException ex)
+        {
+            // Se la risorsa non esiste, ritorna 404 Not Found
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Se l'utente non ha permessi, ritorna 403 Forbidden
+            return StatusCode(403, new { message = ex.Message });
+        }
     }
 
     // Crea un nuovo acquisto per l’utente autenticato

@@ -73,11 +73,6 @@ public class AcquistoService
         TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
 
-        if (acquisto == null)
-        {
-            throw new NotFoundException("Acquisto", id);
-        }
-
         if (acquisto.UtenteId != utenteId)
         {
             throw new UnauthorizedAccessException("Non puoi accedere a questo acquisto.");
@@ -107,13 +102,13 @@ public class AcquistoService
                ?? throw new NotFoundException("Utente", utenteId);
         Proiezione proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId)
             ?? throw new NotFoundException("Proiezione", dto.ProiezioneId);
-        Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+       /* Movie movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
             ?? throw new NotFoundException("Movie", proiezione.MovieId);
         Sala sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
             ?? throw new NotFoundException("Sala", proiezione.SalaId);
         TipologiaSala tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
-
+       */
         // Crea l'acquisto
         Acquisto acquisto = new Acquisto();
         acquisto.UtenteId = utenteId;
@@ -122,8 +117,8 @@ public class AcquistoService
         acquisto.OrarioCreazione = DateTimeOffset.UtcNow;
         acquisto.MetodoPagamento = dto.MetodoPagamento;
         acquisto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-            movie.PrezzoMovie,
-            tipologiaSala.MaggiorazionePrezzo,
+            proiezione.Movie.PrezzoMovie,
+            proiezione.Sala.TipologiaSala.MaggiorazionePrezzo,
             dto.NumeroBiglietti,
             utente,
             dto.MetodoPagamento);
