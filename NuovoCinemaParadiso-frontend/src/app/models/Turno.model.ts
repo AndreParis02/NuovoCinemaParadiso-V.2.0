@@ -4,3 +4,9 @@ export interface DtoTurno {
     oraFine: string;
     nome: string;
 }
+
+export interface DtoCreazioneTurno {
+  oraInizio: string; 
+  oraFine: string;  
+  nome: string;
+}

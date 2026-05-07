@@ -3,3 +3,8 @@ export interface DtoTipologiaSala {
     nome: string;
     maggiorazionePrezzo: number;
 }
+
+export interface DtoCreazioneTipologiaSala {
+  nome: string;
+  maggiorazionePrezzo: number;
+}

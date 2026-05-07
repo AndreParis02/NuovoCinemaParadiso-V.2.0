@@ -7,8 +7,15 @@ export interface DtoUtente {
     possiedeGiftCard: boolean;
     email: string;
     eta: number;
+
     abbonamentoId: string;
     giftCardId: string;
+
     tipoAbbonamento: string;
     tipoGiftCard: string;
+}
+
+export interface DtoCreazioneUtente {
+  nomeCompleto: string;
+  eta: number;
 }
