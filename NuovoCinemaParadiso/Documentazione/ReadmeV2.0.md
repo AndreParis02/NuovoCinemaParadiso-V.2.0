@@ -123,6 +123,38 @@ public class Abbonamento
 }
 ```
 
+## Movie.cs
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Movies")]
+public class Movie
+{
+    [Key]
+    public string Id {get;set;} = Guid.NewGuid().ToString();
+    [Required]
+    [StringLength(50)]
+    public string Titolo {get;set;} = string.Empty;
+    [Required]
+    [StringLength(2000)]
+    public string Descrizione {get;set;} = string.Empty;
+    [Range(1, int.MaxValue)]
+    public int DurataMinuti {get;set;} 
+    [Range(typeof(decimal), "0.01", "999999999")]
+    public decimal PrezzoMovie {get;set;}
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
+    public string GenereId {get;set;} = string.Empty;
+    
+    [ForeignKey("GenereId")]
+    public GenereMovie? Genere {get;set;}
+}
+```
+
+
 ## Proiezione.cs
 
 ```c#
@@ -957,7 +989,7 @@ public class TipologiaSalaController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Tipologia sala eliminata con successo!" });
     }
 
 }
@@ -971,13 +1003,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-/// <summary>
-/// Controller responsabile della gestione delle sale.
-/// Tutte le operazioni richiedono autenticazione.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -986,54 +1015,45 @@ public class SalaController : ControllerBase
     private readonly SalaService _salaService;
     private readonly LogAzioniService _logAzioniService;
 
-    /// <summary>
-    /// Costruttore del controller. Inietta i servizi necessari.
-    /// </summary>
     public SalaController(SalaService salaService, LogAzioniService logAzioniService)
     {
         _salaService = salaService;
         _logAzioniService = logAzioniService;
     }
 
-    /// <summary>
-    /// Restituisce la lista completa delle sale.
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        // Recupero di tutte le sale dal servizio
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
-
-        // Identificativo dell'utente autenticato
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Log dell'operazione
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
     }
 
-    /// <summary>
-    /// Restituisce tutte le sale appartenenti a una specifica tipologia.
-    /// </summary>
     [HttpGet("tipologia/{tipologiaId}")]
     public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
-        // Validazione dell'input
         if (string.IsNullOrWhiteSpace(tipologiaId))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
-            return BadRequest("TipologiaId non valido");
+
+            return BadRequest("TipologiaId non valida");
         }
 
-        // Recupero delle sale filtrate per tipologia
         var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
 
         if (risultato == null || risultato.Count == 0)
         {
-            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Ottieni sala per tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
+
             return NotFound("Nessuna sala trovata per questa tipologia");
         }
 
@@ -1042,18 +1062,18 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Restituisce una sala tramite il suo identificatore.
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         var risultato = await _salaService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala tramite id", false);
+
             return NotFound($"Sala con id {id} non trovato");
         }
 
@@ -1062,20 +1082,19 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Crea una nuova sala. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
-        // Creazione della sala tramite servizio
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         DtoSala? risultato = await _salaService.CreazioneAsync(dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", false);
+
             return BadRequest(new { messaggio = "Sala non valida." });
         }
 
@@ -1084,46 +1103,69 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Modifica una sala esistente. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
-        DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (risultato == null)
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        try
         {
-            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Modifica sala", false);
-            return NotFound(new { messaggio = "Sala non trovata." });
+            DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
+
+            return Ok(risultato);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+            return BadRequest(new { message = ex.Message });
+        }
 
-        return Ok(risultato);
+        catch (ItemNotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
+        catch (NotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
     }
 
-    /// <summary>
-    /// Elimina una sala esistente. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         bool eliminato = await _salaService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", false);
+
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Sala eliminata con successo!" });
     }
 }
 ```
@@ -2584,7 +2626,7 @@ public class MovieController : ControllerBase
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
 
         // Restituisce 204 senza contenuto
-        return NoContent();
+        return Ok(new { messaggio = "Film eliminato con successo!" });
     }
 }
 ```Service
@@ -2812,24 +2854,27 @@ public class AuthService
 
         if (esisteUtente != null)
         {
-            // Costruisce un errore personalizzato
-            IdentityError errore = new IdentityError
-            {
-                Description = "Utente già registrato."
-            };
+            // Costruisce un errore personalizzato e lo inserisce all'interno di una lista
+            IdentityError errore = new IdentityError();
+            errore.Description = "Utente già registrato.";
 
-            return IdentityResult.Failed(errore);
+            List<IdentityError> errori = new List<IdentityError>();
+            errori.Add(errore);
+
+            return IdentityResult.Failed(errori.ToArray());
         }
-
-        // Creazione nuovo utente Identity
-        Utente utente = new Utente
+        // Verifica se l'email è valida controllando se abbia un . all'interno 
+        
+        if(!dto.Email.Contains('.'))
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            NomeCompleto = dto.NomeCompleto,
-            Eta = dto.Eta
-        };
-
+            throw new InvalidEmail(dto.Email);
+        }
+        // Creazione nuovo utente Identity
+        Utente utente = new Utente();
+        utente.UserName = dto.Email;
+        utente.Email = dto.Email;
+        utente.NomeCompleto = dto.NomeCompleto;
+        utente.Eta = dto.Eta;
         // Creazione utente con password
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 
@@ -4951,6 +4996,8 @@ using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 // Importa gli attributi per la gestione dell'autorizzazione
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
+using NuovoCinemaParadiso.Exceptions;
 
 // Definisce il namespace del progetto per i controller
 namespace NuovoCinemaParadiso.Controllers;
@@ -4980,56 +5027,76 @@ public class AuthController : ControllerBase
     // Metodo asincrono per registrare un nuovo utente
     public async Task<IActionResult> Registrazione(DtoRegistrazione dto)
     {
-        // Chiama il servizio di autenticazione per eseguire la registrazione
-        IdentityResult result = await _authService.RegistrazioneAsync(dto);
-        // Non c'è ancora un utente loggato, quindi l'Id è nullo
-        string? utenteId = null;
+        // Tentativo di effettuare una registrazione
+        try
+        {
+            // Chiama il servizio di autenticazione per eseguire la registrazione
+            IdentityResult result = await _authService.RegistrazioneAsync(dto);
+                // Se la registrazione non è andata a buon fine
+            if (!result.Succeeded)
+            {   // Salva un log di registrazione fallita
+                await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+                // Restituisce 400 BadRequest con il messaggio di errore
+                return BadRequest(result.Errors);
+            }
+            // Salva un log di registrazione avvenuta con successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", true);
+                // Restituisce 200 OK come risposta dell'avvenuta registrazione
+            return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
 
-        // Se la registrazione non è andata a buon fine
-        if (!result.Succeeded)
+        }
+        // Gestione dell'errore nel caso l'email inserita non sia standard
+        catch (InvalidEmail ex)
         {
             // Salva un log di registrazione fallita
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", false);
-            // Restituisce BadRequest con gli errori di Identity
-            return BadRequest(result.Errors);
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+            // Restituisce 400 BadRequest con il messaggio di errore
+            return BadRequest(new { errore = ex.Message });
         }
-
-        // Salva un log di registrazione riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", true);
-        // Restituisce 200 OK con un messaggio di conferma
-        return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
     }
 
-    // Espone un endpoint POST su /api/Auth/login
     [HttpPost("login")]
     // Metodo asincrono per eseguire il login
     public async Task<IActionResult> Login([FromBody] DtoLogin dto)
     {
-        // Chiama il servizio di autenticazione per validare le credenziali e generare il token
-        DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
-
-        // Se le credenziali non sono valide o il login fallisce
-        if (risposta == null)
+        // Tentativo di effettuare il login
+        try
         {
-            // Salva un log di login fallito (senza Id utente perché non noto)
-            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
-            // Restituisce 401 Unauthorized con messaggio di errore
-            return Unauthorized(new { messaggio = "Email o password non validi." });
+            // Chiama il servizio di autenticazione per eseguire il login
+            DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+            // Salva un log del login avvenuto con successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
+            // Restituisce 200 OK come risposta dell'avvenuta registrazione
+            return Ok(risposta);
         }
-
-        // Salva un log di login riuscito usando l'Id utente restituito dal servizio
-        await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
-        // Restituisce 200 OK con il DTO di risposta (token, email, ruolo, ecc.)
-        return Ok(risposta);
+        // Gestione dell'errore in caso non si trovasse l'utente
+        catch (NotFoundException ex)
+        {
+            // Salva un log del login fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            // Restituisce 404 NotFound con il messaggio di errore
+            return NotFound(new { messaggio = ex.Message });
+        }
+        // Gestione dell'errore nel caso la password sia sbagliata
+        catch (ConflictException ex)
+        {
+            // Salva un log del login fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            // Restituisce 400 BadRequest con il messaggio di errore
+            return BadRequest(new { messaggio = ex.Message });
+        }
     }
 
-    // Espone un endpoint GET su /api/Auth/profilo
     [HttpGet("profilo")]
     // Metodo asincrono per ottenere il profilo dell'utente loggato
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione i dati dell'utente tramite Id
         DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
 
@@ -5054,7 +5121,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione di modificare i dati dell'utente
         var risultato = await _authService.ModificaAsync(dto, utenteId);
 
@@ -5079,7 +5150,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Elimina()
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione di eliminare l'utente
         var risultato = await _authService.EliminaAsync(utenteId);
 
@@ -5450,5 +5525,49 @@ public class UtenteController : ControllerBase
         // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
         return Ok(risultato);
     }
+}
+```
+
+ ## AppExceptions.cs (Gestisce gli errori tra i controller e i services)
+
+```c#
+
+namespace NuovoCinemaParadiso.Exceptions;
+
+public abstract class AppException : Exception
+{
+    protected AppException(string message) : base(message) { }
+}
+
+public class NotFoundException : AppException
+{
+    public NotFoundException(string risorsa, string id)
+        : base($"{risorsa} con ID '{id}' non trovato.") { }
+}
+
+public class ItemAlredyexist : AppException
+{
+    public ItemAlredyexist(string risorsa)
+        : base($"Una {risorsa} è già collegata all'utente") { }
+}
+
+public class ConflictException : AppException
+{
+    public ConflictException(string message) : base(message) { }
+}
+
+public class ModificaException : AppException
+{
+    public ModificaException(string message) : base($"E' gia presente un {message} con lo stesso nome") { }
+}
+
+public class ItemNotFoundException : AppException
+{
+    public ItemNotFoundException(string message) : base($"{message} non trovato.") { }
+}
+
+public class InvalidEmail : AppException
+{
+    public InvalidEmail(string message) : base($"L'email {message} non è valida") { }
 }
 ```

@@ -66,7 +66,7 @@ public class AcquistoService
         if (acquisto.UtenteId != utenteId)
             return (null, "Accesso negato: questo acquisto non ti appartiene.");
 
-        // Recupero i dati per il DTO
+        
         var utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
         var proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
         if (utente == null || proiezione == null) return (null, "Dati della proiezione o utente non trovati.");
@@ -94,7 +94,7 @@ public class AcquistoService
 
     public async Task<(DtoAcquisto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
     {
-        // Controllo validità biglietti (Business Logic)
+        
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100)
             return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
 

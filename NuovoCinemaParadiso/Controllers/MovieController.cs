@@ -158,6 +158,6 @@ public class MovieController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
-        return NoContent();
+        return Ok(new { messaggio = "Film eliminato con successo!" });
     }
 }

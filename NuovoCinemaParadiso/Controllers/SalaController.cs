@@ -24,11 +24,11 @@ public class SalaController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
+        
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
@@ -45,7 +45,7 @@ public class SalaController : ControllerBase
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
 
-            return BadRequest("TipologiaId non valido");
+            return BadRequest("TipologiaId non valida");
         }
 
         var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
@@ -65,11 +65,11 @@ public class SalaController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        var risultato = await _salaService.OttieniTramiteIdAsync(id);
+        
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
+        var risultato = await _salaService.OttieniTramiteIdAsync(id);
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala tramite id", false);
@@ -86,11 +86,11 @@ public class SalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
-        DtoSala? risultato = await _salaService.CreazioneAsync(dto);
+        
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
+        DtoSala? risultato = await _salaService.CreazioneAsync(dto);
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", false);
@@ -151,11 +151,11 @@ public class SalaController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _salaService.EliminaAsync(id);
+        
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-
+        bool eliminato = await _salaService.EliminaAsync(id);
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", false);
@@ -165,6 +165,6 @@ public class SalaController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Sala eliminata con successo!" });
     }
 }

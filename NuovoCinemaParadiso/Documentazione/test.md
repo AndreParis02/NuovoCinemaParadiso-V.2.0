@@ -51,3 +51,15 @@ Acquisto; (fatto)
 
 
 
+# FRONTEND TASKS
+
+## Models
+- Francesco: Abbonamento, acquisto, generemovie
+
+- Greg: giftcard, logazioni, movie
+
+- Fabio : proiezione, sala (FATTO)
+
+- Lorenzo: tipologiasala, turno, utente
+
+
