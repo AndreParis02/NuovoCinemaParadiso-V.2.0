@@ -999,13 +999,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-/// <summary>
-/// Controller responsabile della gestione delle sale.
-/// Tutte le operazioni richiedono autenticazione.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -1014,54 +1011,45 @@ public class SalaController : ControllerBase
     private readonly SalaService _salaService;
     private readonly LogAzioniService _logAzioniService;
 
-    /// <summary>
-    /// Costruttore del controller. Inietta i servizi necessari.
-    /// </summary>
     public SalaController(SalaService salaService, LogAzioniService logAzioniService)
     {
         _salaService = salaService;
         _logAzioniService = logAzioniService;
     }
 
-    /// <summary>
-    /// Restituisce la lista completa delle sale.
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        // Recupero di tutte le sale dal servizio
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
-
-        // Identificativo dell'utente autenticato
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Log dell'operazione
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
     }
 
-    /// <summary>
-    /// Restituisce tutte le sale appartenenti a una specifica tipologia.
-    /// </summary>
     [HttpGet("tipologia/{tipologiaId}")]
     public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
-        // Validazione dell'input
         if (string.IsNullOrWhiteSpace(tipologiaId))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
-            return BadRequest("TipologiaId non valido");
+
+            return BadRequest("TipologiaId non valida");
         }
 
-        // Recupero delle sale filtrate per tipologia
         var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
 
         if (risultato == null || risultato.Count == 0)
         {
-            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Ottieni sala per tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala per tipologia", false);
+
             return NotFound("Nessuna sala trovata per questa tipologia");
         }
 
@@ -1070,18 +1058,18 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Restituisce una sala tramite il suo identificatore.
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         var risultato = await _salaService.OttieniTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni sala tramite id", false);
+
             return NotFound($"Sala con id {id} non trovato");
         }
 
@@ -1090,20 +1078,19 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Crea una nuova sala. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
-        // Creazione della sala tramite servizio
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         DtoSala? risultato = await _salaService.CreazioneAsync(dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", false);
+
             return BadRequest(new { messaggio = "Sala non valida." });
         }
 
@@ -1112,46 +1099,69 @@ public class SalaController : ControllerBase
         return Ok(risultato);
     }
 
-    /// <summary>
-    /// Modifica una sala esistente. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
-        DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (risultato == null)
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        try
         {
-            await L_logAzioniService.SalvataggioLogAzioneAsyncog(utenteId, "Modifica sala", false);
-            return NotFound(new { messaggio = "Sala non trovata." });
+            DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
+
+            return Ok(risultato);
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+            return BadRequest(new { message = ex.Message });
+        }
 
-        return Ok(risultato);
+        catch (ItemNotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
+        catch (NotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+
     }
 
-    /// <summary>
-    /// Elimina una sala esistente. Accessibile solo a Gestore o Operatore.
-    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
         bool eliminato = await _salaService.EliminaAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (!eliminato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", false);
+
             return NotFound(new { messaggio = "Sala non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina sala", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Sala eliminata con successo!" });
     }
 }
 ```
