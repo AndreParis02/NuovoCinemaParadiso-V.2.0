@@ -45,7 +45,7 @@ Piccolo plus: In TurnoService.cs ho aggiunto dei controlli logici in CreazioneAs
 
 
 
-Acquisto; (Fabio??)
+Acquisto; (fatto)
 
 
 

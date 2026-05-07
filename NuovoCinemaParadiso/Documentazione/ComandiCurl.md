@@ -320,7 +320,7 @@ curl -s -X PUT "http://localhost:5226/api/Acquisto/Id_acquisto" \
     }' | jq 
 ```
 
-## Elimina Movie con id dell'Acquisto:
+## Elimina Acquisto con id dell'Acquisto:
 ```bash
 curl -s -X DELETE "http://localhost:5226/api/Acquisto/Id Acquisto" -H "Authorization: Bearer $TOKEN" 
 ```
