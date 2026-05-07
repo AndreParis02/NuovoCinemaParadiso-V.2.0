@@ -2855,24 +2855,27 @@ public class AuthService
 
         if (esisteUtente != null)
         {
-            // Costruisce un errore personalizzato
-            IdentityError errore = new IdentityError
-            {
-                Description = "Utente già registrato."
-            };
+            // Costruisce un errore personalizzato e lo inserisce all'interno di una lista
+            IdentityError errore = new IdentityError();
+            errore.Description = "Utente già registrato.";
 
-            return IdentityResult.Failed(errore);
+            List<IdentityError> errori = new List<IdentityError>();
+            errori.Add(errore);
+
+            return IdentityResult.Failed(errori.ToArray());
         }
-
-        // Creazione nuovo utente Identity
-        Utente utente = new Utente
+        // Verifica se l'email è valida controllando se abbia un . all'interno 
+        
+        if(!dto.Email.Contains('.'))
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            NomeCompleto = dto.NomeCompleto,
-            Eta = dto.Eta
-        };
-
+            throw new InvalidEmail(dto.Email);
+        }
+        // Creazione nuovo utente Identity
+        Utente utente = new Utente();
+        utente.UserName = dto.Email;
+        utente.Email = dto.Email;
+        utente.NomeCompleto = dto.NomeCompleto;
+        utente.Eta = dto.Eta;
         // Creazione utente con password
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 
@@ -5002,6 +5005,8 @@ using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 // Importa gli attributi per la gestione dell'autorizzazione
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
+using NuovoCinemaParadiso.Exceptions;
 
 // Definisce il namespace del progetto per i controller
 namespace NuovoCinemaParadiso.Controllers;
@@ -5031,56 +5036,76 @@ public class AuthController : ControllerBase
     // Metodo asincrono per registrare un nuovo utente
     public async Task<IActionResult> Registrazione(DtoRegistrazione dto)
     {
-        // Chiama il servizio di autenticazione per eseguire la registrazione
-        IdentityResult result = await _authService.RegistrazioneAsync(dto);
-        // Non c'è ancora un utente loggato, quindi l'Id è nullo
-        string? utenteId = null;
+        // Tentativo di effettuare una registrazione
+        try
+        {
+            // Chiama il servizio di autenticazione per eseguire la registrazione
+            IdentityResult result = await _authService.RegistrazioneAsync(dto);
+                // Se la registrazione non è andata a buon fine
+            if (!result.Succeeded)
+            {   // Salva un log di registrazione fallita
+                await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+                // Restituisce 400 BadRequest con il messaggio di errore
+                return BadRequest(result.Errors);
+            }
+            // Salva un log di registrazione avvenuta con successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", true);
+                // Restituisce 200 OK come risposta dell'avvenuta registrazione
+            return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
 
-        // Se la registrazione non è andata a buon fine
-        if (!result.Succeeded)
+        }
+        // Gestione dell'errore nel caso l'email inserita non sia standard
+        catch (InvalidEmail ex)
         {
             // Salva un log di registrazione fallita
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", false);
-            // Restituisce BadRequest con gli errori di Identity
-            return BadRequest(result.Errors);
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+            // Restituisce 400 BadRequest con il messaggio di errore
+            return BadRequest(new { errore = ex.Message });
         }
-
-        // Salva un log di registrazione riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", true);
-        // Restituisce 200 OK con un messaggio di conferma
-        return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
     }
 
-    // Espone un endpoint POST su /api/Auth/login
     [HttpPost("login")]
     // Metodo asincrono per eseguire il login
     public async Task<IActionResult> Login([FromBody] DtoLogin dto)
     {
-        // Chiama il servizio di autenticazione per validare le credenziali e generare il token
-        DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
-
-        // Se le credenziali non sono valide o il login fallisce
-        if (risposta == null)
+        // Tentativo di effettuare il login
+        try
         {
-            // Salva un log di login fallito (senza Id utente perché non noto)
-            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
-            // Restituisce 401 Unauthorized con messaggio di errore
-            return Unauthorized(new { messaggio = "Email o password non validi." });
+            // Chiama il servizio di autenticazione per eseguire il login
+            DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+            // Salva un log del login avvenuto con successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
+            // Restituisce 200 OK come risposta dell'avvenuta registrazione
+            return Ok(risposta);
         }
-
-        // Salva un log di login riuscito usando l'Id utente restituito dal servizio
-        await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
-        // Restituisce 200 OK con il DTO di risposta (token, email, ruolo, ecc.)
-        return Ok(risposta);
+        // Gestione dell'errore in caso non si trovasse l'utente
+        catch (NotFoundException ex)
+        {
+            // Salva un log del login fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            // Restituisce 404 NotFound con il messaggio di errore
+            return NotFound(new { messaggio = ex.Message });
+        }
+        // Gestione dell'errore nel caso la password sia sbagliata
+        catch (ConflictException ex)
+        {
+            // Salva un log del login fallito
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            // Restituisce 400 BadRequest con il messaggio di errore
+            return BadRequest(new { messaggio = ex.Message });
+        }
     }
 
-    // Espone un endpoint GET su /api/Auth/profilo
     [HttpGet("profilo")]
     // Metodo asincrono per ottenere il profilo dell'utente loggato
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione i dati dell'utente tramite Id
         DtoUtente? utente = await _authService.OttieniTramiteIdAsync(utenteId);
 
@@ -5105,7 +5130,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto)
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione di modificare i dati dell'utente
         var risultato = await _authService.ModificaAsync(dto, utenteId);
 
@@ -5130,7 +5159,11 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Elimina()
     {
         // Recupera l'Id utente dai claim del token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Verifica se l'utente è autenticato
+        if (utenteId == null)
+            // Restituisce 401 Unauthorized con il messaggio di errore
+            return Unauthorized("Utente non autenticato.");
         // Chiede al servizio di autenticazione di eliminare l'utente
         var risultato = await _authService.EliminaAsync(utenteId);
 
@@ -5501,5 +5534,49 @@ public class UtenteController : ControllerBase
         // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
         return Ok(risultato);
     }
+}
+```
+
+ ## AppExceptions.cs (Gestisce gli errori tra i controller e i services)
+
+```c#
+
+namespace NuovoCinemaParadiso.Exceptions;
+
+public abstract class AppException : Exception
+{
+    protected AppException(string message) : base(message) { }
+}
+
+public class NotFoundException : AppException
+{
+    public NotFoundException(string risorsa, string id)
+        : base($"{risorsa} con ID '{id}' non trovato.") { }
+}
+
+public class ItemAlredyexist : AppException
+{
+    public ItemAlredyexist(string risorsa)
+        : base($"Una {risorsa} è già collegata all'utente") { }
+}
+
+public class ConflictException : AppException
+{
+    public ConflictException(string message) : base(message) { }
+}
+
+public class ModificaException : AppException
+{
+    public ModificaException(string message) : base($"E' gia presente un {message} con lo stesso nome") { }
+}
+
+public class ItemNotFoundException : AppException
+{
+    public ItemNotFoundException(string message) : base($"{message} non trovato.") { }
+}
+
+public class InvalidEmail : AppException
+{
+    public InvalidEmail(string message) : base($"L'email {message} non è valida") { }
 }
 ```

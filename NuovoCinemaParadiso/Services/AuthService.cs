@@ -37,6 +37,11 @@ public class AuthService
 
             return IdentityResult.Failed(errori.ToArray());
         }
+        
+        if(!dto.Email.Contains('.'))
+        {
+            throw new InvalidEmail(dto.Email);
+        }
 
         Utente utente = new Utente();
         utente.UserName = dto.Email;
@@ -139,11 +144,6 @@ public class AuthService
     public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
-
-        if (utente == null)
-        {
-            throw new NotFoundException("Utente", id);
-        }
 
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
         GiftCard? giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);

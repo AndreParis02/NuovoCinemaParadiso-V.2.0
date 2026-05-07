@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -23,32 +25,44 @@ public class AuthController : ControllerBase
     [HttpPost("registrazione")]
     public async Task<IActionResult> Registrazione(DtoRegistrazione dto)
     {
-        IdentityResult result = await _authService.RegistrazioneAsync(dto);
-        string? utenteId = null;
-
-        if (!result.Succeeded)
+        try
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", false);
-            return BadRequest(result.Errors);
-        }
+            IdentityResult result = await _authService.RegistrazioneAsync(dto);
+            if (!result.Succeeded)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+                return BadRequest(result.Errors);
+            }
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", true);
+            return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Registrazione utente", true);
-        return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
+        }
+        catch (InvalidEmail ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
+            return BadRequest(new { errore = ex.Message });
+        }
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] DtoLogin dto)
     {
-        DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
-
-        if (risposta == null)
+        try
+        {
+            DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
+            return Ok(risposta);
+        }
+        catch (NotFoundException ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
-            return Unauthorized(new { messaggio = "Email o password non validi." });
+            return NotFound(new { messaggio = ex.Message });
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
-        return Ok(risposta);
+        catch (ConflictException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+            return BadRequest(new { messaggio = ex.Message });
+        }
     }
 
     [HttpGet("profilo")]
