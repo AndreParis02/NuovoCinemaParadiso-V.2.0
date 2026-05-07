@@ -58,7 +58,7 @@ Acquisto; (Fabio??)
 
 - Greg: giftcard, logazioni, movie
 
-- Fabio : proiezione, ruoli, sala, 
+- Fabio : proiezione, sala (FATTO)
 
 - Lorenzo: tipologiasala, turno, utente
 
