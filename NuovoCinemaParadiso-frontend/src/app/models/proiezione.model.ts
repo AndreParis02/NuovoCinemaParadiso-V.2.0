@@ -1,4 +1,4 @@
-export interface ProiezioneResponse {
+export interface Proiezione{
     id: string;
     dataProiezione: Date;
     movieId: string;
@@ -6,7 +6,7 @@ export interface ProiezioneResponse {
     turnoId: string;
 }
 
-export interface ProiezioneRequest {
+export interface ProiezioneCreazione {
     movieId: string;
     salaId: string;
     turnoId: string;
