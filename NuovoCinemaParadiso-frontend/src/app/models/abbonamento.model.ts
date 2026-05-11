@@ -11,4 +11,4 @@ export interface AbbonamentoCreazione {
     durata: number;
     prezzo: number;
     sconto: number;
-}
+} 
