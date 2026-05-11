@@ -1,4 +1,4 @@
-export interface AbbonamentoResponse {
+export interface Abbonamento {
     id: string | null;
     nome: string;
     durata: number;
@@ -6,7 +6,7 @@ export interface AbbonamentoResponse {
     sconto: number;
 }
 
-export interface AbbonamentoRequest {
+export interface AbbonamentoCreazione{
     nome: string;
     durata: number;
     prezzo: number;

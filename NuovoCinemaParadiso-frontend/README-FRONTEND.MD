@@ -131,7 +131,57 @@ Nel nostro caso la navbar.
 
 ## PAGES
 
-## MODELS
+## MODELS 
+
+### Abbonamento: 
+```ts
+// modello di ritorno che rappresenta un abbonamento
+export interface Abbonamento {
+    id: string | null;
+    nome: string;
+    durata: number;
+    prezzo: number;
+    sconto: number;
+}
+// modello di inserimento necessario per la creazione o la modifica di un modello Abbonamento
+export interface AbbonamentoCreazione {
+    nome: string;
+    durata: number;
+    prezzo: number;
+    sconto: number;
+}
+```
+### Acquisto: 
+```ts
+// modello di ritorno che rappresenta un Acquisto
+export interface Acquisto {
+    id: string | null;
+    proiezioneId: string;
+    utenteId: string;
+    prezzoFinale: number;
+    orarioCreazione: string;
+    numeroBiglietti: number;
+    metodoPagamento: string;
+}
+// modello di inserimento necessario per la creazione o la modifica di un modello Acquisto
+export interface AcquistoCreazione {
+    proiezioneId: string;
+    numeroBiglietti: number;
+    metodoPagamento: string;
+}
+```
+### Genere movie: 
+```ts
+// modello di ritorno che rappresenta un Genere
+export interface GenereMovie {
+    id: string | null;
+    genere: string;
+}
+// modello di inserimento necessario per la creazione o la modifica di un modello Genere
+export interface GenereMovieCreazione {
+    genere: string;
+}
+```
 
 ## SERVICES
 

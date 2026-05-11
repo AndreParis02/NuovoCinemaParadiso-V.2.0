@@ -1,8 +1,8 @@
-export interface GenereMovieResponse {
+export interface GenereMovie {
     id: string | null;
     genere: string;
 }
 
-export interface GenereMovieRequest {
+export interface GenereMovieCreazione {
     genere: string;
 }
