@@ -382,6 +382,51 @@ export interface ProiezioneCreazione {
 ```
 ## SERVICES
 
+### sala.service.ts
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http'; // importo dell'http Client
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment'; //importo dell'enviroment
+import { Sala, SalaCreazione  } from '../models/sala.model';//importo dei modelli Sala
+
+
+@Injectable({ providedIn: 'root' })
+export class SalaService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiBaseUrl}/sala`; /*utilizza l'enviroment per creare
+                                                                 un url di comunicazione verso il
+                                                                  controller del backend*/
+
+  ottieniTutti(): Observable<Sala[]> {
+    //chiamta http per ottenere tutte le sale
+    return this.http.get<Sala[]>(this.baseUrl);
+  }
+  ottieniPerTipologia(tipologiaId: string): Observable<Sala[]> {
+    // chiamata http per ottenre tutte le sale relative ad una tipologia 
+    return this.http.get<Sala[]>(`${this.baseUrl}/tipologia/${tipologiaId}`);
+    //per creare la chiamata http, bisogna combinare il baseUrl con la firma http del metodo del controller
+  }
+
+  ottieniTramiteId(id: string): Observable<Sala> {
+    // chiamamta http per ottenere una sala tramite il suo id
+    return this.http.get<Sala>(`${this.baseUrl}/${id}`);
+  }
+
+  crea(payload: SalaCreazione): Observable<Sala> {
+    // chiamata http per creare una nuova sala 
+    return this.http.post<Sala>(this.baseUrl, payload);
+  }
+
+  modifica(id: string, payload: SalaCreazione): Observable<Sala> {
+    // chiamata http per la modifica di una sala
+    return this.http.put<Sala>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  elimina(id: string): Observable<void> {
+    // chiamata http per l'eliminazione di una sala
+
+```
 ### TipologiaSalaService
 
 ```ts
