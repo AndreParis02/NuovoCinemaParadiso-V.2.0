@@ -382,7 +382,6 @@ export interface ProiezioneCreazione {
 ```
 ## SERVICES
 
-<<<<<<< feature/Services/sala.service.ts
 ### sala.service.ts
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -426,7 +425,8 @@ export class SalaService {
 
   elimina(id: string): Observable<void> {
     // chiamata http per l'eliminazione di una sala
-=======
+
+```
 ### TipologiaSalaService
 
 ```ts
@@ -512,15 +512,11 @@ export class TipologiaSalaService {
    */
   elimina(id:string): Observable<void>
   {
->>>>>>> developer
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
 ```
-<<<<<<< feature/Services/sala.service.ts
 
-=======
->>>>>>> developer
 ## GUARDS
 
 ## INTERCEPTORS
