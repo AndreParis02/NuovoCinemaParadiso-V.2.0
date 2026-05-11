@@ -1,10 +1,10 @@
-export interface SalaRequest {
+export interface SalaCreazione {
     nome: string;
     capienza: number;
     tipologiaSalaId: string;
 }
 
-export interface SalaResponse {
+export interface Sala {
     id: string | null;
     nome: string;
     capienza: number;
