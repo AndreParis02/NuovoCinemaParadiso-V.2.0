@@ -1,4 +1,4 @@
-export interface AcquistoResponse {
+export interface Acquisto {
     id: string | null;
     proiezioneId: string;
     utenteId: string;
@@ -7,7 +7,7 @@ export interface AcquistoResponse {
     numeroBiglietti: number;
     metodoPagamento: string;
 }
-export interface AcquistoRequest {
+export interface AcquistoCreazione {
     proiezioneId: string;
     numeroBiglietti: number;
     metodoPagamento: string;
