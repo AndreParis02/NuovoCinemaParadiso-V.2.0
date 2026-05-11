@@ -193,6 +193,7 @@ public class ProiezioneController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
+        Console.WriteLine("Entrata in elimina - proiezionecontroller");
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
@@ -203,11 +204,11 @@ public class ProiezioneController : ControllerBase
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
 
-            return NotFound(new { messaggio = "Proiezione non trovato." });
+            return NotFound(new { messaggio = "Proiezione non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Proiezione eliminata con successo!" });
     }
 }

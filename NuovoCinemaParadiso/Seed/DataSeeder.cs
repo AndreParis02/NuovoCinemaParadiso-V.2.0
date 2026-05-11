@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
@@ -404,6 +405,7 @@ public static class DataSeeder
             MovieId = movieId,
             SalaId = salaId,
             TurnoId = turnoId,
+            Attivo=true
         };
 
         context.Proiezioni.Add(nuovaProiezione);
