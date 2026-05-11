@@ -30,4 +30,6 @@ public class Proiezione
     public Turno? Turno { get; set; }
 
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
+
+    public bool Attivo { get; set; } = true;
 }

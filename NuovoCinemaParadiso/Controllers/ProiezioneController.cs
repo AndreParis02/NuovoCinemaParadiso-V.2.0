@@ -203,11 +203,11 @@ public class ProiezioneController : ControllerBase
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
 
-            return NotFound(new { messaggio = "Proiezione non trovato." });
+            return NotFound(new { messaggio = "Proiezione non trovata." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
 
-        return NoContent();
+        return Ok(new { messaggio = "Proiezione eliminata con successo!" });
     }
 }

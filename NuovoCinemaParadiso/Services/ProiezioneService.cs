@@ -201,7 +201,7 @@ public class ProiezioneService
             return false;
         }
 
-        _contesto.Proiezioni.Remove(proiezione);
+        proiezione.Attivo = false;
         await _contesto.SaveChangesAsync();
         
         return true;
