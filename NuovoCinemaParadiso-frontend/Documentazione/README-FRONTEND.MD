@@ -10,7 +10,7 @@
 - Da adesso in poi verranno accettate solo le pull requests con il readme relativo alle modifiche fatte.
 
 
-# STABILIRE L'ORDINE DELLE COSE DA FARE.
+# STABILIRE L'ORDINE DELLE COSE DA FARE!
 
 - Creare la cartella core, contenente guards, interceptors, services.
 - Creare la cartella shared e decidere quali componenti sono condivisi fra le pagine. Se ci fossero
