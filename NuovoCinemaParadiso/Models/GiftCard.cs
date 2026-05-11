@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuovoCinemaParadiso.Models;
 
-[Table("GiftCard")]
+[Table("GiftCards")]
 public class GiftCard
 {
     [Key]

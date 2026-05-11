@@ -1,4 +1,4 @@
-export interface DtoUtente {
+export interface Utente {
     id: string;
     nomeCompleto: string;
     dataInizioAbbonamento: string;
@@ -11,4 +11,9 @@ export interface DtoUtente {
     giftCardId: string;
     tipoAbbonamento: string;
     tipoGiftCard: string;
+}
+
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
 }
