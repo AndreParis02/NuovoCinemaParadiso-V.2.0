@@ -521,6 +521,83 @@ export class TipologiaSalaService {
 
 =======
 >>>>>>> developer
+
+### turno.service.ts
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Turno, TurnoCreazione  } from '../models/turno.model';
+
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità Turno.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({ providedIn: 'root' })
+export class TurnoService {
+    /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+  private readonly http = inject(HttpClient);
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle tipologie di sala.
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/turno`;
+
+  /**
+   * Recupera tutti i turni presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di Turni.
+   */
+  ottieniTutti(): Observable<Turno[]> {
+    return this.http.get<Turno[]>(this.baseUrl);
+  }
+   /**
+   * Recupera uno specifico turno tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco del turno.
+   * @returns Observable contenente il turno di risposta.
+   */
+  ottieniTramiteId(id: string): Observable<Turno> {
+    return this.http.get<Turno>(`${this.baseUrl}/${id}`);
+  }
+    /**
+   * crea un nuovo turno utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione del turno.
+   * @returns Observable contenente il turno di risposta.
+   */
+  crea(payload: TurnoCreazione): Observable<Turno> {
+    return this.http.post<Turno>(this.baseUrl, payload);
+  }
+ /**
+   * Modifica uno specifico turno tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco del turno.
+   * @param payload modello di richiesta per la modifica del turno. 
+   * @returns Observable contenente il turno di risposta.
+   */
+  modifica(id: string, payload: TurnoCreazione): Observable<Turno> {
+    return this.http.put<Turno>(`${this.baseUrl}/${id}`, payload);
+  }
+
+    /**
+   * Elimina uno specifico turno tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco del turno.
+   */
+  elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+```
+
 ## GUARDS
 
 ## INTERCEPTORS

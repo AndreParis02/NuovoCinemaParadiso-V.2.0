@@ -5,7 +5,7 @@ Andrea Bruno: tipologiasala, turno, utente
 Andrea Paris: MovieService.
 Greg: GenereMovieService.
 Francesco: - SalaService.(fatto)
-           - TurnoService.
+           - TurnoService. (fatto)
 Fabio: - TipologiaSalaService.(fatto)
        - routes.
 Lorenzo:
