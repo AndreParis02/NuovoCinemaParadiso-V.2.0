@@ -298,6 +298,7 @@ Nel nostro caso la navbar.
 ## MODELS 
 
 ### Abbonamento: 
+
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -315,7 +316,9 @@ export interface AbbonamentoCreazione {
     sconto: number;
 }
 ```
+
 ### Acquisto: 
+
 ```ts
 // modello di ritorno che rappresenta un Acquisto
 export interface Acquisto {
@@ -334,7 +337,9 @@ export interface AcquistoCreazione {
     metodoPagamento: string;
 }
 ```
+
 ### Genere movie: 
+
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
@@ -347,7 +352,8 @@ export interface GenereMovieCreazione {
 }
 ```
 
-# sala.model.ts
+### sala.model.ts
+
 ```ts
 export interface SalaCreazione {
     nome: string;
@@ -363,7 +369,9 @@ export interface Sala {
     nomeTipologia: string;
 }
 ```
-# proiezione.model.ts
+
+### proiezione.model.ts
+
 ```ts
 export interface Proiezione{
     id: string;
@@ -380,6 +388,63 @@ export interface ProiezioneCreazione {
     dataProiezione: Date;
 }
 ```
+
+### tipologia-sala.model.ts
+
+```ts
+export interface TipologiaSala {
+    id: string | null;
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+
+export interface TipologiaSalaCreazione {
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+```
+
+### turno.model.ts
+
+```ts
+export interface Turno {
+    id: string | null;
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+
+export interface TurnoCreazione {
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+```
+
+### utente.model.ts
+
+```ts
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    dataInizioGiftCard: string;
+    seAbbonato: boolean;
+    possiedeGiftCard: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    giftCardId: string;
+    tipoAbbonamento: string;
+    tipoGiftCard: string;
+}
+
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+```
+
 ## SERVICES
 
 ## GUARDS
