@@ -1,4 +1,4 @@
-export interface Proiezione{
+export interface Proiezione {
     id: string;
     dataProiezione: Date;
     movieId: string;
