@@ -382,6 +382,7 @@ export interface ProiezioneCreazione {
 ```
 ## SERVICES
 
+<<<<<<< feature/Services/sala.service.ts
 ### sala.service.ts
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -425,11 +426,101 @@ export class SalaService {
 
   elimina(id: string): Observable<void> {
     // chiamata http per l'eliminazione di una sala
+=======
+### TipologiaSalaService
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { TipologiaSala, TipologiaSalaCreazione } from '../models/TipologiaSala.model';
+
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità TipologiaSala.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({
+  providedIn: 'root',
+})
+export class TipologiaSalaService {
+
+  /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+  private readonly http = inject(HttpClient);
+
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle tipologie di sala.
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/tipologiaSala`;
+
+  /**
+   * Recupera tutte le tipologie di sala presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di TipologiaSala.
+   */
+  ottieniTutto(): Observable<TipologiaSala[]>
+  {
+    return this.http.get<TipologiaSala[]>(this.baseUrl);
+  }
+
+  /**
+   * Recupera una specifica tipologia di sala tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della tipologia di sala.
+   * @returns Observable contenente la TipologiaSala richiesta.
+   */
+  ottieniTramiteId(id:string): Observable<TipologiaSala>
+  {
+    return this.http.get<TipologiaSala>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Crea una nuova tipologia di sala nel sistema.
+   * 
+   * @param payload Oggetto contenente i dati necessari alla creazione.
+   * @returns Observable contenente la TipologiaSala creata.
+   */
+  crea(payload:TipologiaSalaCreazione): Observable<TipologiaSala>
+  {
+    return this.http.post<TipologiaSala>(this.baseUrl, payload);
+  }
+
+  /**
+   * Modifica una tipologia di sala esistente.
+   * 
+   * @param id Identificativo GUID della tipologia da modificare.
+   * @param payload Nuovi dati della tipologia di sala.
+   * @returns Observable contenente la TipologiaSala aggiornata.
+   */
+  modifica(id:string, payload: TipologiaSalaCreazione): Observable<TipologiaSala>
+  {
+    return this.http.put<TipologiaSala>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  /**
+   * Elimina una tipologia di sala tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della tipologia di sala.
+   * @returns Observable<void> restituito al completamento dell'operazione.
+   */
+  elimina(id:string): Observable<void>
+  {
+>>>>>>> developer
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
 ```
+<<<<<<< feature/Services/sala.service.ts
 
+=======
+>>>>>>> developer
 ## GUARDS
 
 ## INTERCEPTORS
