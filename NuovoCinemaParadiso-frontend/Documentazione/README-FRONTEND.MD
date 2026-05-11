@@ -517,6 +517,94 @@ export class TipologiaSalaService {
 }
 ```
 
+### genereMovie.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { GenereMovie, GenereMovieCreazione } from '../models/GenereMovie.model';
+
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità TipologiaSala.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({
+  providedIn: 'root',
+})
+
+export class GenereMovieService {
+  /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+  private readonly http = inject(HttpClient);
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * dei GeneriMovie.
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/generemovie`;
+
+  /**
+   * Recupera tutte le tipologie di GenereMovie presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di GenereMovie.
+   */
+  ottieniTutto(): Observable<GenereMovie[]>
+  {
+    return this.http.get<GenereMovie[]>(this.baseUrl);
+  }
+
+  /**
+   * Recupera un GenereMovie tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco di GenereMovie.
+   * @returns Observable contiene il GenereMovie richiesto.
+   */
+  ottieniTramiteId(id:number): Observable<GenereMovie>
+  {
+    return this.http.get<GenereMovie>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Crea un nuovo GenereMovie nel sistema.
+   * 
+   * @param payload Oggetto contenente i dati necessari alla creazione.
+   * @returns Observable contiene il GenereMovie creato.
+   */
+  crea(payload:GenereMovieCreazione): Observable<GenereMovie>
+  {
+    return this.http.post<GenereMovie>(this.baseUrl, payload);
+  }
+  /**
+   * Modifica un GenereMovie esistente.
+   * 
+   * @param id Identificativo GUID del GenereMovie da modificare.
+   * @param payload Nuovi dati del GenereMovie.
+   * @returns Observable contenente il GenereMovie aggiornato.
+   */
+  modifica(id:number, payload: GenereMovieCreazione): Observable<GenereMovie>
+  {
+    return this.http.put<GenereMovie>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  /**
+   * Elimina GenereMovie tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco del GenereMovie.
+   * @returns Observable<void> restituito al completamento dell'operazione.
+   */
+  elimina(id:number): Observable<void>
+  {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+```
+
 ### MovieService
 ```ts
 import { Injectable, inject } from '@angular/core';
