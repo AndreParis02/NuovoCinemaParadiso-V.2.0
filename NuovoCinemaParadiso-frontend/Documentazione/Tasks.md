@@ -5,7 +5,7 @@
 ## 11/05/2026
 
 Andrea Bruno: AuthService
-Andrea Paris: MovieService.
+Andrea Paris: MovieService. (fatto)
 Greg: - GenereMovieService. (fatto)
       - Giftcard Service
 Francesco: - SalaService.(fatto)
@@ -19,8 +19,8 @@ Simeone
 
 ## 12/05/2026
 
-Andrea Bruno: AuthService
-Andrea Paris: MovieService.
+Andrea Bruno: 
+Andrea Paris: AuthService
 Greg: Giftcard Service
 Francesco: AbbonamentoService
 Fabio: routes.
