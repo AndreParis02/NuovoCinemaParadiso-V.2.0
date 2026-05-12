@@ -1,0 +1,24 @@
+<div class="container">
+  <h2>Elenco Tipologie Sale</h2>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>maggiorazionePrezzo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let sala of tipologiaSala">
+        <td>{{ sala.id }}</td>
+        <td><strong>{{ sala.nome }}</strong></td>
+        <td>{{ sala.maggiorazionePrezzo }}%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="tipologiaSala.length === 0" class="loading">
+    Caricamento dati in corso...
+  </div>
+</div>
