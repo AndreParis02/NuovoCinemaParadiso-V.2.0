@@ -34,5 +34,5 @@ Andrea Paris: UtenteService
 Greg: ProiezioniService (fatto)
 Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
 Fabio: routes.
-Lorenzo: AcquistoService
+Lorenzo: AcquistoService (fatto)
 Marco: 

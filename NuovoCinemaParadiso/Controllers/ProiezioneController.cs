@@ -34,6 +34,20 @@ public class ProiezioneController : ControllerBase
         return Ok(proiezioni);
     }
 
+    [HttpGet("storico")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniStoricoProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
+
+        return Ok(proiezioni);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
