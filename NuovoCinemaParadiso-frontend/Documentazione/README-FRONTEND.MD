@@ -1105,6 +1105,116 @@ export class LogAzioniService {
 }
 ```
 
+### acqisto.service.ts
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Acquisto, AcquistoCreazione } from '../models/acquisto.model';
+
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità Acquisto.
+ * 
+ * Questo service segue ESATTAMENTE la stessa struttura del MovieService:
+ * - metodi semplici e diretti
+ * - nessuna logica aggiuntiva lato frontend
+ * - nessuna trasformazione dei dati
+ * - nessun wrapper o oggetto extra
+ * 
+ * Ogni metodo chiama l'endpoint REST corrispondente del backend.
+ */
+@Injectable({
+  providedIn: 'root',
+})
+export class AcquistoService {
+
+  /**
+   * HttpClient utilizzato per comunicare con il backend.
+   * Viene ottenuto tramite dependency injection.
+   */
+  private readonly http = inject(HttpClient);
+
+  /**
+   * URL base dell'endpoint REST dedicato agli acquisti.
+   * 
+   * Tutte le chiamate partiranno da:
+   *   {apiBaseUrl}/acquisto
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/acquisto`;
+
+  /**
+   * Recupera tutti gli acquisti appartenenti a un determinato utente.
+   * 
+   * Backend previsto:
+   *   GET /acquisto/utente/{utenteId}
+   * 
+   * @param utenteId Identificativo dell'utente
+   * @returns Observable contenente un array di Acquisti
+   */
+  ottieniTutto(utenteId: string): Observable<Acquisto[]> {
+    return this.http.get<Acquisto[]>(`${this.baseUrl}/utente/${utenteId}`);
+  }
+
+  /**
+   * Recupera un singolo acquisto tramite il suo identificativo.
+   * 
+   * Backend previsto:
+   *   GET /acquisto/{id}/utente/{utenteId}
+   * 
+   * @param id Identificativo dell'acquisto
+   * @param utenteId Identificativo dell'utente proprietario
+   * @returns Observable contenente l'acquisto richiesto
+   */
+  ottieniTramiteId(id: string, utenteId: string): Observable<Acquisto> {
+    return this.http.get<Acquisto>(`${this.baseUrl}/${id}/utente/${utenteId}`);
+  }
+
+  /**
+   * Crea un nuovo acquisto.
+   * 
+   * Backend previsto:
+   *   POST /acquisto/utente/{utenteId}
+   * 
+   * @param payload Dati necessari alla creazione dell'acquisto
+   * @param utenteId Identificativo dell'utente che effettua l'acquisto
+   * @returns Observable contenente l'acquisto creato
+   */
+  crea(payload: AcquistoCreazione, utenteId: string): Observable<Acquisto> {
+    return this.http.post<Acquisto>(`${this.baseUrl}/utente/${utenteId}`, payload);
+  }
+
+  /**
+   * Modifica un acquisto esistente.
+   * 
+   * Backend previsto:
+   *   PUT /acquisto/{id}
+   * 
+   * @param id Identificativo dell'acquisto da modificare
+   * @param payload Dati aggiornati dell'acquisto
+   * @returns Observable contenente l'acquisto aggiornato
+   */
+  modifica(id: string, payload: AcquistoCreazione): Observable<Acquisto> {
+    return this.http.put<Acquisto>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  /**
+   * Elimina un acquisto tramite il suo identificativo.
+   * 
+   * Backend previsto:
+   *   DELETE /acquisto/{id}
+   * 
+   * @param id Identificativo dell'acquisto da eliminare
+   * @returns Observable<void> poiché il backend non restituisce un corpo
+   */
+  elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+
+```
+
 ## GUARDS
 
 ## INTERCEPTORS
