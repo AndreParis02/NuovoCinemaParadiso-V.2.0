@@ -32,7 +32,7 @@ Task 2:
 
 Andrea Paris: UtenteService
 Greg: ProiezioniService
-Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
+Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) (fatto)
 Fabio: routes.
 Lorenzo: AcquistoService
 Marco: 
