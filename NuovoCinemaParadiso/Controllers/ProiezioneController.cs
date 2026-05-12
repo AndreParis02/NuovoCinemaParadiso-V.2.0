@@ -189,7 +189,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpDelete("{id}")]
+    [HttpPut("elimina/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {

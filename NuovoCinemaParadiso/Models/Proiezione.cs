@@ -31,5 +31,5 @@ public class Proiezione
 
     public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
 
-    public bool Attivo { get; set; } = true;
+    public bool Attivo { get; set; }
 }
