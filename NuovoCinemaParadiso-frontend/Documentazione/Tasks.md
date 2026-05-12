@@ -7,7 +7,7 @@
 Andrea Bruno: AuthService
 Andrea Paris: MovieService. (fatto)
 Greg: - GenereMovieService. (fatto)
-      - Giftcard Service
+      - Giftcard Service (fatto)
 Francesco: - SalaService.(fatto)
            - TurnoService. (fatto)
            - AbbonamentoService
@@ -31,8 +31,8 @@ Simeone:
 Task 2:
 
 Andrea Paris: UtenteService (fatto)
-Greg: ProiezioniService
+Greg: ProiezioniService (fatto)
 Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
 Fabio: routes.
-Lorenzo: AcquistoService
+Lorenzo: AcquistoService (fatto)
 Marco: 

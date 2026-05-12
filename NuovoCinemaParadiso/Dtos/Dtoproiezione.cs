@@ -7,4 +7,6 @@ public class DtoProiezione
     public string MovieId {get; set; } = string.Empty;
     public string SalaId {get; set; } = string.Empty;
     public string TurnoId {get; set; } = string.Empty;
+
+    public bool Attivo { get; set; }=true;
 }

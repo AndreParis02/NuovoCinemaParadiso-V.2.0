@@ -21,6 +21,32 @@ public class ProiezioneService
         for (int i = 0; i < proiezioni.Count; i++)
         {
             Proiezione proiezioneCorrente = proiezioni[i];
+            if(proiezioneCorrente.Attivo)
+            {
+                Movie? film = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId);
+
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+                dto.Attivo = proiezioneCorrente.Attivo;
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+        public async Task<List<DtoProiezione>> OttieniStoricoAsync()
+    {
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
 
             Movie? film = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId);
@@ -31,7 +57,7 @@ public class ProiezioneService
             dto.MovieId = proiezioneCorrente.MovieId;
             dto.SalaId = proiezioneCorrente.SalaId;
             dto.TurnoId = proiezioneCorrente.TurnoId;
-            
+            dto.Attivo = proiezioneCorrente.Attivo;
             risultato.Add(dto);
         }
         return risultato;
@@ -56,7 +82,7 @@ public class ProiezioneService
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
     }
 
@@ -76,7 +102,7 @@ public class ProiezioneService
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
 
@@ -101,7 +127,7 @@ public class ProiezioneService
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
         }
@@ -124,7 +150,7 @@ public class ProiezioneService
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
         }
@@ -156,7 +182,7 @@ public class ProiezioneService
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
     }
 
@@ -186,7 +212,7 @@ public class ProiezioneService
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
 
 
