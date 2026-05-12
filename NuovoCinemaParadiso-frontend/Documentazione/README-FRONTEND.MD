@@ -1025,6 +1025,86 @@ export class AuthService {
 }
 ```
 
+### log-azioni.service.ts
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { LogAzione, LogAzioneCreazione } from '../models/log-azioni.model';
+
+/**
+ * Service Angular dedicato alla gestione dei log delle azioni.
+ * 
+ * Questo service ha lo scopo di replicare il comportamento del
+ * LogAzioniService backend, mantenendo coerenza architetturale:
+ * - metodi espliciti
+ * - nessuna logica nascosta
+ * - nessuna trasformazione automatica
+ * - nessun interceptor o pipe complesso
+ * 
+ * Il service si limita a:
+ * 1. inviare richieste HTTP al backend
+ * 2. restituire i dati così come arrivano
+ * 3. mantenere un'interfaccia chiara e leggibile
+ */
+@Injectable({ providedIn: 'root' })
+export class LogAzioniService {
+
+  /**
+   * Istanza di HttpClient ottenuta tramite dependency injection.
+   * Viene utilizzata per comunicare con il backend.
+   */
+  private readonly http = inject(HttpClient);
+
+  /**
+   * URL base dell'endpoint REST dedicato ai log.
+   * 
+   * Nota: il backend espone presumibilmente un controller come:
+   * [HttpPost("/logazioni")] e [HttpGet("/logazioni")]
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/logazioni`;
+
+  /**
+   * Salva un nuovo log nel backend.
+   * 
+   * Questo metodo corrisponde al metodo backend:
+   *   SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
+   * 
+   * Il payload Angular deve contenere:
+   * - idUtente: string | null
+   * - azione: string
+   * - effettuato: boolean
+   * 
+   * Il backend genera automaticamente:
+   * - messaggio ("operazione eseguita" / "operazione fallita")
+   * - timestamp
+   * - id del log
+   * 
+   * @param payload modello contenente i dati necessari alla creazione del log
+   * @returns Observable<void> perché il backend non restituisce un DTO
+   */
+  salva(payload: LogAzioneCreazione): Observable<void> {
+    return this.http.post<void>(this.baseUrl, payload);
+  }
+
+  /**
+   * Recupera tutti i log presenti nel sistema.
+   * 
+   * Questo metodo corrisponde al backend:
+   *   LetturaLogAzioneAsync()
+   * 
+   * Il backend restituisce una lista di DtoLogAzioni,
+   * che in Angular viene mappata nell'interfaccia LogAzione.
+   * 
+   * @returns Observable contenente un array di log
+   */
+  ottieniTutti(): Observable<LogAzione[]> {
+    return this.http.get<LogAzione[]>(this.baseUrl);
+  }
+}
+```
+
 ## GUARDS
 
 ## INTERCEPTORS
