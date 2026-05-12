@@ -592,7 +592,7 @@ export class TurnoService {
   private readonly http = inject(HttpClient);
   /**
    * URL base dell'endpoint REST per la gestione
-   * delle tipologie di sala.
+   *  di turno.
    */
   private readonly baseUrl = `${environment.apiBaseUrl}/turno`;
 
@@ -637,6 +637,80 @@ export class TurnoService {
    * Elimina uno specifico turno tramite identificativo GUID.
    * 
    * @param id Identificativo univoco del turno.
+   */
+  elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+```
+### abbonamento.service.ts
+```ts
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità abboanamento.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Abbonamento, AbbonamentoCreazione  } from '../models/abbonamento.model';
+
+
+@Injectable({ providedIn: 'root' })
+export class AbbonamentoService {
+    /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+  private readonly http = inject(HttpClient);
+  /**
+   * URL base dell'endpoint REST per la gestione
+   *  di abbonamento.
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/abbonamento`;
+/**
+   * Recupera tutti gli abboanamenti presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di abboanamenti.
+   */
+  ottieniTutto(): Observable<Abbonamento[]> {
+    return this.http.get<Abbonamento[]>(this.baseUrl);
+  }
+/**
+   * Recupera uno specifico abboanamento tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco dell' abboanamento.
+   * @returns Observable contenente l' abboanamento di risposta.
+   */
+  ottieniTramiteId(id: string): Observable<Abbonamento> {
+    return this.http.get<Abbonamento>(`${this.baseUrl}/${id}`);
+  }
+ /**
+   * crea un nuovo abboanamento utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione dell' abboanamento.
+   * @returns Observable contenente l' abboanamento di risposta.
+   */
+  crea(payload: AbbonamentoCreazione): Observable<Abbonamento> {
+    return this.http.post<Abbonamento>(this.baseUrl, payload);
+  }
+/**
+   * Modifica uno specifico abboanamento tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco dell abboanamento.
+   * @param payload modello di richiesta per la modifica dell' abboanamento. 
+   * @returns Observable contenente l' abboanamento di risposta.
+   */
+  modifica(id: string, payload: AbbonamentoCreazione): Observable<Abbonamento> {
+    return this.http.put<Abbonamento>(`${this.baseUrl}/${id}`, payload);
+  }
+/**
+   * Elimina uno specifico abbonamento tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco dell' abbonamento.
    */
   elimina(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
