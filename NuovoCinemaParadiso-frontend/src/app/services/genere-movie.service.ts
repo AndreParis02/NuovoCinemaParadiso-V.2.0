@@ -27,7 +27,7 @@ export class GenereMovieService {
     return this.http.post<GenereMovie>(this.baseUrl, payload);
   }
 
-  aggiorna(id:number, payload: GenereMovieCreazione): Observable<GenereMovie>
+  modifica(id:number, payload: GenereMovieCreazione): Observable<GenereMovie>
   {
     return this.http.put<GenereMovie>(`${this.baseUrl}/${id}`, payload);
   }

@@ -644,6 +644,174 @@ export class TurnoService {
 }
 ```
 
+### giftcard.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { GiftCard, GiftCardCreazione } from '../models/giftCard.model';
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità giftcard.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({
+    providedIn: 'root',
+})
+
+export class GiftCardService {
+  /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+    private readonly http = inject(HttpClient);
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle tipologie di sala.
+   */
+    private readonly baseUrl = `${environment.apiBaseUrl}/giftcard`;
+
+  /**
+   * Recupera tutte le giftcard presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di giftcard.
+   */
+    ottieniTutto(): Observable<GiftCard[]> {
+        return this.http.get<GiftCard[]>(this.baseUrl);
+    }
+
+   /**
+   * Recupera una specifica giftcard tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della giftcard.
+   * @returns Observable contenente la giftcard di risposta.
+   */
+    ottieniTramiteId(id: number): Observable<GiftCard> {
+        return this.http.get<GiftCard>(`${this.baseUrl}/${id}`);
+    }
+
+    /**
+   * crea un nuova giftcard utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione della giftcard.
+   * @returns Observable contenente la giftcard di risposta.
+   */
+    crea(payload: GiftCardCreazione): Observable<GiftCard> {
+        return this.http.post<GiftCard>(this.baseUrl, payload);
+    }
+
+ /**
+   * Modifica una specifica giftcard tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco della giftcard.
+   * @param payload modello di richiesta per la modifica della giftcard. 
+   * @returns Observable contenente la giftcard di risposta.
+   */
+    modifica(id: number, payload: GiftCardCreazione): Observable<GiftCard> {
+        return this.http.put<GiftCard>(`${this.baseUrl}/${id}`, payload);
+    }
+    /**
+   * Elimina una specifica giftcard tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della giftcard.
+   */
+    elimina(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
+}
+```
+
+### genere-movie.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { GenereMovie, GenereMovieCreazione } from '../models/genere-movie.model';
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità generemovie.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({
+  providedIn: 'root',
+})
+
+export class GenereMovieService {
+    /**
+   * Istanza del client HTTP utilizzata per effettuare
+   * richieste verso il backend.
+   */
+  private readonly http = inject(HttpClient);
+    /**
+   * URL base dell'endpoint REST per la gestione
+   * delle tipologie di sala.
+   */
+  private readonly baseUrl = `${environment.apiBaseUrl}/generemovie`;
+
+  /**
+   * Recupera tutti i generimovie presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di generimovie.
+   */
+  ottieniTutto(): Observable<GenereMovie[]>
+  {
+    return this.http.get<GenereMovie[]>(this.baseUrl);
+  }
+
+   /**
+   * Recupera uno specifico generemovie tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco del generemovie.
+   * @returns Observable contenente il generemovie di risposta.
+   */
+  ottieniTramiteId(id:number): Observable<GenereMovie>
+  {
+    return this.http.get<GenereMovie>(`${this.baseUrl}/${id}`);
+  }
+
+    /**
+   * crea un nuovo generemovie utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione del generemovie.
+   * @returns Observable contenente il generemovie di risposta.
+   */
+  crea(payload:GenereMovieCreazione): Observable<GenereMovie>
+  {
+    return this.http.post<GenereMovie>(this.baseUrl, payload);
+  }
+
+ /**
+   * Modifica uno specifico generemovie tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco del generemovie.
+   * @param payload modello di richiesta per la modifica del generemovie. 
+   * @returns Observable contenente il generemovie di risposta.
+   */
+  modifica(id:number, payload: GenereMovieCreazione): Observable<GenereMovie>
+  {
+    return this.http.put<GenereMovie>(`${this.baseUrl}/${id}`, payload);
+  }
+
+    /**
+   * Elimina uno specifico generemovie tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco del generemovie.
+   */
+  elimina(id:number): Observable<void>
+  {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+```
+
 ## GUARDS
 
 ## INTERCEPTORS
