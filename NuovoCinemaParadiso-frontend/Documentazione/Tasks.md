@@ -44,3 +44,14 @@ AndreaBruno: creare le pagine angular di genere-movie(vedi esempio nel readme-fr
 Lorenzo: creare le pagine angular di movie( vedi esempio nel readme-frontend.md)
 Fabio: routes.
 Marco: creare la pagina angular di sala (vedi esempio nel readme-frontend.md)
+
+## 13/05/2026
+
+Aggiungere modello giftcard collegato a tipologia giftcard ( giftcard attuale )
+
+## A fine frontend
+
+Rivedere giftcard ( renderla gestibile dall'utente )
+Un utente può comprare un codice giftcard di valore scelto dall'utente e
+l'utente avrà l'azione riscatta codice giftcard,
+aggiungere il conto monetario all'utente
