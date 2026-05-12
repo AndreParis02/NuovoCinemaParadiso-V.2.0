@@ -99,8 +99,8 @@ export interface Sala {
 
     } 
 }
+```
 
- ```
 ### Procedura
 
 - Prima si fa la lista:
@@ -131,6 +131,7 @@ export interface Sala {
     {path: 'tipologiaSala/:id', component: TipologiaSalaDetailComponent}
   ]
   ```
+
  Quando la lista funziona aggiungiamo il minimo delle cose indispensabili che servono:
  - form di creazione, form di modifica, form di eliminazione, validazione, messaggi di errore.
  Opzionalmente, in una seconda fase, si possono aggiungere ottimizzazioni tipo loading e pagine tipo la conferma
@@ -155,7 +156,6 @@ Solo se tutto il CRUD è funzionante aggiungiamo l'autenticazione:
 - Guard
 - Ruoli
 
-
 Elenco dei Tasks:
 
 - Creare progetto angular rispettando l'archetipo che abbiamo deciso.
@@ -171,15 +171,15 @@ Elenco dei Tasks:
 
 ## Setup installazioni Node.js e Angular
 
-
-
 Attraverso la powershell, come amministratore, digitare il seguente comando per installare Node.JS(la versione deve essere allineate alla documentazione Angular
 che ne attesta la compatibilità):
+
 ```bash
 choco install nodejs
 ```
 
 nel terminale su Visual studio Code, per angular, digitare:
+
 ```bash
 npm install -g @angular/cli
 ```
@@ -241,6 +241,7 @@ Con questo flag, il progetto più pulito e hai meno file iniziali.
 ## IMPORTANTE
 
 Una volta effettuato il pull dal developer, ad inizio progetto, essendo la cartella node_modules inserita nel gitignore, bisognerà digitare il seguente comando
+
 ```bash
 npm install
 ```
@@ -294,58 +295,12 @@ Contiene le schermate vere:
 Nel nostro caso la navbar.
 
 
-
-
 ## PAGES
 
 ## MODELS 
 
-### Auth:
-```ts
-export interface Auth {
-   id: string;
-   nomeCompleto: string;
-   token: string;
-   eta: number;
-   email: string;
-   ruolo: string;
-   dataInizioAbbonamento: string;
-   dataInizioGiftCard: string;
-   seAbbonato: boolean;
-   possiedeGiftCard: boolean;
-}
-```
+### abbonamento.model.ts 
 
-### Login:
-```ts
-export interface Login {
-   email: string;
-   password: string;
-}
-```
-
-### Registrazione:
-```ts
-export interface Registrazione {
-   email: string;
-   password: string;
-   nomeCompleto: string;
-   eta: number;
-}
-```
-
-### SessioneUtente:
-```ts
-export interface SessioneUtente{
-    token       : string;
-    id      : string;
-    email       : string;
-    nomeCompleto: string;
-    ruolo        : string;
-}
-```
-
-### Abbonamento: 
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -363,7 +318,9 @@ export interface AbbonamentoCreazione {
     sconto: number;
 }
 ```
-### Acquisto: 
+
+### acquisto.model.ts 
+
 ```ts
 // modello di ritorno che rappresenta un Acquisto
 export interface Acquisto {
@@ -382,7 +339,27 @@ export interface AcquistoCreazione {
     metodoPagamento: string;
 }
 ```
-### Genere movie: 
+
+### auth.model.ts
+
+```ts
+// Modello che rappresenta i dati restituiti dal backend dopo l'autenticazione dell'utente
+export interface Auth {
+   id: string;
+   nomeCompleto: string;
+   token: string;
+   eta: number;
+   email: string;
+   ruolo: string;
+   dataInizioAbbonamento: string;
+   dataInizioGiftCard: string;
+   seAbbonato: boolean;
+   possiedeGiftCard: boolean;
+}
+```
+
+### genere-movie.model.ts
+
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
@@ -395,14 +372,129 @@ export interface GenereMovieCreazione {
 }
 ```
 
-# sala.model.ts
+### giftCard.model.ts
+
 ```ts
+// Modello che rappresenta una Gift Card già esistente nel sistema
+export interface GiftCard {
+    id: string | null;
+    nome: string;
+    durata: number;
+    prezzo: number;
+    numeroMovie: number;
+}
+
+// Modello usato per creare una nuova Gift Card da inviare al backend
+export interface GiftCardCreazione {
+    nome: string;
+    durata: number;
+    prezzo: number;
+    numeroMovie: number;
+}
+```
+
+### logAzioni.model.ts
+
+```ts
+// Modello che rappresenta un log già registrato nel sistema
+export interface LogAzioni {
+    id: string | null;
+    idUtente: string | null;
+    nomeAzione: string;
+    effettuato: boolean;
+    messaggio: string;
+    timeStamp: string;
+}
+
+// Modello usato per inviare al backend i dati di un nuovo log da registrare
+export interface LogAzioniCreazione {
+    id: string | null;
+    idUtente: string;
+    nomeAzione: string;
+    effettuato: boolean;
+    messaggio: string;
+    timeStamp: string;
+}
+```
+
+### login.model.ts
+
+```ts
+// Modello usato per inviare al backend i dati necessari al login dell'utente
+export interface Login {
+   email: string;
+   password: string;
+}
+```
+
+### movie.model.ts
+
+```ts
+// Modello che rappresenta un film già presente nel sistema
+export interface Movie {
+    id: string | null;
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+    genere: string;
+}
+
+// Modello usato per creare un nuovo film da inviare al backend
+export interface MovieCreazione {
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+}
+```
+
+### proiezione.model.ts
+
+```ts
+// Modello che rappresenta una proiezione già presente nel sistema
+export interface Proiezione {
+    id: string;
+    dataProiezione: Date;
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+}
+
+// Modello usato per creare una nuova proiezione da inviare al backend
+export interface ProiezioneCreazione {
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+    dataProiezione: Date;
+}
+```
+
+### registrazione.model.ts
+
+```ts
+// Modello usato per inviare al backend i dati necessari alla registrazione di un nuovo utente
+export interface Registrazione {
+   email: string;
+   password: string;
+   nomeCompleto: string;
+   eta: number;
+}
+```
+
+### sala.model.ts
+
+```ts
+// Modello usato per creare una nuova sala da inviare al backend
 export interface SalaCreazione {
     nome: string;
     capienza: number;
     tipologiaSalaId: string;
 }
 
+// Modello che rappresenta una sala già presente nel sistema
 export interface Sala {
     id: string | null;
     nome: string;
@@ -411,26 +503,92 @@ export interface Sala {
     nomeTipologia: string;
 }
 ```
-# proiezione.model.ts
-```ts
-export interface Proiezione{
-    id: string;
-    dataProiezione: Date;
-    movieId: string;
-    salaId: string;
-    turnoId: string;
-}
 
-export interface ProiezioneCreazione {
-    movieId: string;
-    salaId: string;
-    turnoId: string;
-    dataProiezione: Date;
+### sessione-utente.model.ts
+
+```ts
+// Modello che rappresenta la sessione utente attiva dopo il login
+export interface SessioneUtente {
+    token       : string;
+    id          : string;
+    email       : string;
+    nomeCompleto: string;
+    ruolo       : string;
 }
 ```
+
+### tipologia-sala.model.ts
+
+```ts
+// Modello che rappresenta una tipologia di sala già presente nel sistema
+export interface TipologiaSala {
+    id: string | null;
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+
+// Modello usato per creare una nuova tipologia di sala da inviare al backend
+export interface TipologiaSalaCreazione {
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+```
+
+### turno.model.ts
+
+```ts
+// Modello che rappresenta un turno già presente nel sistema
+export interface Turno {
+    id: string | null;
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+
+// Modello usato per creare un nuovo turno da inviare al backend
+export interface TurnoCreazione {
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+```
+
+### utente.model.ts
+
+```ts
+// Modello che rappresenta un utente già presente nel sistema
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    dataInizioGiftCard: string;
+    seAbbonato: boolean;
+    possiedeGiftCard: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    giftCardId: string;
+    tipoAbbonamento: string;
+    tipoGiftCard: string;
+}
+
+// Modello usato per creare un nuovo utente (solo dati personali)
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+
+// Modello usato per modificare il ruolo di un utente
+export interface UtenteModificaRuolo {
+    email: string;
+    nuovoRuolo: string;
+}
+```
+
 ## SERVICES
 
 ### sala.service.ts
+
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http'; // importo dell'http Client
@@ -442,9 +600,12 @@ import { Sala, SalaCreazione  } from '../models/sala.model';//importo dei modell
 @Injectable({ providedIn: 'root' })
 export class SalaService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/sala`; /*utilizza l'enviroment per creare
-                                                                 un url di comunicazione verso il
-                                                                  controller del backend*/
+  private readonly baseUrl = `${environment.apiBaseUrl}/sala`; 
+  /*
+  utilizza l'enviroment per creare
+  un url di comunicazione verso il
+  controller del backend
+  */
 
   ottieniTutto(): Observable<Sala[]> {
     //chiamta http per ottenere tutte le sale
@@ -475,6 +636,7 @@ export class SalaService {
     // chiamata http per l'eliminazione di una sala
 
 ```
+
 ### TipologiaSalaService
 
 ```ts
@@ -566,6 +728,7 @@ export class TipologiaSalaService {
 ```
 
 ### MovieService
+
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -688,7 +851,9 @@ export class TurnoService {
   }
 }
 ```
+
 ### abbonamento.service.ts
+
 ```ts
 /**
  * Service Angular dedicato alla gestione delle operazioni CRUD
@@ -931,8 +1096,8 @@ export class GenereMovieService {
 }
 ```
 
-
 ### auth.service.ts
+
 ```ts
 
 import { environment } from '../../environments/environment';
@@ -1026,6 +1191,7 @@ export class AuthService {
 ```
 
 ### log-azioni.service.ts
+
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -1222,5 +1388,3 @@ export class AcquistoService {
 ## SHARED
 
 ## ENVIRONMENT
-
-
