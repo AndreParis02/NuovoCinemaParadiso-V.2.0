@@ -1134,12 +1134,21 @@ export class ProiezioneService {
     private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
 
   /**
-   * Recupera tutte le proiezioni presenti nel sistema.
+   * Recupera tutte le proiezioni visibili presenti nel sistema.
    * 
    * @returns Observable contenente un array di proiezioni.
    */
     ottieniTutto(): Observable<Proiezione[]> {
         return this.http.get<Proiezione[]>(this.baseUrl);
+    }
+
+  /**
+   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
+   * 
+   * @returns Observable contenente un array di proiezioni.
+   */
+    ottieniTuttoStorico(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
     }
 
   /**

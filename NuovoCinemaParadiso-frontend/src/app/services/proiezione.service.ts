@@ -14,6 +14,10 @@ export class ProiezioneService {
         return this.http.get<Proiezione[]>(this.baseUrl);
     }
 
+    ottieniTuttoStorico(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
+    }
+
     ottieniTramiteId(id: string): Observable<Proiezione> {
         return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
     }
