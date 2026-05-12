@@ -39,7 +39,7 @@ Marco:
 
 task 3:
 
-AndreaParis: AdminService, controllare discorso del ruolo nei model.
+AndreaParis: AdminService, controllare discorso del ruolo nei model. (fatto)
 AndreaBruno: creare le pagine angular di genere-movie(vedi esempio nel readme-frontend.md)
 Lorenzo: creare le pagine angular di movie( vedi esempio nel readme-frontend.md)
 Fabio: routes.
