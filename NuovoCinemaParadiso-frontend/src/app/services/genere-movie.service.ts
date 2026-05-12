@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { GenereMovie, GenereMovieCreazione } from '../models/GenereMovie.model';
+import { GenereMovie, GenereMovieCreazione } from '../models/genere-movie.model';
 
 @Injectable({
   providedIn: 'root',

@@ -10,7 +10,7 @@ export class SalaService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/sala`;
 
-  ottieniTutti(): Observable<Sala[]> {
+  ottieniTutto(): Observable<Sala[]> {
     return this.http.get<Sala[]>(this.baseUrl);
   }
   ottieniPerTipologia(tipologiaId: string): Observable<Sala[]> {
