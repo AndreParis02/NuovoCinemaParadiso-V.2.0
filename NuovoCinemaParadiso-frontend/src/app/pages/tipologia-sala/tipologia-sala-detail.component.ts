@@ -3,7 +3,7 @@ import { TipologiaSala } from '../../models/tipologia-sala.model'; // Esempio di
 import { TipologiaSalaService } from '../../services/tipologia-sala.service';
 
 @Component({
-  selector: 'app-tipologia-sala-detail/{{id}}',
+  selector: 'app-tipologia-sala-detail',
   templateUrl: './tipologia-sala-detail.component.html',
 })
 export class TipologiaSalaDetailComponent implements OnInit {
