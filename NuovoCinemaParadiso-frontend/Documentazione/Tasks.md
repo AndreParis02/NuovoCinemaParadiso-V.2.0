@@ -21,9 +21,18 @@ Simeone
 
 Andrea Bruno: 
 Andrea Paris: AuthService (fatto)
-Greg: Giftcard Service
-Francesco: AbbonamentoService
+Greg: Giftcard Service (fatto)
+Francesco: AbbonamentoService (fatto)
 Fabio: routes.
-Lorenzo: LogAzioniService
+Lorenzo: LogAzioniService (fatto)
 Marco: UtenteService.
 Simeone:
+
+Task 2:
+
+Andrea Paris: UtenteService
+Greg: ProiezioniService
+Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
+Fabio: routes.
+Lorenzo: AcquistoService
+Marco: 
