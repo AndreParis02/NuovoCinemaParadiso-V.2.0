@@ -30,8 +30,8 @@ Simeone:
 
 Task 2:
 
-Andrea Paris: UtenteService
-Greg: ProiezioniService
+Andrea Paris: UtenteService (fatto)
+Greg: ProiezioniService (fatto)
 Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
 Fabio: routes.
 Lorenzo: AcquistoService (fatto)
@@ -39,4 +39,8 @@ Marco:
 
 task 3:
 
-Lorenzo: RuoloUtenteService ( devi controllare il discorso del modello dei ruoli perchè mi sa che manca :D)
+AndreaParis: AdminService, controllare discorso del ruolo nei model.
+AndreaBruno: creare le pagine angular di genere-movie(vedi esempio nel readme-frontend.md)
+Lorenzo: creare le pagine angular di movie( vedi esempio nel readme-frontend.md)
+Fabio: routes.
+Marco: creare la pagina angular di sala (vedi esempio nel readme-frontend.md)
