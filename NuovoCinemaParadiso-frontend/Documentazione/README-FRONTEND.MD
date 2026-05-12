@@ -401,7 +401,7 @@ export class SalaService {
                                                                  un url di comunicazione verso il
                                                                   controller del backend*/
 
-  ottieniTutti(): Observable<Sala[]> {
+  ottieniTutto(): Observable<Sala[]> {
     //chiamta http per ottenere tutte le sale
     return this.http.get<Sala[]>(this.baseUrl);
   }
@@ -568,15 +568,6 @@ export class MovieService {
 }
 ```
 
-## GUARDS
-
-## INTERCEPTORS
-
-## SHARED
-
-## ENVIRONMENT
-
-
 ### turno.service.ts
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -610,7 +601,7 @@ export class TurnoService {
    * 
    * @returns Observable contenente un array di Turni.
    */
-  ottieniTutti(): Observable<Turno[]> {
+  ottieniTutto(): Observable<Turno[]> {
     return this.http.get<Turno[]>(this.baseUrl);
   }
    /**
@@ -652,3 +643,13 @@ export class TurnoService {
   }
 }
 ```
+
+## GUARDS
+
+## INTERCEPTORS
+
+## SHARED
+
+## ENVIRONMENT
+
+
