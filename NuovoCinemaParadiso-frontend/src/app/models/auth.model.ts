@@ -11,14 +11,3 @@ export interface Auth {
    possiedeGiftCard: boolean;
 }
 
-export interface Login {
-   email: string;
-   password: string;
-}
-
-export interface Registrazione {
-   email: string;
-   password: string;
-   nomeCompleto: string;
-   eta: number;
-}

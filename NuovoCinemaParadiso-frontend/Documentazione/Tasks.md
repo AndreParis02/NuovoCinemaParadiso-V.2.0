@@ -20,7 +20,7 @@ Simeone
 ## 12/05/2026
 
 Andrea Bruno: 
-Andrea Paris: AuthService
+Andrea Paris: AuthService (fatto)
 Greg: Giftcard Service
 Francesco: AbbonamentoService
 Fabio: routes.
