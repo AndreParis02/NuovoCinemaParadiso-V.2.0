@@ -36,3 +36,7 @@ Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-fr
 Fabio: routes.
 Lorenzo: AcquistoService (fatto)
 Marco: 
+
+task 3:
+
+Lorenzo: RuoloUtenteService ( devi controllare il discorso del modello dei ruoli perchè mi sa che manca :D)
