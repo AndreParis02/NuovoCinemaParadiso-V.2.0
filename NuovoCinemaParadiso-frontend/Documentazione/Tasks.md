@@ -36,3 +36,11 @@ Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-fr
 Fabio: routes.
 Lorenzo: AcquistoService (fatto)
 Marco: 
+
+task 3:
+
+AndreaParis: AdminService, controllare discorso del ruolo nei model.
+AndreaBruno: creare le pagine angular di genere-movie(vedi esempio nel readme-frontend.md)
+Lorenzo: creare le pagine angular di movie( vedi esempio nel readme-frontend.md)
+Fabio: routes.
+Marco: creare la pagina angular di sala (vedi esempio nel readme-frontend.md)
