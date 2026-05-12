@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TipologiaSala } from '../../models/tipologia-sala.model'; // Esempio di path
+import { TipologiaSala } from '../../models/tipologia-sala.model'; 
 import { TipologiaSalaService } from '../../services/tipologia-sala.service';
 
 @Component({
@@ -11,7 +11,6 @@ export class TipologiaSalaDetailComponent implements OnInit {
   tipologiaSala: TipologiaSala | null = null;
   id: string = ''; // impostare questo ID in qualche modo, ad esempio tramite route parametrica
 
-  // L'iniezione del servizio nel costruttore
   constructor(private tipologiaSalaService: TipologiaSalaService, id: string) {
     this.id = id;
   }

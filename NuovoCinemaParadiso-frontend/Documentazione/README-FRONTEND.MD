@@ -298,6 +298,94 @@ Nel nostro caso la navbar.
 
 ## PAGES
 
+### tipologia-sala-list.component.ts
+```ts
+/**
+ * Componente Angular della lista di modelli tipologia-sala
+ * questo componente angular sfrutta il servizio relativo per creare una lista
+ * con ottieniTutto(), questo ottiene tutti le iterazione del db di tipologia-sala
+ */
+import { Component, OnInit } from '@angular/core';
+import { TipologiaSala } from '../../models/tipologia-sala.model'; //path del modello
+import { TipologiaSalaService } from '../../services/tipologia-sala.service';//path del servizio
+
+@Component({
+  selector: 'app-tipologia-sala-list',
+  templateUrl: './tipologia-sala-list.component.html',//URL del template
+})
+export class TipologiaSalaListComponent implements OnInit {
+  
+  tipologiaSala: TipologiaSala[] = []; //lista 
+
+  // L'iniezione del servizio nel costruttore
+  constructor(private tipologiaSalaService: TipologiaSalaService) { }
+
+    //funzione che chiama il servizio per creare una lista
+  ngOnInit(): void {
+    this.tipologiaSalaService.ottieniTutto().subscribe(data => {
+      this.tipologiaSala = data;
+    });
+  }
+}
+```
+### tipologia-sala-list.component.html
+componente html template della lista di tipologia-sala
+```html
+<div class="container"><!-- contenitore della lista -->
+    <ul>
+    <!-- Cicla su ogni 'tipologia' presente nell'array tipologiaSala -->
+    <li *ngFor="let tipologia of tipologiaSala">
+        {{ tipologia.id }} - {{ tipologia.nome }} - {{tipologia.maggiorazionePrezzo}}€
+    </li>
+    </ul>
+</div>
+```
+
+### tipologia-sala-detail.componenr.ts
+```ts
+/**
+ * Componente Angular del modello tipologia-sala in dettaglio
+ * questo componente angular sfrutta il servizio relativo per mostrare l'iterazione in dettaglio
+ * con ottieniTramiteId(), questo ottiene la iterazione del db di tipologia-sala con tale id in dettaglio
+ */
+import { Component, OnInit } from '@angular/core';
+import { TipologiaSala } from '../../models/tipologia-sala.model'; //path del modello
+import { TipologiaSalaService } from '../../services/tipologia-sala.service';//path del servizio
+
+@Component({
+  selector: 'app-tipologia-sala-detail',
+  templateUrl: './tipologia-sala-detail.component.html',//URL del template
+})
+export class TipologiaSalaDetailComponent implements OnInit {
+  
+  tipologiaSala: TipologiaSala | null = null;
+  id: string = ''; // impostare questo ID in qualche modo, ad esempio tramite route parametrica
+
+  // L'iniezione del servizio e del campo id nel costruttore
+  constructor(private tipologiaSalaService: TipologiaSalaService, id: string) {
+    this.id = id;
+  }
+    //funzione del servizio per prenderee una tipologia-sala in dettaglio
+  ngOnInit(): void {
+    this.tipologiaSalaService.ottieniTramiteId(this.id).subscribe(data => {
+      this.tipologiaSala = data;
+    });
+  }
+}
+```
+### tipologia-sala-detail.component.html
+non vi è encora un css
+```html
+
+<!-- componente in dettaglio di una tiplogia-sala,
+  ha un titolo e un paragrafo per ogni campo del modello in un div-->
+<div>
+  <h2>Dettagli Tipologia Sala</h2>
+  <div><span>ID: </span><span>{{ tipologiaSala?.id }}</span></div>
+  <div><span>Nome: </span><span>{{ tipologiaSala?.nome }}</span></div>
+  <div><span>Maggiorazione Prezzo: </span><span>{{ tipologiaSala?.maggiorazionePrezzo }}€</span></div>
+</div>
+```
 ## MODELS 
 
 ### Auth:

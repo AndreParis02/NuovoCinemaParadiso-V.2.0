@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TipologiaSala } from '../../models/tipologia-sala.model'; // Esempio di path
+import { TipologiaSala } from '../../models/tipologia-sala.model'; 
 import { TipologiaSalaService } from '../../services/tipologia-sala.service';
 
 @Component({
@@ -10,7 +10,6 @@ export class TipologiaSalaListComponent implements OnInit {
   
   tipologiaSala: TipologiaSala[] = [];
 
-  // L'iniezione del servizio nel costruttore
   constructor(private tipologiaSalaService: TipologiaSalaService) { }
 
   ngOnInit(): void {
