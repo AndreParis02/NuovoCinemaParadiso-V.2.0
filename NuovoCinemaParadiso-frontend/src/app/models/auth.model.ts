@@ -10,4 +10,3 @@ export interface Auth {
    seAbbonato: boolean;
    possiedeGiftCard: boolean;
 }
-

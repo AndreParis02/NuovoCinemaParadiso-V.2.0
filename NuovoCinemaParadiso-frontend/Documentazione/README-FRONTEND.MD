@@ -1205,6 +1205,330 @@ export class LogAzioniService {
 }
 ```
 
+### proiezione.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità proiezione.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({ providedIn: 'root' })
+export class ProiezioneService {
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle proiezioni.
+   */
+    private readonly http = inject(HttpClient);
+     /**
+   * URL base dell'endpoint REST per la gestione
+   *  della proiezione.
+   */
+    private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
+
+  /**
+   * Recupera tutte le proiezioni visibili presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di proiezioni.
+   */
+    ottieniTutto(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(this.baseUrl);
+    }
+
+  /**
+   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
+   * 
+   * @returns Observable contenente un array di proiezioni.
+   */
+    ottieniTuttoStorico(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteId(id: string): Observable<Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo del movie(film) collegato GUID.
+   * 
+   * @param id Identificativo univoco del movie.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteMovieId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo della sala collegata GUID.
+   * 
+   * @param id Identificativo univoco della sala.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteSalaId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo del turno collegato GUID.
+   * 
+   * @param id Identificativo univoco del turno.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteTurnoId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
+    }
+
+  /**
+   * crea una nuova proiezione utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    crea(payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.post<Proiezione>(this.baseUrl, payload);
+    }
+
+ /**
+   * Modifica una specifica proiezione tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   * @param payload modello di richiesta per la modifica della proiezione. 
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
+    }
+
+    /**
+   * Elimina una specifica proiezione tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   */
+    elimina(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
+}
+```
+
+### proiezione.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
+/**
+ * Service Angular dedicato alla gestione delle operazioni CRUD
+ * relative all'entità proiezione.
+ * 
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
+ */
+@Injectable({ providedIn: 'root' })
+export class ProiezioneService {
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle proiezioni.
+   */
+    private readonly http = inject(HttpClient);
+     /**
+   * URL base dell'endpoint REST per la gestione
+   *  della proiezione.
+   */
+    private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
+
+  /**
+   * Recupera tutte le proiezioni visibili presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di proiezioni.
+   */
+    ottieniTutto(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(this.baseUrl);
+    }
+
+  /**
+   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
+   * 
+   * @returns Observable contenente un array di proiezioni.
+   */
+    ottieniTuttoStorico(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteId(id: string): Observable<Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo del movie(film) collegato GUID.
+   * 
+   * @param id Identificativo univoco del movie.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteMovieId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo della sala collegata GUID.
+   * 
+   * @param id Identificativo univoco della sala.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteSalaId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
+    }
+
+  /**
+   * Recupera una specifica proiezione tramite identificativo del turno collegato GUID.
+   * 
+   * @param id Identificativo univoco del turno.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    ottieniTramiteTurnoId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
+    }
+
+  /**
+   * crea una nuova proiezione utilizzando un payload.
+   * 
+   * @param payload modello di richiesta per creazione della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    crea(payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.post<Proiezione>(this.baseUrl, payload);
+    }
+
+ /**
+   * Modifica una specifica proiezione tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   * @param payload modello di richiesta per la modifica della proiezione. 
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
+    }
+
+    /**
+   * Elimina una specifica proiezione tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   */
+    elimina(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
+}
+```
+
+### AdminService
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Acquisto } from '../models/acquisto.model';
+import { Utente, UtenteModificaRuolo } from '../models/utente.model';
+import { LogAzioni } from '../models/logAzioni.model';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class AdminService {
+
+    private readonly http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
+
+
+    // GET tutti utenti
+    OttieniUtenti(): Observable<Utente[]> {
+        return this.http.get<Utente[]>(`${this.baseUrl}/utenti`);
+    }
+
+    // GET utente per id
+    OttieniUtentePerId(id: string): Observable<Utente> {
+        return this.http.get<Utente>(`${this.baseUrl}/utenti/${id}`);
+    }
+
+    // DELETE utente
+    eliminaUtente(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/utenti/${id}`);
+    }
+
+    // GET utenti per abbonamento
+    ottieniUtentiTramiteAbbonamento(abbonamentoId: string): Observable<Utente[]> {
+        return this.http.get<Utente[]>(
+            `${this.baseUrl}/utenti/abbonamento/${abbonamentoId}`
+        );
+    }
+
+    // GET utenti per giftcard
+    ottieniUtentiTramiteGiftCard(giftCardId: string): Observable<Utente[]> {
+        return this.http.get<Utente[]>(
+            `${this.baseUrl}/utenti/giftcard/${giftCardId}`
+        );
+    }
+
+    // GET tutti acquisti
+    ottieniAcquisti(): Observable<Acquisto[]> {
+        return this.http.get<Acquisto[]>(`${this.baseUrl}/acquisti`);
+    }
+
+    // GET acquisto per id
+    ottieniAcquistoPerId(id: string): Observable<Acquisto> {
+        return this.http.get<Acquisto>(`${this.baseUrl}/acquisti/${id}`);
+    }
+
+    ottieniLogAzioni(): Observable<LogAzioni[]> {
+        return this.http.get<LogAzioni[]>(`${this.baseUrl}/log`)
+    }
+}
+```
+
+### GestioneUtenteService
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {UtenteModificaRuolo } from '../models/utente.model';
+
+
+@Injectable({
+    providedIn: 'root'
+})
+export class GestioneUtenteService {
+    private readonly http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiBaseUrl}/gestone-utente`;
+
+
+    modificaRuolo(id: string, payload: UtenteModificaRuolo): Observable<string> {
+        return this.http.put<string>(`${this.baseUrl}/${id}`, payload);
+    }
+}
+
+```
+
 ## GUARDS
 
 ## INTERCEPTORS
@@ -1212,5 +1536,7 @@ export class LogAzioniService {
 ## SHARED
 
 ## ENVIRONMENT
+
+
 
 
