@@ -35,6 +35,7 @@ public class ProiezioneController : ControllerBase
     }
 
     [HttpGet("storico")]
+    [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniStoricoProiezioni()
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();

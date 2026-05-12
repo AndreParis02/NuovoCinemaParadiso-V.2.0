@@ -548,16 +548,13 @@ namespace NuovoCinemaParadiso.Dtos;
 
 public class DtoProiezione
 {
-    // codice identificativo della proiezione
-    public string Id {get; set; }
-    //data in cui avverrà la proiezione
+    public string Id {get; set; } = string.Empty;
     public DateOnly DataProiezione {get; set; }
-    // film della proiezione
-    public string MovieId {get; set; } 
-    // sala dove avverrà la proiezione
-    public string SalaId {get; set; }
-    // turno di intervallo di tempo dove avverrà la proiezione
-    public string TurnoId {get; set; }
+    public string MovieId {get; set; } = string.Empty;
+    public string SalaId {get; set; } = string.Empty;
+    public string TurnoId {get; set; } = string.Empty;
+
+    public bool Attivo { get; set; }=true;
 }
 ```
 
@@ -1921,12 +1918,20 @@ public class AdminController : ControllerBase
 ## ProiezioneController.cs
 
 ```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class ProiezioneController : ControllerBase
 {
-    // Servizi principali: gestione proiezioni e logging azioni.
     private readonly ProiezioneService _proiezioneService;
     private readonly LogAzioniService _logAzioniService;
 
@@ -1936,23 +1941,38 @@ public class ProiezioneController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // Restituisce tutte le proiezioni presenti nel sistema.
     [HttpGet]
     public async Task<IActionResult> OttieniTutteLeProiezioni()
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
-       await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
 
         return Ok(proiezioni);
     }
 
-    // Restituisce una singola proiezione tramite ID.
+    [HttpGet("storico")]
+    public async Task<IActionResult> OttieniStoricoProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
+
+        return Ok(proiezioni);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
 
@@ -1968,11 +1988,12 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-    // Restituisce tutte le proiezioni associate a un turno specifico.
     [HttpGet("turno/{turnoId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
         if (string.IsNullOrEmpty(turnoId))
         {
@@ -1994,142 +2015,131 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-    // Endpoint GET: restituisce tutte le proiezioni associate a una sala specifica
     [HttpGet("sala/{salaId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
-        // Recupera l'ID dell'utente autenticato dai claims (token JWT)
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
-        // Controllo di validità del parametro salaId
         if (string.IsNullOrEmpty(salaId))
         {
-            // Log dell'azione fallita
-            if (string.IsNullOrEmpty(salaId))
-           {
-             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
-             return BadRequest("SalaId non valido");
-           }
-
-            // Restituisce errore 400 Bad Request
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
             return BadRequest("SalaId non valido");
         }
 
-        // Chiama il service per ottenere le proiezioni della sala
         var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
 
-        // Se non viene trovato nulla
         if (risultato == null)
         {
-            // Log dell'azione fallita
-            {
-             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
-             return NotFound("Nessuna proiezione trovata per questa sala");
-            }
-
-            // Restituisce errore 404 Not Found
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
             return NotFound("Nessuna proiezione trovata per questa sala");
         }
 
-        // Log dell'azione completata con successo
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", true);
 
-        // Restituisce risultato con status 200 OK
         return Ok(risultato);
     }
 
-
-// Endpoint GET: restituisce tutte le proiezioni associate a un film specifico
-[HttpGet("movie/{movieId}")]
-public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movieId)
-{
-    // Recupera l'ID dell'utente autenticato
-    string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    // Controllo di validità del parametro movieId
-    if(string.IsNullOrEmpty(movieId))
+    [HttpGet("movie/{movieId}")]
+    public async Task<ActionResult<List<DtoProiezione>>>OttieniPerFilm(string movieId)
     {
-        // Log dell'azione fallita
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         if (string.IsNullOrEmpty(movieId))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
             return BadRequest("MovieId non valido");
-        
-        // Restituisce errore 400 Bad Request
-        return BadRequest("MovieId non valido");
         }
-    }
 
-    // Chiama il service per ottenere le proiezioni del film
-    var risultato = await _proiezioneService.OttieniTramiteMovieAsync(movieId);
+        var risultato = await _proiezioneService.OttieniTramiteMovieAsync(movieId);
 
-    // Se non viene trovato nulla
-    if (risultato == null)
-    {
-        // Log dell'azione fallita
         if (risultato == null)
         {
-         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
-         // Restituisce errore 404 Not Found
-         return NotFound("Nessuna proiezione trovata per questo film");
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return NotFound("Nessuna proiezione trovata per questo film");
         }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
+
+        return Ok(risultato);
     }
 
-    // Log dell'azione completata con successo
-    await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
 
-        // Restituisce risultato con status 200 OK
-    return Ok(risultato);
-}
-
-    // Crea una nuova proiezione, con controllo duplicati.
     [HttpPost]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
-        // Controllo duplicati: stessa sala, stesso turno, stessa data.
         foreach (var proiezione in proiezioni)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
-            return BadRequest(new { messaggio = "Proiezione già presente." });
+            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
         }
 
         DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
 
         if (risultato == null)
+        {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
             return BadRequest(new { messaggio = "Proiezione non valida." });
+        }
 
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
         return Ok(risultato);
     }
 
-    // Modifica una proiezione esistente.
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id, dto);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id,dto);
 
         if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", false);
+
             return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
 
         return Ok(risultato);
     }
 
-    // Elimina una proiezione tramite ID.
-    [HttpDelete("{id}")]
+    [HttpPut("elimina/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         bool eliminato = await _proiezioneService.EliminaAsync(id);
 
         if (!eliminato)
-            return NotFound(new { messaggio = "Proiezione non trovato." });
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
 
         return Ok(new { messaggio = "Proiezione eliminata con successo!" });
     }
@@ -3624,6 +3634,13 @@ public class AdminService
 ## ProiezioneService.cs
 
 ```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
 public class ProiezioneService
 {
     private readonly ContestoDb _contesto;
@@ -3632,7 +3649,6 @@ public class ProiezioneService
         _contesto = contesto;
     }
 
-    // Restituisce tutte le proiezioni, mappandole manualmente in DTO.
     public async Task<List<DtoProiezione>> OttieniTuttoAsync()
     {
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
@@ -3641,49 +3657,72 @@ public class ProiezioneService
         for (int i = 0; i < proiezioni.Count; i++)
         {
             Proiezione proiezioneCorrente = proiezioni[i];
+            if(proiezioneCorrente.Attivo)
+            {
+                Movie? film = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId);
 
-            // Recupero manuale delle entità collegate (non usate nel DTO).
+                DtoProiezione dto = new DtoProiezione();
+                dto.Id = proiezioneCorrente.Id;
+                dto.DataProiezione = proiezioneCorrente.DataProiezione;
+                dto.MovieId = proiezioneCorrente.MovieId;
+                dto.SalaId = proiezioneCorrente.SalaId;
+                dto.TurnoId = proiezioneCorrente.TurnoId;
+                dto.Attivo = proiezioneCorrente.Attivo;
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+        public async Task<List<DtoProiezione>> OttieniStoricoAsync()
+    {
+        List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
+        List<DtoProiezione> risultato = new List<DtoProiezione>();
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezioneCorrente = proiezioni[i];
+
             Movie? film = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId);
 
-            // Mappatura esplicita.
             DtoProiezione dto = new DtoProiezione();
             dto.Id = proiezioneCorrente.Id;
             dto.DataProiezione = proiezioneCorrente.DataProiezione;
             dto.MovieId = proiezioneCorrente.MovieId;
             dto.SalaId = proiezioneCorrente.SalaId;
             dto.TurnoId = proiezioneCorrente.TurnoId;
-
+            dto.Attivo = proiezioneCorrente.Attivo;
             risultato.Add(dto);
         }
         return risultato;
     }
 
-    // Restituisce una singola proiezione tramite ID.
     public async Task<DtoProiezione?> OttieniTramiteIdAsync(string id)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
         if (proiezione == null)
+        {
             return null;
-
-        // Recupero manuale delle entità collegate.
+        }
+       
         Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
 
-        // Mappatura esplicita.
+        
         DtoProiezione risultato = new DtoProiezione();
         risultato.Id = proiezione.Id;
         risultato.DataProiezione = proiezione.DataProiezione;
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
     }
 
-    // Filtra le proiezioni per MovieId (loop manuale).
-    public async Task<List<DtoProiezione>> OttieniTramiteMovieAsync(string movieId)
+    public async Task<List<DtoProiezione>> OttieniTramiteMovieAsync (string movieId)
     {
         List<DtoProiezione> risultato = new List<DtoProiezione>();
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
@@ -3693,20 +3732,21 @@ public class ProiezioneService
             Proiezione proiezioneCorrente = proiezioni[i];
             if (proiezioneCorrente.MovieId == movieId)
             {
-                DtoProiezione dto = new DtoProiezione();
+               DtoProiezione dto = new DtoProiezione();
                 dto.Id = proiezioneCorrente.Id;
                 dto.DataProiezione = proiezioneCorrente.DataProiezione;
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
+
+            
         }
         return risultato;
     }
 
-    // Filtra per SalaId.
     public async Task<List<DtoProiezione>> OttieniTramiteSalaAsync(string salaId)
     {
         List<DtoProiezione> risultato = new List<DtoProiezione>();
@@ -3723,20 +3763,19 @@ public class ProiezioneService
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
         }
         return risultato;
     }
 
-    // Filtra per TurnoId.
     public async Task<List<DtoProiezione>> OttieniTramiteTurnoAsync(string turnoId)
     {
         List<DtoProiezione> risultato = new List<DtoProiezione>();
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
 
-        for (int i = 0; i < proiezioni.Count; i++)
+        for(int i = 0; i < proiezioni.Count; i++)
         {
             Proiezione proiezioneCorrente = proiezioni[i];
             if (proiezioneCorrente.TurnoId == turnoId)
@@ -3747,47 +3786,50 @@ public class ProiezioneService
                 dto.MovieId = proiezioneCorrente.MovieId;
                 dto.SalaId = proiezioneCorrente.SalaId;
                 dto.TurnoId = proiezioneCorrente.TurnoId;
-
+                dto.Attivo = proiezioneCorrente.Attivo;
                 risultato.Add(dto);
             }
         }
         return risultato;
+
     }
 
-    // Crea una nuova proiezione.
     public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
     {
         Proiezione proiezione = new Proiezione();
+
+        
         proiezione.DataProiezione = dto.DataProiezione;
         proiezione.MovieId = dto.MovieId;
         proiezione.SalaId = dto.SalaId;
         proiezione.TurnoId = dto.TurnoId;
-
+        
         _contesto.Proiezioni.Add(proiezione);
         await _contesto.SaveChangesAsync();
 
-        // Recupero manuale delle entità collegate.
         Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
 
-        // Mappatura esplicita.
+        
         DtoProiezione risultato = new DtoProiezione();
         risultato.Id = proiezione.Id;
         risultato.DataProiezione = proiezione.DataProiezione;
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
     }
 
-    // Modifica una proiezione esistente.
     public async Task<DtoProiezione?> ModificaAsync(string id, DtoCreazioneProiezione dto)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+
         if (proiezione == null)
+        {
             return null;
+        }
 
         proiezione.DataProiezione = dto.DataProiezione;
         proiezione.MovieId = dto.MovieId;
@@ -3796,23 +3838,22 @@ public class ProiezioneService
 
         await _contesto.SaveChangesAsync();
 
-        // Recupero manuale delle entità collegate.
         Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
 
-        // Mappatura esplicita.
         DtoProiezione risultato = new DtoProiezione();
         risultato.Id = proiezione.Id;
         risultato.DataProiezione = proiezione.DataProiezione;
         risultato.MovieId = proiezione.MovieId;
         risultato.SalaId = proiezione.SalaId;
         risultato.TurnoId = proiezione.TurnoId;
-
+        risultato.Attivo = proiezione.Attivo;
         return risultato;
+
+
     }
 
-    // Elimina una proiezione tramite ID.
     public async Task<bool> EliminaAsync(string id)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
