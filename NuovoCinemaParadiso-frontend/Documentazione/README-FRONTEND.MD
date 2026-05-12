@@ -99,8 +99,8 @@ export interface Sala {
 
     } 
 }
-```
 
+ ```
 ### Procedura
 
 - Prima si fa la lista:
@@ -131,7 +131,6 @@ export interface Sala {
     {path: 'tipologiaSala/:id', component: TipologiaSalaDetailComponent}
   ]
   ```
-
  Quando la lista funziona aggiungiamo il minimo delle cose indispensabili che servono:
  - form di creazione, form di modifica, form di eliminazione, validazione, messaggi di errore.
  Opzionalmente, in una seconda fase, si possono aggiungere ottimizzazioni tipo loading e pagine tipo la conferma
@@ -156,6 +155,7 @@ Solo se tutto il CRUD è funzionante aggiungiamo l'autenticazione:
 - Guard
 - Ruoli
 
+
 Elenco dei Tasks:
 
 - Creare progetto angular rispettando l'archetipo che abbiamo deciso.
@@ -171,15 +171,15 @@ Elenco dei Tasks:
 
 ## Setup installazioni Node.js e Angular
 
+
+
 Attraverso la powershell, come amministratore, digitare il seguente comando per installare Node.JS(la versione deve essere allineate alla documentazione Angular
 che ne attesta la compatibilità):
-
 ```bash
 choco install nodejs
 ```
 
 nel terminale su Visual studio Code, per angular, digitare:
-
 ```bash
 npm install -g @angular/cli
 ```
@@ -241,7 +241,6 @@ Con questo flag, il progetto più pulito e hai meno file iniziali.
 ## IMPORTANTE
 
 Una volta effettuato il pull dal developer, ad inizio progetto, essendo la cartella node_modules inserita nel gitignore, bisognerà digitare il seguente comando
-
 ```bash
 npm install
 ```
@@ -295,12 +294,58 @@ Contiene le schermate vere:
 Nel nostro caso la navbar.
 
 
+
+
 ## PAGES
 
 ## MODELS 
 
-### abbonamento.model.ts 
+### Auth:
+```ts
+export interface Auth {
+   id: string;
+   nomeCompleto: string;
+   token: string;
+   eta: number;
+   email: string;
+   ruolo: string;
+   dataInizioAbbonamento: string;
+   dataInizioGiftCard: string;
+   seAbbonato: boolean;
+   possiedeGiftCard: boolean;
+}
+```
 
+### Login:
+```ts
+export interface Login {
+   email: string;
+   password: string;
+}
+```
+
+### Registrazione:
+```ts
+export interface Registrazione {
+   email: string;
+   password: string;
+   nomeCompleto: string;
+   eta: number;
+}
+```
+
+### SessioneUtente:
+```ts
+export interface SessioneUtente{
+    token       : string;
+    id      : string;
+    email       : string;
+    nomeCompleto: string;
+    ruolo        : string;
+}
+```
+
+### Abbonamento: 
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -318,9 +363,7 @@ export interface AbbonamentoCreazione {
     sconto: number;
 }
 ```
-
-### acquisto.model.ts 
-
+### Acquisto: 
 ```ts
 // modello di ritorno che rappresenta un Acquisto
 export interface Acquisto {
@@ -339,27 +382,7 @@ export interface AcquistoCreazione {
     metodoPagamento: string;
 }
 ```
-
-### auth.model.ts
-
-```ts
-// Modello che rappresenta i dati restituiti dal backend dopo l'autenticazione dell'utente
-export interface Auth {
-   id: string;
-   nomeCompleto: string;
-   token: string;
-   eta: number;
-   email: string;
-   ruolo: string;
-   dataInizioAbbonamento: string;
-   dataInizioGiftCard: string;
-   seAbbonato: boolean;
-   possiedeGiftCard: boolean;
-}
-```
-
-### genere-movie.model.ts
-
+### Genere movie: 
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
@@ -372,129 +395,14 @@ export interface GenereMovieCreazione {
 }
 ```
 
-### giftCard.model.ts
-
+# sala.model.ts
 ```ts
-// Modello che rappresenta una Gift Card già esistente nel sistema
-export interface GiftCard {
-    id: string | null;
-    nome: string;
-    durata: number;
-    prezzo: number;
-    numeroMovie: number;
-}
-
-// Modello usato per creare una nuova Gift Card da inviare al backend
-export interface GiftCardCreazione {
-    nome: string;
-    durata: number;
-    prezzo: number;
-    numeroMovie: number;
-}
-```
-
-### logAzioni.model.ts
-
-```ts
-// Modello che rappresenta un log già registrato nel sistema
-export interface LogAzioni {
-    id: string | null;
-    idUtente: string | null;
-    nomeAzione: string;
-    effettuato: boolean;
-    messaggio: string;
-    timeStamp: string;
-}
-
-// Modello usato per inviare al backend i dati di un nuovo log da registrare
-export interface LogAzioniCreazione {
-    id: string | null;
-    idUtente: string;
-    nomeAzione: string;
-    effettuato: boolean;
-    messaggio: string;
-    timeStamp: string;
-}
-```
-
-### login.model.ts
-
-```ts
-// Modello usato per inviare al backend i dati necessari al login dell'utente
-export interface Login {
-   email: string;
-   password: string;
-}
-```
-
-### movie.model.ts
-
-```ts
-// Modello che rappresenta un film già presente nel sistema
-export interface Movie {
-    id: string | null;
-    titolo: string;
-    descrizione: string;
-    durataMinuti: number;
-    prezzoMovie: number;
-    genereId: string;
-    genere: string;
-}
-
-// Modello usato per creare un nuovo film da inviare al backend
-export interface MovieCreazione {
-    titolo: string;
-    descrizione: string;
-    durataMinuti: number;
-    prezzoMovie: number;
-    genereId: string;
-}
-```
-
-### proiezione.model.ts
-
-```ts
-// Modello che rappresenta una proiezione già presente nel sistema
-export interface Proiezione {
-    id: string;
-    dataProiezione: Date;
-    movieId: string;
-    salaId: string;
-    turnoId: string;
-}
-
-// Modello usato per creare una nuova proiezione da inviare al backend
-export interface ProiezioneCreazione {
-    movieId: string;
-    salaId: string;
-    turnoId: string;
-    dataProiezione: Date;
-}
-```
-
-### registrazione.model.ts
-
-```ts
-// Modello usato per inviare al backend i dati necessari alla registrazione di un nuovo utente
-export interface Registrazione {
-   email: string;
-   password: string;
-   nomeCompleto: string;
-   eta: number;
-}
-```
-
-### sala.model.ts
-
-```ts
-// Modello usato per creare una nuova sala da inviare al backend
 export interface SalaCreazione {
     nome: string;
     capienza: number;
     tipologiaSalaId: string;
 }
 
-// Modello che rappresenta una sala già presente nel sistema
 export interface Sala {
     id: string | null;
     nome: string;
@@ -503,92 +411,26 @@ export interface Sala {
     nomeTipologia: string;
 }
 ```
-
-### sessione-utente.model.ts
-
+# proiezione.model.ts
 ```ts
-// Modello che rappresenta la sessione utente attiva dopo il login
-export interface SessioneUtente {
-    token       : string;
-    id          : string;
-    email       : string;
-    nomeCompleto: string;
-    ruolo       : string;
-}
-```
-
-### tipologia-sala.model.ts
-
-```ts
-// Modello che rappresenta una tipologia di sala già presente nel sistema
-export interface TipologiaSala {
-    id: string | null;
-    nome: string;
-    maggiorazionePrezzo: number;
-}
-
-// Modello usato per creare una nuova tipologia di sala da inviare al backend
-export interface TipologiaSalaCreazione {
-    nome: string;
-    maggiorazionePrezzo: number;
-}
-```
-
-### turno.model.ts
-
-```ts
-// Modello che rappresenta un turno già presente nel sistema
-export interface Turno {
-    id: string | null;
-    oraInizio: string;
-    oraFine: string;
-    nome: string;
-}
-
-// Modello usato per creare un nuovo turno da inviare al backend
-export interface TurnoCreazione {
-    oraInizio: string;
-    oraFine: string;
-    nome: string;
-}
-```
-
-### utente.model.ts
-
-```ts
-// Modello che rappresenta un utente già presente nel sistema
-export interface Utente {
+export interface Proiezione{
     id: string;
-    nomeCompleto: string;
-    dataInizioAbbonamento: string;
-    dataInizioGiftCard: string;
-    seAbbonato: boolean;
-    possiedeGiftCard: boolean;
-    email: string;
-    eta: number;
-    abbonamentoId: string;
-    giftCardId: string;
-    tipoAbbonamento: string;
-    tipoGiftCard: string;
+    dataProiezione: Date;
+    movieId: string;
+    salaId: string;
+    turnoId: string;
 }
 
-// Modello usato per creare un nuovo utente (solo dati personali)
-export interface UtenteCreazione {
-    nomeCompleto: string;
-    eta: number;
-}
-
-// Modello usato per modificare il ruolo di un utente
-export interface UtenteModificaRuolo {
-    email: string;
-    nuovoRuolo: string;
+export interface ProiezioneCreazione {
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+    dataProiezione: Date;
 }
 ```
-
 ## SERVICES
 
 ### sala.service.ts
-
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http'; // importo dell'http Client
@@ -600,12 +442,9 @@ import { Sala, SalaCreazione  } from '../models/sala.model';//importo dei modell
 @Injectable({ providedIn: 'root' })
 export class SalaService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/sala`; 
-  /*
-  utilizza l'enviroment per creare
-  un url di comunicazione verso il
-  controller del backend
-  */
+  private readonly baseUrl = `${environment.apiBaseUrl}/sala`; /*utilizza l'enviroment per creare
+                                                                 un url di comunicazione verso il
+                                                                  controller del backend*/
 
   ottieniTutto(): Observable<Sala[]> {
     //chiamta http per ottenere tutte le sale
@@ -636,7 +475,6 @@ export class SalaService {
     // chiamata http per l'eliminazione di una sala
 
 ```
-
 ### TipologiaSalaService
 
 ```ts
@@ -728,7 +566,6 @@ export class TipologiaSalaService {
 ```
 
 ### MovieService
-
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -851,9 +688,7 @@ export class TurnoService {
   }
 }
 ```
-
 ### abbonamento.service.ts
-
 ```ts
 /**
  * Service Angular dedicato alla gestione delle operazioni CRUD
@@ -1096,8 +931,8 @@ export class GenereMovieService {
 }
 ```
 
-### auth.service.ts
 
+### auth.service.ts
 ```ts
 
 import { environment } from '../../environments/environment';
@@ -1191,7 +1026,6 @@ export class AuthService {
 ```
 
 ### log-azioni.service.ts
-
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -1273,7 +1107,6 @@ export class LogAzioniService {
 
 ### proiezione.service.ts
 
-### acqisto.service.ts
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -1388,108 +1221,124 @@ export class ProiezioneService {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
 }
-import { Acquisto, AcquistoCreazione } from '../models/acquisto.model';
+```
 
+### proiezione.service.ts
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
 /**
  * Service Angular dedicato alla gestione delle operazioni CRUD
- * relative all'entità Acquisto.
+ * relative all'entità proiezione.
  * 
- * Questo service segue ESATTAMENTE la stessa struttura del MovieService:
- * - metodi semplici e diretti
- * - nessuna logica aggiuntiva lato frontend
- * - nessuna trasformazione dei dati
- * - nessun wrapper o oggetto extra
- * 
- * Ogni metodo chiama l'endpoint REST corrispondente del backend.
+ * Il service comunica con il backend tramite HttpClient
+ * utilizzando gli endpoint REST esposti dall'API.
  */
-@Injectable({
-  providedIn: 'root',
-})
-export class AcquistoService {
+@Injectable({ providedIn: 'root' })
+export class ProiezioneService {
+  /**
+   * URL base dell'endpoint REST per la gestione
+   * delle proiezioni.
+   */
+    private readonly http = inject(HttpClient);
+     /**
+   * URL base dell'endpoint REST per la gestione
+   *  della proiezione.
+   */
+    private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
 
   /**
-   * HttpClient utilizzato per comunicare con il backend.
-   * Viene ottenuto tramite dependency injection.
+   * Recupera tutte le proiezioni visibili presenti nel sistema.
+   * 
+   * @returns Observable contenente un array di proiezioni.
    */
-  private readonly http = inject(HttpClient);
+    ottieniTutto(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(this.baseUrl);
+    }
 
   /**
-   * URL base dell'endpoint REST dedicato agli acquisti.
+   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
    * 
-   * Tutte le chiamate partiranno da:
-   *   {apiBaseUrl}/acquisto
+   * @returns Observable contenente un array di proiezioni.
    */
-  private readonly baseUrl = `${environment.apiBaseUrl}/acquisto`;
+    ottieniTuttoStorico(): Observable<Proiezione[]> {
+        return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
+    }
 
   /**
-   * Recupera tutti gli acquisti appartenenti a un determinato utente.
+   * Recupera una specifica proiezione tramite identificativo GUID.
    * 
-   * Backend previsto:
-   *   GET /acquisto/utente/{utenteId}
-   * 
-   * @param utenteId Identificativo dell'utente
-   * @returns Observable contenente un array di Acquisti
+   * @param id Identificativo univoco della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
    */
-  ottieniTutto(utenteId: string): Observable<Acquisto[]> {
-    return this.http.get<Acquisto[]>(`${this.baseUrl}/utente/${utenteId}`);
-  }
+    ottieniTramiteId(id: string): Observable<Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
+    }
 
   /**
-   * Recupera un singolo acquisto tramite il suo identificativo.
+   * Recupera una specifica proiezione tramite identificativo del movie(film) collegato GUID.
    * 
-   * Backend previsto:
-   *   GET /acquisto/{id}/utente/{utenteId}
-   * 
-   * @param id Identificativo dell'acquisto
-   * @param utenteId Identificativo dell'utente proprietario
-   * @returns Observable contenente l'acquisto richiesto
+   * @param id Identificativo univoco del movie.
+   * @returns Observable contenente la proiezione di risposta.
    */
-  ottieniTramiteId(id: string, utenteId: string): Observable<Acquisto> {
-    return this.http.get<Acquisto>(`${this.baseUrl}/${id}/utente/${utenteId}`);
-  }
+    ottieniTramiteMovieId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
+    }
 
   /**
-   * Crea un nuovo acquisto.
+   * Recupera una specifica proiezione tramite identificativo della sala collegata GUID.
    * 
-   * Backend previsto:
-   *   POST /acquisto/utente/{utenteId}
-   * 
-   * @param payload Dati necessari alla creazione dell'acquisto
-   * @param utenteId Identificativo dell'utente che effettua l'acquisto
-   * @returns Observable contenente l'acquisto creato
+   * @param id Identificativo univoco della sala.
+   * @returns Observable contenente la proiezione di risposta.
    */
-  crea(payload: AcquistoCreazione, utenteId: string): Observable<Acquisto> {
-    return this.http.post<Acquisto>(`${this.baseUrl}/utente/${utenteId}`, payload);
-  }
+    ottieniTramiteSalaId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
+    }
 
   /**
-   * Modifica un acquisto esistente.
+   * Recupera una specifica proiezione tramite identificativo del turno collegato GUID.
    * 
-   * Backend previsto:
-   *   PUT /acquisto/{id}
-   * 
-   * @param id Identificativo dell'acquisto da modificare
-   * @param payload Dati aggiornati dell'acquisto
-   * @returns Observable contenente l'acquisto aggiornato
+   * @param id Identificativo univoco del turno.
+   * @returns Observable contenente la proiezione di risposta.
    */
-  modifica(id: string, payload: AcquistoCreazione): Observable<Acquisto> {
-    return this.http.put<Acquisto>(`${this.baseUrl}/${id}`, payload);
-  }
+    ottieniTramiteTurnoId(id:string): Observable <Proiezione> {
+        return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
+    }
 
   /**
-   * Elimina un acquisto tramite il suo identificativo.
+   * crea una nuova proiezione utilizzando un payload.
    * 
-   * Backend previsto:
-   *   DELETE /acquisto/{id}
-   * 
-   * @param id Identificativo dell'acquisto da eliminare
-   * @returns Observable<void> poiché il backend non restituisce un corpo
+   * @param payload modello di richiesta per creazione della proiezione.
+   * @returns Observable contenente la proiezione di risposta.
    */
-  elimina(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
-  }
+    crea(payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.post<Proiezione>(this.baseUrl, payload);
+    }
+
+ /**
+   * Modifica una specifica proiezione tramite identificativo GUID con le informazioni all'interno di un payload.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   * @param payload modello di richiesta per la modifica della proiezione. 
+   * @returns Observable contenente la proiezione di risposta.
+   */
+    modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
+        return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
+    }
+
+    /**
+   * Elimina una specifica proiezione tramite identificativo GUID.
+   * 
+   * @param id Identificativo univoco della proiezione.
+   */
+    elimina(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
 }
-
 ```
 
 ## GUARDS
@@ -1499,3 +1348,7 @@ export class AcquistoService {
 ## SHARED
 
 ## ENVIRONMENT
+
+
+
+
