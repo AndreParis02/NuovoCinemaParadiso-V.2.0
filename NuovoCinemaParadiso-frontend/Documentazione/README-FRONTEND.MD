@@ -79,9 +79,11 @@ export interface Sala {
    http, quest'ultime vanno inserite nei services.
  - Creare le pagine angular seguendo le entità del backend
    Ci sarà: 
-   - tipologiaSala-list.component.ts  (lista)
+   - tipologiaSala-list.page.ts  (lista)
    - tipologiaSala-detail.component.ts (elemento singolo)
    - tipologiaSala-form.component.ts (pagina coi comandi crud)
+
+   però, i componenti condivisi tipo la navbar, si mette `.component`
 
 ```ts
  export class TipologiaSalaService {
@@ -310,7 +312,17 @@ import { TipologiaSala } from '../../models/tipologia-sala.model'; //path del mo
 import { TipologiaSalaService } from '../../services/tipologia-sala.service';//path del servizio
 
 @Component({
-  selector: 'app-tipologia-sala-list',
+  selector: 'app-tipologia-sala-list',/*è il nome html dello Slug con cui usi 
+                                        un componente angular dentro un template
+                                        ,nel nostro caso possiamo usare quel componente cosi:
+                                        <app-tipologia-sala-list> </app-tipologia-sala-list>
+                                        in pratica, quando angular trova questo tag html,
+                                        mostra questo componente utilizzando il suo template,
+                                        la rotta angular diventerebbe questa: 
+                                        {
+                                        path: 'tipologia-sala-list', 
+                                        component: TipologiaSalaListComponent
+                                        }*/
   templateUrl: './tipologia-sala-list.component.html',//URL del template
 })
 export class TipologiaSalaListComponent implements OnInit {
