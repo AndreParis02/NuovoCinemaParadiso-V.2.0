@@ -19,17 +19,105 @@
 - Creare la cartella shared e decidere quali componenti sono condivisi fra le pagine. Se ci fossero
   più pagine che usano uno stesso modello, il modello condiviso si mette in shared.
 - Creare la cartella features che contiene le entità:
-  - TipologiaSala
-  - Ruolo
-  - Turno
-  - GenereMovie
-  - Sala
-  - Movie
-  - Utente
+
+  - TipologiaSala ( list, detail, form )
+  - Ruolo ( list, detail, form )
+  - Turno ( list, detail, form )
+  - GenereMovie ( list, detail, form )
+  - Sala ( list, detail, form )
+  - Movie ( list, detail, form )
+  - Utente ( list, detail, form )
+  - Abbonamento ( list, detail, form )
+  - GiftCard ( list, detail, form )
+  - Acquisto ( list, detail, form )
+  - Proiezione ( list, detail, form )
+  - LogAzioni ( list, detail )
+  - Admin ( form )
+
+## Liste 
+
+### entita-list.page 
+
+Solo le liste presenti in una pagina
+
+### entita-list.component 
+
+Tutte le liste che sono presenti in più pagine
+
+- Lista tipologie Sala
+  - tipologia sala
+  - sala
+
+- Lista Ruoli
+  - ruolo utente
+
+- Lista Turni
+  - turno
+  - proiezione
+
+- Lista Generi Movie
+  - genere movie
+  - movie
+
+- Lista Sale
+  - sala
+  - proiezione
+
+- Lista Movies
+  - movie
+  - proiezione
+
+- Lista utenti
   - Abbonamento
+  - Admin
   - GiftCard
-  - Acquisto
-  - Proiezione
+
+- Lista Abbonamenti
+  - abbonamento
+
+- Lista GiftCards
+  - giftcard
+
+- Lista Acquisti
+  - acquisto
+
+- Lista Proiezioni
+  - proiezione
+  - acquisto
+
+- Lista Log Azioni
+  - admin
+
+## Detail
+
+### entita-detail.page
+
+- TipologiaSala
+- Ruolo
+- Turno
+- GenereMovie
+- Sala
+- Movie
+- Utente
+- Abbonamento
+- GiftCard
+- Acquisto
+- Proiezione
+- LogAzioni 
+
+### entita-form.page
+
+- TipologiaSala ( impostare in dataseeder ) priorità bassa
+- Turno
+- GenereMovie ( impostare in dataseeder ) priorità bassa
+- Sala
+- Movie
+- Utente
+- Abbonamento
+- Acquisto
+- Proiezione
+- LogAzioni 
+
 
   Ognuna di queste entità deve essere una cartella dentro features, ed ognuna deve contenere page, component, service e models.
 
