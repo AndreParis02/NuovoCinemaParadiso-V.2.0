@@ -30,7 +30,7 @@ Simeone:
 
 Task 2:
 
-Andrea Paris: UtenteService
+Andrea Paris: UtenteService (fatto)
 Greg: ProiezioniService (fatto)
 Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) 
 Fabio: routes.
