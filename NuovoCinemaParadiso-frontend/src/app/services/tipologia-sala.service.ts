@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { TipologiaSala, TipologiaSalaCreazione } from '../models/TipologiaSala.model';
+import { TipologiaSala, TipologiaSalaCreazione } from '../models/tipologia-sala.model';
 
 
 @Injectable({

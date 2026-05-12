@@ -10,7 +10,7 @@ export class TurnoService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/turno`;
 
-  ottieniTutti(): Observable<Turno[]> {
+  ottieniTutto(): Observable<Turno[]> {
     return this.http.get<Turno[]>(this.baseUrl);
   }
 
