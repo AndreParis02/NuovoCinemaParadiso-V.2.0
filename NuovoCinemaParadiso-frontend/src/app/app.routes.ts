@@ -85,12 +85,12 @@ export const routes: Routes = [
     {
         path: 'tipologia-sala:id',
         //canActivate: [authGuard],
-        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaDetailPage)
+        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaDetailPage)
     },
     {
         path: 'tipologia-sala',
         //canActivate: [authGuard],
-        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala-list.component').then((m) => m.TipologiaListComponent)
+        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala-list.component').then((m) => m.TipologiaSalaListComponent)
     },
 ]
 /*
