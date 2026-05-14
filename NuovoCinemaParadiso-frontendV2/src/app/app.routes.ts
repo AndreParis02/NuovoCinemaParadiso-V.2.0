@@ -35,11 +35,13 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/abbonamento/abbonamento-list.page').then((m) => m.AbbonamentoListPage)
     },
+    */
     {
-        path: 'admin/listaUtenti',
+        path: 'gestore/listaUtenti',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.UtenteListPage)
     },
+    /*
     {
         path: 'admin/acquisto',
         canActivate: [authGuard],
@@ -50,12 +52,14 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.AcquistoDetailPage)
     },
+    */
     {
         path: 'gestore/change-role',
         canActivate: [authGuard, roleGuard],
         data: { roles: ['gestore'] },
         loadComponent: () => import('./pages/gestore-change-role/gestore-change-role.page').then((m) => m.GestoreChangeRolePage)
     },
+    /*
     {
         path: 'acquisto',
         canActivate: [authGuard],
