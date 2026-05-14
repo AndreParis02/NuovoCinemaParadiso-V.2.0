@@ -17,20 +17,19 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly storagekey = 'nuovo_cinema_paradiso_auth';
-
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
 
   readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
 
-  
   login(payload: Login): Observable<Auth> {
 
     return this.http
-      .post<Auth>(`${environment.apiBaseUrl}/Auth/login`, payload)
+      .post<Auth>(`${this.baseUrl}/login`, payload)
       .pipe(tap((response) => this.setSession(response)));
   }
 
   registrazione(payload: Registrazione): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${environment.apiBaseUrl}/Auth/registrazione`, payload);
+    return this.http.post<{ message: string }>(`${this.baseUrl}/registrazione`, payload);
 
   }
 
@@ -55,6 +54,7 @@ export class AuthService {
   }
 
   ottieniToken(): string | null {
+    console.log('TOKEN:', this.utenteCorrente()?.token);
     return this.utenteCorrente()?.token ?? null;
   }
 

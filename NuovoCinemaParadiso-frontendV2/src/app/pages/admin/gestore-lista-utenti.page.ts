@@ -6,7 +6,7 @@ import { AdminService } from '../../services/admin.service';
 import { Utente } from '../../models/utente.model';
 
 @Component({
-    selector: 'app-gestore-lista-utenti-page',
+    selector: 'gestore-lista-utenti-page',
     standalone: true,
     imports: [ReactiveFormsModule],
     templateUrl: './gestore-lista-utenti.page.html'

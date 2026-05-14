@@ -1,30 +1,32 @@
 import { Routes } from '@angular/router';
-/*
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
-*/
+
 export const routes: Routes = [
     {
         path: '',
         pathMatch: 'full',
         redirectTo: 'dashboard'
     },
-    /*{
+    {
         path: 'login',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage) // load component carica le pagine in lazyloagin nel modello standalone di angular
     },
+    /*
     {
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
     },
+     */
     {
         path: 'dashboard',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage)
     },
+    /*
     {
         path: 'abbonamento/:id',
         canActivate: [authGuard],
@@ -39,7 +41,7 @@ export const routes: Routes = [
     {
         path: 'gestore/listaUtenti',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.UtenteListPage)
+        loadComponent: () => import('./pages/admin/gestore-lista-utenti.page').then((m) => m.GestoreListaUtentiPage)
     },
     /*
     {
@@ -88,7 +90,7 @@ export const routes: Routes = [
     */
     {
         path: 'tipologia-sala',
-        //canActivate: [authGuard],
+        canActivate: [authGuard],
         loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
     },
     /*

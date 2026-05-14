@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class eliminaproiezione15 : Migration
+    public partial class InitialMigrations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -309,7 +309,8 @@ namespace NuovoCinemaParadiso.Migrations
                     DataProiezione = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     MovieId = table.Column<string>(type: "TEXT", nullable: false),
                     SalaId = table.Column<string>(type: "TEXT", nullable: false),
-                    TurnoId = table.Column<string>(type: "TEXT", nullable: false)
+                    TurnoId = table.Column<string>(type: "TEXT", nullable: false),
+                    Attivo = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
