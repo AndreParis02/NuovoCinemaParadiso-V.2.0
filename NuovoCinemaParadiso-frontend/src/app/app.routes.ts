@@ -83,17 +83,18 @@ export const routes: Routes = [
     },
     */
     {
-        path: 'tipologia-sala:id',
+        path: 'tipologia-sala',
         //canActivate: [authGuard],
-        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaDetailPage)
+        loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
     },
+    /*
     {
         path: 'tipologia-sala',
         //canActivate: [authGuard],
         loadComponent: () => import('./pages/tipologia-sala/tipologia-sala-list.component').then((m) => m.TipologiaSalaListComponent)
     },
 ]
-/*
+
 {
     path: 'sala',
     canActivate: [authGuard],
@@ -129,6 +130,6 @@ export const routes: Routes = [
     redirectTo: 'dashboard'
 },
 
-
-];
 */
+];
+
