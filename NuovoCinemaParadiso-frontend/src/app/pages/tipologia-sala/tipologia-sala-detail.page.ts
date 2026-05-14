@@ -4,9 +4,9 @@ import { TipologiaSalaService } from '../../services/tipologia-sala.service';
 
 @Component({
   selector: 'app-tipologia-sala-detail',
-  templateUrl: './tipologia-sala-detail.component.html',
+  templateUrl: './tipologia-sala-detail.page.html',
 })
-export class TipologiaSalaDetailComponent implements OnInit {
+export class TipologiaSalaDetailPage implements OnInit {
   
   tipologiaSala: TipologiaSala | null = null;
   id: string = ''; // impostare questo ID in qualche modo, ad esempio tramite route parametrica
