@@ -20,7 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authorizedReq).pipe(
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
-        localStorage.removeItem('rubrica_auth');
+        localStorage.removeItem('nuovo_cinema_paradiso_auth');
         authService.utenteCorrente.set(null);
         void router.navigate(['/login']);
       }

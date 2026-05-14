@@ -54,7 +54,9 @@ export class TipologiaSalaPage {
   caricaTipologieSala() : void {
     // set è il metodo che permette di aggiornare il valore di una signal
     this.staCaricando.set(true);
+
     this.messaggioErrore.set('');
+
     //subscribe è il medodo che permette di interagire con un Observable,
     // cioè una struttura dati che rappresenta un flusso di dati asincrono,
     //  come ad esempio la risposta di una chiamata HTTP
@@ -64,7 +66,9 @@ export class TipologiaSalaPage {
       next: (items) => {
         this.tipologieSala.set(items);
         this.staCaricando.set(false);
+
       },
+      
       error : (error: unknown) => {
         this.staCaricando.set(false);
         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'tipologie non trovate'));
