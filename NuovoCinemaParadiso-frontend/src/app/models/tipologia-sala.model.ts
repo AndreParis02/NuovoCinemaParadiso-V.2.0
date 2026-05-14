@@ -1,5 +1,5 @@
 export interface TipologiaSala {
-    id: string | null;
+    id: string ;
     nome: string;
     maggiorazionePrezzo: number;
 }
