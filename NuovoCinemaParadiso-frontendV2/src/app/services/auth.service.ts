@@ -54,7 +54,6 @@ export class AuthService {
   }
 
   ottieniToken(): string | null {
-    console.log('TOKEN:', this.utenteCorrente()?.token);
     return this.utenteCorrente()?.token ?? null;
   }
 

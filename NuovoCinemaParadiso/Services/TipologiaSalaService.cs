@@ -28,8 +28,7 @@ public class TipologiaSalaService
 
             risultati.Add(dto);
         }
-        Console.WriteLine($"LISTA TIPOLOGIE SALA: {risultati}");
-        return await Task.FromResult(risultati);
+        return risultati;
     }
 
     public async Task<DtoTipologiaSala?> OttieniTramiteIdAsync(string id)

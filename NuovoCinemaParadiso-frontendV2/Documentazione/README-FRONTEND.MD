@@ -18,7 +18,7 @@
 - Creare la cartella core, contenente guards, interceptors, services.
 - Creare la cartella shared e decidere quali componenti sono condivisi fra le pagine. Se ci fossero
   più pagine che usano uno stesso modello, il modello condiviso si mette in shared.
-- Creare la cartella features che contiene le entità:
+- Creare la cartella features che contiene le entità, a seconda dell'entità:
 
   - TipologiaSala ( list, detail, form )
   - Ruolo ( list, detail, form )
@@ -122,6 +122,54 @@ Tutte le liste che sono presenti in più pagine
   Ognuna di queste entità deve essere una cartella dentro features, ed ognuna deve contenere page, component, service e models.
 
   - Creare app.routes.ts dove verranno definite tutte le rotte.
+
+
+### operatore
+
+La pagina operatore sarà una dashboard contenente tutte le operazioni(component) delle azioni che il operatore può eseguire.
+Ad ogni azione corrisponderà quindi una page(ESEMPIO: cambio di ruolo avrà il suo pulsante nella dashboard che richiamerà  pagina di modifica del ruolo al suo interno).
+
+
+operatore
+  |---- operatore-dashboard.page.ts
+  |---- operatore-dashboard.page.html
+  |---- operatore-cambio-ruolo.component.ts
+  |---- operatore-cambio-ruolo.component.html
+  |---- operatore-utenti-lista.component.ts (conterrà la elimina e la modifica)
+  |---- operatore-utenti-lista.component.html
+  |---- operatore-utente-detail.component.ts(conterrà la elimina e la modifica)
+  |---- operatore-utente-detail.component.html
+  |---- operatore-utenti-abbonati-lista.component.ts
+  |---- operatore-utenti-abbonati-lista.component.html
+  |---- operatore-biglietti-lista.component.ts
+  |---- operatore-biglietti-lista.component.html
+  |---- operatore-log-audit-lista.component.ts
+  |---- operatore-log-audit-lista.component.html
+
+## Azioni per ruolo.
+
+### Operatore:
+
+- gestione degli utenti(operazioni crud).
+- gestione degli abbonamenti (operazioni crud).
+- gestione dei movies (operazioni crud).
+- gestione delle sale (operazioni crud).
+- gestione delle tipologie di sala (operazioni crud).
+- gestione dei turni (operazioni crud).
+- gestione delle proiezioni(operazioni crud).
+
+I generi dei movies sono hard-coded, preimpostati nel data seeder.
+La giftcard è hard-coded con id, email e valore che andrà scalato dal conto utente e avrà uno stato true o false per il riscatto della stessa.
+
+### operatore:
+
+- leggere la lista dei biglietti.
+- leggere la lista degli audit.
+
+
+
+
+
 
  ## Passaggi
 
@@ -1607,7 +1655,7 @@ import {UtenteModificaRuolo } from '../models/utente.model';
 })
 export class GestioneUtenteService {
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = `${environment.apiBaseUrl}/gestone-utente`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/gestione-utente`;
 
 
     modificaRuolo(id: string, payload: UtenteModificaRuolo): Observable<string> {
