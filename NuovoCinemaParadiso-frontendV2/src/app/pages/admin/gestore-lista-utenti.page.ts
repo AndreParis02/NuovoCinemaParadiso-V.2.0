@@ -34,7 +34,7 @@ export class GestoreListaUtentiPage {
         this.caricaUtenti();
     }
     modificabileDa(): boolean {
-        return this.authService.hasAnyRole(['Gestore', 'Operatore']);
+        return this.authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore']);
     }
     caricaUtenti(): void {
 

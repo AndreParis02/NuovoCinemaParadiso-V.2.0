@@ -14,11 +14,11 @@ export class DashboardPage {
   readonly user = this.authService.utenteCorrente;
 
   puoEditare(): boolean {
-    return this.authService.hasAnyRole(['Gestore', 'Operatore']);
+    return this.authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore']);
   }
 
   isGestore(): boolean {
-    return this.authService.hasRole('Gestore');
+    return this.authService.ruoloCorrispondente('Gestore');
   }
 }
 

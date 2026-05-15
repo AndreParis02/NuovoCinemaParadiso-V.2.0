@@ -16,7 +16,7 @@ public class TipologiaSalaService
     public async Task<List<DtoTipologiaSala>> OttieniTuttoAsync()
     {
         List<TipologiaSala> tipologieSala = await _contesto.TipologieSala.ToListAsync();
-
+        
         List<DtoTipologiaSala> risultati = new List<DtoTipologiaSala>();
 
         foreach (var tipologiaSala in tipologieSala)
@@ -28,8 +28,8 @@ public class TipologiaSalaService
 
             risultati.Add(dto);
         }
-
-        return risultati;
+        Console.WriteLine($"LISTA TIPOLOGIE SALA: {risultati}");
+        return await Task.FromResult(risultati);
     }
 
     public async Task<DtoTipologiaSala?> OttieniTramiteIdAsync(string id)

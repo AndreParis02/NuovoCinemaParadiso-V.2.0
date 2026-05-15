@@ -11,8 +11,8 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260514130823_InitialMigrations")]
-    partial class InitialMigrations
+    [Migration("20260515071222_MigrazioneIniziale")]
+    partial class MigrazioneIniziale
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
