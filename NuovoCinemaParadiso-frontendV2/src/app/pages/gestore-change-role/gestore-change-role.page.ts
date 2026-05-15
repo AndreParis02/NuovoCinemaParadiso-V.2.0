@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './gestore-change-role.page.html',
   styleUrl: './gestore-change-role.page.css',
 })
-export class GestoreChangeRolePage {}
+export class GestoreChangeRolePage {
+  
+}
