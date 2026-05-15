@@ -48,7 +48,7 @@ export class TipologiaSalaPage {
     this.caricaTipologieSala();
   }
   modificabileDa(): boolean {
-      return this.authService.hasAnyRole(['Gestore','Operatore']);
+      return this.authService.possiedeQualsiasiRuolo(['Gestore','Operatore']);
   }
  // metodo per caricare le tipologie di sala dal backend
   caricaTipologieSala() : void {

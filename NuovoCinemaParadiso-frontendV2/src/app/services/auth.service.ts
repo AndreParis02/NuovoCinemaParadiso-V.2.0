@@ -39,16 +39,16 @@ export class AuthService {
     void this.router.navigate(['/login']);
   }
 
-  seAutenticato(): boolean {
+  isAutenticato(): boolean {
     return this.utenteCorrente() !== null;
   }
 
-  hasAnyRole(ruoli: string[]): boolean {
+  possiedeQualsiasiRuolo(ruoli: string[]): boolean {
     const ruolo = this.utenteCorrente()?.ruolo ?? "";
     return ruoli.includes(ruolo);
   }
 
-  hasRole(ruolo: string): boolean {
+  ruoloCorrispondente(ruolo: string): boolean {
     return this.utenteCorrente()?.ruolo === ruolo;
 
   }
