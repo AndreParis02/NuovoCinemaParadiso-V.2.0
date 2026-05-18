@@ -21,10 +21,10 @@ export class AuthService {
 
   readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
 
-  login(payload: Login): Observable<Auth> {
+  login(payload: Login): Observable<SessioneUtente> {
 
     return this.http
-      .post<Auth>(`${this.baseUrl}/login`, payload)
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
       .pipe(tap((response) => this.setSession(response)));
   }
 
@@ -57,13 +57,18 @@ export class AuthService {
     return this.utenteCorrente()?.token ?? null;
   }
 
-  private setSession(risposta: Auth): void {
+  private setSession(risposta: SessioneUtente): void {
     const utenteInSessione: SessioneUtente = {
-      token: risposta.token,
       id: risposta.id,
-      email: risposta.email,
       nomeCompleto: risposta.nomeCompleto,
-      ruolo: risposta.ruolo
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
     }
 
     localStorage.setItem(this.storagekey, JSON.stringify(utenteInSessione));
