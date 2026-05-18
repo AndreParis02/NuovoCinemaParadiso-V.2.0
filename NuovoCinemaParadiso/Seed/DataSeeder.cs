@@ -49,9 +49,20 @@ public static class DataSeeder
         await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
 
-        var genereAzione = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
-        var genereHorror = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
-        var genereCommedia = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAzione       = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
+        var genereHorror       = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
+        var genereCommedia       = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAnimazione   = await AssicuraEsistenzaGenereMovie(contestoDb, "Animazione");
+        var genereAvventura    = await AssicuraEsistenzaGenereMovie(contestoDb, "Avventura");
+        var genereDocumentario = await AssicuraEsistenzaGenereMovie(contestoDb, "Documentario");
+        var genereDrammatico   = await AssicuraEsistenzaGenereMovie(contestoDb, "Drammatico");
+        var genereFantascienza = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantascienza");
+        var genereFantasy      = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantasy");
+        var genereMusical      = await AssicuraEsistenzaGenereMovie(contestoDb, "Musical");
+        var genereRomantico    = await AssicuraEsistenzaGenereMovie(contestoDb, "Romantico");
+        var genereThriller     = await AssicuraEsistenzaGenereMovie(contestoDb, "Thriller");
+        var genereWestern      = await AssicuraEsistenzaGenereMovie(contestoDb, "Western");
+
 
         var movie1 = await AssicuraEsistenzaMovie(contestoDb, "Movie1", "Film del drago", 60, 10, genereAzione.Id);
         var movie2 = await AssicuraEsistenzaMovie(contestoDb, "Movie2", "Film del lupo", 80, 12, genereHorror.Id);
@@ -66,8 +77,8 @@ public static class DataSeeder
         var turnoSera = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0), "Sera");
 
         var sala1 = await AssicuraEsistenzaSala(contestoDb, "Sala1", 30, tipologia2D.Id);
-        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia2D.Id);
-        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologia2D.Id);
+        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia3D.Id);
+        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologiaImax.Id);
 
         await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
@@ -375,7 +386,7 @@ public static class DataSeeder
         await context.SaveChangesAsync();
     }
 
-    
+
 
     private static async Task<Proiezione> AssicuraEsistenzaProiezione(
     ContestoDb context,
@@ -405,7 +416,7 @@ public static class DataSeeder
             MovieId = movieId,
             SalaId = salaId,
             TurnoId = turnoId,
-            Attivo=true
+            Attivo = true
         };
 
         context.Proiezioni.Add(nuovaProiezione);
