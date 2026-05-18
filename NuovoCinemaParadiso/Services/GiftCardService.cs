@@ -27,9 +27,8 @@ public class GiftCardService
             DtoGiftCard dto = new DtoGiftCard();
             dto.Id = giftCardCorrente.Id;
             dto.Nome = giftCardCorrente.Nome;
-            dto.Durata = giftCardCorrente.Durata;
-            dto.Prezzo = giftCardCorrente.Prezzo;
-            dto.NumeroMovie = giftCardCorrente.NumeroMovie;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
 
             risultato.Add(dto);
         }
@@ -46,52 +45,11 @@ public class GiftCardService
             return null;
         }
 
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-        bool trovato = false;
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            if (utenti[i].GiftCardId == giftCard.Id &&
-                utenti[i].Id == utenteId)
-            {
-                trovato = true;
-                break;
-            }
-        }
-
-        if (!trovato)
-        {
-            return null;
-        }
-
         DtoGiftCard risultato = new DtoGiftCard();
         risultato.Id = giftCard.Id;
         risultato.Nome = giftCard.Nome;
-        risultato.Durata = giftCard.Durata;
-        risultato.Prezzo = giftCard.Prezzo;
-        risultato.NumeroMovie = giftCard.NumeroMovie;
-
-        return risultato;
-    }
-
-    public async Task<DtoGiftCard> CreazioneAsync(DtoCreazioneGiftCard dto)
-    {
-        GiftCard giftCard = new GiftCard();
-        giftCard.Nome = dto.Nome;
-        giftCard.Durata = dto.Durata;
-        giftCard.Prezzo = dto.Prezzo;
-        giftCard.NumeroMovie = dto.NumeroMovie;
-
-        _contesto.GiftCards.Add(giftCard);
-        await _contesto.SaveChangesAsync();
-
-        DtoGiftCard risultato = new DtoGiftCard();
-        risultato.Id = giftCard.Id;
-        risultato.Nome = giftCard.Nome;
-        risultato.Durata = giftCard.Durata;
-        risultato.Prezzo = giftCard.Prezzo;
-        risultato.NumeroMovie = giftCard.NumeroMovie;
+        risultato.Valore = giftCard.Valore;
+        risultato.CodiceRiscatto = giftCard.CodiceRiscatto;
 
         return risultato;
     }
@@ -103,12 +61,9 @@ public class GiftCardService
         if (giftCard == null)
             return null;
 
-
         giftCard.Nome = dto.Nome;
-        giftCard.Durata = dto.Durata;
-        giftCard.Prezzo = dto.Prezzo;
-        giftCard.NumeroMovie = dto.NumeroMovie;
-
+        giftCard.Valore = dto.Valore;
+        giftCard.CodiceRiscatto = dto.CodiceRiscatto;
 
         await _contesto.SaveChangesAsync();
 
@@ -116,9 +71,8 @@ public class GiftCardService
         {
             Id = giftCard.Id,
             Nome = giftCard.Nome,
-            Durata = giftCard.Durata,
-            Prezzo = giftCard.Prezzo,
-            NumeroMovie = giftCard.NumeroMovie,
+            Valore = giftCard.Valore,
+            CodiceRiscatto = giftCard.CodiceRiscatto,
         };
     }
 

@@ -99,7 +99,7 @@ public class UtenteService
             throw new NotFoundException("GiftCard", giftCardId);
         }
 
-        giftCardTrovata.Saldo = CalcoliHelper.CaricaGiftCard();
+        giftCardTrovata.Valore = Calcoli.CaricaGiftCard(utenteCorrente, giftCardTrovata);
         giftCardTrovata.CodiceRiscatto = GiftCardHelper.GeneraCodice();
 
         await _contesto.SaveChangesAsync();
@@ -108,10 +108,9 @@ public class UtenteService
         {
             Id = giftCardTrovata.Id,
             Nome = giftCardTrovata.Nome,
-            Saldo = giftCardTrovata.Saldo,
+            Valore = giftCardTrovata.Valore,
             CodiceRiscatto = giftCardTrovata.CodiceRiscatto
         };
-    
     }
 
     public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardId, string utenteId)
@@ -142,8 +141,8 @@ public class UtenteService
             throw new NotFoundException("GiftCard", giftCardId);
         }
         
-        utenteCorrente.Saldo += giftCardTrovata.Saldo;
-        giftCardTrovata.Saldo = 0;
+        utenteCorrente.Saldo += giftCardTrovata.Valore;
+        giftCardTrovata.Valore = 0;
         giftCardTrovata.Riscattata = true;
 
         await _contesto.SaveChangesAsync();
@@ -152,9 +151,8 @@ public class UtenteService
         {
             Id = giftCardTrovata.Id,
             Nome = giftCardTrovata.Nome,
-            Saldo = giftCardTrovata.Saldo,
+            Valore = giftCardTrovata.Valore,
             CodiceRiscatto = giftCardTrovata.CodiceRiscatto
         };
-    
     }
 }
