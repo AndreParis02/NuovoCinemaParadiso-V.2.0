@@ -14,6 +14,7 @@ export class NavbarComponent {
 
   readonly utente        = this.authService.utenteCorrente;
   readonly isGestore     = computed(() => this.authService.ruoloCorrispondente('Gestore'));
+  readonly isOperatore     = computed(() => this.authService.ruoloCorrispondente('Operatore'));
   readonly isAutenticato = computed(() => this.authService.isAutenticato ());
 
   logout(): void {

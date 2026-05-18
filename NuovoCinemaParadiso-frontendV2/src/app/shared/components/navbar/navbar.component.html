@@ -6,8 +6,8 @@
       <nav class="links">
         <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         <a routerLink="/tipologia-sala" routerLinkActive="active">Gestisci tipologie sala</a>
-        @if (isGestore()) {
-          <a routerLink="/gestore/change-role" routerLinkActive="active">Cambio ruolo</a>
+        @if (isOperatore()) {
+          <a routerLink="/operatore/change-role" routerLinkActive="active">Cambio ruolo</a>
         }
       </nav>
 

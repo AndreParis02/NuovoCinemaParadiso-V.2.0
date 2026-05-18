@@ -24,20 +24,20 @@
           <a class="btn btn-primary" routerLink="/tipologia-sala">Apri</a>
         </div>
 
-        @if (isGestore()) {
+        @if (isOperatore()) {
         <div class="list-item">
           <div>
             <strong>Cambio ruolo utenti</strong>
-            <div class="muted">Endpoint solo Gestore</div>
+            <div class="muted">Endpoint solo Operatore</div>
           </div>
-          <a class="btn btn-primary" routerLink="/gestore/change-role">Apri</a>
+          <a class="btn btn-primary" routerLink="/operatore/change-role">Apri</a>
         </div>
         <div class="list-item">
           <div>
             <strong>lista utenti</strong>
-            <div class="muted">Endpoint solo Gestore</div>
+            <div class="muted">Endpoint solo Operatore</div>
           </div>
-          <a class="btn btn-primary" routerLink="/gestore/listaUtenti">Apri</a>
+          <a class="btn btn-primary" routerLink="/operatore/listaUtenti">Apri</a>
         </div>
         }
       </div>
