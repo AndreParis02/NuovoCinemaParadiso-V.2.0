@@ -45,6 +45,8 @@ public static class DataSeeder
             15,
             false);
 
+        ContoCinema contoCinema = await AssicuraEsistenzaConto( contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
+
         await ImpostaRuoloUnicoAsync(gestioneUtenti, gestore, Ruoli.Gestore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
@@ -98,6 +100,7 @@ public static class DataSeeder
         }
     }
 
+
     private static async Task<Utente> AssicuraEsistenzaUtenteAsync(
         UserManager<Utente> gestioneUtenti,
         string email,
@@ -136,6 +139,27 @@ public static class DataSeeder
             throw new Exception($"Errore durante il seed dell'utente {email} : {messaggio}");
         }
         return utente;
+    }
+
+    private static async Task<ContoCinema> AssicuraEsistenzaConto(ContestoDb context ,string iban, string titolareConto, int conto)
+    {
+        ContoCinema contoEsistente = await context.ContoCinema.FirstOrDefaultAsync();
+        if(contoEsistente != null)
+        {
+            return null;
+        }
+
+        ContoCinema nuovoContoCinema = new ContoCinema
+        {
+            Iban = iban,
+            TitolareConto = titolareConto,
+            Conto = conto
+        };
+
+         context.ContoCinema.Add(nuovoContoCinema);
+        await context.SaveChangesAsync();
+
+        return nuovoContoCinema;
     }
 
     private static async Task ImpostaRuoloUnicoAsync(UserManager<Utente> gestioneUtenti, Utente utente, string ruoloTarget)

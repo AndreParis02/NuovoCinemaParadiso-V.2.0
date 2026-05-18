@@ -23,6 +23,7 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<LogAzioni> LogAzioni {get;set;}
         public DbSet<Proiezione> Proiezioni {get;set;}
         public DbSet<GiftCard> GiftCards {get;set;}
+        public DbSet<ContoCinema> ContoCinema {get;set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

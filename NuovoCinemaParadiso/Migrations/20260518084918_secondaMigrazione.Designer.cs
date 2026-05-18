@@ -11,8 +11,8 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260515071222_MigrazioneIniziale")]
-    partial class MigrazioneIniziale
+    [Migration("20260518084918_secondaMigrazione")]
+    partial class secondaMigrazione
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -205,6 +205,29 @@ namespace NuovoCinemaParadiso.Migrations
                     b.HasIndex("UtenteId");
 
                     b.ToTable("Biglietti");
+                });
+
+            modelBuilder.Entity("NuovoCinemaParadiso.Models.ContoCinema", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Conto")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Iban")
+                        .IsRequired()
+                        .HasMaxLength(34)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TitolareConto")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContoCinema");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.GenereMovie", b =>
@@ -464,6 +487,9 @@ namespace NuovoCinemaParadiso.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("PossiedeGiftCard")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Saldo")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("SeAbbonato")
