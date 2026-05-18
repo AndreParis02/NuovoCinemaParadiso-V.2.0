@@ -14,4 +14,6 @@ public class DtoUtente
     public string GiftCardId { get; set; } = string.Empty;
     public string TipoAbbonamento { get; set; } = string.Empty;
     public string TipoGiftCard { get; set; } = string.Empty;
+
+    public int Saldo{get;set;}
 }
