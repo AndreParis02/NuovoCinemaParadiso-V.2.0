@@ -431,12 +431,10 @@ Contiene le schermate vere:
 
 Nel nostro caso la navbar.
 
-
-
-
 ## PAGES
 
 ### tipologia-sala-list.component.ts
+
 ```ts
 /**
  * Componente Angular della lista di modelli tipologia-sala
@@ -521,8 +519,11 @@ export class TipologiaSalaDetailComponent implements OnInit {
   }
 }
 ```
+
 ### tipologia-sala-detail.component.html
+
 non vi è encora un css
+
 ```html
 
 <!-- componente in dettaglio di una tiplogia-sala,
@@ -534,54 +535,11 @@ non vi è encora un css
   <div><span>Maggiorazione Prezzo: </span><span>{{ tipologiaSala?.maggiorazionePrezzo }}€</span></div>
 </div>
 ```
-## MODELS 
 
-### Auth:
-```ts
-export interface Auth {
-   id: string;
-   nomeCompleto: string;
-   token: string;
-   eta: number;
-   email: string;
-   ruolo: string;
-   dataInizioAbbonamento: string;
-   dataInizioGiftCard: string;
-   seAbbonato: boolean;
-   possiedeGiftCard: boolean;
-}
-```
+## MODELS
 
-### Login:
-```ts
-export interface Login {
-   email: string;
-   password: string;
-}
-```
+### abbonamento
 
-### Registrazione:
-```ts
-export interface Registrazione {
-   email: string;
-   password: string;
-   nomeCompleto: string;
-   eta: number;
-}
-```
-
-### SessioneUtente:
-```ts
-export interface SessioneUtente{
-    token       : string;
-    id      : string;
-    email       : string;
-    nomeCompleto: string;
-    ruolo        : string;
-}
-```
-
-### Abbonamento: 
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -597,9 +555,24 @@ export interface AbbonamentoCreazione {
     durata: number;
     prezzo: number;
     sconto: number;
+} 
+```
+
+### auth
+
+```ts
+// modello per la creazione della sessione dell'utente
+export interface Auth {
+   token: string;
+   id: string;
+   email: string;
+   nomeCompleto: string;
+   ruolo: string;
 }
 ```
-### Biglietto: 
+
+### biglietto
+
 ```ts
 // modello di ritorno che rappresenta un Biglietto
 export interface Biglietto {
@@ -618,7 +591,9 @@ export interface BigliettoCreazione {
     metodoPagamento: string;
 }
 ```
-### Genere movie: 
+
+### genere-movie
+
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
@@ -631,14 +606,125 @@ export interface GenereMovieCreazione {
 }
 ```
 
-# sala.model.ts
+### giftCard
+
 ```ts
+// modello di ritorno che rappresenta una GiftCard
+
+export interface GiftCard {
+    id: string | null;
+    nome: string;
+    durata: number;
+    prezzo: number;
+    numeroMovie: number;
+}
+// modello di inserimento necessario per la creazione o la modifica di un modello GiftCard
+export interface GiftCardCreazione {
+    nome: string;
+    durata: number;
+    prezzo: number;
+    numeroMovie: number;
+}
+```
+
+### log azioni
+
+```ts
+// modello di ritorno che rappresenta una Log di un'azione di un utente
+export interface LogAzioni {
+    id: string | null;
+    idUtente: string | null;
+    nomeAzione: string;
+    effettuato: boolean;
+    messaggio: string;
+    timeStamp: string;
+}
+// modello di inserimento necessario per la creazione dei Log delle azioni degli utenti
+export interface LogAzioniCreazione {
+    id: string | null;
+    idUtente: string;
+    nomeAzione: string;
+    effettuato: boolean;
+    messaggio: string;
+    timeStamp: string;
+}
+```
+
+### Login
+
+```ts
+//modello necessario per confermare i dati d'accesso dell'utente e ricevere il token
+export interface Login {
+   email: string;
+   password: string;
+}
+```
+
+### movie
+
+```ts
+// modello di ritorno che rappresenta un Movie (film)
+export interface Movie {
+    id: string | null;
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+    genere: string;
+}
+// modello di inserimento necessario per la creazione o la modifica di un Movie (film)
+export interface MovieCreazione {
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+}
+```
+
+### proiezione
+
+```ts
+// modello di ritorno che rappresenta una Proiezione
+export interface Proiezione{
+    id: string;
+    dataProiezione: Date;
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+}
+// modello di inserimento necessario per la creazione o la modifica di una Proiezione
+export interface ProiezioneCreazione {
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+    dataProiezione: Date;
+}
+```
+
+### registrazione
+
+```ts
+// modello di inserimento necessario per la creazione di un nuovo Utente
+export interface Registrazione {
+   email: string;
+   password: string;
+   nomeCompleto: string;
+   eta: number;
+}
+```
+
+### sala
+
+```ts
+// modello di ritorno che rappresenta una Sala
 export interface SalaCreazione {
     nome: string;
     capienza: number;
     tipologiaSalaId: string;
 }
-
+// modello di inserimento necessario per la creazione o la modifica di una Sala
 export interface Sala {
     id: string | null;
     nome: string;
@@ -647,23 +733,94 @@ export interface Sala {
     nomeTipologia: string;
 }
 ```
-# proiezione.model.ts
+
+### sessione-utente
+
 ```ts
-export interface Proiezione{
+// modello per la gestione della sessione dell'utente
+export interface SessioneUtente {
     id: string;
-    dataProiezione: Date;
-    movieId: string;
-    salaId: string;
-    turnoId: string;
+    nomeCompleto: string;
+    token: string;
+    eta: number;
+    email: string;
+    ruolo: string;
+    dataInizioAbbonamento: string;
+    dataInizioGiftCard: string;
+    seAbbonato: boolean;
+    possiedeGiftCard: boolean;
 }
 
-export interface ProiezioneCreazione {
-    movieId: string;
-    salaId: string;
-    turnoId: string;
-    dataProiezione: Date;
+```
+
+### tipologia-sala
+
+```ts
+// modello di ritorno che rappresenta una Tipologia di una Sala
+export interface TipologiaSala {
+    id: string ;
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+
+// modello di inserimento necessario per la creazione o la modifica di una Tipologia Sala
+export interface TipologiaSalaCreazione {
+    nome: string;
+    maggiorazionePrezzo: number;
+}
+
+```
+
+### turno
+
+```ts
+// modello di ritorno che rappresenta un Turno
+export interface Turno {
+    id: string | null;
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+// modello di inserimento necessario per la creazione o la modifica di un Turno
+export interface TurnoCreazione {
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
 }
 ```
+
+### utente
+
+```ts
+// Modello di ritrono che rappresenta un Utente
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    dataInizioGiftCard: string;
+    seAbbonato: boolean;
+    possiedeGiftCard: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    giftCardId: string;
+    tipoAbbonamento: string;
+    tipoGiftCard: string;
+}
+
+// modello necessario per la modifica di un Utente 
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+
+// modello necessario per la modifica del ruolo di un Utente
+export interface UtenteModificaRuolo {
+    email: string;
+    nuovoRuolo: string;
+}
+```
+
 ## SERVICES
 
 ### sala.service.ts
