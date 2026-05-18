@@ -11,8 +11,8 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260515071222_MigrazioneIniziale")]
-    partial class MigrazioneIniziale
+    [Migration("20260518084433_saldomigrazione3")]
+    partial class saldomigrazione3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -464,6 +464,9 @@ namespace NuovoCinemaParadiso.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("PossiedeGiftCard")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Saldo")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("SeAbbonato")

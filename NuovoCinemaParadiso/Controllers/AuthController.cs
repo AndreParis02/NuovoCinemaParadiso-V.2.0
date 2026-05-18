@@ -65,6 +65,7 @@ public class AuthController : ControllerBase
         }
     }
 
+
     [HttpGet("profilo")]
     public async Task<IActionResult> RicercaProfiloLoggato()
     {

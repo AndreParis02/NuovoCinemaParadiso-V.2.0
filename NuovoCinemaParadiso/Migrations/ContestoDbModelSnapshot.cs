@@ -463,6 +463,9 @@ namespace NuovoCinemaParadiso.Migrations
                     b.Property<bool>("PossiedeGiftCard")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Saldo")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool>("SeAbbonato")
                         .HasColumnType("INTEGER");
 

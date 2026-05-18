@@ -4366,6 +4366,42 @@ public class GiftCardService
 }
 
 ```c#
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Exceptions;
+
+
+namespace NuovoCinemaParadiso.Services;
+
+public class OperatoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+    public OperatoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+
+    }
+
+    public async Task<bool> RicaricaAsync(DtoRicarica dtoRicarica)
+    {
+        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dtoRicarica.Email);
+        if(utente==null)
+            return false;
+        utente.Saldo += dtoRicarica.Ricarica;
+        await _gestioneUtenti.UpdateAsync(utente);
+        return true;
+    }
+
+}
+```c#
 // Servizio applicativo per la gestione dei log: incapsula la logica di accesso al DB
 public class LogAzioniService
 {
@@ -5158,6 +5194,7 @@ builder.Services.AddScoped<GestoreService>();
 builder.Services.AddScoped<AbbonamentoService>();
 builder.Services.AddScoped<ProiezioneService>();
 builder.Services.AddScoped<GiftCardService>();
+builder.Services.AddScoped<OperatoreService>();
 
 var app = builder.Build();
 
@@ -5743,6 +5780,50 @@ public class UtenteController : ControllerBase
 }
 ```
 
+## OperatoreController.cs
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class OperatoreController : ControllerBase
+{
+    private readonly OperatoreService _operatoreService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public OperatoreController(OperatoreService operatoreService, LogAzioniService logAzioniService)
+    {
+        _operatoreService = operatoreService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpPost("ricarica")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Ricarica([FromBody] DtoRicarica dtoRicarica)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        bool successo = await _operatoreService.RicaricaAsync(dtoRicarica);
+        if (!successo)        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica fallita per {dtoRicarica.Email}", false);
+            return NotFound($"Utente con email {dtoRicarica.Email} non trovato.");
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica riuscita per {dtoRicarica.Email}", true);
+
+        return Ok("Ricarica effettuata con successo.");
+    }
+
+    
+}
+```
  ## AppExceptions.cs (Gestisce gli errori tra i controller e i services)
 
 ```c#
