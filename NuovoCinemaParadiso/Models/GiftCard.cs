@@ -11,11 +11,15 @@ public class GiftCard
     [Required]
     [StringLength(50)]
     public string Nome {get;set;} = string.Empty;
+
     [Required]
-    public int Durata {get;set;} 
+    public bool Riscattata{get;set;} = false;
+
     [Required]
-    public decimal Prezzo {get;set;}
+    [Range(0, 1000)]
+    public int Saldo{get;set;}
+
     [Required]
-    public int NumeroMovie {get;set;}
-    public List<Utente> Utenti {get;set;} = new List<Utente>();
+    public string CodiceRiscatto{get;set;} = string.Empty;
+
 }

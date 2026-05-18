@@ -84,10 +84,6 @@ public static class DataSeeder
         await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
 
-        await AssicuraEsistenzaGiftCard(contestoDb, "10 Film", 85, 10, 12);
-        await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
-        await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
-
         var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
         var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
@@ -358,35 +354,7 @@ public static class DataSeeder
         context.Abbonamenti.Add(nuovoAbbonamento);
         await context.SaveChangesAsync();
     }
-    private static async Task AssicuraEsistenzaGiftCard(ContestoDb context, string nome, decimal prezzo, int numeroMovie, int durata)
-    {
-        List<GiftCard> giftCards = await context.GiftCards.ToListAsync();
-        for (int i = 0; i < giftCards.Count; i++)
-        {
-            GiftCard giftCardCorrente = giftCards[i];
-            bool nomeUguale = string.Equals(
-                giftCardCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return;
-            }
-        }
-
-        GiftCard nuovaGiftCard = new GiftCard
-        {
-            Nome = nome,
-            Prezzo = prezzo,
-            NumeroMovie = numeroMovie,
-            Durata = durata
-        };
-
-        context.GiftCards.Add(nuovaGiftCard);
-        await context.SaveChangesAsync();
-    }
-
-
+   
 
     private static async Task<Proiezione> AssicuraEsistenzaProiezione(
     ContestoDb context,
