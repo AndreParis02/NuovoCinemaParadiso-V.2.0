@@ -26,4 +26,7 @@ public class Utente : IdentityUser
     public string? GiftCardId { get; set; }
     [ForeignKey("GiftCardId")]
     public GiftCard? GiftCard { get; set; }
+
+    [Range(0,10000)]
+    public int Saldo {get;set;}
 }
