@@ -8,7 +8,7 @@ Abbonamento; (fatto)
 
 Giftcard; (fatto)
 
-Admin; (fatto) 
+Gestore; (fatto) 
 
 Auth; (da fare)
 
@@ -45,7 +45,7 @@ Piccolo plus: In TurnoService.cs ho aggiunto dei controlli logici in CreazioneAs
 
 
 
-Acquisto; (fatto)
+Biglietto; (fatto)
 
 
 
@@ -54,7 +54,7 @@ Acquisto; (fatto)
 # FRONTEND TASKS
 
 ## Models
-- Francesco: Abbonamento, acquisto, generemovie
+- Francesco: Abbonamento, biglietto, generemovie
 
 - Greg: giftcard, logazioni, movie
 

@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { AdminService } from '../../services/admin.service';
+import { GestoreService } from '../../services/gestore.service';
 import { Utente } from '../../models/utente.model';
 
 @Component({
@@ -14,7 +14,7 @@ import { Utente } from '../../models/utente.model';
 export class GestoreListaUtentiPage {
     private readonly formBuilder = inject(FormBuilder);
     private readonly authService = inject(AuthService);
-    private readonly gestoreService = inject(AdminService);
+    private readonly gestoreService = inject(GestoreService);
 
 
     readonly staInviando = signal(false);

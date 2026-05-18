@@ -60,7 +60,7 @@ curl -s -X PUT "http://localhost:5226/api/GestoreUtenti/cambia-ruolo" \
 ## Curl di lettura log
 
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/log" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Gestore/log" -H "Authorization: Bearer $TOKEN"
 
 ```
 
@@ -283,23 +283,23 @@ curl -s -X PUT "http://localhost:5226/api/Movie/Id Movie" \
 curl -s -X DELETE "http://localhost:5226/api/Movie/Id Movie" -H "Authorization: Bearer $TOKEN" 
 ```
 
-# Acquisti
+# Biglietti
 
-## Leggi tutti gli Acquisti dell'utente loggato
+## Leggi tutti gli Biglietti dell'utente loggato
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisto" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Biglietto" -H "Authorization: Bearer $TOKEN"
 ```
 
-## leggi informazioni Acquisto per id (accesso a tutti gli acquisti dell'utente loggato)
+## leggi informazioni Biglietto per id (accesso a tutti gli biglietti dell'utente loggato)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Acquisto/Id Acquisto" \
+curl -s -X GET "http://localhost:5226/api/Biglietto/Id Biglietto" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
-## Crea Acquisto:
+## Crea Biglietto:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Acquisto" \
+curl -s -X POST "http://localhost:5226/api/Biglietto" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -308,10 +308,10 @@ curl -s -X POST "http://localhost:5226/api/Acquisto" \
 }' | jq
 ```
 
-## Modifica Acquisto con id dell'acquisto:
+## Modifica Biglietto con id dell'biglietto:
 
 ```bash
-curl -s -X PUT "http://localhost:5226/api/Acquisto/Id_acquisto" \
+curl -s -X PUT "http://localhost:5226/api/Biglietto/Id_biglietto" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
@@ -320,9 +320,9 @@ curl -s -X PUT "http://localhost:5226/api/Acquisto/Id_acquisto" \
     }' | jq 
 ```
 
-## Elimina Acquisto con id dell'Acquisto:
+## Elimina Biglietto con id dell'Biglietto:
 ```bash
-curl -s -X DELETE "http://localhost:5226/api/Acquisto/Id Acquisto" -H "Authorization: Bearer $TOKEN" 
+curl -s -X DELETE "http://localhost:5226/api/Biglietto/Id Biglietto" -H "Authorization: Bearer $TOKEN" 
 ```
 
 # Abbonamenti
@@ -332,7 +332,7 @@ curl -s -X DELETE "http://localhost:5226/api/Acquisto/Id Acquisto" -H "Authoriza
 curl -s -X GET "http://localhost:5226/api/Abbonamento" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
-## leggi informazioni Abbonamento per id (accesso a tutti gli acquisti dell'utente loggato)
+## leggi informazioni Abbonamento per id (accesso a tutti gli biglietti dell'utente loggato)
 ```bash
 curl -s -X GET "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Authorization: Bearer $TOKEN"
 ```
@@ -378,7 +378,7 @@ curl -s -X DELETE "http://localhost:5226/api/Abbonamento/Id Abbonamento" -H "Con
 curl -s -X GET "http://localhost:5226/api/GiftCard" -H "Authorization: Bearer $TOKEN" | jq
 ```
 
-## leggi informazioni GiftCard per id (accesso a tutti gli acquisti dell'utente loggato)
+## leggi informazioni GiftCard per id (accesso a tutti gli biglietti dell'utente loggato)
 ```bash
 curl -s -X GET "http://localhost:5226/api/GiftCard/Id GiftCard" -H "Authorization: Bearer $TOKEN"
 ```
@@ -486,16 +486,16 @@ curl -s -X DELETE "http://localhost:5226/api/Proiezione/Id Proiezione" -H "Autho
 ```
 
 
-# Comandi Admin: 
+# Comandi Gestore: 
 
 ## Leggi tutti gli utenti
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/listaUtenti" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Gestore/listaUtenti" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Lettura di un profilo tramite id inserito (solo da Gestore o Operatore)
 ```bash
-curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
+curl -s -X GET http://localhost:5226/api/Gestore/ricercaProfilo/Id utente \
 -H "Authorization: Bearer $TOKEN" \
 -H "Accept: application/json"
 ```
@@ -503,35 +503,35 @@ curl -s -X GET http://localhost:5226/api/Admin/ricercaProfilo/Id utente \
 ## Curl di Elimina utente (Solo da gestore o operatore) passando Id utente
 
 ```bash
-curl -s  -X DELETE "http://localhost:5226/api/Admin/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
+curl -s  -X DELETE "http://localhost:5226/api/Gestore/eliminaUtente/27315238-a01a-4879-b771-0c8130e20d0b" \
 -H "Authorization: Bearer $TOKEN" 
 ```
 
-## Admin Acquisti
+## Gestore Biglietti
 
-## leggi informazioni Acquisto per id (accesso a tutti gli acquisti di ogni utente) (solo gestore o operatore)
+## leggi informazioni Biglietto per id (accesso a tutti gli biglietti di ogni utente) (solo gestore o operatore)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/acquisto/Id Acquisto" \
+curl -s -X GET "http://localhost:5226/api/Gestore/biglietto/Id Biglietto" \
 -H "Authorization: Bearer $TOKEN"
 ```
 
-## Leggi tutti gli Acquisti di tutti gli utenti(solo gestore o operatore)
+## Leggi tutti gli Biglietti di tutti gli utenti(solo gestore o operatore)
 ```bash
-curl -s -X GET "http://localhost:5226/api/Admin/acquisto" -H "Authorization: Bearer $TOKEN"
+curl -s -X GET "http://localhost:5226/api/Gestore/biglietto" -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Leggi Utenti Per Id Abbonamento
 ```bash
-curl -X GET "http://localhost:5226/Admin/utenti/abbonamento/Id_abbonamento" \
+curl -X GET "http://localhost:5226/Gestore/utenti/abbonamento/Id_abbonamento" \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json"
   ```
 
-## Admin GiftCard
+## Gestore GiftCard
 
 ## Leggi Utenti Per Id GiftCard
 ```bash
-curl -X GET "http://localhost:5226/Admin/utenti/giftCard/Id_giftCard" \
+curl -X GET "http://localhost:5226/Gestore/utenti/giftCard/Id_giftCard" \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json"
   ```

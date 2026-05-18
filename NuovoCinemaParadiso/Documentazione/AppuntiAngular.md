@@ -14,7 +14,7 @@ Prima di tutto si definiscono queste cose:
 |Assegnato| user | task |
 |---|---|---|
 |x|Andrea B.|LogAzioni, Login, ModificaRuoloUtente|
-|x|Andrea P.|Abbonamento, Acquisto, GiftCard|
+|x|Andrea P.|Abbonamento, Biglietto, GiftCard|
 |x|Fabio|AuthResponse, GenereMovie, Movie| 
 |x|Greg|Proiezione, Registrazione, Sala|
 |x|Lorenzo|TipologiaSala, Turno, Utente| 
@@ -53,7 +53,7 @@ Prima di tutto si definiscono queste cose:
 |string|GiftCardId||GiftCardId|
 |GiftCard|GiftCard|||
 |string|||TipoGiftCard|
-|List<Acquisto>|Acquisti|||
+|List<Biglietto>|Biglietti|||
 
 ## Authresponse
 |TipoDato|Model (Utente)|Dto In(DtoLogin)|Dto Out|
@@ -88,7 +88,7 @@ Prima di tutto si definiscono queste cose:
 |string|GenereId|GenereId|GenereId|
 |string|||Genere|
 |GenereMovie|Genere|||
-|List<Acquisto>|Acquisti|||
+|List<Biglietto>|Biglietti|||
 
 ## Abbonamento
 TipoDato|Model|Dto In|Dto Out|
@@ -100,7 +100,7 @@ TipoDato|Model|Dto In|Dto Out|
 |int|Sconto|Sconto|Sconto|
 |List<Utente>|Utenti| | |
 
-## Acquisto
+## Biglietto
 TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
 |string|Id| |Id|
@@ -137,7 +137,7 @@ TipoDato|Model|Dto In|Dto Out|
 |DateTimeOffset|DataInizioGiftCard||DataInizioGiftCard|
 |bool|SeAbbonato||SeAbbonato|
 |bool|PossiedeGiftCard||PossiedeGiftCard|
-|List<Acquisto>|Acquisti|||
+|List<Biglietto>|Biglietti|||
 |string|AbbonamentoId|||
 |Abbonamento|Abbonamento|||
 |string|GiftCardId|||
@@ -169,7 +169,7 @@ TipoDato|Model|Dto In|Dto Out|
 |ForeignKey|MovieId|MovieId|MovieId|
 |ForeignKey|SalaId|SalaId|SalaId|
 |ForeignKey|TurnoId|TurnoId|TurnoId|
-|List|Acquisti|||
+|List|Biglietti|||
 
 ## Registrazione
 |TipoDato|Model|Dto In|Dto Out|
@@ -185,7 +185,7 @@ TipoDato|Model|Dto In|Dto Out|
 |string|Id||Id|
 |string|Nome|Nome|Nome|
 |int|Capeinza|Capeinza|Capeinza|
-|List|Acquisti|||
+|List|Biglietti|||
 |String|TipologiaSalaId|TipologiaSalaId|TipologiaSalaId|
 
 # ENDPOINT
@@ -224,15 +224,15 @@ TipoDato|Model|Dto In|Dto Out|
 |PUT|/Movie/{id} | Si | Gestore o Operatore |
 |DELETE|/Movie/{id} | Si | Gestore o Operatore |
 
-## Acquisto
+## Biglietto
 
 |Tipo di chiamata|Endpoint| Login Richiesto | Ruolo richiesto|
 |---|---|---|---|
-|GET|/Acquisto| Richiesto|Qualsiasi|
-|GET|/Acquisto/{id}| Richiesto |Qualsiasi|
-|POST|/Acquisto| Richiesto |Qualsiasi|
-|PUT|/Acquisto/{id} | Richiesto[Authorize] | Gestore o Operatore |
-|DELETE|/Acquisto/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|GET|/Biglietto| Richiesto|Qualsiasi|
+|GET|/Biglietto/{id}| Richiesto |Qualsiasi|
+|POST|/Biglietto| Richiesto |Qualsiasi|
+|PUT|/Biglietto/{id} | Richiesto[Authorize] | Gestore o Operatore |
+|DELETE|/Biglietto/{id} | Richiesto[Authorize] | Gestore o Operatore |
 
 ## GiftCard
 
@@ -303,18 +303,18 @@ TipoDato|Model|Dto In|Dto Out|
 |---|---|---|---|
 |PUT|/GestoreUtenti/cambia-ruolo|Richiesto[Authorize]|Gestore|
 
-## Admin
+## Gestore
 
 |TipoChiamata|Endpoint|LoginRichiesto|RuoloRichiesto|
 |---|---|---|---|
-|GET|/Admin/listaUtenti|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/ricercaProfilo/Id|Richiesto[Authorize]|GestoreOrOperatore|
-|DELETE|/Admin/eliminaUtente/Id|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/acquisto|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/acquisto/Id|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/utenti/abbonamento/Id_abbonamento|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/utenti/giftCard/Id_giftCard|Richiesto[Authorize]|GestoreOrOperatore|
-|GET|/Admin/log|Richiesto[Authorize]|Gestore|
+|GET|/Gestore/listaUtenti|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/ricercaProfilo/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|DELETE|/Gestore/eliminaUtente/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/biglietto|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/biglietto/Id|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/utenti/abbonamento/Id_abbonamento|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/utenti/giftCard/Id_giftCard|Richiesto[Authorize]|GestoreOrOperatore|
+|GET|/Gestore/log|Richiesto[Authorize]|Gestore|
 |GET|/Movie| Richiesto|Qualsiasi|
 |GET|/Movie/{Id}| Richiesto | Qualsiasi|
 |GET|/Movie/genereMovie/{genereId}| Richiesto | Qualsiasi|

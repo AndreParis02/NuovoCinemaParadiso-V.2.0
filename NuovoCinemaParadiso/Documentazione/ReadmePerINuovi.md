@@ -23,10 +23,10 @@ Seconda fase( Greg e Francesco hanno completato le tasks)
 
 |Assegnato| user | task | feedback |
 |---|---|---|---|
-| |Greg|Acquisto|Creazione, Modifica|
+| |Greg|Biglietto|Creazione, Modifica|
 | |Marco|DtoLogAzioni-LogAzioniService (il service deve essere una classe statica con le conseguenti modifiche)||
 | |Francesco|Sala | creazione| modifica |
-| |Simeone|Acquisto|Creazione, Modifica|
+| |Simeone|Biglietto|Creazione, Modifica|
 
 
 terza fase
@@ -66,7 +66,7 @@ quarta fase 20/04/2026
 |user|file|commento| risposta
 |---|---|---|---|
 |Greg| AbbonamentoController.cs | BUG: Tutti sono autorizzati alla creazione dell'abbonamento|  |
-|Greg| AbbonamentoController.cs | BUG: GET ID e GET ADMIN/ID sono identici non essendoci nessun controllo |  |
+|Greg| AbbonamentoController.cs | BUG: GET ID e GET GESTORE/ID sono identici non essendoci nessun controllo |  |
 |Marco|  |  | 
 |Francesco| ApplicationDbContext.cs  | PROBLEMA LOGICO: alla eliminazione di una proiezione, gli acquista collegati ad essa vengono eliminati a cascata 
 

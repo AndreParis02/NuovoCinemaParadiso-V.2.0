@@ -29,10 +29,10 @@
   - Utente ( list, detail, form )
   - Abbonamento ( list, detail, form )
   - GiftCard ( list, detail, form )
-  - Acquisto ( list, detail, form )
+  - Biglietto ( list, detail, form )
   - Proiezione ( list, detail, form )
   - LogAzioni ( list, detail )
-  - Admin ( form )
+  - Gestore ( form )
 
 ## Liste 
 
@@ -69,7 +69,7 @@ Tutte le liste che sono presenti in più pagine
 
 - Lista utenti
   - Abbonamento
-  - Admin
+  - Gestore
   - GiftCard
 
 - Lista Abbonamenti
@@ -78,15 +78,15 @@ Tutte le liste che sono presenti in più pagine
 - Lista GiftCards
   - giftcard
 
-- Lista Acquisti
-  - acquisto
+- Lista Biglietti
+  - biglietto
 
 - Lista Proiezioni
   - proiezione
-  - acquisto
+  - biglietto
 
 - Lista Log Azioni
-  - admin
+  - gestore
 
 ## Detail
 
@@ -101,7 +101,7 @@ Tutte le liste che sono presenti in più pagine
 - Utente
 - Abbonamento
 - GiftCard
-- Acquisto
+- Biglietto
 - Proiezione
 - LogAzioni 
 
@@ -114,7 +114,7 @@ Tutte le liste che sono presenti in più pagine
 - Movie
 - Utente
 - Abbonamento
-- Acquisto
+- Biglietto
 - Proiezione
 - LogAzioni 
 
@@ -599,10 +599,10 @@ export interface AbbonamentoCreazione {
     sconto: number;
 }
 ```
-### Acquisto: 
+### Biglietto: 
 ```ts
-// modello di ritorno che rappresenta un Acquisto
-export interface Acquisto {
+// modello di ritorno che rappresenta un Biglietto
+export interface Biglietto {
     id: string | null;
     proiezioneId: string;
     utenteId: string;
@@ -611,8 +611,8 @@ export interface Acquisto {
     numeroBiglietti: number;
     metodoPagamento: string;
 }
-// modello di inserimento necessario per la creazione o la modifica di un modello Acquisto
-export interface AcquistoCreazione {
+// modello di inserimento necessario per la creazione o la modifica di un modello Biglietto
+export interface BigliettoCreazione {
     proiezioneId: string;
     numeroBiglietti: number;
     metodoPagamento: string;
@@ -1577,23 +1577,23 @@ export class ProiezioneService {
 }
 ```
 
-### AdminService
+### GestoreService
 ```ts
 import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Acquisto } from '../models/acquisto.model';
+import { Biglietto } from '../models/biglietto.model';
 import { Utente, UtenteModificaRuolo } from '../models/utente.model';
 import { LogAzioni } from '../models/logAzioni.model';
 
 @Injectable({
     providedIn: 'root'
 })
-export class AdminService {
+export class GestoreService {
 
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/gestore`;
 
 
     // GET tutti utenti
@@ -1625,14 +1625,14 @@ export class AdminService {
         );
     }
 
-    // GET tutti acquisti
-    ottieniAcquisti(): Observable<Acquisto[]> {
-        return this.http.get<Acquisto[]>(`${this.baseUrl}/acquisti`);
+    // GET tutti biglietti
+    ottieniBiglietti(): Observable<Biglietto[]> {
+        return this.http.get<Biglietto[]>(`${this.baseUrl}/biglietti`);
     }
 
-    // GET acquisto per id
-    ottieniAcquistoPerId(id: string): Observable<Acquisto> {
-        return this.http.get<Acquisto>(`${this.baseUrl}/acquisti/${id}`);
+    // GET biglietto per id
+    ottieniBigliettoPerId(id: string): Observable<Biglietto> {
+        return this.http.get<Biglietto>(`${this.baseUrl}/biglietti/${id}`);
     }
 
     ottieniLogAzioni(): Observable<LogAzioni[]> {

@@ -9,14 +9,14 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AcquistoController : ControllerBase
+public class BigliettoController : ControllerBase
 {
-    private readonly AcquistoService _acquistoService;
+    private readonly BigliettoService _bigliettoService;
     private readonly LogAzioniService _logAzioniService;
 
-    public AcquistoController(AcquistoService acquistoService, LogAzioniService logAzioniService)
+    public BigliettoController(BigliettoService bigliettoService, LogAzioniService logAzioniService)
     {
-        _acquistoService = acquistoService;
+        _bigliettoService = bigliettoService;
         _logAzioniService = logAzioniService;
     }
 
@@ -26,14 +26,14 @@ public class AcquistoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.OttieniTutto(utenteId);
+        var (risultato, errore) = await _bigliettoService.OttieniTutto(utenteId);
         
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", false);
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", true);
         return Ok(risultato);
     }
 
@@ -43,52 +43,52 @@ public class AcquistoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
+        var (risultato, errore) = await _bigliettoService.OttieniTramiteIdAsync(id, utenteId);
 
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisto ID", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", false);
             if (errore.Contains("non trovato")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisto ID", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", true);
         return Ok(risultato);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.CreazioneAsync(dto, utenteId);
+        var (risultato, errore) = await _bigliettoService.CreazioneAsync(dto, utenteId);
 
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", false);
             if (errore.Contains("non trovat")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", true);
         return Ok(risultato);
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.ModificaAsync(id, dto);
+        var (risultato, errore) = await _bigliettoService.ModificaAsync(id, dto);
 
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", false);
-            if (errore == "Acquisto non trovato.") return NotFound(new { messaggio = errore });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", false);
+            if (errore == "Biglietto non trovato.") return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", true);
         return Ok(risultato);
     }
 
@@ -99,14 +99,14 @@ public class AcquistoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (successo, errore) = await _acquistoService.EliminazioneAsync(id);
+        var (successo, errore) = await _bigliettoService.EliminazioneAsync(id);
 
         if (!successo) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", false);
             return NotFound(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", true);
         return NoContent();
     }
 }

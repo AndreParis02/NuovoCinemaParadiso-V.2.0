@@ -81,9 +81,9 @@ public static class DataSeeder
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
         var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
 
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -414,7 +414,7 @@ public static class DataSeeder
         return nuovaProiezione;
     }
 
-    private static async Task AssicuraEsistenzaAcquisto(
+    private static async Task AssicuraEsistenzaBiglietto(
     ContestoDb context,
     string proiezioneId,
     string utenteId,
@@ -423,9 +423,9 @@ public static class DataSeeder
     decimal prezzoFinale,
     string metodoPagamento)
     {
-        List<Acquisto> acquisti = await context.Acquisti.ToListAsync();
+        List<Biglietto> biglietti = await context.Biglietti.ToListAsync();
 
-        Acquisto nuovoAcquisto = new Acquisto
+        Biglietto nuovoBiglietto = new Biglietto
         {
             ProiezioneId = proiezioneId,
             UtenteId = utenteId,
@@ -435,7 +435,7 @@ public static class DataSeeder
             MetodoPagamento = metodoPagamento,
         };
 
-        context.Acquisti.Add(nuovoAcquisto);
+        context.Biglietti.Add(nuovoBiglietto);
         await context.SaveChangesAsync();
     }
 }

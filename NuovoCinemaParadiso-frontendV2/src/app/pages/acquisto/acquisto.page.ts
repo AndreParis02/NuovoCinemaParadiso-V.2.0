@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-acquisto',
+  selector: 'app-biglietto',
   imports: [],
-  templateUrl: './acquisto.page.html',
-  styleUrl: './acquisto.page.css',
+  templateUrl: './biglietto.page.html',
+  styleUrl: './biglietto.page.css',
 })
-export class AcquistoPage {}
+export class BigliettoPage {}

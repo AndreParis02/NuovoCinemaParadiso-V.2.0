@@ -189,7 +189,7 @@ public class Proiezione
     [ForeignKey("TurnoId")]
     public Turno? Turno { get; set; }
 
-    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
+    public List<Biglietto> Biglietti { get; set; } = new List<Biglietto>();
 
     public bool Attivo { get; set; } = true;
 }
@@ -229,8 +229,8 @@ public class Utente : IdentityUser
     /// </summary>
     public DateTimeOffset DataInizioGiftCard { get; set; }
 
-    // Acquisti associati all’utente.
-    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
+    // Biglietti associati all’utente.
+    public List<Biglietto> Biglietti { get; set; } = new List<Biglietto>();
 
     public string? AbbonamentoId { get; set; }
 
@@ -280,7 +280,7 @@ public class Turno
 }
 ```
 
-## Acquisto.cs
+## Biglietto.cs
 
 ```c#
 using System.ComponentModel.DataAnnotations.Schema;
@@ -289,14 +289,14 @@ using System.ComponentModel.DataAnnotations;
 namespace NuovoCinemaParadiso.Models;
 
 /// <summary>
-/// Rappresenta un acquisto effettuato da un utente per una specifica proiezione.
+/// Rappresenta un biglietto effettuato da un utente per una specifica proiezione.
 /// Contiene informazioni su biglietti, prezzo finale, metodo di pagamento e timestamp.
 /// </summary>
-[Table("Acquisti")] 
-public class Acquisto
+[Table("Biglietti")] 
+public class Biglietto
 {
     /// <summary>
-    /// Identificativo univoco dell'acquisto.
+    /// Identificativo univoco dell'biglietto.
     /// Viene generato automaticamente come stringa GUID.
     /// </summary>
     [Key]
@@ -315,13 +315,13 @@ public class Acquisto
     public Proiezione Proiezione { get; set; }
 
     /// <summary>
-    /// FK verso l'utente che ha effettuato l'acquisto.
+    /// FK verso l'utente che ha effettuato l'biglietto.
     /// </summary>
     [Required]
     public string UtenteId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Navigazione verso l'utente proprietario dell'acquisto.
+    /// Navigazione verso l'utente proprietario dell'biglietto.
     /// </summary>
     [ForeignKey("UtenteId")]
     public Utente Utente { get; set; }
@@ -335,20 +335,20 @@ public class Acquisto
     public int NumeroBiglietti { get; set; }
 
     /// <summary>
-    /// Timestamp di creazione dell'acquisto.
+    /// Timestamp di creazione dell'biglietto.
     /// Utilizza DateTimeOffset per mantenere il fuso orario.
     /// </summary>
     public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
-    /// Prezzo finale calcolato al momento dell'acquisto.
+    /// Prezzo finale calcolato al momento dell'biglietto.
     /// Include eventuali maggiorazioni, sconti e quantità di biglietti.
     /// </summary>
     [Required]
     public decimal PrezzoFinale { get; set; }
 
     /// <summary>
-    /// Metodo di pagamento scelto dall'utente per l'acquisto.
+    /// Metodo di pagamento scelto dall'utente per l'biglietto.
     /// Valori possibili:
     /// - "standard" → pagamento a prezzo pieno
     /// - "abbonamento" → applica lo sconto previsto dal tipo di abbonamento
@@ -388,8 +388,8 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<TipologiaSala> TipologieSala { get; set; }
         // tabella dei vari turni dove possono essere programmate le proiezioni
         public DbSet<Turno> Turni { get; set; }
-        // tabella degli acquisti (scontrini) relativi ad una proiezione di un film
-        public DbSet<Acquisto> Acquisti { get; set; }
+        // tabella degli biglietti (scontrini) relativi ad una proiezione di un film
+        public DbSet<Biglietto> Biglietti { get; set; }
         // tabella defli utenti
         public DbSet<Utente> Utenti { get; set; }
         // tabella degli abbonamenti degli utenti
@@ -406,12 +406,12 @@ namespace NuovoCinemaParadiso.Data
             base.OnModelCreating(modelBuilder);
             /*quando si vuole eliminare una proiezione, bisognerà prima rimborsare tutti 
             gli utenti che hanno gia comprato un biglietto per essa, di conseguenza bisogna inserire una restrizione*/
-            modelBuilder.Entity<Acquisto>()
-                .HasOne(a => a.Proiezione) // ogni acquisto appartiene ad una sola proiezione
-                .WithMany(p => p.Acquisti) // ad ogni proiezione appartengono più acquisti
+            modelBuilder.Entity<Biglietto>()
+                .HasOne(a => a.Proiezione) // ogni biglietto appartiene ad una sola proiezione
+                .WithMany(p => p.Biglietti) // ad ogni proiezione appartengono più biglietti
                 .HasForeignKey(a => a.ProiezioneId) // la chiave esterna è ProiezioneId
                 .OnDelete(DeleteBehavior.Restrict); 
-                // 'Restrict' impedisce la cancellazione della proiezione se esistono degli acquisti relativi ad essa
+                // 'Restrict' impedisce la cancellazione della proiezione se esistono degli biglietti relativi ad essa
         }
     }
 }
@@ -460,7 +460,7 @@ namespace NuovoCinemaParadiso.Dtos;
 
 /// <summary>
 /// DTO utilizzato per restituire i dati di una Gift Card.
-/// È la versione "di output" mostrata a client, admin o UI.
+/// È la versione "di output" mostrata a client, gestore o UI.
 /// </summary>
 public class DtoGiftCard
 {
@@ -732,20 +732,20 @@ public class DtoCreazioneTurno
 }
 ```
 
-## DtoAcquisto.cs
+## DtoBiglietto.cs
 
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
 
 /// <summary>
-/// DTO utilizzato per restituire i dati di un acquisto al client.
+/// DTO utilizzato per restituire i dati di un biglietto al client.
 /// Contiene informazioni essenziali come prezzo finale, metodo di pagamento,
 /// numero di biglietti e timestamp.
 /// </summary>
-public class DtoAcquisto
+public class DtoBiglietto
 {
     /// <summary>
-    /// Identificativo univoco dell'acquisto.
+    /// Identificativo univoco dell'biglietto.
     /// </summary>
     public string Id { get; set; }
 
@@ -755,7 +755,7 @@ public class DtoAcquisto
     public string ProiezioneId { get; set; } = string.Empty;
 
     /// <summary>
-    /// Identificativo dell'utente che ha effettuato l'acquisto.
+    /// Identificativo dell'utente che ha effettuato l'biglietto.
     /// </summary>
     public string UtenteId { get; set; } = string.Empty;
 
@@ -766,7 +766,7 @@ public class DtoAcquisto
     public decimal PrezzoFinale { get; set; }
 
     /// <summary>
-    /// Timestamp di creazione dell'acquisto.
+    /// Timestamp di creazione dell'biglietto.
     /// Utilizza DateTimeOffset per mantenere il fuso orario.
     /// </summary>
     public DateTimeOffset OrarioCreazione { get; set; }
@@ -777,7 +777,7 @@ public class DtoAcquisto
     public int NumeroBiglietti { get; set; }
 
     /// <summary>
-    /// Metodo di pagamento utilizzato per l'acquisto.
+    /// Metodo di pagamento utilizzato per l'biglietto.
     /// Valori possibili:
     /// - "standard" → pagamento a prezzo pieno
     /// - "abbonamento" → applica lo sconto previsto dal tipo di abbonamento
@@ -790,7 +790,7 @@ public class DtoAcquisto
 }
 ```
 
-## DtoCreazioneAcquisto.cs
+## DtoCreazioneBiglietto.cs
 
 ```c#
 using System.ComponentModel.DataAnnotations;
@@ -798,13 +798,13 @@ using System.ComponentModel.DataAnnotations;
 namespace NuovoCinemaParadiso.Dtos;
 
 /// <summary>
-/// DTO utilizzato dal client per creare un nuovo acquisto.
+/// DTO utilizzato dal client per creare un nuovo biglietto.
 /// Contiene solo i dati necessari per effettuare l’operazione:
 /// - la proiezione scelta
 /// - il numero di biglietti
 /// - il metodo di pagamento selezionato dall’utente
 /// </summary>
-public class DtoCreazioneAcquisto
+public class DtoCreazioneBiglietto
 {
     /// <summary>
     /// Identificativo della proiezione che l’utente desidera acquistare.
@@ -1318,15 +1318,15 @@ namespace NuovoCinemaParadiso.Controllers;
 public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
-    private readonly AdminService _adminService;
+    private readonly GestoreService _gestoreService;
     private readonly LogAzioniService _logAzioniService;
 
     // ✔ Iniezione dei servizi necessari al controller
-    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, AdminService adminService)
+    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, GestoreService gestoreService)
     {
         _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
-        _adminService = adminService;
+        _gestoreService = gestoreService;
     }
 
     // ------------------------------------------------------------
@@ -1349,27 +1349,27 @@ public class AbbonamentoController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // GET api/abbonamento/admin/{id}
+    // GET api/abbonamento/gestore/{id}
     // ✔ Endpoint riservato a Gestore/Operatore
     // ✔ Permette di ottenere un abbonamento tramite ID senza limiti
     // ------------------------------------------------------------
-    [HttpGet("admin/{id}")]
+    [HttpGet("gestore/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
+    public async Task<IActionResult> OttieniTramiteIdPerGestore(string id)
     {
-        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        var risultato = await _gestoreService.OttieniAbbonamentoTramiteIdPerGestoreAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (risultato == null)
         {
             // ❌ Log fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",false);
 
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
         // ✔ Log successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",true);
 
 
         return Ok(risultato);
@@ -1617,7 +1617,7 @@ public class UtentiController : ControllerBase
 
 ```
 
-## AdminController.cs
+## GestoreController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -1633,18 +1633,18 @@ namespace NuovoCinemaParadiso.Controllers;
 // Indica che questo controller gestisce API REST e abilita funzionalità automatiche
 // come la validazione del modello e il binding dei parametri.
 [Route("api/[controller]")]
-// La route diventa: api/admin
+// La route diventa: api/gestore
 [Authorize]
 // Richiede che l’utente sia autenticato per accedere a qualsiasi endpoint del controller.
-public class AdminController : ControllerBase
+public class GestoreController : ControllerBase
 {
-    private readonly AdminService _adminService;
+    private readonly GestoreService _gestoreService;
     private readonly LogAzioniService _logAzioniService;
 
-    public AdminController(AdminService adminService, LogAzioniService logAzioniService)
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
     {
         // Iniezione dei servizi necessari al controller.
-        _adminService = adminService;
+        _gestoreService = gestoreService;
         _logAzioniService = logAzioniService;
     }
 
@@ -1656,8 +1656,8 @@ public class AdminController : ControllerBase
     // Solo Gestore e Operatore possono accedere.
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
-        // Recupero tutti gli utenti tramite il servizio Admin.
-        List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
+        // Recupero tutti gli utenti tramite il servizio Gestore.
+        List<DtoUtente> utenti = await _gestoreService.OttieniUtentiAsync();
 
         // Recupero l’ID dell’utente autenticato dal token JWT.
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1684,7 +1684,7 @@ public class AdminController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Recupero l’utente tramite ID.
-        DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
+        DtoUtente? utente = await _gestoreService.OttieniUtenteTramiteIdAsync(id);
 
         // Se non trovato → log fallimento + 404.
         if (utente == null)
@@ -1712,7 +1712,7 @@ public class AdminController : ControllerBase
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Chiamo il servizio per eliminare l’utente.
-        var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
+        var risultato = await _gestoreService.EliminaUtentePerIdAsync(Id);
 
         // Se non trovato → log fallimento + 404.
         if (risultato == null)
@@ -1731,46 +1731,46 @@ public class AdminController : ControllerBase
     }
 
     // ------------------------------------------------------------
-    // 4) OTTIENI TUTTI GLI ACQUISTI
+    // 4) OTTIENI TUTTI GLI BIGLIETTI
     // ------------------------------------------------------------
-    [HttpGet("acquisti")]
+    [HttpGet("biglietti")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAcquisti()
+    public async Task<IActionResult> OttieniTuttiGliBiglietti()
     {
-        // Recupero tutti gli acquisti.
-        List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
+        // Recupero tutti gli biglietti.
+        List<DtoBiglietto> biglietti = await _gestoreService.OttieniBiglietti();
 
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Log dell’operazione.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli acquisti admin",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli biglietti gestore",true);
 
 
 
-        return Ok(acquisti);
+        return Ok(biglietti);
     }
 
     // ------------------------------------------------------------
-    // 5) OTTIENI ACQUISTO TRAMITE ID
+    // 5) OTTIENI BIGLIETTO TRAMITE ID
     // ------------------------------------------------------------
-    [HttpGet("acquisto/{id}")]
+    [HttpGet("biglietto/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerAdmin(string id)
+    public async Task<IActionResult> OttieniTramiteIdPerGestore(string id)
     {
-        var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
+        var risultato = await _gestoreService.OttieniBigliettoTramiteIdAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Se non trovato → log fallimento + 404.
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",false);
 
 
-            return NotFound($"Acquisto con id {id} non trovato");
+            return NotFound($"Biglietto con id {id} non trovato");
         }
 
         // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni acquisti tramite id admin",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",true);
 
 
         return Ok(risultato);
@@ -1794,7 +1794,7 @@ public class AdminController : ControllerBase
         }
 
         // Recupero gli utenti con quell’abbonamento.
-        var risultato = await _adminService.OttieniTramiteAbbonamentoAsync(abbonamentoId);
+        var risultato = await _gestoreService.OttieniTramiteAbbonamentoAsync(abbonamentoId);
 
         // Se nessuno trovato → log fallimento + 404.
         if (risultato == null || risultato.Count == 0)
@@ -1816,20 +1816,20 @@ public class AdminController : ControllerBase
     // ------------------------------------------------------------
     [HttpGet("abbonamento/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerAdmin(string id)
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerGestore(string id)
     {
         // chiamo il service per trovare l'abbonamento
-        var risultato = await _adminService.OttieniAbbonamentoTramiteIdPerAdminAsync(id);
+        var risultato = await _gestoreService.OttieniAbbonamentoTramiteIdPerGestoreAsync(id);
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         // validazione dell'ID
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",false);
             // ritorno un 404 quando non riesco a trovarlo
             return NotFound($"Abbonamento con id {id} non trovato");
         }
         // log di successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id admin",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",true);
 
         return Ok(risultato);
     }
@@ -1839,10 +1839,10 @@ public class AdminController : ControllerBase
     // ------------------------------------------------------------
     [HttpGet("giftcard/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniGiftCardTramiteIdPerAdmin(string id)
+    public async Task<IActionResult> OttieniGiftCardTramiteIdPerGestore(string id)
     {
-        // Recupera la gift card tramite ID usando il service dedicato agli admin
-        var risultato = await _adminService.OttieniGiftCardTramiteIdPerAdminAsync(id);
+        // Recupera la gift card tramite ID usando il service dedicato agli gestore
+        var risultato = await _gestoreService.OttieniGiftCardTramiteIdPerGestoreAsync(id);
 
         // Recupera l'id dell'utente autenticato dal token JWT
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1850,13 +1850,13 @@ public class AdminController : ControllerBase
         // Se la gift card non esiste, logga l’operazione come fallita e ritorna 404
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",false);
 
             return NotFound($"Giftcard con id {id} non trovato");
         }
 
         // Se la gift card esiste, logga l’operazione come riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id admin",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",true);
 
 
         // Restituisce la gift card trovata
@@ -1867,7 +1867,7 @@ public class AdminController : ControllerBase
     // ------------------------------------------------------------
     [HttpGet("utenti/giftCard/{giftcardId}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerGestore(string giftcardId)
     {
         // Recupera l'id dell’utente autenticato
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1883,7 +1883,7 @@ public class AdminController : ControllerBase
         }
 
         // Recupera gli utenti associati alla gift card
-        var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+        var risultato = await _gestoreService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
 
         // Se non ci sono utenti associati, logga fallimento e ritorna 404
         if (risultato == null)
@@ -2298,7 +2298,7 @@ public class TurnoController : ControllerBase
 }
 ```
 
-## AcquistoController.cs
+## BigliettoController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -2309,23 +2309,23 @@ using NuovoCinemaParadiso.Dtos;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-// Definisce il controller per le API degli acquisti, richiedendo l'autenticazione tramite token JWT
+// Definisce il controller per le API degli biglietti, richiedendo l'autenticazione tramite token JWT
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AcquistoController : ControllerBase
+public class BigliettoController : ControllerBase
 {
-    private readonly AcquistoService _acquistoService;
+    private readonly BigliettoService _bigliettoService;
     private readonly LogAzioniService _logAzioniService;
 
-    // Costruttore: inietta i servizi necessari (Acquisti e Log)
-    public AcquistoController(AcquistoService acquistoService, LogAzioniService logAzioniService)
+    // Costruttore: inietta i servizi necessari (Biglietti e Log)
+    public BigliettoController(BigliettoService bigliettoService, LogAzioniService logAzioniService)
     {
-        _acquistoService = acquistoService;
+        _bigliettoService = bigliettoService;
         _logAzioniService = logAzioniService;
     }
 
-    // GET: api/Acquisto - Recupera tutti gli acquisti dell'utente loggato
+    // GET: api/Biglietto - Recupera tutti gli biglietti dell'utente loggato
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
@@ -2334,79 +2334,79 @@ public class AcquistoController : ControllerBase
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
         // Chiama il service per ottenere i dati e spacchetta la tupla
-        var (risultato, errore) = await _acquistoService.OttieniTutto(utenteId);
+        var (risultato, errore) = await _bigliettoService.OttieniTutto(utenteId);
         
         // Gestione errori: se c'è un errore, registra il fallimento e restituisce 400 Bad Request
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", false);
             return BadRequest(new { messaggio = errore });
         }
 
         // Caso di successo: registra l'azione e restituisce 200 OK con i dati
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", true);
         return Ok(risultato);
     }
 
-    // GET: api/Acquisto/{id} - Recupera un singolo acquisto dell'utente loggato
+    // GET: api/Biglietto/{id} - Recupera un singolo biglietto dell'utente loggato
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.OttieniTramiteIdAsync(id, utenteId);
+        var (risultato, errore) = await _bigliettoService.OttieniTramiteIdAsync(id, utenteId);
 
         // Smistamento errori: 404 se non esiste, 400 per altri errori di logica/permessi
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisto ID", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", false);
             if (errore.Contains("non trovato")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisto ID", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", true);
         return Ok(risultato);
     }
 
-    // POST: api/Acquisto - Crea un nuovo acquisto
+    // POST: api/Biglietto - Crea un nuovo biglietto
     [HttpPost]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAcquisto dto)
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.CreazioneAsync(dto, utenteId);
+        var (risultato, errore) = await _bigliettoService.CreazioneAsync(dto, utenteId);
 
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", false);
             if (errore.Contains("non trovat")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", true);
         return Ok(risultato);
     }
 
-    // PUT: api/Acquisto/{id} - Modifica i biglietti di un acquisto (Solo Gestore o Operatore)
+    // PUT: api/Biglietto/{id} - Modifica i biglietti di un biglietto (Solo Gestore o Operatore)
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAcquisto dto)
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _acquistoService.ModificaAsync(id, dto);
+        var (risultato, errore) = await _bigliettoService.ModificaAsync(id, dto);
 
         if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", false);
-            if (errore == "Acquisto non trovato.") return NotFound(new { messaggio = errore });
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", false);
+            if (errore == "Biglietto non trovato.") return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", true);
         return Ok(risultato);
     }
 
-    // DELETE: api/Acquisto/{id} - Elimina un acquisto (Solo Gestore o Operatore)
+    // DELETE: api/Biglietto/{id} - Elimina un biglietto (Solo Gestore o Operatore)
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> Elimina(string id)
@@ -2414,16 +2414,16 @@ public class AcquistoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (successo, errore) = await _acquistoService.EliminazioneAsync(id);
+        var (successo, errore) = await _bigliettoService.EliminazioneAsync(id);
 
         // Se l'eliminazione fallisce, restituisce 404 Not Found
         if (!successo) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", false);
             return NotFound(new { messaggio = errore });
         }
 
         // Restituisce 204 No Content per indicare il successo dell'eliminazione
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina acquisto", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", true);
         return NoContent();
     }
 }
@@ -3384,7 +3384,7 @@ public class UtenteService
 
 
 
-## AdminService.cs
+## GestoreService.cs
 
 ```c#
 using Microsoft.AspNetCore.Identity;
@@ -3396,13 +3396,13 @@ using NuovoCinemaParadiso.Helpers;
 
 namespace NuovoCinemaParadiso.Services;
 
-public class AdminService
+public class GestoreService
 {
     private readonly ContestoDb _contesto;
     private readonly UserManager<Utente> _gestioneUtenti;
 
     // ✔ Iniezione del DbContext e del gestore utenti Identity
-    public AdminService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
         _gestioneUtenti = gestioneUtenti;
@@ -3478,38 +3478,38 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // ✔ Restituisce tutti gli acquisti
+    // ✔ Restituisce tutti gli biglietti
     // ✔ Caricamento manuale delle entità correlate (senza Include)
     // ------------------------------------------------------------
-    public async Task<List<DtoAcquisto>> OttieniAcquisti()
+    public async Task<List<DtoBiglietto>> OttieniBiglietti()
     {
-        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
-        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        for (int i = 0; i < acquisti.Count; i++)
+        for (int i = 0; i < biglietti.Count; i++)
         {
-            Acquisto acquistoCorrente = acquisti[i];
+            Biglietto bigliettoCorrente = biglietti[i];
 
             // ✔ Caricamento manuale delle entità correlate
-            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+            Proiezione proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
             Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
+            Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
             // ✔ Conversione in DTO
-            DtoAcquisto dto = new DtoAcquisto();
-            dto.Id = acquistoCorrente.Id;
-            dto.ProiezioneId = acquistoCorrente.ProiezioneId;
-            dto.UtenteId = acquistoCorrente.UtenteId;
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
             dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
                 movie.PrezzoMovie,
                 tipologiaSala.MaggiorazionePrezzo,
-                acquistoCorrente.NumeroBiglietti,
+                bigliettoCorrente.NumeroBiglietti,
                 utente
             );
-            dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
 
             risultato.Add(dto);
         }
@@ -3518,38 +3518,38 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // ✔ Restituisce un acquisto tramite ID
+    // ✔ Restituisce un biglietto tramite ID
     // ✔ Caricamento manuale delle entità correlate
     // ------------------------------------------------------------
-    public async Task<DtoAcquisto> OttieniAcquistoTramiteIdAsync(string id)
+    public async Task<DtoBiglietto> OttieniBigliettoTramiteIdAsync(string id)
     {
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id);
 
-        if (acquisto == null)
+        if (biglietto == null)
         {
             return null;
         }
 
         // ✔ Caricamento entità correlate
-        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        Proiezione proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId);
         Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId);
+        Utente? utente = await _contesto.Users.FindAsync(biglietto.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
         // ✔ Conversione in DTO
-        DtoAcquisto dto = new DtoAcquisto();
-        dto.Id = acquisto.Id;
-        dto.UtenteId = acquisto.UtenteId;
-        dto.ProiezioneId = acquisto.ProiezioneId;
+        DtoBiglietto dto = new DtoBiglietto();
+        dto.Id = biglietto.Id;
+        dto.UtenteId = biglietto.UtenteId;
+        dto.ProiezioneId = biglietto.ProiezioneId;
         dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
             movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
-            acquisto.NumeroBiglietti,
+            biglietto.NumeroBiglietti,
             utente
         );
-        dto.OrarioCreazione = acquisto.OrarioCreazione;
-        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+        dto.OrarioCreazione = biglietto.OrarioCreazione;
+        dto.NumeroBiglietti = biglietto.NumeroBiglietti;
 
         return dto;
     }
@@ -3607,9 +3607,9 @@ public class AdminService
     }
 
     // ------------------------------------------------------------
-    // ✔ Restituisce un abbonamento tramite ID (per admin)
+    // ✔ Restituisce un abbonamento tramite ID (per gestore)
     // ------------------------------------------------------------
-    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerAdminAsync(string id)
+    public async Task<DtoAbbonamento> OttieniAbbonamentoTramiteIdPerGestoreAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
@@ -4016,7 +4016,7 @@ namespace NuovoCinemaParadiso.Services
 }
 ```
 
-## AcquistoService.cs
+## BigliettoService.cs
 
 ```c#
 using Microsoft.EntityFrameworkCore;
@@ -4027,30 +4027,30 @@ using NuovoCinemaParadiso.Helpers;
 
 namespace NuovoCinemaParadiso.Services;
 
-// Servizio che gestisce la logica di business e le operazioni sul DB per l'entità Acquisto
-public class AcquistoService
+// Servizio che gestisce la logica di business e le operazioni sul DB per l'entità Biglietto
+public class BigliettoService
 {
     private readonly ContestoDb _contesto;
     
-    public AcquistoService(ContestoDb contesto)
+    public BigliettoService(ContestoDb contesto)
     {
         _contesto = contesto;
     }
 
-    // Recupera la lista di tutti gli acquisti legati a uno specifico utente
-    public async Task<(List<DtoAcquisto>? Dati, string? Errore)> OttieniTutto(string utenteId)
+    // Recupera la lista di tutti gli biglietti legati a uno specifico utente
+    public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
     {
-        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
-        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        foreach (var acquistoCorrente in acquisti)
+        foreach (var bigliettoCorrente in biglietti)
         {
-            // Filtra solo gli acquisti dell'utente richiedente
-            if (acquistoCorrente.UtenteId == utenteId)
+            // Filtra solo gli biglietti dell'utente richiedente
+            if (bigliettoCorrente.UtenteId == utenteId)
             {
                 // Recupero delle entità correlate necessarie per calcolare il prezzo finale
-                var utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId);
-                var proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId);
+                var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
+                var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
                 
                 if (utente == null || proiezione == null) continue; // Salta iterazione se i dati sono corrotti
 
@@ -4063,20 +4063,20 @@ public class AcquistoService
                 if (tipologiaSala == null) continue;
 
                 // Popolamento del DTO da restituire al client
-                DtoAcquisto dto = new DtoAcquisto
+                DtoBiglietto dto = new DtoBiglietto
                 {
-                    Id = acquistoCorrente.Id,
+                    Id = bigliettoCorrente.Id,
                     UtenteId = utente.Id,
-                    ProiezioneId = acquistoCorrente.ProiezioneId,
-                    OrarioCreazione = acquistoCorrente.OrarioCreazione,
-                    NumeroBiglietti = acquistoCorrente.NumeroBiglietti,
-                    MetodoPagamento = acquistoCorrente.MetodoPagamento,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                    MetodoPagamento = bigliettoCorrente.MetodoPagamento,
                     PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
                         movie.PrezzoMovie,
                         tipologiaSala.MaggiorazionePrezzo,
-                        acquistoCorrente.NumeroBiglietti,
+                        bigliettoCorrente.NumeroBiglietti,
                         utente,
-                        acquistoCorrente.MetodoPagamento)
+                        bigliettoCorrente.MetodoPagamento)
                 };
                 risultato.Add(dto);
             }
@@ -4084,19 +4084,19 @@ public class AcquistoService
         return (risultato, null);
     }
 
-    // Recupera i dettagli di un singolo acquisto, verificandone la proprietà
-    public async Task<(DtoAcquisto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
+    // Recupera i dettagli di un singolo biglietto, verificandone la proprietà
+    public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
     {
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id);
-        if (acquisto == null) return (null, "Acquisto non trovato.");
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (null, "Biglietto non trovato.");
 
-        // Controllo di sicurezza: l'utente può vedere solo i propri acquisti
-        if (acquisto.UtenteId != utenteId)
-            return (null, "Accesso negato: questo acquisto non ti appartiene.");
+        // Controllo di sicurezza: l'utente può vedere solo i propri biglietti
+        if (biglietto.UtenteId != utenteId)
+            return (null, "Accesso negato: questo biglietto non ti appartiene.");
 
         // Recupero dei dati relazionali per la costruzione del DTO
-        var utente = await _contesto.Utenti.FindAsync(acquisto.UtenteId);
-        var proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId);
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId);
         if (utente == null || proiezione == null) return (null, "Dati della proiezione o utente non trovati.");
 
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
@@ -4106,22 +4106,22 @@ public class AcquistoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia sala non trovata.");
 
-        DtoAcquisto dto = new DtoAcquisto
+        DtoBiglietto dto = new DtoBiglietto
         {
-            Id = acquisto.Id,
+            Id = biglietto.Id,
             UtenteId = utente.Id,
-            ProiezioneId = acquisto.ProiezioneId,
-            OrarioCreazione = acquisto.OrarioCreazione,
-            NumeroBiglietti = acquisto.NumeroBiglietti,
-            MetodoPagamento = acquisto.MetodoPagamento,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente, acquisto.MetodoPagamento)
+            ProiezioneId = biglietto.ProiezioneId,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            MetodoPagamento = biglietto.MetodoPagamento,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento)
         };
 
         return (dto, null);
     }
 
-    // Registra un nuovo acquisto nel database
-    public async Task<(DtoAcquisto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneAcquisto dto, string utenteId)
+    // Registra un nuovo biglietto nel database
+    public async Task<(DtoBiglietto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
         // Validazione della business logic sui limiti dei biglietti
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100)
@@ -4142,7 +4142,7 @@ public class AcquistoService
         if (tipologiaSala == null) return (null, "Tipologia sala non trovata.");
 
         // Creazione del modello da salvare
-        Acquisto acquisto = new Acquisto
+        Biglietto biglietto = new Biglietto
         {
             UtenteId = utenteId,
             ProiezioneId = proiezione.Id,
@@ -4153,32 +4153,32 @@ public class AcquistoService
         };
 
         // Salvataggio nel database
-        _contesto.Acquisti.Add(acquisto);
+        _contesto.Biglietti.Add(biglietto);
         await _contesto.SaveChangesAsync();
 
         // Mappatura del risultato nel DTO
-        DtoAcquisto risultato = new DtoAcquisto
+        DtoBiglietto risultato = new DtoBiglietto
         {
-            Id = acquisto.Id,
-            ProiezioneId = acquisto.ProiezioneId,
-            UtenteId = acquisto.UtenteId,
-            NumeroBiglietti = acquisto.NumeroBiglietti,
-            PrezzoFinale = acquisto.PrezzoFinale,
-            OrarioCreazione = acquisto.OrarioCreazione,
-            MetodoPagamento = acquisto.MetodoPagamento
+            Id = biglietto.Id,
+            ProiezioneId = biglietto.ProiezioneId,
+            UtenteId = biglietto.UtenteId,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            MetodoPagamento = biglietto.MetodoPagamento
         };
 
         return (risultato, null);
     }
 
-    // Aggiorna la quantità di biglietti e ricalcola il prezzo di un acquisto esistente
-    public async Task<(DtoAcquisto? Dto, string? Errore)> ModificaAsync(string id, DtoCreazioneAcquisto dto)
+    // Aggiorna la quantità di biglietti e ricalcola il prezzo di un biglietto esistente
+    public async Task<(DtoBiglietto? Dto, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
     {
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100)
             return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
 
-        var acquistoEsistente = await _contesto.Acquisti.FindAsync(id);
-        if (acquistoEsistente == null) return (null, "Acquisto non trovato.");
+        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
+        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
 
         // Recupero entità per il ricalcolo del prezzo
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
@@ -4186,36 +4186,36 @@ public class AcquistoService
 
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        var utente = await _contesto.Utenti.FindAsync(acquistoEsistente.UtenteId);
+        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala?.TipologiaSalaId);
 
         if (movie == null || sala == null || utente == null || tipologiaSala == null)
-            return (null, "Dati correlati all'acquisto non trovati o non validi.");
+            return (null, "Dati correlati all'biglietto non trovati o non validi.");
 
         // Aggiornamento dei dati e ricalcolo
-        acquistoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
-        acquistoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoEsistente.NumeroBiglietti, utente, acquistoEsistente.MetodoPagamento);
+        bigliettoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
+        bigliettoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoEsistente.NumeroBiglietti, utente, bigliettoEsistente.MetodoPagamento);
 
         await _contesto.SaveChangesAsync();
 
-        return (new DtoAcquisto {
-            Id = acquistoEsistente.Id,
-            UtenteId = acquistoEsistente.UtenteId,
-            ProiezioneId = acquistoEsistente.ProiezioneId,
-            NumeroBiglietti = acquistoEsistente.NumeroBiglietti,
-            PrezzoFinale = acquistoEsistente.PrezzoFinale,
-            OrarioCreazione = acquistoEsistente.OrarioCreazione,
-            MetodoPagamento = acquistoEsistente.MetodoPagamento
+        return (new DtoBiglietto {
+            Id = bigliettoEsistente.Id,
+            UtenteId = bigliettoEsistente.UtenteId,
+            ProiezioneId = bigliettoEsistente.ProiezioneId,
+            NumeroBiglietti = bigliettoEsistente.NumeroBiglietti,
+            PrezzoFinale = bigliettoEsistente.PrezzoFinale,
+            OrarioCreazione = bigliettoEsistente.OrarioCreazione,
+            MetodoPagamento = bigliettoEsistente.MetodoPagamento
         }, null);
     }
 
-    // Rimuove un acquisto dal database
+    // Rimuove un biglietto dal database
     public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
     {
-        var acquisto = await _contesto.Acquisti.FindAsync(id);
-        if (acquisto == null) return (false, "Acquisto non trovato.");
+        var biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (false, "Biglietto non trovato.");
 
-        _contesto.Acquisti.Remove(acquisto);
+        _contesto.Biglietti.Remove(biglietto);
         await _contesto.SaveChangesAsync();
         return (true, null);
     }
@@ -4682,9 +4682,9 @@ public static class DataSeeder
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
         var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
 
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
-        await AssicuraEsistenzaAcquisto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -5015,7 +5015,7 @@ public static class DataSeeder
         return nuovaProiezione;
     }
 
-    private static async Task AssicuraEsistenzaAcquisto(
+    private static async Task AssicuraEsistenzaBiglietto(
     ContestoDb context,
     string proiezioneId,
     string utenteId,
@@ -5024,9 +5024,9 @@ public static class DataSeeder
     decimal prezzoFinale,
     string metodoPagamento)
     {
-        List<Acquisto> acquisti = await context.Acquisti.ToListAsync();
+        List<Biglietto> biglietti = await context.Biglietti.ToListAsync();
 
-        Acquisto nuovoAcquisto = new Acquisto
+        Biglietto nuovoBiglietto = new Biglietto
         {
             ProiezioneId = proiezioneId,
             UtenteId = utenteId,
@@ -5036,7 +5036,7 @@ public static class DataSeeder
             MetodoPagamento = metodoPagamento,
         };
 
-        context.Acquisti.Add(nuovoAcquisto);
+        context.Biglietti.Add(nuovoBiglietto);
         await context.SaveChangesAsync();
     }
 }
@@ -5149,12 +5149,12 @@ builder.Services.AddScoped<TipologiaSalaService>();
 builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<SalaService>();
 builder.Services.AddScoped<MovieService>();
-builder.Services.AddScoped<AcquistoService>();
+builder.Services.AddScoped<BigliettoService>();
 builder.Services.AddScoped<RuoloUtenteService>(); // Gestione ruoli utenti
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<LogAzioniService>();
 builder.Services.AddScoped<UtenteService>();
-builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<GestoreService>();
 builder.Services.AddScoped<AbbonamentoService>();
 builder.Services.AddScoped<ProiezioneService>();
 builder.Services.AddScoped<GiftCardService>();

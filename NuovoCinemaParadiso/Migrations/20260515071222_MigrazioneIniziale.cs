@@ -336,7 +336,7 @@ namespace NuovoCinemaParadiso.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Acquisti",
+                name: "Biglietti",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
@@ -349,15 +349,15 @@ namespace NuovoCinemaParadiso.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Acquisti", x => x.Id);
+                    table.PrimaryKey("PK_Biglietti", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Acquisti_AspNetUsers_UtenteId",
+                        name: "FK_Biglietti_AspNetUsers_UtenteId",
                         column: x => x.UtenteId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Acquisti_Proiezioni_ProiezioneId",
+                        name: "FK_Biglietti_Proiezioni_ProiezioneId",
                         column: x => x.ProiezioneId,
                         principalTable: "Proiezioni",
                         principalColumn: "Id",
@@ -365,13 +365,13 @@ namespace NuovoCinemaParadiso.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Acquisti_ProiezioneId",
-                table: "Acquisti",
+                name: "IX_Biglietti_ProiezioneId",
+                table: "Biglietti",
                 column: "ProiezioneId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Acquisti_UtenteId",
-                table: "Acquisti",
+                name: "IX_Biglietti_UtenteId",
+                table: "Biglietti",
                 column: "UtenteId");
 
             migrationBuilder.CreateIndex(
@@ -451,7 +451,7 @@ namespace NuovoCinemaParadiso.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Acquisti");
+                name: "Biglietti");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");

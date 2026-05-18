@@ -2,8 +2,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace NuovoCinemaParadiso.Models;
 
-[Table("Acquisti")]
-public class Acquisto
+[Table("Biglietti")]
+public class Biglietto
 {
     [Key]
     public string Id { get; set; } = Guid.NewGuid().ToString();

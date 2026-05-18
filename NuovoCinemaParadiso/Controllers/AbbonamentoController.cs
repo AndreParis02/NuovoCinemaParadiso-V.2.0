@@ -14,15 +14,15 @@ namespace NuovoCinemaParadiso.Controllers;
 public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
-    private readonly AdminService _adminService;
+    private readonly GestoreService _gestoreService;
 
     private readonly LogAzioniService _logAzioniService;
 
-    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, AdminService adminService)
+    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, GestoreService gestoreService)
     {
         _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
-        _adminService = adminService;
+        _gestoreService = gestoreService;
 
     }
 

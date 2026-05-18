@@ -8,11 +8,11 @@ using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
-public class AdminService
+public class GestoreService
 {
     private readonly ContestoDb _contesto;
     private readonly UserManager<Utente> _gestioneUtenti;
-    public AdminService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
         _gestioneUtenti = gestioneUtenti;
@@ -93,33 +93,33 @@ public class AdminService
         return risultato;
     }
 
-    public async Task<List<DtoAcquisto>> OttieniAcquisti()
+    public async Task<List<DtoBiglietto>> OttieniBiglietti()
     {
-        List<Acquisto> acquisti = await _contesto.Acquisti.ToListAsync();
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
 
-        List<DtoAcquisto> risultato = new List<DtoAcquisto>();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        for (int i = 0; i < acquisti.Count; i++)
+        for (int i = 0; i < biglietti.Count; i++)
         {
-            Acquisto acquistoCorrente = acquisti[i];
-            Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(acquistoCorrente.ProiezioneId)
-                ?? throw new NotFoundException("Proiezione", acquistoCorrente.ProiezioneId);
+            Biglietto bigliettoCorrente = biglietti[i];
+            Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
+                ?? throw new NotFoundException("Proiezione", bigliettoCorrente.ProiezioneId);
             Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
                 ?? throw new NotFoundException("Movie", proiezione.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
                 ?? throw new NotFoundException("Sala", proiezione.SalaId);
-            Utente? utente = await _contesto.Utenti.FindAsync(acquistoCorrente.UtenteId)
-                ?? throw new NotFoundException("Utente", acquistoCorrente.UtenteId);
+            Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId)
+                ?? throw new NotFoundException("Utente", bigliettoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
                 ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
 
-            DtoAcquisto dto = new DtoAcquisto();
-            dto.Id = acquistoCorrente.Id;
-            dto.ProiezioneId = acquistoCorrente.ProiezioneId;
-            dto.UtenteId = acquistoCorrente.UtenteId;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquistoCorrente.NumeroBiglietti, utente, acquistoCorrente.MetodoPagamento);
-            dto.OrarioCreazione = acquistoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = acquistoCorrente.NumeroBiglietti;
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente, bigliettoCorrente.MetodoPagamento);
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
 
             risultato.Add(dto);
         }
@@ -127,33 +127,33 @@ public class AdminService
         return risultato;
     }
 
-    public async Task<DtoAcquisto> OttieniAcquistoTramiteIdAsync(string id)
+    public async Task<DtoBiglietto> OttieniBigliettoTramiteIdAsync(string id)
     {
-        Acquisto? acquisto = await _contesto.Acquisti.FindAsync(id)
-            ?? throw new NotFoundException("Acquisto", id);
-        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(acquisto.ProiezioneId)
-            ?? throw new NotFoundException("Proiezione", acquisto.ProiezioneId);
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id)
+            ?? throw new NotFoundException("Biglietto", id);
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new NotFoundException("Proiezione", biglietto.ProiezioneId);
         Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
             ?? throw new NotFoundException("Movie", proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
             ?? throw new NotFoundException("Sala", proiezione.SalaId);
-        Utente? utente = await _contesto.Users.FindAsync(acquisto.UtenteId)
-            ?? throw new NotFoundException("Utente", acquisto.UtenteId);
+        Utente? utente = await _contesto.Users.FindAsync(biglietto.UtenteId)
+            ?? throw new NotFoundException("Utente", biglietto.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
 
-        if (acquisto == null)
+        if (biglietto == null)
         {
-            throw new NotFoundException("Acquisto", id);
+            throw new NotFoundException("Biglietto", id);
         }
 
-        DtoAcquisto dto = new DtoAcquisto();
-        dto.Id = acquisto.Id;
-        dto.UtenteId = acquisto.UtenteId;
-        dto.ProiezioneId = acquisto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, acquisto.NumeroBiglietti, utente, acquisto.MetodoPagamento);
-        dto.OrarioCreazione = acquisto.OrarioCreazione;
-        dto.NumeroBiglietti = acquisto.NumeroBiglietti;
+        DtoBiglietto dto = new DtoBiglietto();
+        dto.Id = biglietto.Id;
+        dto.UtenteId = biglietto.UtenteId;
+        dto.ProiezioneId = biglietto.ProiezioneId;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento);
+        dto.OrarioCreazione = biglietto.OrarioCreazione;
+        dto.NumeroBiglietti = biglietto.NumeroBiglietti;
 
         return dto;
     }

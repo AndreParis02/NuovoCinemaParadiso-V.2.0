@@ -1,5 +1,5 @@
 namespace NuovoCinemaParadiso.Dtos;
-public class DtoAcquisto
+public class DtoBiglietto
 {
     public string? Id { get; set; }
     public string ProiezioneId { get; set; } = string.Empty;
