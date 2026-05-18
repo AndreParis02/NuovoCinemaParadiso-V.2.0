@@ -11,6 +11,7 @@ export interface Utente {
     giftCardId: string;
     tipoAbbonamento: string;
     tipoGiftCard: string;
+    Saldo: number;
 }
 
 export interface UtenteCreazione {

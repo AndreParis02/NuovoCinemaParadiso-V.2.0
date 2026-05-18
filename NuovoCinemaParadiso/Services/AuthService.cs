@@ -75,16 +75,9 @@ public class AuthService
         }
 
         Abbonamento? abbonamento = null;
-        GiftCard? giftCard = null;
-
         if (!string.IsNullOrEmpty(utente.AbbonamentoId))
         {
             abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        }
-
-        if (!string.IsNullOrEmpty(utente.GiftCardId))
-        {
-            giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
         }
 
         if (utente.SeAbbonato == true && abbonamento != null)
@@ -95,17 +88,6 @@ public class AuthService
             if (giorniMancanti <= 0)
             {
                 utente.SeAbbonato = false;
-            }
-        }
-
-        if (utente.PossiedeGiftCard == true && giftCard != null)
-        {
-            DateTimeOffset? scadenzaGiftCard = Calcoli.CalcolaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
-            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioGiftCard, giftCard.Durata);
-
-            if (giorniMancanti <= 0)
-            {
-                utente.PossiedeGiftCard = false;
             }
         }
 
@@ -148,7 +130,6 @@ public class AuthService
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
 
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(utente.GiftCardId);
 
         DtoUtente dto = new DtoUtente();
         dto.Id = utente.Id;
@@ -160,8 +141,6 @@ public class AuthService
         dto.TipoAbbonamento = abbonamento?.Nome ?? "";
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
         dto.PossiedeGiftCard = utente.PossiedeGiftCard;
-        dto.GiftCardId = utente?.GiftCardId ?? "";
-        dto.TipoGiftCard = giftCard?.Nome ?? "";
         dto.DataInizioGiftCard = utente.DataInizioGiftCard;
 
         return dto;

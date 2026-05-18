@@ -16,16 +16,11 @@ public class Utente : IdentityUser
     [Required]
     public bool SeAbbonato { get; set; } = false;
     [Required]
-    public bool PossiedeGiftCard { get; set; } = false;
     public DateTimeOffset DataInizioAbbonamento { get; set; }
-    public DateTimeOffset DataInizioGiftCard { get; set; }
     public List<Biglietto> Biglietti { get; set; } = new List<Biglietto>();
     public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
-    public string? GiftCardId { get; set; }
-    [ForeignKey("GiftCardId")]
-    public GiftCard? GiftCard { get; set; }
 
     [Range(0,10000)]
     public int Saldo {get;set;}

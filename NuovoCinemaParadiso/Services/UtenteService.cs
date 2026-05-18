@@ -4,6 +4,7 @@ using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Helpers;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -40,8 +41,6 @@ public class UtenteService
         }
 
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
-        GiftCard giftCard = await _contesto.GiftCards.FindAsync(utenteTrovato.GiftCardId);
-
         if (utenteTrovato == null)
         {
             throw new NotFoundException("Utente", utenteId);
@@ -65,20 +64,24 @@ public class UtenteService
             Email = utenteTrovato.Email,
             Eta = utenteTrovato.Eta,
             SeAbbonato = utenteTrovato.SeAbbonato,
-            PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
             DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
-            DataInizioGiftCard = utenteTrovato.DataInizioGiftCard,
             AbbonamentoId = utenteTrovato.AbbonamentoId,
-            GiftCardId = utenteTrovato.GiftCardId,
-            TipoGiftCard = giftCard?.Nome ?? string.Empty,
             TipoAbbonamento = abbonamentoTrovato.Nome
         };
     }
 
-    public async Task<DtoUtente> GiftCardAsync(string giftCardId, string utenteId)
+
+    public async Task<DtoGiftCard> RicaricaGiftCardAsync(string giftCardId, string utenteId)
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
         GiftCard? giftCardTrovata = null;
+
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente?.Id == null)
+        {
+            throw new NotFoundException("Utente", utenteId);
+        }
 
         for (int i = 0; i < giftCards.Count; i++)
         {
@@ -90,45 +93,68 @@ public class UtenteService
                 break;
             }
         }
-
+        
         if (giftCardTrovata == null)
         {
             throw new NotFoundException("GiftCard", giftCardId);
         }
 
-        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteTrovato.AbbonamentoId);
+        giftCardTrovata.Saldo = CalcoliHelper.CaricaGiftCard();
+        giftCardTrovata.CodiceRiscatto = GiftCardHelper.GeneraCodice();
 
-        if (utenteTrovato == null)
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard()
+        {
+            Id = giftCardTrovata.Id,
+            Nome = giftCardTrovata.Nome,
+            Saldo = giftCardTrovata.Saldo,
+            CodiceRiscatto = giftCardTrovata.CodiceRiscatto
+        };
+    
+    }
+
+    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardId, string utenteId)
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+        GiftCard? giftCardTrovata = null;
+
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente?.Id == null)
         {
             throw new NotFoundException("Utente", utenteId);
         }
 
-        
-        if(utenteTrovato.PossiedeGiftCard)
+        for (int i = 0; i < giftCards.Count; i++)
         {
-            throw new ItemAlredyexist("GiftCard");
-        }
+            GiftCard giftCardCorrente = giftCards[i];
 
-        utenteTrovato.GiftCardId = giftCardTrovata.Id;
-        utenteTrovato.PossiedeGiftCard = true;
-        utenteTrovato.DataInizioGiftCard = DateTimeOffset.UtcNow;
+            if (giftCardCorrente.Id == giftCardId)
+            {
+                giftCardTrovata = giftCardCorrente;
+                break;
+            }
+        }
+        
+        if (giftCardTrovata == null)
+        {
+            throw new NotFoundException("GiftCard", giftCardId);
+        }
+        
+        utenteCorrente.Saldo += giftCardTrovata.Saldo;
+        giftCardTrovata.Saldo = 0;
+        giftCardTrovata.Riscattata = true;
+
         await _contesto.SaveChangesAsync();
 
-        return new DtoUtente()
+        return new DtoGiftCard()
         {
-            Id = utenteTrovato.Id,
-            NomeCompleto = utenteTrovato.NomeCompleto,
-            Email = utenteTrovato.Email,
-            Eta = utenteTrovato.Eta,
-            SeAbbonato = utenteTrovato.SeAbbonato,
-            PossiedeGiftCard = utenteTrovato.PossiedeGiftCard,
-            DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
-            DataInizioGiftCard = utenteTrovato.DataInizioGiftCard,
-            AbbonamentoId = utenteTrovato.AbbonamentoId,
-            GiftCardId = utenteTrovato.GiftCardId,
-            TipoGiftCard = giftCardTrovata.Nome,
-            TipoAbbonamento = abbonamento?.Nome ?? string.Empty
+            Id = giftCardTrovata.Id,
+            Nome = giftCardTrovata.Nome,
+            Saldo = giftCardTrovata.Saldo,
+            CodiceRiscatto = giftCardTrovata.CodiceRiscatto
         };
+    
     }
 }

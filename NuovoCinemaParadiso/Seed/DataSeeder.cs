@@ -45,13 +45,26 @@ public static class DataSeeder
             15,
             false);
 
+        ContoCinema contoCinema = await AssicuraEsistenzaConto( contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
+
         await ImpostaRuoloUnicoAsync(gestioneUtenti, gestore, Ruoli.Gestore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
         await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
 
-        var genereAzione = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
-        var genereHorror = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
-        var genereCommedia = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAzione       = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
+        var genereHorror       = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
+        var genereCommedia       = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAnimazione   = await AssicuraEsistenzaGenereMovie(contestoDb, "Animazione");
+        var genereAvventura    = await AssicuraEsistenzaGenereMovie(contestoDb, "Avventura");
+        var genereDocumentario = await AssicuraEsistenzaGenereMovie(contestoDb, "Documentario");
+        var genereDrammatico   = await AssicuraEsistenzaGenereMovie(contestoDb, "Drammatico");
+        var genereFantascienza = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantascienza");
+        var genereFantasy      = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantasy");
+        var genereMusical      = await AssicuraEsistenzaGenereMovie(contestoDb, "Musical");
+        var genereRomantico    = await AssicuraEsistenzaGenereMovie(contestoDb, "Romantico");
+        var genereThriller     = await AssicuraEsistenzaGenereMovie(contestoDb, "Thriller");
+        var genereWestern      = await AssicuraEsistenzaGenereMovie(contestoDb, "Western");
+
 
         var movie1 = await AssicuraEsistenzaMovie(contestoDb, "Movie1", "Film del drago", 60, 10, genereAzione.Id);
         var movie2 = await AssicuraEsistenzaMovie(contestoDb, "Movie2", "Film del lupo", 80, 12, genereHorror.Id);
@@ -66,16 +79,12 @@ public static class DataSeeder
         var turnoSera = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0, 0), new TimeOnly(22, 0, 0), "Sera");
 
         var sala1 = await AssicuraEsistenzaSala(contestoDb, "Sala1", 30, tipologia2D.Id);
-        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia2D.Id);
-        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologia2D.Id);
+        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia3D.Id);
+        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologiaImax.Id);
 
         await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
         await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
-
-        await AssicuraEsistenzaGiftCard(contestoDb, "10 Film", 85, 10, 12);
-        await AssicuraEsistenzaGiftCard(contestoDb, "25 Film", 190, 25, 12);
-        await AssicuraEsistenzaGiftCard(contestoDb, "50 Film", 325, 50, 12);
 
         var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
@@ -97,6 +106,7 @@ public static class DataSeeder
             await managerRuolo.CreateAsync(ruolo);
         }
     }
+
 
     private static async Task<Utente> AssicuraEsistenzaUtenteAsync(
         UserManager<Utente> gestioneUtenti,
@@ -136,6 +146,27 @@ public static class DataSeeder
             throw new Exception($"Errore durante il seed dell'utente {email} : {messaggio}");
         }
         return utente;
+    }
+
+    private static async Task<ContoCinema> AssicuraEsistenzaConto(ContestoDb context ,string iban, string titolareConto, int conto)
+    {
+        ContoCinema contoEsistente = await context.ContoCinema.FirstOrDefaultAsync();
+        if(contoEsistente != null)
+        {
+            return null;
+        }
+
+        ContoCinema nuovoContoCinema = new ContoCinema
+        {
+            Iban = iban,
+            TitolareConto = titolareConto,
+            Conto = conto
+        };
+
+         context.ContoCinema.Add(nuovoContoCinema);
+        await context.SaveChangesAsync();
+
+        return nuovoContoCinema;
     }
 
     private static async Task ImpostaRuoloUnicoAsync(UserManager<Utente> gestioneUtenti, Utente utente, string ruoloTarget)
@@ -347,35 +378,7 @@ public static class DataSeeder
         context.Abbonamenti.Add(nuovoAbbonamento);
         await context.SaveChangesAsync();
     }
-    private static async Task AssicuraEsistenzaGiftCard(ContestoDb context, string nome, decimal prezzo, int numeroMovie, int durata)
-    {
-        List<GiftCard> giftCards = await context.GiftCards.ToListAsync();
-        for (int i = 0; i < giftCards.Count; i++)
-        {
-            GiftCard giftCardCorrente = giftCards[i];
-            bool nomeUguale = string.Equals(
-                giftCardCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return;
-            }
-        }
-
-        GiftCard nuovaGiftCard = new GiftCard
-        {
-            Nome = nome,
-            Prezzo = prezzo,
-            NumeroMovie = numeroMovie,
-            Durata = durata
-        };
-
-        context.GiftCards.Add(nuovaGiftCard);
-        await context.SaveChangesAsync();
-    }
-
-    
+   
 
     private static async Task<Proiezione> AssicuraEsistenzaProiezione(
     ContestoDb context,
@@ -405,7 +408,7 @@ public static class DataSeeder
             MovieId = movieId,
             SalaId = salaId,
             TurnoId = turnoId,
-            Attivo=true
+            Attivo = true
         };
 
         context.Proiezioni.Add(nuovaProiezione);
