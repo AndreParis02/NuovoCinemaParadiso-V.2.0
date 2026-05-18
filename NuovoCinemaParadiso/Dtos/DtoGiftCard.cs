@@ -4,7 +4,6 @@ public class DtoGiftCard
 {
     public string? Id {get; set;}
     public string Nome {get; set;} = string.Empty;
-    public int Durata{get; set;}
-    public decimal Prezzo {get; set;}
-    public int NumeroMovie {get; set;}
+    public int Saldo {get; set;}
+    public string CodiceRiscatto {get; set;} = string.Empty;
 }
