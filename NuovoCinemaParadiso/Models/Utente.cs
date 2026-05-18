@@ -19,7 +19,7 @@ public class Utente : IdentityUser
     public bool PossiedeGiftCard { get; set; } = false;
     public DateTimeOffset DataInizioAbbonamento { get; set; }
     public DateTimeOffset DataInizioGiftCard { get; set; }
-    public List<Acquisto> Acquisti { get; set; } = new List<Acquisto>();
+    public List<Biglietto> Biglietti { get; set; } = new List<Biglietto>();
     public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }

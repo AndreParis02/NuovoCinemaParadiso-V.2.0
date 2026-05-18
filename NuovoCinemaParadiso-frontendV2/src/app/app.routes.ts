@@ -41,18 +41,18 @@ export const routes: Routes = [
     {
         path: 'gestore/listaUtenti',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/admin/gestore-lista-utenti.page').then((m) => m.GestoreListaUtentiPage)
+        loadComponent: () => import('./pages/gestore/gestore-lista-utenti.page').then((m) => m.GestoreListaUtentiPage)
     },
     /*
     {
-        path: 'admin/acquisto',
+        path: 'gestore/biglietto',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.AcquistoListPage)
+        loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.BigliettoListPage)
     },
     {
-        path: 'admin/acquisto:id',
+        path: 'gestore/biglietto:id',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.AcquistoDetailPage)
+        loadComponent: () => import('./pages/users-list/users-list.page').then((m) => m.BigliettoDetailPage)
     },
     */
     {
@@ -63,9 +63,9 @@ export const routes: Routes = [
     },
     /*
     {
-        path: 'acquisto',
+        path: 'biglietto',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/acquisto/acquisto.page').then((m) => m.AcquistoPage)
+        loadComponent: () => import('./pages/biglietto/biglietto.page').then((m) => m.BigliettoPage)
     },
     {
         path: 'giftcard',

@@ -9,14 +9,14 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AdminController : ControllerBase
+public class GestoreController : ControllerBase
 {
-    private readonly AdminService _adminService;
+    private readonly GestoreService _gestoreService;
     private readonly LogAzioniService _logAzioniService;
 
-    public AdminController(AdminService adminService, LogAzioniService logAzioniService)
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
     {
-        _adminService = adminService;
+        _gestoreService = gestoreService;
         _logAzioniService = logAzioniService;
     }
 
@@ -24,7 +24,7 @@ public class AdminController : ControllerBase
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
     public async Task<IActionResult> OttieniTuttiIProfili()
     {
-        List<DtoUtente> utenti = await _adminService.OttieniUtentiAsync();
+        List<DtoUtente> utenti = await _gestoreService.OttieniUtentiAsync();
 
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
@@ -46,7 +46,7 @@ public class AdminController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         try
         {
-            DtoUtente? utente = await _adminService.OttieniUtenteTramiteIdAsync(id);
+            DtoUtente? utente = await _gestoreService.OttieniUtenteTramiteIdAsync(id);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo", true);
             return Ok(utente);
         }
@@ -66,7 +66,7 @@ public class AdminController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         try
         {
-            var risultato = await _adminService.EliminaUtentePerIdAsync(Id);
+            var risultato = await _gestoreService.EliminaUtentePerIdAsync(Id);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
             return Ok(risultato);
         }
@@ -77,23 +77,23 @@ public class AdminController : ControllerBase
         }
     }
 
-    [HttpGet("acquisto")]
+    [HttpGet("biglietto")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliAcquisti()
+    public async Task<IActionResult> OttieniTuttiGliBiglietti()
     {
-        List<DtoAcquisto> acquisti = await _adminService.OttieniAcquisti();
+        List<DtoBiglietto> biglietti = await _gestoreService.OttieniBiglietti();
 
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti gli acquisti admin", true);
-        return Ok(acquisti);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti gli biglietti gestore", true);
+        return Ok(biglietti);
     }
 
-    [HttpGet("acquisto/{id}")]
+    [HttpGet("biglietto/{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniAcquistoTramiteId(string id)
+    public async Task<IActionResult> OttieniBigliettoTramiteId(string id)
     {
 
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -101,14 +101,14 @@ public class AdminController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         try
         {
-            var risultato = await _adminService.OttieniAcquistoTramiteIdAsync(id);
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti tramite id admin", true);
+            var risultato = await _gestoreService.OttieniBigliettoTramiteIdAsync(id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti tramite id gestore", true);
             return Ok(risultato);
         }
         catch
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni acquisti tramite id admin", false);
-            return NotFound($"Acquisto con id {id} non trovato");
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti tramite id gestore", false);
+            return NotFound($"Biglietto con id {id} non trovato");
         }
 
 
@@ -129,7 +129,7 @@ public class AdminController : ControllerBase
             return BadRequest("AbbonamentoId non valido");
         }
 
-        var risultato = await _adminService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
+        var risultato = await _gestoreService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
 
         if (risultato == null || risultato.Count == 0)
         {
@@ -145,7 +145,7 @@ public class AdminController : ControllerBase
 
     [HttpGet("utenti/giftCard/{giftcardId}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerAdmin(string giftcardId)
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerGestore(string giftcardId)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
@@ -159,7 +159,7 @@ public class AdminController : ControllerBase
         }
         try
         {
-            var risultato = await _adminService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+            var risultato = await _gestoreService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", true);
             return Ok(risultato);
         }

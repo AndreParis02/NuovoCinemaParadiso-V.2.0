@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuovoCinemaParadiso.Dtos;
 
-public class DtoCreazioneAcquisto
+public class DtoCreazioneBiglietto
 {
     [Required]
     public string ProiezioneId { get; set; } = string.Empty;

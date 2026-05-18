@@ -172,7 +172,7 @@ namespace NuovoCinemaParadiso.Migrations
                     b.ToTable("Abbonamenti");
                 });
 
-            modelBuilder.Entity("NuovoCinemaParadiso.Models.Acquisto", b =>
+            modelBuilder.Entity("NuovoCinemaParadiso.Models.Biglietto", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -204,7 +204,7 @@ namespace NuovoCinemaParadiso.Migrations
 
                     b.HasIndex("UtenteId");
 
-                    b.ToTable("Acquisti");
+                    b.ToTable("Biglietti");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.GenereMovie", b =>
@@ -546,16 +546,16 @@ namespace NuovoCinemaParadiso.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("NuovoCinemaParadiso.Models.Acquisto", b =>
+            modelBuilder.Entity("NuovoCinemaParadiso.Models.Biglietto", b =>
                 {
                     b.HasOne("NuovoCinemaParadiso.Models.Proiezione", "Proiezione")
-                        .WithMany("Acquisti")
+                        .WithMany("Biglietti")
                         .HasForeignKey("ProiezioneId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("NuovoCinemaParadiso.Models.Utente", "Utente")
-                        .WithMany("Acquisti")
+                        .WithMany("Biglietti")
                         .HasForeignKey("UtenteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -651,7 +651,7 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Proiezione", b =>
                 {
-                    b.Navigation("Acquisti");
+                    b.Navigation("Biglietti");
                 });
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Sala", b =>
@@ -671,7 +671,7 @@ namespace NuovoCinemaParadiso.Migrations
 
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Utente", b =>
                 {
-                    b.Navigation("Acquisti");
+                    b.Navigation("Biglietti");
                 });
 #pragma warning restore 612, 618
         }

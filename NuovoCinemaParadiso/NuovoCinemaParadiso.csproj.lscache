@@ -57,8 +57,8 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 [sourceFiles]
 Controllers/
  AbbonamentoController.cs
- AcquistoController.cs
- AdminController.cs
+ BigliettoController.cs
+ GestoreController.cs
  AuthController.cs
  GenereMovieController.cs
  GestoreUtentiController.cs
@@ -72,10 +72,10 @@ Controllers/
 Data/ContestoDb.cs
 Dtos/
  DtoAbbonamento.cs
- DtoAcquisto.cs
+ DtoBiglietto.cs
  DtoAuthResponse.cs
  DtoCreazioneAbbonamento.cs
- DtoCreazioneAcquisto.cs
+ DtoCreazioneBiglietto.cs
  DtoCreazioneGenereMovie.cs
  DtoCreazioneGiftCard.cs
  DtoCreazioneLogAzioni.cs
@@ -107,7 +107,7 @@ Migrations/
  ContestoDbModelSnapshot.cs
 Models/
  Abbonamento.cs
- Acquisto.cs
+ Biglietto.cs
  GenereMovie.cs
  GiftCard.cs
  LogAzioni.cs
@@ -126,8 +126,8 @@ Program.cs
 Seed/DataSeeder.cs
 Services/
  AbbonamentoService.cs
- AcquistoService.cs
- AdminService.cs
+ BigliettoService.cs
+ GestoreService.cs
  AuthService.cs
  GenereMovieService.cs
  GiftCardService.cs

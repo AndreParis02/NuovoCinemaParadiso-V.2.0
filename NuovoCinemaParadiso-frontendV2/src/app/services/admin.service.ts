@@ -2,17 +2,17 @@ import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Acquisto } from '../models/acquisto.model';
+import { Biglietto } from '../models/biglietto.model';
 import { Utente, UtenteModificaRuolo } from '../models/utente.model';
 import { LogAzioni } from '../models/logAzioni.model';
 
 @Injectable({
     providedIn: 'root'
 })
-export class AdminService {
+export class GestoreService {
 
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = `${environment.apiBaseUrl}/admin`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/gestore`;
 
 
     // GET tutti utenti
@@ -44,14 +44,14 @@ export class AdminService {
         );
     }
 
-    // GET tutti acquisti
-    ottieniAcquisti(): Observable<Acquisto[]> {
-        return this.http.get<Acquisto[]>(`${this.baseUrl}/acquisti`);
+    // GET tutti biglietti
+    ottieniBiglietti(): Observable<Biglietto[]> {
+        return this.http.get<Biglietto[]>(`${this.baseUrl}/biglietti`);
     }
 
-    // GET acquisto per id
-    ottieniAcquistoPerId(id: string): Observable<Acquisto> {
-        return this.http.get<Acquisto>(`${this.baseUrl}/acquisti/${id}`);
+    // GET biglietto per id
+    ottieniBigliettoPerId(id: string): Observable<Biglietto> {
+        return this.http.get<Biglietto>(`${this.baseUrl}/biglietti/${id}`);
     }
 
     ottieniLogAzioni(): Observable<LogAzioni[]> {
