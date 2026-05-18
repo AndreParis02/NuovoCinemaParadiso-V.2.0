@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrazioneIniziale : Migration
+    public partial class primaMigrazione : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,6 +38,20 @@ namespace NuovoCinemaParadiso.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ContoCinema",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Iban = table.Column<string>(type: "TEXT", nullable: false),
+                    TitolareConto = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Conto = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContoCinema", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -166,6 +180,7 @@ namespace NuovoCinemaParadiso.Migrations
                     DataInizioGiftCard = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     AbbonamentoId = table.Column<string>(type: "TEXT", nullable: true),
                     GiftCardId = table.Column<string>(type: "TEXT", nullable: true),
+                    Saldo = table.Column<int>(type: "INTEGER", nullable: false),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -365,16 +380,6 @@ namespace NuovoCinemaParadiso.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Biglietti_ProiezioneId",
-                table: "Biglietti",
-                column: "ProiezioneId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Biglietti_UtenteId",
-                table: "Biglietti",
-                column: "UtenteId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
@@ -422,6 +427,16 @@ namespace NuovoCinemaParadiso.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Biglietti_ProiezioneId",
+                table: "Biglietti",
+                column: "ProiezioneId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Biglietti_UtenteId",
+                table: "Biglietti",
+                column: "UtenteId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Movies_GenereId",
                 table: "Movies",
                 column: "GenereId");
@@ -451,9 +466,6 @@ namespace NuovoCinemaParadiso.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Biglietti");
-
-            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -469,16 +481,28 @@ namespace NuovoCinemaParadiso.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "LogsAzioni");
+                name: "Biglietti");
 
             migrationBuilder.DropTable(
-                name: "Proiezioni");
+                name: "ContoCinema");
+
+            migrationBuilder.DropTable(
+                name: "LogsAzioni");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Proiezioni");
+
+            migrationBuilder.DropTable(
+                name: "Abbonamenti");
+
+            migrationBuilder.DropTable(
+                name: "GiftCard");
 
             migrationBuilder.DropTable(
                 name: "Movies");
@@ -488,12 +512,6 @@ namespace NuovoCinemaParadiso.Migrations
 
             migrationBuilder.DropTable(
                 name: "Turni");
-
-            migrationBuilder.DropTable(
-                name: "Abbonamenti");
-
-            migrationBuilder.DropTable(
-                name: "GiftCard");
 
             migrationBuilder.DropTable(
                 name: "GeneriMovies");
