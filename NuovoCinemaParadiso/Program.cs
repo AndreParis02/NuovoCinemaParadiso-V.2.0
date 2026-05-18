@@ -86,6 +86,7 @@ builder.Services.AddScoped<GestoreService>();
 builder.Services.AddScoped<AbbonamentoService>();
 builder.Services.AddScoped<ProiezioneService>();
 builder.Services.AddScoped<GiftCardService>();
+builder.Services.AddScoped<OperatoreService>();
 builder.Services.AddScoped<ContoCinemaService>();
 
 var app = builder.Build();
