@@ -55,7 +55,7 @@ public class GenereMovieController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -89,7 +89,7 @@ public class GenereMovieController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -122,7 +122,7 @@ public class GenereMovieController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _genereMovieService.EliminaAsync(id);

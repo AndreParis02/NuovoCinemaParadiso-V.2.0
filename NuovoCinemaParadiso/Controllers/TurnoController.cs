@@ -51,7 +51,7 @@ public class TurnoController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -76,7 +76,7 @@ public class TurnoController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -100,7 +100,7 @@ public class TurnoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

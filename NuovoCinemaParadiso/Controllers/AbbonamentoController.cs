@@ -62,7 +62,7 @@ public class AbbonamentoController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -84,7 +84,7 @@ public class AbbonamentoController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
         DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
@@ -106,7 +106,7 @@ public class AbbonamentoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
