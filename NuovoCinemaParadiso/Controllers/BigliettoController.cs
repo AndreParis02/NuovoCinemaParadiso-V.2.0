@@ -74,7 +74,7 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -93,7 +93,7 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

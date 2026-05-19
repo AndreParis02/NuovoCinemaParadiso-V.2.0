@@ -841,12 +841,16 @@ public class DtoCreazioneBiglietto
 ## TipologiaSalaController.cs
 
 ```c#
+// Importa autorizzazioni e gestione ruoli
 using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
 using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
 using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati dal controller
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -913,7 +917,7 @@ public class TipologiaSalaController : ControllerBase
     /// Crea una nuova tipologia di sala. Accessibile solo a Gestore o Operatore.
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -949,7 +953,7 @@ public class TipologiaSalaController : ControllerBase
     /// Modifica una tipologia esistente. Accessibile solo a Gestore o Operatore.
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
     {
         DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
@@ -970,7 +974,7 @@ public class TipologiaSalaController : ControllerBase
     /// Elimina una tipologia esistente. Accessibile solo a Gestore o Operatore.
     /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
@@ -993,36 +997,53 @@ public class TipologiaSalaController : ControllerBase
 ## SalaController.cs
 
 ```c#
+// Importa autorizzazioni e gestione ruoli
 using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
 using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
 using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati dal controller
 using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+// Impora i servizi per la gestione degli errori
 using NuovoCinemaParadiso.Exceptions;
 
+// Definisce il namespace del progetto per i controller
 namespace NuovoCinemaParadiso.Controllers;
 
+// Indica che questa classe è un controller API
 [ApiController]
+// Definisce la route base: /api/Sala
 [Route("api/[controller]")]
+
 [Authorize]
 public class SalaController : ControllerBase
 {
+    // Campo per il servizio di autenticazione
     private readonly SalaService _salaService;
+    // Campo per il servizio di log delle azioni
     private readonly LogAzioniService _logAzioniService;
 
+    // Costruttore che riceve i servizi tramite dependency injection
     public SalaController(SalaService salaService, LogAzioniService logAzioniService)
     {
+        // Assegna il servizio di autenticazione al campo privato
         _salaService = salaService;
+        // Assegna il servizio di log al campo privato
         _logAzioniService = logAzioniService;
     }
 
+    // Endpoint GET: restituisce tutte le sale
     [HttpGet]
     public async Task<IActionResult> OttieniTutti()
     {
-        
+        // Recupera l'Id dell'utente loggato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
+            
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
@@ -1078,7 +1099,7 @@ public class SalaController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
     {
         
@@ -1099,7 +1120,7 @@ public class SalaController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
     {
 
@@ -1143,7 +1164,7 @@ public class SalaController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         
@@ -1233,10 +1254,13 @@ public class GiftCardController : ControllerBase
     }
 
     // ---------------------------------------------------------
-    // CREAZIONE GIFT CARD (solo Gestore o Operatore)
+    // RIMOSSO DATO LE SPECIFICHE DI HARDCODED
+    // CREAZIONE GIFT CARD (Operatore)
     // ---------------------------------------------------------
+
+    /*
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1250,11 +1274,13 @@ public class GiftCardController : ControllerBase
         return Ok(risultato);
     }
 
+*/
+
     // ---------------------------------------------------------
-    // MODIFICA GIFT CARD (solo Gestore o Operatore)
+    // MODIFICA GIFT CARD (Operatore)
     // ---------------------------------------------------------
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1274,10 +1300,10 @@ public class GiftCardController : ControllerBase
     }
 
     // ---------------------------------------------------------
-    // ELIMINA GIFT CARD (solo Gestore o Operatore)
+    // ELIMINA GIFT CARD (Operatore)
     // ---------------------------------------------------------
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1354,7 +1380,7 @@ public class AbbonamentoController : ControllerBase
     // ✔ Permette di ottenere un abbonamento tramite ID senza limiti
     // ------------------------------------------------------------
     [HttpGet("gestore/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> OttieniTramiteIdPerGestore(string id)
     {
         var risultato = await _gestoreService.OttieniAbbonamentoTramiteIdPerGestoreAsync(id);
@@ -1408,7 +1434,7 @@ public class AbbonamentoController : ControllerBase
     // ✔ Creazione di un nuovo abbonamento (solo Gestore/Operatore)
     // ------------------------------------------------------------
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
         string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1437,7 +1463,7 @@ public class AbbonamentoController : ControllerBase
     // ✔ Modifica di un abbonamento esistente
     // ------------------------------------------------------------
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
         DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
@@ -1463,7 +1489,7 @@ public class AbbonamentoController : ControllerBase
     // ✔ Eliminazione di un abbonamento
     // ------------------------------------------------------------
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
@@ -1490,6 +1516,17 @@ public class AbbonamentoController : ControllerBase
 ## UtentiController.cs
 
 ```c#
+// Importa autorizzazioni e gestione ruoli
+using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
+using System.Security.Claims;
+// Importa i DTO utilizzati dal controller
+using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -1648,259 +1685,6 @@ public class GestoreController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // ------------------------------------------------------------
-    // 1) OTTIENI TUTTI I PROFILI UTENTE
-    // ------------------------------------------------------------
-    [HttpGet("ListaUtenti")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    // Solo Gestore e Operatore possono accedere.
-    public async Task<IActionResult> OttieniTuttiIProfili()
-    {
-        // Recupero tutti gli utenti tramite il servizio Gestore.
-        List<DtoUtente> utenti = await _gestoreService.OttieniUtentiAsync();
-
-        // Recupero l’ID dell’utente autenticato dal token JWT.
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Registro nel log che la ricerca è stata effettuata.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profili",true);
-
-
-        // Secondo log (puoi unificarli se vuoi).
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili",true);
-
-
-        // Restituisco la lista degli utenti.
-        return Ok(utenti);
-    }
-
-    // ------------------------------------------------------------
-    // 2) RICERCA PROFILO TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpGet("ricercaProfilo/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Recupero l’utente tramite ID.
-        DtoUtente? utente = await _gestoreService.OttieniUtenteTramiteIdAsync(id);
-
-        // Se non trovato → log fallimento + 404.
-        if (utente == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",false);
-
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-
-        // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",true);
-
-
-        return Ok(utente);
-    }
-
-    // ------------------------------------------------------------
-    // 3) ELIMINA UTENTE TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpDelete("eliminaUtente/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> EliminaTramiteId(string Id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Chiamo il servizio per eliminare l’utente.
-        var risultato = await _gestoreService.EliminaUtentePerIdAsync(Id);
-
-        // Se non trovato → log fallimento + 404.
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",false);
-
-
-            return NotFound(new { messaggio = "Utente non trovato." });
-        }
-
-        // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",true);
-
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // 4) OTTIENI TUTTI GLI BIGLIETTI
-    // ------------------------------------------------------------
-    [HttpGet("biglietti")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTuttiGliBiglietti()
-    {
-        // Recupero tutti gli biglietti.
-        List<DtoBiglietto> biglietti = await _gestoreService.OttieniBiglietti();
-
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Log dell’operazione.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli biglietti gestore",true);
-
-
-
-        return Ok(biglietti);
-    }
-
-    // ------------------------------------------------------------
-    // 5) OTTIENI BIGLIETTO TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpGet("biglietto/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniTramiteIdPerGestore(string id)
-    {
-        var risultato = await _gestoreService.OttieniBigliettoTramiteIdAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Se non trovato → log fallimento + 404.
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",false);
-
-
-            return NotFound($"Biglietto con id {id} non trovato");
-        }
-
-        // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",true);
-
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // 6) OTTIENI UTENTI TRAMITE ABBONAMENTO
-    // ------------------------------------------------------------
-    [HttpGet("utenti/abbonamenti/{abbonamentoid}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Validazione dell’ID.
-        if (string.IsNullOrWhiteSpace(abbonamentoId))
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
-
-            return BadRequest("AbbonamentoId non valido");
-        }
-
-        // Recupero gli utenti con quell’abbonamento.
-        var risultato = await _gestoreService.OttieniTramiteAbbonamentoAsync(abbonamentoId);
-
-        // Se nessuno trovato → log fallimento + 404.
-        if (risultato == null || risultato.Count == 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
-
-
-            return NotFound("Nessun utente trovato per questo abbonamento");
-        }
-
-        // Log successo.
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",true);
-
-
-        return Ok(risultato);
-    }
-    // ------------------------------------------------------------
-    // 7) OTTIENI ABBONAMENTO TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpGet("abbonamento/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerGestore(string id)
-    {
-        // chiamo il service per trovare l'abbonamento
-        var risultato = await _gestoreService.OttieniAbbonamentoTramiteIdPerGestoreAsync(id);
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        // validazione dell'ID
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",false);
-            // ritorno un 404 quando non riesco a trovarlo
-            return NotFound($"Abbonamento con id {id} non trovato");
-        }
-        // log di successo
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",true);
-
-        return Ok(risultato);
-    }
-
-    // ------------------------------------------------------------
-    // 8) OTTIENI GIFTCARD TRAMITE ID
-    // ------------------------------------------------------------
-    [HttpGet("giftcard/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> OttieniGiftCardTramiteIdPerGestore(string id)
-    {
-        // Recupera la gift card tramite ID usando il service dedicato agli gestore
-        var risultato = await _gestoreService.OttieniGiftCardTramiteIdPerGestoreAsync(id);
-
-        // Recupera l'id dell'utente autenticato dal token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Se la gift card non esiste, logga l’operazione come fallita e ritorna 404
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",false);
-
-            return NotFound($"Giftcard con id {id} non trovato");
-        }
-
-        // Se la gift card esiste, logga l’operazione come riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",true);
-
-
-        // Restituisce la gift card trovata
-        return Ok(risultato);
-    }
-    // ------------------------------------------------------------
-    // 9) OTTIENI UTENTI TRAMITE L'ID DELLA GIFTCARD 
-    // ------------------------------------------------------------
-    [HttpGet("utenti/giftCard/{giftcardId}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerGestore(string giftcardId)
-    {
-        // Recupera l'id dell’utente autenticato
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Controllo base sul parametro ricevuto
-        if (string.IsNullOrWhiteSpace(giftcardId))
-        {
-            // Log operazione fallita per parametro non valido
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
-
-
-            return BadRequest("giftcardId non valido");
-        }
-
-        // Recupera gli utenti associati alla gift card
-        var risultato = await _gestoreService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
-
-        // Se non ci sono utenti associati, logga fallimento e ritorna 404
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
-
-
-            return NotFound("Nessun utente trovato per questa giftcard");
-        }
-
-        // Log operazione riuscita
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",true);
-
-
-        // Restituisce la lista degli utenti trovati
-        return Ok(risultato);
-}
 
     [HttpGet("log")]
     [Authorize(Roles = Ruoli.Gestore)]
@@ -1918,29 +1702,42 @@ public class GestoreController : ControllerBase
 ## ProiezioneController.cs
 
 ```c#
+// Importa autorizzazioni e gestione ruoli
 using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
 using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
 using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati dal controller
 using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+
+// Importa i modelli
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Controllers;
 
+// Indica che è un controller API 
 [ApiController]
+// Route base: /api/Proiezione
 [Route("api/[controller]")]
 [Authorize]
 public class ProiezioneController : ControllerBase
 {
+    // Service per la gestione dei generi dei film
     private readonly ProiezioneService _proiezioneService;
+    // Service per la registrazione dei log delle azioni
     private readonly LogAzioniService _logAzioniService;
 
+    // Iniezione dei servizi tramite costruttore
     public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
     {
         _proiezioneService = proiezioneService;
         _logAzioniService = logAzioniService;
     }
 
+    // Endpoint GET: restituisce tutte le proiezioni
     [HttpGet]
     public async Task<IActionResult> OttieniTutteLeProiezioni()
     {
@@ -1953,7 +1750,7 @@ public class ProiezioneController : ControllerBase
 
         return Ok(proiezioni);
     }
-
+    // Endpoint GET: restituisce tutte le proiezioni anche quelle passate
     [HttpGet("storico")]
     public async Task<IActionResult> OttieniStoricoProiezioni()
     {
@@ -1967,6 +1764,7 @@ public class ProiezioneController : ControllerBase
         return Ok(proiezioni);
     }
 
+    // Endpoint GET: restituisce una proiezione tramite Id
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
@@ -1988,6 +1786,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+    // Endpoint GET: restituisce una proiezione tramite l'Id del turno
     [HttpGet("turno/{turnoId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
     {
@@ -2015,6 +1814,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+    // Endpoint GET: restituisce una proiezione tramite l'Id della sal
     [HttpGet("sala/{salaId}")]
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
@@ -2041,6 +1841,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+    // Endpoint GET: restituisce una proiezione tramite l'Id del movie (film)
     [HttpGet("movie/{movieId}")]
     public async Task<ActionResult<List<DtoProiezione>>>OttieniPerFilm(string movieId)
     {
@@ -2067,9 +1868,9 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-
+    // Endpoint POST: Crea una proiezione
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2100,8 +1901,9 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+    // Endpoint PUT: Modifica una proiezione
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2122,8 +1924,9 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+    // Endpoint GET: Modifica una proiezione disabilitandola al posto di eliminarla
     [HttpPut("elimina/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2211,7 +2014,7 @@ public class TurnoController : ControllerBase
 
     // Crea un nuovo turno. Rotta riservata unicamente agli utenti con ruolo Gestore o Operatore
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2240,7 +2043,7 @@ public class TurnoController : ControllerBase
 
     // Modifica le informazioni di un turno esistente tramite ID. Riservato a Gestore o Operatore
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2268,7 +2071,7 @@ public class TurnoController : ControllerBase
 
     // Rimuove un turno dal sistema tramite il suo ID. Riservato a Gestore o Operatore
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2388,7 +2191,7 @@ public class BigliettoController : ControllerBase
 
     // PUT: api/Biglietto/{id} - Modifica i biglietti di un biglietto (Solo Gestore o Operatore)
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneBiglietto dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2408,7 +2211,7 @@ public class BigliettoController : ControllerBase
 
     // DELETE: api/Biglietto/{id} - Elimina un biglietto (Solo Gestore o Operatore)
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -2541,7 +2344,7 @@ public class MovieController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
     {
         // Recupera l'identificativo dell'utente autenticato
@@ -2584,7 +2387,7 @@ public class MovieController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
     {
         // Recupera l'identificativo dell'utente autenticato
@@ -2611,7 +2414,7 @@ public class MovieController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         // Recupera l'identificativo dell'utente autenticato
@@ -5710,20 +5513,11 @@ public class GestoreUtentiController : ControllerBase
 
 ## GenereMovieController.cs (modifiche logAzioni)
 ```c#
-// Importa autorizzazioni e gestione ruoli
-using Microsoft.AspNetCore.Authorization;
-// Importa funzionalità dei controller API
-using Microsoft.AspNetCore.Mvc;
-// Permette di leggere i claim dell’utente loggato
-using System.Security.Claims;
-// Importa i DTO utilizzati dal controller
-using NuovoCinemaParadiso.Dtos;
-// Importa i servizi applicativi
-using NuovoCinemaParadiso.Services;
+
 
 namespace NuovoCinemaParadiso.Controllers;
 
-// Indica che è un controller API
+// Indica che è un controller API 
 [ApiController]
 // Route base: /api/GenereMovie
 [Route("api/[controller]")]
@@ -5790,7 +5584,7 @@ public class GenereMovieController : ControllerBase
 
     // Endpoint POST: crea un nuovo genere
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
         // Recupera l'Id dell'utente loggato
@@ -5833,7 +5627,7 @@ public class GenereMovieController : ControllerBase
 
     // Endpoint PUT: modifica un genere esistente
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGenereMovie dto)
     {
         // Modifica il genere tramite service
@@ -5860,7 +5654,7 @@ public class GenereMovieController : ControllerBase
 
     // Endpoint DELETE: elimina un genere tramite Id
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         // Richiede al service di eliminare il genere
@@ -5961,87 +5755,623 @@ public class UtenteController : ControllerBase
         return Ok(risultato);
     }
 
-    // Endpoint POST: permette all'utente loggato di associare una GiftCard
-    [HttpPost("giftCard")]
-    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    [HttpPut("giftCard/riscatta")]
+    public async Task<IActionResult> RiscattaGiftCard(
+        [FromBody] string giftCardCodiceRiscatto)
     {
-        // Recupera l'Id dell'utente loggato dai claim del token
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Recupero ID utente autenticato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Verifica che il DTO non sia nullo e che l'Id della GiftCard sia valorizzato
-        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        // Controllo autenticazione
+        if (utenteId == null)
         {
-            // Registra un log di operazione fallita per l'azione "GiftCard"
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
-            // Restituisce una risposta 400 BadRequest con messaggio di errore
-            return BadRequest("Dati non validi");
+            return Unauthorized("Utente non autenticato.");
         }
 
-        // Richiede al servizio di associare la GiftCard all'utente loggato
-        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
-
-        // Se il servizio non trova utente o GiftCard, o l'operazione fallisce
-        if (risultato == null)
+        // Controllo validità codice
+        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
         {
-            // Registra un log di operazione fallita per l'azione "GiftCard"
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
-            // Restituisce una risposta 404 NotFound con messaggio di errore
-            return NotFound("Utente o GiftCard non trovata");
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Codice riscatto non valido.");
         }
 
-        // Registra un log di operazione riuscita per l'azione "GiftCard"
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
-        // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
-        return Ok(risultato);
+        try
+        {
+            // Chiamata al service
+            DtoGiftCard risultato =
+                await _utenteService.RiscattaGiftCardAsync(
+                    giftCardCodiceRiscatto,
+                    utenteId);
+
+            // Salvataggio log successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                true);
+
+            // Restituzione risultato
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            // Log errore
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return NotFound(new { errore = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log errore generico
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest(new { errore = ex.Message });
+        }
     }
 }
 ```
 
 ## OperatoreController.cs
+
 ```c#
+
+// Importa gli attributi per la gestione dell'autorizzazione
 using Microsoft.AspNetCore.Authorization;
+// Importa le funzionalità base dei controller API
 using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell'utente loggato dal token
 using System.Security.Claims;
+// Importa il servizio applicativo per la gestione degli utenti
 using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati per scambiare dati con il client
 using NuovoCinemaParadiso.Dtos;
 
 namespace NuovoCinemaParadiso.Controllers;
-
+// Indica che questa classe è un controller API
 [ApiController]
+// Definisce la route base: /api/Operatore
 [Route("api/[controller]")]
 [Authorize]
 public class OperatoreController : ControllerBase
 {
+    // Riferimento al servizio che gestisce la logica degli operatori
     private readonly OperatoreService _operatoreService;
+    // Riferimento al servizio che registra i log delle azioni
     private readonly LogAzioniService _logAzioniService;
 
+    // Costruttore con dependency injection dei servizi necessari
     public OperatoreController(OperatoreService operatoreService, LogAzioniService logAzioniService)
     {
+        // Assegna il servizio utenti al campo privato
         _operatoreService = operatoreService;
+        // Assegna il servizio utenti al campo privato
         _logAzioniService = logAzioniService;
     }
-
+    // ------------------------------------------------------------
+    // 1) RICARICA
+    // ------------------------------------------------------------
     [HttpPost("ricarica")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Ricarica([FromBody] DtoRicarica dtoRicarica)
     {
+        // Recupera l'Id dell'utente loggato dai claim del token
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
+
+        // Verifica che il DTO non sia nullo e che l'Id dell'abbonamento sia valorizzato
         bool successo = await _operatoreService.RicaricaAsync(dtoRicarica);
-        if (!successo)        {
+        if (!successo){
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica fallita per {dtoRicarica.Email}", false);
             return NotFound($"Utente con email {dtoRicarica.Email} non trovato.");
         }
+
+        // Registra log di operazione riuscita
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica riuscita per {dtoRicarica.Email}", true);
 
+        // Restituisce un messaggio di successo
         return Ok("Ricarica effettuata con successo.");
     }
+    // ------------------------------------------------------------
+    // 2) OTTIENI TUTTI I PROFILI UTENTE
+    // ------------------------------------------------------------
+    [HttpGet("ListaUtenti")]
+    [Authorize(Roles = Ruoli.peratore)]
+    // Solo Gestore e Operatore possono accedere.
+    public async Task<IActionResult> OttieniTuttiIProfili()
+    {
+        // Recupero tutti gli utenti tramite il servizio Gestore.
+        List<DtoUtente> utenti = await _gestoreService.OttieniUtentiAsync();
 
-    
+        // Recupero l’ID dell’utente autenticato dal token JWT.
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Registro nel log che la ricerca è stata effettuata.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profili",true);
+
+
+        // Secondo log (puoi unificarli se vuoi).
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili",true);
+
+
+        // Restituisco la lista degli utenti.
+        return Ok(utenti);
+    }
+
+    // ------------------------------------------------------------
+    // 3) RICERCA PROFILO TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpGet("ricercaProfilo/{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Recupero l’utente tramite ID.
+        DtoUtente? utente = await _gestoreService.OttieniUtenteTramiteIdAsync(id);
+
+        // Se non trovato → log fallimento + 404.
+        if (utente == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",false);
+
+
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        // Log successo.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ricerca profilo",true);
+
+
+        return Ok(utente);
+    }
+
+    // ------------------------------------------------------------
+    // 4) ELIMINA UTENTE TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpDelete("eliminaUtente/{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> EliminaTramiteId(string Id)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Chiamo il servizio per eliminare l’utente.
+        var risultato = await _gestoreService.EliminaUtentePerIdAsync(Id);
+
+        // Se non trovato → log fallimento + 404.
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",false);
+
+
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        // Log successo.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo",true);
+
+
+        return Ok(risultato);
+    }
+
+    // ------------------------------------------------------------
+    // 5) OTTIENI TUTTI GLI BIGLIETTI
+    // ------------------------------------------------------------
+    [HttpGet("biglietti")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniTuttiGliBiglietti()
+    {
+        // Recupero tutti gli biglietti.
+        List<DtoBiglietto> biglietti = await _gestoreService.OttieniBiglietti();
+
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Log dell’operazione.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli biglietti gestore",true);
+
+
+
+        return Ok(biglietti);
+    }
+
+    // ------------------------------------------------------------
+    // 6) OTTIENI BIGLIETTO TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpGet("biglietto/{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniTramiteIdPerGestore(string id)
+    {
+        var risultato = await _gestoreService.OttieniBigliettoTramiteIdAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non trovato → log fallimento + 404.
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",false);
+
+
+            return NotFound($"Biglietto con id {id} non trovato");
+        }
+
+        // Log successo.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni biglietti tramite id gestore",true);
+
+
+        return Ok(risultato);
+    }
+
+    // ------------------------------------------------------------
+    // 7) OTTIENI UTENTI TRAMITE ABBONAMENTO
+    // ------------------------------------------------------------
+    [HttpGet("utenti/abbonamenti/{abbonamentoid}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniTramiteAbbonamentoAsync(string abbonamentoId)
+    {
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Validazione dell’ID.
+        if (string.IsNullOrWhiteSpace(abbonamentoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
+
+            return BadRequest("AbbonamentoId non valido");
+        }
+
+        // Recupero gli utenti con quell’abbonamento.
+        var risultato = await _gestoreService.OttieniTramiteAbbonamentoAsync(abbonamentoId);
+
+        // Se nessuno trovato → log fallimento + 404.
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",false);
+
+
+            return NotFound("Nessun utente trovato per questo abbonamento");
+        }
+
+        // Log successo.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per abbonamento",true);
+
+
+        return Ok(risultato);
+    }
+    // ------------------------------------------------------------
+    // 8) OTTIENI ABBONAMENTO TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpGet("abbonamento/{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniAbbonamentoTramiteIdPerGestore(string id)
+    {
+        // chiamo il service per trovare l'abbonamento
+        var risultato = await _gestoreService.OttieniAbbonamentoTramiteIdPerGestoreAsync(id);
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // validazione dell'ID
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",false);
+            // ritorno un 404 quando non riesco a trovarlo
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+        // log di successo
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id gestore",true);
+
+        return Ok(risultato);
+    }
+
+    // ------------------------------------------------------------
+    // 9) OTTIENI GIFTCARD TRAMITE ID
+    // ------------------------------------------------------------
+    [HttpGet("giftcard/{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniGiftCardTramiteIdPerGestore(string id)
+    {
+        // Recupera la gift card tramite ID usando il service dedicato agli gestore
+        var risultato = await _gestoreService.OttieniGiftCardTramiteIdPerGestoreAsync(id);
+
+        // Recupera l'id dell'utente autenticato dal token JWT
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se la gift card non esiste, logga l’operazione come fallita e ritorna 404
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",false);
+
+            return NotFound($"Giftcard con id {id} non trovato");
+        }
+
+        // Se la gift card esiste, logga l’operazione come riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni giftcard tramite id gestore",true);
+
+
+        // Restituisce la gift card trovata
+        return Ok(risultato);
+    }
+    // ------------------------------------------------------------
+    // 10) OTTIENI UTENTI TRAMITE L'ID DELLA GIFTCARD 
+    // ------------------------------------------------------------
+    [HttpGet("utenti/giftCard/{giftcardId}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerGestore(string giftcardId)
+    {
+        // Recupera l'id dell’utente autenticato
+        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Controllo base sul parametro ricevuto
+        if (string.IsNullOrWhiteSpace(giftcardId))
+        {
+            // Log operazione fallita per parametro non valido
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
+
+
+            return BadRequest("giftcardId non valido");
+        }
+
+        // Recupera gli utenti associati alla gift card
+        var risultato = await _gestoreService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
+
+        // Se non ci sono utenti associati, logga fallimento e ritorna 404
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",false);
+
+
+            return NotFound("Nessun utente trovato per questa giftcard");
+        }
+
+        // Log operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni gli utenti per giftcard",true);
+
+
+        // Restituisce la lista degli utenti trovati
+        return Ok(risultato);
+}
 }
 ```
- ## AppExceptions.cs (Gestisce gli errori tra i controller e i services)
+
+## ContoCinemaController.cs
+
+```c#
+
+// Importa autorizzazioni e gestione ruoli
+using Microsoft.AspNetCore.Authorization;
+// Importa funzionalità dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell’utente loggato
+using System.Security.Claims;
+// Importa i DTO utilizzati dal controller
+using NuovoCinemaParadiso.Dtos;
+// Importa i servizi applicativi
+using NuovoCinemaParadiso.Services;
+// Importa i servizi per gestire le ecezzioni
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che è un controller API 
+[ApiController]
+// Route base: /api/ContoCinema
+[Route("api/[controller]")]
+// Richiede autenticazione per accedere agli endpoint
+[Authorize (Roles = Ruoli.Operatore)]
+public class ContoCinemaController : ControllerBase
+{
+    // Service per la gestione del conto del cinema
+    private readonly ContoCinemaService _contoCinemaService;
+    // Service per la registrazione dei log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Iniezione dei servizi tramite costruttore
+    public ContoCinemaController(ContoCinemaService contoCinemaService, LogAzioniService logAzioniService)
+    {
+        _contoCinemaService = contoCinemaService;
+        _logAzioniService = logAzioniService;
+    }
+
+    // Endpoint GET: restituisce il conto
+    [HttpGet]
+    public async Task<IActionResult> OttieniDatiConto()
+    {
+        // Recupera tutti i dati
+        DtoContoCinema contoCinema = await _contoCinemaService.OttieniDatiContoAsync();
+
+        // Recupera l'Id dell'utente loggato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        // Verifico la presenza
+        if(contoCinema == null)
+        {
+             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", false);
+
+            return BadRequest(new { messaggio = "Non è presente nessun conto." });
+        }
+
+        // Registra log di operazione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", true);
+
+        // Restituisce il conto del cinema
+        return Ok(contoCinema);
+    }
+
+//
+// SECONDO LE SPECIFICHE DOVREBBE ESSERE HARD CODED
+//
+
+/*
+    // Endpoint POST: crea un nuovo conto
+    [HttpPost]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneContoCinema dto)
+    {
+        // Recupera l'Id dell'utente loggato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        // Recupera tutti i dati del conto
+        DtoContoCinema contoCinema = await _contoCinemaService.OttieniDatiContoAsync();
+
+        // Verifico la presenza del conto
+        if(contoCinema != null)
+        {
+             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", false);
+
+            return BadRequest(new { messaggio = "Conto già presente." });
+        }
+
+        // Prova di creazione del conto
+        DtoContoCinema? risultato = await _contoCinemaService.CreazioneAsync(dto);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", false);
+
+            return BadRequest(new { messaggio = "Dati conto non validi." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", true);
+
+        // Restituisce il conto
+        return Ok(risultato);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneContoCinema dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        try
+        {
+            DtoContoCinema? risultato = await _contoCinemaService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", true);
+
+            return Ok(risultato);
+
+        }
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", false);
+            return BadRequest(new { message = ex.Message });
+        }
+
+        catch (ItemNotFoundException ex)
+        {
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", false);
+
+            return NotFound(new { message = ex.Message });
+
+        }
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _contoCinemaService.EliminaAsync(id);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione dati conto", false);
+
+            return NotFound(new { messaggio = "Dati conto non trovati." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione dati conto", true);
+
+        return Ok(new { message = "I dati del conto sono stati eliminati correttamente" });
+    }
+    */
+}
+
+## OperatoreUtentiController.cs
+
+```c#
+// Importa gli attributi per la gestione dell'autorizzazione
+
+// Importa gli attributi per la gestione dell'autorizzazione
+using Microsoft.AspNetCore.Authorization;
+// Importa le funzionalità base dei controller API
+using Microsoft.AspNetCore.Mvc;
+// Permette di leggere i claim dell'utente loggato dal token
+using System.Security.Claims;
+// Importa il servizio applicativo per la gestione degli utenti
+using NuovoCinemaParadiso.Services;
+// Importa i DTO utilizzati per scambiare dati con il client
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+// Indica che questa classe è un controller API
+[ApiController]
+// Definisce la route base: /api/OperatoreUtenti
+[Route("api/[controller]")]
+// Richiede che l'utente sia autenticato per accedere a tutti gli endpoint del controller
+[Authorize(Roles = Ruoli.Operatore)]
+public class OperatoreUtentiController : ControllerBase
+{
+    // Riferimento al servizio che gestisce la logica sugli utenti
+    private readonly RuoloUtenteService _ruoloUtenteService;
+    // Riferimento al servizio che registra i log delle azioni
+    private readonly LogAzioniService _logAzioniService;
+
+    // Costruttore con dependency injection dei servizi necessari
+    public OperatoreUtentiController(RuoloUtenteService ruoloUtenteService, LogAzioniService logAzioniService)
+    {
+        // Assegna il servizio utenti al campo privato
+        _ruoloUtenteService = ruoloUtenteService;
+        // Assegna il servizio log al campo privato
+        _logAzioniService = logAzioniService;
+    }
+
+    // ------------------------------------------------------------
+    // 3) CAMBAI RUOLO DELL'UTENTE
+    // ------------------------------------------------------------
+    [HttpPut("cambia-ruolo")]
+    public async Task<IActionResult> CambiaRuolo([FromBody] DtoModificaRuoloUtente dto)
+    {
+        
+        // Recupero l’utente tramite ID.
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        
+        // aseegno il nuovo ruolo
+        string? nuovoRuolo = await _ruoloUtenteService.ModificaRuoloUtente(dto);
+        if (nuovoRuolo == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Cambio ruolo",false);
+
+            return BadRequest(new { messaggio = "Utente o ruolo non valido." });
+        }
+        
+        // Log successo.
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Cambio ruolo",true);
+        
+        return Ok(new
+        {
+            messaggio = "Ruolo aggiornato correttamente.",
+            email = dto.Email,
+            ruolo = nuovoRuolo
+        });
+    }
+}
+```
+
+## AppExceptions.cs (Gestisce gli errori tra i controller e i services)
 
 ```c#
 

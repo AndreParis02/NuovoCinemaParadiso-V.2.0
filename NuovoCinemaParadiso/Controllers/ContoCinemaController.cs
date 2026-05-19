@@ -9,7 +9,7 @@ namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-  [Authorize (Roles = Ruoli.Gestore)]
+  [Authorize (Roles = Ruoli.Operatore)]
 public class ContoCinemaController : ControllerBase
 {
     private readonly ContoCinemaService _contoCinemaService;
@@ -29,7 +29,6 @@ public class ContoCinemaController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", true);
 
         if(contoCinema == null)
         {
@@ -38,88 +37,13 @@ public class ContoCinemaController : ControllerBase
             return BadRequest(new { messaggio = "Non è presente nessun conto." });
         }
 
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", true);
+
+
         return Ok(contoCinema);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneContoCinema dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        DtoContoCinema contoCinema = await _contoCinemaService.OttieniDatiContoAsync();
-
-        if(contoCinema != null)
-        {
-             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", false);
-
-            return BadRequest(new { messaggio = "Conto già presente." });
-        }
-
-        DtoContoCinema? risultato = await _contoCinemaService.CreazioneAsync(dto);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", false);
-
-            return BadRequest(new { messaggio = "Dati conto non validi." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione dati conto", true);
-
-        return Ok(risultato);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneContoCinema dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        try
-        {
-            DtoContoCinema? risultato = await _contoCinemaService.ModificaAsync(id, dto);
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", true);
-
-            return Ok(risultato);
-
-        }
-        catch (ModificaException ex)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", false);
-            return BadRequest(new { message = ex.Message });
-        }
-
-        catch (ItemNotFoundException ex)
-        {
-
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica dati conto", false);
-
-            return NotFound(new { message = ex.Message });
-
-        }
-    }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Elimina(string id)
-    {
-        bool eliminato = await _contoCinemaService.EliminaAsync(id);
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        if (!eliminato)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione dati conto", false);
-
-            return NotFound(new { messaggio = "Dati conto non trovati." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione dati conto", true);
-
-        return Ok(new { message = "I dati del conto sono stati eliminati correttamente" });
-    }
+    //
+    // PORZIONE DI CODICE ELIMINATA. FARE RIFERIMENTA AL README
+    //
 }

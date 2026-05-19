@@ -33,50 +33,84 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
-        try{
-        var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
-        return Ok(risultato);
+        try
+        {
+            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
+            return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
-        catch(ItemAlredyexist ex)
+        catch (ItemAlredyexist ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
     }
 
-   /* [HttpPost("giftCard")]
-    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    [HttpPut("giftCard/riscatta")]
+    public async Task<IActionResult> RiscattaGiftCard(
+    [FromBody] string giftCardCodiceRiscatto)
     {
+        // Recupero ID utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
 
-        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        // Controllo autenticazione
+        if (utenteId == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
-            return BadRequest("Dati non validi");
+            return Unauthorized("Utente non autenticato.");
         }
+
+        // Controllo validità codice
+        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Codice riscatto non valido.");
+        }
+
         try
         {
-           // var risultato = await _utenteService.RicaricaGiftCardAsync(dto.GiftCardId, dto);
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", true);
-           // return Ok(risultato);
+            // Chiamata al service
+            DtoGiftCard risultato =
+                await _utenteService.RiscattaGiftCardAsync(
+                    giftCardCodiceRiscatto,
+                    utenteId);
+
+            // Salvataggio log successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                true);
+
+            // Restituzione risultato
+            return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
+            // Log errore
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
             return NotFound(new { errore = ex.Message });
         }
-        catch (ItemAlredyexist ex)
+        catch (Exception ex)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
-            return NotFound(new { errore = ex.Message });
+            // Log errore generico
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest(new { errore = ex.Message });
         }
-    }*/
+    }
 }
