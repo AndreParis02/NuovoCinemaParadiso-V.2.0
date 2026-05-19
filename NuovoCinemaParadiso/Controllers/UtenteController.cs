@@ -65,7 +65,7 @@ public class UtenteController : ControllerBase
         }
         try
         {
-            var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
+            var risultato = await _utenteService.RicaricaGiftCardAsync(dto.GiftCardId, utenteId);
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", true);
             return Ok(risultato);
         }

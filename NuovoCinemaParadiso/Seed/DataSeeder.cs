@@ -224,7 +224,7 @@ public static class DataSeeder
     string titolo,
     string descrizione,
     int durataMinuti,
-    decimal prezzoMovie,
+    int prezzoMovie,
     string genereId)
     {
         List<Movie> movies = await context.Movies.ToListAsync();
@@ -258,7 +258,7 @@ public static class DataSeeder
 
     private static async Task<TipologiaSala> AssicuraEsistenzaTipologiaSala(
      ContestoDb context,
-     string nome, decimal maggiorazioneprezzo)
+     string nome, int maggiorazioneprezzo)
     {
         List<TipologiaSala> tipologieSala = await context.TipologieSala.ToListAsync();
         for (int i = 0; i < tipologieSala.Count; i++)
@@ -350,7 +350,7 @@ public static class DataSeeder
         return nuovoTurno;
     }
 
-    private static async Task AssicuraEsistenzaAbbonamento(ContestoDb context, string nome, decimal prezzo, int sconto, int durata)
+    private static async Task AssicuraEsistenzaAbbonamento(ContestoDb context, string nome, int prezzo, int sconto, int durata)
     {
         List<Abbonamento> abbonamenti = await context.Abbonamenti.ToListAsync();
         for (int i = 0; i < abbonamenti.Count; i++)
@@ -423,7 +423,7 @@ public static class DataSeeder
     string utenteId,
     int numeroBiglietti,
     DateTimeOffset orarioCreazione,
-    decimal prezzoFinale,
+    int prezzoFinale,
     string metodoPagamento)
     {
         List<Biglietto> biglietti = await context.Biglietti.ToListAsync();

@@ -26,7 +26,7 @@ public class Biglietto
     public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
 
     [Required]
-    public decimal PrezzoFinale {get; set;}
+    public int PrezzoFinale {get; set;}
     
     [Required]
     public string MetodoPagamento { get; set; } = "standard";

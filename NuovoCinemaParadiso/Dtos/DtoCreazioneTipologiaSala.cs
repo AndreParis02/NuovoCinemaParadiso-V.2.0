@@ -6,5 +6,5 @@ public class DtoCreazioneTipologiaSala
 {
     [Required]
     public string Nome { get; set; } = string.Empty;
-    public decimal MaggiorazionePrezzo { get; set; }
+    public int MaggiorazionePrezzo { get; set; }
 }

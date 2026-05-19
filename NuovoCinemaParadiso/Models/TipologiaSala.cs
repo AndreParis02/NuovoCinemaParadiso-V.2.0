@@ -10,6 +10,6 @@ public class TipologiaSala
     public string Id { get; set; } = Guid.NewGuid().ToString();
     [Required]
     public string Nome { get; set; } = string.Empty;
-    public decimal MaggiorazionePrezzo { get; set; }
+    public int MaggiorazionePrezzo { get; set; }
     public List<Sala> Sale { get; set; } = new List<Sala>();
 }

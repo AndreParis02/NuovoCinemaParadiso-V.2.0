@@ -14,7 +14,7 @@ public class Abbonamento
     [Required]
     public int Durata {get;set;} 
     [Required]
-    public decimal Prezzo {get;set;}
+    public int Prezzo {get;set;}
     [Required]
     public int Sconto {get;set;}
     public List<Utente> Utenti {get;set;} = new List<Utente>();

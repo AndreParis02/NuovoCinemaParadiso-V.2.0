@@ -17,7 +17,7 @@ public class Movie
     [Range(1, int.MaxValue)]
     public int DurataMinuti {get;set;} 
     [Range(typeof(decimal), "0.01", "999999999")]
-    public decimal PrezzoMovie {get;set;}
+    public int PrezzoMovie {get;set;}
     public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
     public string GenereId {get;set;} = string.Empty;
     

@@ -26,12 +26,12 @@ public class BigliettoService
                 // Recupero entità per i calcoli
                 var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
                 var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
-                
+
                 if (utente == null || proiezione == null) continue; // Salta se mancano dati integri
 
                 var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
                 var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-                
+
                 if (movie == null || sala == null) continue;
 
                 var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
@@ -66,7 +66,7 @@ public class BigliettoService
         if (biglietto.UtenteId != utenteId)
             return (null, "Accesso negato: questo biglietto non ti appartiene.");
 
-        
+
         var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
         var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId);
         if (utente == null || proiezione == null) return (null, "Dati della proiezione o utente non trovati.");
@@ -94,7 +94,7 @@ public class BigliettoService
 
     public async Task<(DtoBiglietto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
-        
+
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100)
             return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
 
@@ -111,6 +111,9 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia sala non trovata.");
 
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        if (contoCinema == null) return (null, "Dati conto non disponibili");
+
         Biglietto biglietto = new Biglietto
         {
             UtenteId = utenteId,
@@ -122,7 +125,10 @@ public class BigliettoService
         };
 
         _contesto.Biglietti.Add(biglietto);
+        Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
         await _contesto.SaveChangesAsync();
+
+
 
         DtoBiglietto risultato = new DtoBiglietto
         {
@@ -162,7 +168,8 @@ public class BigliettoService
 
         await _contesto.SaveChangesAsync();
 
-        return (new DtoBiglietto {
+        return (new DtoBiglietto
+        {
             Id = bigliettoEsistente.Id,
             UtenteId = bigliettoEsistente.UtenteId,
             ProiezioneId = bigliettoEsistente.ProiezioneId,

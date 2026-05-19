@@ -1,39 +1,19 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static Decimal CalcolaPrezzoFinale(decimal prezzoMovie, decimal maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
     {
-        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
+        int prezzoBiglietto = prezzoMovie + maggiorazione;
 
         if (metodoPagamento == "abbonamento" && utente.SeAbbonato && utente.Abbonamento != null)
         {
-            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-            decimal prezzoScontato = prezzoBiglietto - sconto;
+            int sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
+            int prezzoScontato = prezzoBiglietto - sconto;
             return prezzoScontato * numeroBiglietti;
-        }
-        else if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard && utente.GiftCard != null)
-        {
-            if (utente.GiftCard.NumeroMovie > numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie = utente.GiftCard.NumeroMovie - numeroBiglietti;
-                return 0;
-            }
-            else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-                return 0;
-            }
-            else
-            {
-                int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-                return prezzoBiglietto * bigliettiRimanenti;
-            }
         }
         else
         {
@@ -41,6 +21,12 @@ public static class Calcoli
         }
     }
 
+    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    {
+        utente.Saldo = utente.Saldo - prezzo;
+        contoCinema.Conto = contoCinema.Conto + prezzo;
+    }
+   
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
@@ -51,5 +37,15 @@ public static class Calcoli
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
         TimeSpan differenza = dataScadenza - DateTime.Now;
         return (int)differenza.TotalDays;
+    }
+
+    public static int CaricaGiftCard(Utente utente, GiftCard giftCard)
+    {
+        if(giftCard.Valore > utente.Saldo)
+        {
+           throw new Exception("Saldo utente non sufficente");
+        }
+        
+        return utente.Saldo = utente.Saldo - giftCard.Valore;    
     }
 }

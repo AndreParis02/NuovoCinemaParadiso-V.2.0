@@ -143,33 +143,6 @@ public class GestoreController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpGet("utenti/giftCard/{giftcardId}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteGiftCardPerGestore(string giftcardId)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        if (string.IsNullOrWhiteSpace(giftcardId))
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", false);
-
-            return BadRequest("giftcardId non valido");
-        }
-        try
-        {
-            var risultato = await _gestoreService.OttieniUtentiTramiteGiftCardAsync(giftcardId);
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", true);
-            return Ok(risultato);
-        }
-        catch
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per giftcard", false);
-            return NotFound("Nessun utente trovato per questa giftcard");
-        }
-    }
-
     [HttpGet("log")]
     [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniLogAzioni()

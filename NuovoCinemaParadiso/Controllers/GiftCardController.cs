@@ -21,6 +21,7 @@ public class GiftCardController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTutteLeGiftCard()
     {
         List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
@@ -34,6 +35,7 @@ public class GiftCardController : ControllerBase
     }
 
     [HttpGet("{id}")]
+     [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -52,23 +54,6 @@ public class GiftCardController : ControllerBase
 
         return Ok(risultato);
     }
-    
-
-    [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-        
-        DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione di una giftcard" ,true);
-
-        return Ok(risultato);
-    }
-
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.GestoreOrOperatore)]
@@ -110,5 +95,4 @@ public class GiftCardController : ControllerBase
 
         return NoContent();
     }
-
 }
