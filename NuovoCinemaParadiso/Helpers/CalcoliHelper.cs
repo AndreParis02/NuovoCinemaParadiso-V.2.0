@@ -7,9 +7,10 @@ public static class Calcoli
 {
     public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
     {
+        Console.WriteLine($"Calcolaprezzofinale: prezzoMovie={prezzoMovie}, maggiorazione={maggiorazione}, numeroBiglietti={numeroBiglietti}, metodoPagamento={metodoPagamento}, utente.SeAbbonato={utente.SeAbbonato}, utente.AbbonamentoId={utente.AbbonamentoId}");
         int prezzoBiglietto = prezzoMovie + maggiorazione;
 
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato && utente.Abbonamento != null)
+        if (metodoPagamento == "abbonamento")
         {
             int sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
             int prezzoScontato = prezzoBiglietto - sconto;
