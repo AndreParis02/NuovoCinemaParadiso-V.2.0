@@ -93,6 +93,8 @@ public static class DataSeeder
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
+
+        await AssicuraEsistenzaContoCinema(contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -439,6 +441,25 @@ public static class DataSeeder
         };
 
         context.Biglietti.Add(nuovoBiglietto);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task AssicuraEsistenzaContoCinema(
+    ContestoDb context,
+    string iban,
+    string titolareConto,
+    int conto)
+    {
+        List <ContoCinema> ContiCinema = await context.ContoCinema.ToListAsync();
+
+        ContoCinema nuovoContoCinema = new ContoCinema
+        {
+            Iban = iban,
+            TitolareConto = titolareConto,
+            Conto = conto
+        };
+
+        context.ContoCinema.Add(nuovoContoCinema);
         await context.SaveChangesAsync();
     }
 }
