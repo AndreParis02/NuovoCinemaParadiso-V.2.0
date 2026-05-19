@@ -46,9 +46,9 @@ public class UtenteService
         {
             throw new NotFoundException("Utente", utenteId);
 
-        }   
+        }
 
-        if(utenteTrovato.SeAbbonato)
+        if (utenteTrovato.SeAbbonato)
         {
             throw new ItemAlredyexist("Abbonamento");
         }
@@ -72,9 +72,12 @@ public class UtenteService
     }
 
 
-    public async Task<DtoGiftCard> RicaricaGiftCardAsync( string utenteId, DtoRicaricaGiftCard dto)
+    public async Task<DtoGiftCard> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
     {
         Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        Console.WriteLine($"utenteId: {utenteCorrente.Id}");
+
+        Console.WriteLine($"Saldo letto dal DB: {utenteCorrente.Saldo}");
 
         if (utenteCorrente?.Id == null)
         {
@@ -85,12 +88,12 @@ public class UtenteService
         {
             throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
         }
-        
-        if(utenteCorrente.Saldo < dto.Importo)
+
+        if (utenteCorrente.Saldo < dto.Importo)
         {
             throw new Exception("Impossibile caricare la giftcard. Importo superiore al saldo");
         }
-        
+
         utenteCorrente.Saldo -= dto.Importo;
 
         GiftCard? nuovaGiftCard = new GiftCard()
@@ -99,7 +102,7 @@ public class UtenteService
             Valore = dto.Importo,
             CodiceRiscatto = GiftCardHelper.GeneraCodice()
         };
-        
+
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
         await _contesto.SaveChangesAsync();
 
@@ -134,17 +137,17 @@ public class UtenteService
                 break;
             }
         }
-        
+
         if (giftCardTrovata == null)
         {
             throw new NotFoundException("GiftCard", giftCardCodiceRiscatto);
         }
 
-        if(giftCardTrovata.Riscattata == true)
+        if (giftCardTrovata.Riscattata == true)
         {
             throw new Exception("Il codice riscatto è già stato utilizzato.");
         }
-        
+
         utenteCorrente.Saldo += giftCardTrovata.Valore;
         giftCardTrovata.Riscattata = true;
 

@@ -3,7 +3,6 @@ using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Helpers;
 using NuovoCinemaParadiso.Data;
-using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
@@ -37,8 +36,8 @@ public class AuthService
 
             return IdentityResult.Failed(errori.ToArray());
         }
-        
-        if(!dto.Email.Contains('.'))
+
+        if (!dto.Email.Contains('.'))
         {
             throw new InvalidEmail(dto.Email);
         }
@@ -48,8 +47,8 @@ public class AuthService
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
         utente.Eta = dto.Eta;
-        utente.Saldo = dto.Saldo;
         dto.Saldo = 100;
+        utente.Saldo = dto.Saldo;
 
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 
@@ -110,6 +109,7 @@ public class AuthService
         response.Eta = utente.Eta;
         response.DataInizioAbbonamento = utente.DataInizioAbbonamento;
         response.SeAbbonato = utente.SeAbbonato;
+        response.Saldo = utente.Saldo;
 
         if (ruoli.Count > 0)
         {
