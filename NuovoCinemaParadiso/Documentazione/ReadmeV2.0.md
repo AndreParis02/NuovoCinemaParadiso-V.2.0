@@ -2620,6 +2620,8 @@ public class GiftCardService
 }
 ```
 
+# Services
+
 ## AuthService.cs 
 
 ```c#
@@ -4025,6 +4027,199 @@ public class BigliettoService
 }
 ```
 
+## GenereMovieService.cs
+```c#
+// Namespace che contiene i servizi dell’applicazione
+namespace NuovoCinemaParadiso.Services;
+
+// Classe di servizio dedicata alla gestione dei generi dei film
+public class GenereMovieService
+{
+    // Campo privato che rappresenta il contesto del database
+    private readonly ContestoDb _contesto;
+
+    // Costruttore che riceve il contesto tramite dependency injection
+    public GenereMovieService(ContestoDb contesto)
+    {
+        // Salva il contesto nel campo privato
+        _contesto = contesto;
+    }
+
+    // Metodo che restituisce tutti i generi in formato DTO
+    public async Task<List<DtoGenereMovie>> OttieniTuttoAsync()
+    {
+        // Crea la lista dei DTO da restituire
+        List<DtoGenereMovie> risultato = new List<DtoGenereMovie>();
+
+        // Recupera tutti i generi dal database
+        List<GenereMovie> generiMovies = await _contesto.GeneriMovies.ToListAsync();
+
+        // Cicla su ogni genere trovato
+        for (int i = 0; i < generiMovies.Count; i++)
+        {
+            // Genere corrente del ciclo
+            GenereMovie genereCorrente = generiMovies[i];
+
+            // Crea un DTO per il genere corrente
+            DtoGenereMovie dto = new DtoGenereMovie();
+            // Copia l'Id nel DTO
+            dto.Id = genereCorrente.Id;
+            // Copia il nome del genere nel DTO
+            dto.Genere = genereCorrente.Genere;
+
+            // Aggiunge il DTO alla lista finale
+            risultato.Add(dto);
+        }
+
+        // Restituisce la lista completa dei generi
+        return risultato;
+    }
+
+    // Metodo che restituisce un genere tramite Id
+    public async Task<DtoGenereMovie?> OttieniTramiteIdAsync(string id)
+    {
+        // Cerca il genere nel database tramite Id
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(id);
+
+        // Se non esiste, restituisce null
+        if (genereMovie == null)
+        {
+            return null;
+        }
+
+        // Crea il DTO da restituire
+        DtoGenereMovie risultato = new DtoGenereMovie();
+        // Imposta l'Id nel DTO
+        risultato.Id = genereMovie.Id;
+        // Imposta il nome del genere nel DTO
+        risultato.Genere = genereMovie.Genere;
+
+        // Restituisce il DTO
+        return risultato;
+    }
+
+                            //(PER FUTURE IMPLEMENTAZIONI, METODI DI GESTIONE)
+
+    // Metodo che crea un nuovo genere
+    public async Task<DtoGenereMovie?> CreazioneAsync(DtoCreazioneGenereMovie dto)
+    {
+        // Recupera tutti i generi esistenti
+        List<GenereMovie> generiMovies = _contesto.GeneriMovies.ToList();
+
+        // Controlla se esiste già un genere con lo stesso nome
+        for (int i = 0; i < generiMovies.Count; i++)
+        {
+            // Genere corrente del ciclo
+            GenereMovie genereMoviecorrente = generiMovies[i];
+
+            // Confronta i nomi ignorando maiuscole/minuscole
+            bool stessoNome = string.Equals(
+                genereMoviecorrente.Genere,
+                dto.Genere,
+                StringComparison.OrdinalIgnoreCase);
+
+            // Se esiste già, non crea nulla
+            if (stessoNome)
+            {
+                return null;
+            }
+        }
+
+        // Crea un nuovo oggetto GenereMovie
+        GenereMovie genereMovie = new GenereMovie();
+        // Imposta il nome del genere
+        genereMovie.Genere = dto.Genere;
+
+        // Aggiunge il nuovo genere al database
+        _contesto.GeneriMovies.Add(genereMovie);
+        // Salva le modifiche
+        await _contesto.SaveChangesAsync();
+
+        // Crea il DTO da restituire
+        DtoGenereMovie risultato = new DtoGenereMovie();
+        // Imposta l'Id generato
+        risultato.Id = genereMovie.Id;
+        // Imposta il nome del genere
+        risultato.Genere = genereMovie.Genere;
+
+        // Restituisce il DTO
+        return risultato;
+    }
+
+    // Metodo che modifica un genere esistente
+    public async Task<DtoGenereMovie?> ModificaAsync(string id, DtoCreazioneGenereMovie dto)
+    {
+        // Cerca il genere tramite Id
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(id);
+
+        // Se non esiste, lancia eccezione personalizzata
+        if (genereMovie == null)
+        {
+            throw new ItemNotFoundException("Genere");
+        }
+
+        // Recupera tutti i generi esistenti
+        List<GenereMovie> generiMovies = _contesto.GeneriMovies.ToList();
+
+        // Controlla se esiste già un genere con lo stesso nome
+        for (int i = 0; i < generiMovies.Count; i++)
+        {
+            // Genere corrente del ciclo
+            GenereMovie genereMoviecorrente = generiMovies[i];
+
+            // Confronta i nomi ignorando maiuscole/minuscole
+            bool stessoNome = string.Equals(
+                genereMoviecorrente.Genere,
+                dto.Genere,
+                StringComparison.OrdinalIgnoreCase);
+
+            // Se esiste già, lancia eccezione di modifica non valida
+            if (stessoNome)
+            {
+                throw new ModificaException("genere");
+            }
+        }
+
+        // Aggiorna il nome del genere
+        genereMovie.Genere = dto.Genere;
+
+        // Salva le modifiche nel database
+        await _contesto.SaveChangesAsync();
+
+        // Crea il DTO da restituire
+        DtoGenereMovie risultato = new DtoGenereMovie();
+        // Imposta l'Id
+        risultato.Id = genereMovie.Id;
+        // Imposta il nome aggiornato
+        risultato.Genere = genereMovie.Genere;
+
+        // Restituisce il DTO aggiornato
+        return risultato;
+    }
+
+    // Metodo che elimina un genere tramite Id
+    public async Task<bool> EliminaAsync(string id)
+    {
+        // Cerca il genere da eliminare
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(id);
+
+        // Se non esiste, restituisce false
+        if (genereMovie == null)
+        {
+            return false;
+        }
+
+        // Rimuove il genere dal database
+        _contesto.GeneriMovies.Remove(genereMovie);
+        // Salva le modifiche
+        await _contesto.SaveChangesAsync();
+
+        // Restituisce true per confermare l'eliminazione
+        return true;
+    }
+}
+```
+
 ## GiftCardService.cs
 
 ```c#
@@ -4168,8 +4363,8 @@ public class GiftCardService
     }
 }
 
-```c#
-
+```
+## OperatoreService.cs
 ```c#
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -5383,6 +5578,9 @@ public class GenereMovieController : ControllerBase
         // Restituisce il genere trovato
         return Ok(risultato);
     }
+
+                         //(IMPLEMENTAZIONI FUTURE, METODI DI GESTIONE) 
+
 
     // Endpoint POST: crea un nuovo genere
     [HttpPost]
