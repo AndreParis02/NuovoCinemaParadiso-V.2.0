@@ -35,7 +35,7 @@ public class ProiezioneController : ControllerBase
     }
 
     [HttpGet("storico")]
-    [Authorize(Roles = Ruoli.Gestore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> OttieniStoricoProiezioni()
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();
@@ -150,7 +150,7 @@ public class ProiezioneController : ControllerBase
 
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -182,7 +182,7 @@ public class ProiezioneController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -204,7 +204,7 @@ public class ProiezioneController : ControllerBase
     }
 
     [HttpPut("elimina/{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

@@ -55,7 +55,7 @@ public class TipologiaSalaController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -89,7 +89,7 @@ public class TipologiaSalaController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
     {
         DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
@@ -110,7 +110,7 @@ public class TipologiaSalaController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         bool eliminato = await _tipologiaSalaService.EliminaAsync(id);

@@ -9,7 +9,7 @@ namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-  [Authorize (Roles = Ruoli.Gestore)]
+  [Authorize (Roles = Ruoli.Operatore)]
 public class ContoCinemaController : ControllerBase
 {
     private readonly ContoCinemaService _contoCinemaService;
