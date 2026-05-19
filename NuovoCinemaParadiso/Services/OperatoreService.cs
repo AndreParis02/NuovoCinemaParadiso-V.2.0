@@ -208,4 +208,32 @@ public class OperatoreService
         return risultato;
     }
 
+    public async Task<DtoGiftCard> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
+    {
+        if (dto.Importo <= 0)
+        {
+            throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
+        }
+
+        /* L'operatore crea la GiftCard "dal nulla", senza scalare un saldo, 
+        perché si presume che il pagamento sia stato gestito in cassa.*/
+        GiftCard nuovaGiftCard = new GiftCard()
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice()
+        };
+        
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard()
+        {
+            Id = nuovaGiftCard.Id,
+            Nome = nuovaGiftCard.Nome,
+            Valore = nuovaGiftCard.Valore,
+            CodiceRiscatto = nuovaGiftCard.CodiceRiscatto
+        };
+    }
+
 }
