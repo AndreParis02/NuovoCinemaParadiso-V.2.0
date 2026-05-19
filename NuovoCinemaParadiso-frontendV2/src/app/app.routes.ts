@@ -37,13 +37,13 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/abbonamento/abbonamento-list.page').then((m) => m.AbbonamentoListPage)
     },
-    */
+    
     {
         path: 'gestore/listaUtenti',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/gestore/gestore-lista-utenti.page').then((m) => m.GestoreListaUtentiPage)
     },
-    /*
+    
     {
         path: 'gestore/biglietto',
         canActivate: [authGuard],

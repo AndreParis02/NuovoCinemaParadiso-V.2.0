@@ -21,7 +21,7 @@ export class OperatoreListaUtentiPage {
     readonly staCaricando = signal(false);
     readonly messaggioSuccesso = signal('');
     readonly messaggioErrore = signal('');
-    readonly ruoli = ['Operatore', 'Operatore', 'Utente'];
+    readonly ruoli = ['Gestore', 'Operatore', 'Utente'];
     readonly utenti = signal<Utente[]>([]);
     readonly modificaId = signal<string>('');
 
@@ -34,7 +34,7 @@ export class OperatoreListaUtentiPage {
         this.caricaUtenti();
     }
     modificabileDa(): boolean {
-        return this.authService.possiedeQualsiasiRuolo(['Operatore', 'Operatore']);
+        return this.authService.possiedeQualsiasiRuolo(['Operatore']);
     }
     caricaUtenti(): void {
 
