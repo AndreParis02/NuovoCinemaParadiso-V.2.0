@@ -17,7 +17,7 @@ public class GiftCard
 
     [Required]
     [Range(0, 1000)]
-    public int Saldo{get;set;}
+    public int Valore{get;set;}
 
     [Required]
     public string CodiceRiscatto{get;set;} = string.Empty;
