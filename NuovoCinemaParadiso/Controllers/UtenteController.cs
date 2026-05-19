@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
@@ -51,7 +50,7 @@ public class UtenteController : ControllerBase
         }
     }
 
-    [HttpPost("giftCard")]
+   /* [HttpPost("giftCard")]
     public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -65,9 +64,9 @@ public class UtenteController : ControllerBase
         }
         try
         {
-            var risultato = await _utenteService.RicaricaGiftCardAsync(dto.GiftCardId, utenteId);
+           // var risultato = await _utenteService.RicaricaGiftCardAsync(dto.GiftCardId, dto);
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", true);
-            return Ok(risultato);
+           // return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
@@ -79,5 +78,5 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.GiftCardId, "GiftCard", false);
             return NotFound(new { errore = ex.Message });
         }
-    }
+    }*/
 }
