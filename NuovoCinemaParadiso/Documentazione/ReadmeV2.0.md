@@ -5763,38 +5763,67 @@ public class UtenteController : ControllerBase
         return Ok(risultato);
     }
 
-    // Endpoint POST: permette all'utente loggato di associare una GiftCard
-    [HttpPost("giftCard")]
-    public async Task<IActionResult> GiftCard([FromBody] DtoUtente dto)
+    [HttpPut("giftCard/riscatta")]
+    public async Task<IActionResult> RiscattaGiftCard(
+        [FromBody] string giftCardCodiceRiscatto)
     {
-        // Recupera l'Id dell'utente loggato dai claim del token
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Recupero ID utente autenticato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Verifica che il DTO non sia nullo e che l'Id della GiftCard sia valorizzato
-        if (dto == null || string.IsNullOrEmpty(dto.GiftCardId))
+        // Controllo autenticazione
+        if (utenteId == null)
         {
-            // Registra un log di operazione fallita per l'azione "GiftCard"
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
-            // Restituisce una risposta 400 BadRequest con messaggio di errore
-            return BadRequest("Dati non validi");
+            return Unauthorized("Utente non autenticato.");
         }
 
-        // Richiede al servizio di associare la GiftCard all'utente loggato
-        var risultato = await _utenteService.GiftCardAsync(dto.GiftCardId, utenteId);
-
-        // Se il servizio non trova utente o GiftCard, o l'operazione fallisce
-        if (risultato == null)
+        // Controllo validità codice
+        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
         {
-            // Registra un log di operazione fallita per l'azione "GiftCard"
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", false);
-            // Restituisce una risposta 404 NotFound con messaggio di errore
-            return NotFound("Utente o GiftCard non trovata");
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Codice riscatto non valido.");
         }
 
-        // Registra un log di operazione riuscita per l'azione "GiftCard"
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "GiftCard", true);
-        // Restituisce una risposta 200 OK con il risultato (tipicamente un DTO utente aggiornato)
-        return Ok(risultato);
+        try
+        {
+            // Chiamata al service
+            DtoGiftCard risultato =
+                await _utenteService.RiscattaGiftCardAsync(
+                    giftCardCodiceRiscatto,
+                    utenteId);
+
+            // Salvataggio log successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                true);
+
+            // Restituzione risultato
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            // Log errore
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return NotFound(new { errore = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log errore generico
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest(new { errore = ex.Message });
+        }
     }
 }
 ```
