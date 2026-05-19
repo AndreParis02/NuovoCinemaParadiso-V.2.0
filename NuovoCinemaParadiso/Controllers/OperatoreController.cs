@@ -160,6 +160,35 @@ public class OperatoreController : ControllerBase
         return Ok(risultato);
     }
 
+    [HttpPost("giftCard/ricarica")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
+    {
+        string? operatoreId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (operatoreId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
 
-    
+        if (dto == null || dto.Importo <= 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = "L'importo della Gift Card deve essere maggiore di zero." });
+        }
+
+        try
+        {
+            var risultato = await _operatoreService.RicaricaGiftCardAsync(dto);
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", true);
+            
+            return Ok(risultato);
+        }
+        catch (Exception ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = ex.Message });
+        }
+    }
 }

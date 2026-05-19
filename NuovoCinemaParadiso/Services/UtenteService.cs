@@ -81,6 +81,10 @@ public class UtenteService
             throw new NotFoundException("Utente", utenteId);
         }
 
+        if (dto.Importo <= 0)
+        {
+            throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
+        }
         
         if(utenteCorrente.Saldo < dto.Importo)
         {

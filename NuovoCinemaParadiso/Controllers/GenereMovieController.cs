@@ -54,7 +54,7 @@ public class GenereMovieController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpPost]
+    /*[HttpPost]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGenereMovie dto)
     {
@@ -140,5 +140,5 @@ public class GenereMovieController : ControllerBase
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione genere", true);
 
         return Ok(new { message = "Il Genere è stato eliminato correttamente" });
-    }
+    }*/
 }
