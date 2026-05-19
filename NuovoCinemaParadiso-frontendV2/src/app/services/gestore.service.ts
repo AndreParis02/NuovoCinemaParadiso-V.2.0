@@ -14,46 +14,6 @@ export class GestoreService {
     private readonly http = inject(HttpClient);
     private readonly baseUrl = `${environment.apiBaseUrl}/gestore`;
 
-
-    // GET tutti utenti
-    OttieniUtenti(): Observable<Utente[]> {
-        return this.http.get<Utente[]>(`${this.baseUrl}/utenti`);
-    }
-
-    // GET utente per id
-    OttieniUtentePerId(id: string): Observable<Utente> {
-        return this.http.get<Utente>(`${this.baseUrl}/utenti/${id}`);
-    }
-
-    // DELETE utente
-    eliminaUtente(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/utenti/${id}`);
-    }
-
-    // GET utenti per abbonamento
-    ottieniUtentiTramiteAbbonamento(abbonamentoId: string): Observable<Utente[]> {
-        return this.http.get<Utente[]>(
-            `${this.baseUrl}/utenti/abbonamento/${abbonamentoId}`
-        );
-    }
-
-    // GET utenti per giftcard
-    ottieniUtentiTramiteGiftCard(giftCardId: string): Observable<Utente[]> {
-        return this.http.get<Utente[]>(
-            `${this.baseUrl}/utenti/giftcard/${giftCardId}`
-        );
-    }
-
-    // GET tutti biglietti
-    ottieniBiglietti(): Observable<Biglietto[]> {
-        return this.http.get<Biglietto[]>(`${this.baseUrl}/biglietti`);
-    }
-
-    // GET biglietto per id
-    ottieniBigliettoPerId(id: string): Observable<Biglietto> {
-        return this.http.get<Biglietto>(`${this.baseUrl}/biglietti/${id}`);
-    }
-
     ottieniLogAzioni(): Observable<LogAzioni[]> {
         return this.http.get<LogAzioni[]>(`${this.baseUrl}/log`)
     }

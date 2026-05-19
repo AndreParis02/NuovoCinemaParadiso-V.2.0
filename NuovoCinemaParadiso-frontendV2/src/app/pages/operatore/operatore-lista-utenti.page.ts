@@ -1,21 +1,20 @@
-/*
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { GestoreService } from '../../services/gestore.service';
+import { OperatoreService } from '../../services/operatore.service';
 import { Utente } from '../../models/utente.model';
 
 @Component({
-    selector: 'gestore-lista-utenti-page',
+    selector: 'operatore-lista-utenti-page',
     standalone: true,
     imports: [ReactiveFormsModule],
-    templateUrl: './gestore-lista-utenti.page.html'
+    templateUrl: './operatore-lista-utenti.page.html'
 })
-export class GestoreListaUtentiPage {
+export class OperatoreListaUtentiPage {
     private readonly formBuilder = inject(FormBuilder);
     private readonly authService = inject(AuthService);
-    private readonly gestoreService = inject(GestoreService);
+    private readonly operatoreService = inject(OperatoreService);
 
 
     readonly staInviando = signal(false);
@@ -35,14 +34,14 @@ export class GestoreListaUtentiPage {
         this.caricaUtenti();
     }
     modificabileDa(): boolean {
-        return this.authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore']);
+        return this.authService.possiedeQualsiasiRuolo(['Operatore']);
     }
     caricaUtenti(): void {
 
         this.messaggioErrore.set('');
         this.staCaricando.set(true);
 
-        this.gestoreService.OttieniUtenti().subscribe({
+        this.operatoreService.OttieniUtenti().subscribe({
             next: (items) => {
                 console.log('Dati grezzi dal server:', items);
                 this.utenti.set(items);
@@ -78,7 +77,7 @@ export class GestoreListaUtentiPage {
         this.messaggioErrore.set('');
         this.messaggioSuccesso.set('');
 
-        this.gestoreService.eliminaUtente(item.id).subscribe({
+        this.operatoreService.eliminaUtente(item.id).subscribe({
             next: () => {
                 if (this.modificaId() === item.id) {
                     this.ripristinaForm();
@@ -108,4 +107,3 @@ export class GestoreListaUtentiPage {
         return fallback;
     }
 }
-    */
