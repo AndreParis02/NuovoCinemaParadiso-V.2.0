@@ -5,6 +5,7 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 using NuovoCinemaParadiso.Helpers;
+using System.Linq.Expressions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -71,11 +72,8 @@ public class UtenteService
     }
 
 
-    public async Task<DtoGiftCard> RicaricaGiftCardAsync(string giftCardId, string utenteId)
+    public async Task<DtoGiftCard> RicaricaGiftCardAsync( string utenteId, DtoRicaricaGiftCard dto)
     {
-        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
-        GiftCard? giftCardTrovata = null;
-
         Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
 
         if (utenteCorrente?.Id == null)
@@ -83,37 +81,50 @@ public class UtenteService
             throw new NotFoundException("Utente", utenteId);
         }
 
-        for (int i = 0; i < giftCards.Count; i++)
+        
+        if(utenteCorrente.Saldo < dto.Importo)
         {
-            GiftCard giftCardCorrente = giftCards[i];
-
-            if (giftCardCorrente.Id == giftCardId)
-            {
-                giftCardTrovata = giftCardCorrente;
-                break;
-            }
+            throw new Exception("Impossibile caricare la giftcard. Importo superiore al saldo");
         }
         
-        if (giftCardTrovata == null)
+        utenteCorrente.Saldo -= dto.Importo;
+
+        GiftCard? nuovaGiftCard = new GiftCard()
         {
+<<<<<<< HEAD
             throw new NotFoundException("GiftCard", giftCardId);
         }
 
         giftCardTrovata.Valore = Calcoli.CaricaGiftCard(utenteCorrente, giftCardTrovata);
         giftCardTrovata.CodiceRiscatto = GiftCardHelper.GeneraCodice();
 
+=======
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice()
+        };
+        
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+>>>>>>> developer
         await _contesto.SaveChangesAsync();
 
         return new DtoGiftCard()
         {
+<<<<<<< HEAD
             Id = giftCardTrovata.Id,
             Nome = giftCardTrovata.Nome,
             Valore = giftCardTrovata.Valore,
             CodiceRiscatto = giftCardTrovata.CodiceRiscatto
+=======
+            Id = nuovaGiftCard.Id,
+            Nome = nuovaGiftCard.Nome,
+            Valore = nuovaGiftCard.Valore,
+            CodiceRiscatto = nuovaGiftCard.CodiceRiscatto
+>>>>>>> developer
         };
     }
 
-    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardId, string utenteId)
+    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardCodiceRiscatto, string utenteId)
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
         GiftCard? giftCardTrovata = null;
@@ -129,7 +140,7 @@ public class UtenteService
         {
             GiftCard giftCardCorrente = giftCards[i];
 
-            if (giftCardCorrente.Id == giftCardId)
+            if (giftCardCorrente.CodiceRiscatto == giftCardCodiceRiscatto)
             {
                 giftCardTrovata = giftCardCorrente;
                 break;
@@ -140,9 +151,17 @@ public class UtenteService
         {
             throw new NotFoundException("GiftCard", giftCardId);
         }
+
+        if(giftCardTrovata.Riscattata == true)
+        {
+            throw new Exception("Il codice riscatto è già stato utilizzato.");
+        }
         
         utenteCorrente.Saldo += giftCardTrovata.Valore;
+<<<<<<< HEAD
         giftCardTrovata.Valore = 0;
+=======
+>>>>>>> developer
         giftCardTrovata.Riscattata = true;
 
         await _contesto.SaveChangesAsync();

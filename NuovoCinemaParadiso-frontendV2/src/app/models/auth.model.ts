@@ -1,12 +1,7 @@
 export interface Auth {
-   id: string;
-   nomeCompleto: string;
    token: string;
-   eta: number;
+   id: string;
    email: string;
+   nomeCompleto: string;
    ruolo: string;
-   dataInizioAbbonamento: string;
-   dataInizioGiftCard: string;
-   seAbbonato: boolean;
-   possiedeGiftCard: boolean;
 }

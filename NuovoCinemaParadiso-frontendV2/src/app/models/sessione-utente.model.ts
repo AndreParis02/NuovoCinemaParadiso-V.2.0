@@ -1,7 +1,13 @@
-export interface SessioneUtente{
-    token       : string;
-    id      : string;
-    email       : string;
+export interface SessioneUtente {
+
+    id: string;
     nomeCompleto: string;
-    ruolo        : string;
+    token: string;
+    eta: number;
+    email: string;
+    ruolo: string;
+    dataInizioAbbonamento: string;
+    dataInizioGiftCard: string;
+    seAbbonato: boolean;
+    possiedeGiftCard: boolean;
 }
