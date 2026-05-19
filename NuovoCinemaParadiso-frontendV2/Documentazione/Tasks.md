@@ -49,8 +49,16 @@ Marco: creare la pagina angular di sala (vedi esempio nel readme-frontend.md)
 
 Aggiungere modello giftcard collegato a tipologia giftcard ( giftcard attuale )
 
-## A fine frontend
 
+## 19/05/2026
+
+Greg: Dashboard operatore.
+Fabio: operatore utenti lista.
+Simeone: operatore cambio ruolo.
+
+
+## A fine frontend
+### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )
 Un utente può comprare un codice giftcard di valore scelto dall'utente e
 l'utente avrà l'azione riscatta codice giftcard,
