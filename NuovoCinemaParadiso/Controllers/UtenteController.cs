@@ -22,31 +22,31 @@ public class UtenteController : ControllerBase
     }
 
     [HttpPost("abbonati")]
-    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        if (string.IsNullOrEmpty(dto.IdAbbonamento))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
         try
         {
-            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
+            var risultato = await _utenteService.AbbonatiAsync(dto.IdAbbonamento, utenteId);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
         catch (ItemAlredyexist ex)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
     }

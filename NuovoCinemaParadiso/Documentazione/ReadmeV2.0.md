@@ -419,6 +419,15 @@ namespace NuovoCinemaParadiso.Data
 
 # Dtos
 
+## DtoAbbonati
+
+```c#
+public class DtoAbbonati
+{
+    public string IdAbbonamento {get; set;} = string.Empty;
+}
+```
+
 ## DtoCreazioneGiftCard.cs
 
 ```c#
@@ -5961,38 +5970,31 @@ public class UtenteController : ControllerBase
 
     // Endpoint per la sottoscrizione a un abbonamento
     [HttpPost("abbonati")]
-    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
     {
-        // Recupero ID utente autenticato tramite i Claims del token
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        // Controllo validità input
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        if (string.IsNullOrEmpty(dto.IdAbbonamento))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
         try
         {
-            // Chiamata al service per effettuare l'abbonamento
-            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
-            
-            // Salvataggio log di successo
+            var risultato = await _utenteService.AbbonatiAsync(dto.IdAbbonamento, utenteId);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
         catch (ItemAlredyexist ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
     }
