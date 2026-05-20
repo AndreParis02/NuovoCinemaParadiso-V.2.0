@@ -2138,28 +2138,34 @@ public class BigliettoController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // GET: api/Biglietto - Recupera tutti gli biglietti dell'utente loggato
     [HttpGet]
-    [Authorize (Roles = Ruoli.Gestore)]
-    public async Task<IActionResult> OttieniTutti()
-    {
-        // Estrae l'ID dell'utente dal token JWT
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+    [Authorize(Roles = Ruoli.Gestore)]
+public async Task<IActionResult> OttieniTutti()
+{
+    // 1️⃣ Chiede al service di recuperare TUTTI i biglietti dal database
+    //    Questo metodo non filtra per utente, quindi restituisce l'intera lista.
+    List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();
 
-        // Chiama il service per ottenere i dati e spacchetta la tupla
-        var (risultato, errore) = await _bigliettoService.OttieniTutto(utenteId);
-        
-        // Gestione errori: se c'è un errore, registra il fallimento e restituisce 400 Bad Request
-        if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", false);
-            return BadRequest(new { messaggio = errore });
-        }
+    // 2️⃣ Recupera l'ID dell'utente autenticato dal token JWT
+    //    Serve per registrare nel log chi ha fatto l'azione.
+    string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Caso di successo: registra l'azione e restituisce 200 OK con i dati
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", true);
-        return Ok(risultato);
-    }
+    // 3️⃣ Se per qualche motivo il token non contiene l'ID → l'utente non è autenticato
+    if (utenteId == null)
+        return Unauthorized("Utente non autenticato.");
+
+    // 4️⃣ Registra nel log che l'utente ha richiesto la lista di tutti i biglietti
+    //    Il terzo parametro 'true' indica che l'operazione è andata a buon fine.
+    await _logAzioniService.SalvataggioLogAzioneAsync(
+        utenteId,
+        "Ottieni tutti i biglietti",
+        true
+    );
+
+    // 5️⃣ Restituisce al client la lista dei biglietti in formato JSON
+    return Ok(biglietti);
+}
+
 
     // GET: api/Biglietto/{id} - Recupera un singolo biglietto dell'utente loggato
     [HttpGet("{id}")]
@@ -3897,52 +3903,61 @@ public class BigliettoService
         _contesto = contesto;
     }
 
-    // Recupera la lista di tutti gli biglietti legati a uno specifico utente
-    public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
+   public async Task<List<DtoBiglietto>> OttieniTutto()
+{
+    // 1️⃣ Recupera tutti i biglietti dal database
+    List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
+    // 2️⃣ Lista che conterrà i DTO finali da restituire
+    List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+    // 3️⃣ Cicla ogni biglietto trovato nel database
+    for (int i = 0; i < biglietti.Count; i++)
     {
-        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+        Biglietto bigliettoCorrente = biglietti[i];
 
-        foreach (var bigliettoCorrente in biglietti)
-        {
-            // Filtra solo gli biglietti dell'utente richiedente
-            if (bigliettoCorrente.UtenteId == utenteId)
-            {
-                // Recupero delle entità correlate necessarie per calcolare il prezzo finale
-                var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
-                var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
-                
-                if (utente == null || proiezione == null) continue; // Salta iterazione se i dati sono corrotti
+        // 4️⃣ Recupera il genere del film (⚠️ probabilmente errato: FindAsync richiede una chiave primaria, non un oggetto)
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(bigliettoCorrente);
 
-                var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-                var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-                
-                if (movie == null || sala == null) continue;
+        // 5️⃣ Recupera la proiezione associata al biglietto
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
 
-                var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-                if (tipologiaSala == null) continue;
+        // 6️⃣ Recupera il film della proiezione
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
 
-                // Popolamento del DTO da restituire al client
-                DtoBiglietto dto = new DtoBiglietto
-                {
-                    Id = bigliettoCorrente.Id,
-                    UtenteId = utente.Id,
-                    ProiezioneId = bigliettoCorrente.ProiezioneId,
-                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
-                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
-                    MetodoPagamento = bigliettoCorrente.MetodoPagamento,
-                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-                        movie.PrezzoMovie,
-                        tipologiaSala.MaggiorazionePrezzo,
-                        bigliettoCorrente.NumeroBiglietti,
-                        utente,
-                        bigliettoCorrente.MetodoPagamento)
-                };
-                risultato.Add(dto);
-            }
-        }
-        return (risultato, null);
+        // 7️⃣ Recupera la sala della proiezione
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+
+        // 8️⃣ Recupera la tipologia della sala (serve per la maggiorazione)
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // 9️⃣ Recupera l’utente che ha acquistato il biglietto
+        Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
+
+        // 🔟 Crea il DTO da restituire al frontend
+        DtoBiglietto dto = new DtoBiglietto();
+        dto.Id = bigliettoCorrente.Id;
+        dto.UtenteId = bigliettoCorrente.UtenteId;
+        dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+        dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+        dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+
+        // 1️⃣1️⃣ Calcola il prezzo finale usando la logica del tuo helper Calcoli
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            bigliettoCorrente.NumeroBiglietti,
+            utente.Abbonamento
+        );
+
+        // 1️⃣2️⃣ Aggiunge il DTO alla lista finale
+        risultato.Add(dto);
     }
+
+    // 1️⃣3️⃣ Restituisce la lista completa dei biglietti convertiti in DTO
+    return risultato;
+}
+
 
     // Recupera i dettagli di un singolo biglietto, verificandone la proprietà
     public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
