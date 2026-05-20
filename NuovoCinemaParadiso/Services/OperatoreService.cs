@@ -6,7 +6,6 @@ using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Helpers;
 using NuovoCinemaParadiso.Exceptions;
 
-
 namespace NuovoCinemaParadiso.Services;
 
 public class OperatoreService
@@ -17,20 +16,19 @@ public class OperatoreService
     {
         _contesto = contestoDb;
         _gestioneUtenti = gestioneUtenti;
-
     }
 
-    public async Task<bool> RicaricaAsync(DtoRicarica dtoRicarica)
+    public async Task<bool> RicaricaAsync(DtoRicaricaSaldoUtente dtoRicaricaSaldoUtente)
     {
-        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dtoRicarica.Email);
-        if(utente==null)
+        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dtoRicaricaSaldoUtente.Email);
+        if (utente == null)
             return false;
-        utente.Saldo += dtoRicarica.Ricarica;
+        utente.Saldo += dtoRicaricaSaldoUtente.Ricarica;
         await _gestioneUtenti.UpdateAsync(utente);
         return true;
     }
 
-        public async Task<List<DtoUtente>> OttieniUtentiAsync()
+    public async Task<List<DtoUtente>> OttieniUtentiAsync()
     {
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
 
@@ -117,7 +115,7 @@ public class OperatoreService
             dto.Id = bigliettoCorrente.Id;
             dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
             dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente.Abbonamento);
             dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
 
@@ -151,7 +149,7 @@ public class OperatoreService
         dto.Id = biglietto.Id;
         dto.UtenteId = biglietto.UtenteId;
         dto.ProiezioneId = biglietto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento);
         dto.OrarioCreazione = biglietto.OrarioCreazione;
         dto.NumeroBiglietti = biglietto.NumeroBiglietti;
 
@@ -223,7 +221,7 @@ public class OperatoreService
             Valore = dto.Importo,
             CodiceRiscatto = GiftCardHelper.GeneraCodice()
         };
-        
+
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
         await _contesto.SaveChangesAsync();
 

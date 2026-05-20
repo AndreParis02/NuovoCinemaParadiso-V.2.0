@@ -47,13 +47,11 @@ public class BigliettoService
                     ProiezioneId = bigliettoCorrente.ProiezioneId,
                     OrarioCreazione = bigliettoCorrente.OrarioCreazione,
                     NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
-                    MetodoPagamento = bigliettoCorrente.MetodoPagamento,
                     PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
                         movie.PrezzoMovie,
                         tipologiaSala.MaggiorazionePrezzo,
                         bigliettoCorrente.NumeroBiglietti,
-                        utente.Abbonamento,
-                        utente.DataInizioAbbonamento)
+                        utente.Abbonamento)
                 };
                 risultato.Add(dto);
             }
@@ -92,8 +90,7 @@ public class BigliettoService
             ProiezioneId = biglietto.ProiezioneId,
             OrarioCreazione = biglietto.OrarioCreazione,
             NumeroBiglietti = biglietto.NumeroBiglietti,
-            MetodoPagamento = biglietto.MetodoPagamento,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento)
         };
 
         return (dto, null);
@@ -130,8 +127,7 @@ public class BigliettoService
             ProiezioneId = proiezione.Id,
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
-            MetodoPagamento = dto.MetodoPagamento,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento)
         };
 
         _contesto.Biglietti.Add(biglietto);
@@ -147,8 +143,7 @@ public class BigliettoService
             UtenteId = biglietto.UtenteId,
             NumeroBiglietti = biglietto.NumeroBiglietti,
             PrezzoFinale = biglietto.PrezzoFinale,
-            OrarioCreazione = biglietto.OrarioCreazione,
-            MetodoPagamento = biglietto.MetodoPagamento
+            OrarioCreazione = biglietto.OrarioCreazione
         };
 
         return (risultato, null);
@@ -176,7 +171,7 @@ public class BigliettoService
             return (null, "Dati correlati all'biglietto non trovati o non validi.");
 
         bigliettoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
-        bigliettoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoEsistente.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        bigliettoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoEsistente.NumeroBiglietti, utente.Abbonamento);
 
         await _contesto.SaveChangesAsync();
 
@@ -188,7 +183,6 @@ public class BigliettoService
             NumeroBiglietti = bigliettoEsistente.NumeroBiglietti,
             PrezzoFinale = bigliettoEsistente.PrezzoFinale,
             OrarioCreazione = bigliettoEsistente.OrarioCreazione,
-            MetodoPagamento = bigliettoEsistente.MetodoPagamento
         }, null);
     }
 
