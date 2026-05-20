@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoTipologiaSala
 {
     public string? Id { get; set; }

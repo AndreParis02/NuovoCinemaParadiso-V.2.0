@@ -47,8 +47,7 @@ public class AuthService
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
         utente.Eta = dto.Eta;
-        dto.Saldo = 100;
-        utente.Saldo = dto.Saldo;
+        utente.Saldo = 1000;
 
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 

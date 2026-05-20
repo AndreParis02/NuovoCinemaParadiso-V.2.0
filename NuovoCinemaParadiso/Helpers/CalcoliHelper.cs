@@ -1,18 +1,22 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Data;
 
 namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento abbonamento, DateTimeOffset dataInizioAbbonamento)
     {
+        Console.WriteLine($"Calcolaprezzofinale: prezzoMovie={prezzoMovie}, maggiorazione={maggiorazione}, numeroBiglietti={numeroBiglietti}, metodoPagamento={metodoPagamento}, utente.SeAbbonato={utente.SeAbbonato}, utente.AbbonamentoId={utente.AbbonamentoId}");
         int prezzoBiglietto = prezzoMovie + maggiorazione;
-
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato && utente.Abbonamento != null)
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
-            int sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-            int prezzoScontato = prezzoBiglietto - sconto;
+            
+           int sconto = (prezzoBiglietto * abbonamento.Sconto) / 100;
+           int prezzoScontato = prezzoBiglietto - sconto;
+            
             return prezzoScontato * numeroBiglietti;
         }
         else
@@ -21,10 +25,11 @@ public static class Calcoli
         }
     }
 
-    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
     {
         utente.Saldo = utente.Saldo - prezzo;
         contoCinema.Conto = contoCinema.Conto + prezzo;
+        return new int[] { utente.Saldo, contoCinema.Conto };
     }
    
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)

@@ -42,8 +42,4 @@ public class ContoCinemaController : ControllerBase
 
         return Ok(contoCinema);
     }
-
-    //
-    // PORZIONE DI CODICE ELIMINATA. FARE RIFERIMENTA AL README
-    //
 }

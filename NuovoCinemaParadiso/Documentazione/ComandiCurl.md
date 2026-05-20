@@ -545,7 +545,7 @@ curl -s -X POST "http://localhost:5226/api/Utente/abbonati" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-  "abbonamentoId": "id abbonamento"
+  "IdAbbonamento": "id abbonamento"
 }'
 ```
 
