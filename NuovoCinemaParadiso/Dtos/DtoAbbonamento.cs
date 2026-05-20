@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoAbbonamento
 {
     public string? Id {get; set;}
