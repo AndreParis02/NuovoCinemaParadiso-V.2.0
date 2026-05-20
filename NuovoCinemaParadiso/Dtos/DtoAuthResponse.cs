@@ -7,7 +7,7 @@ public class DtoAuthResponse
     public int Eta { get; set; }
     public string Email { get; set; } = string.Empty;
     public string Ruolo { get; set; } = string.Empty;
-    public DateTimeOffset DataInizioAbbonamento { get; set; }
+    public DateTimeOffset? DataInizioAbbonamento { get; set; }
     public bool SeAbbonato { get; set; }
     public int Saldo { get; set; }
 }

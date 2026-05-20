@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
@@ -7,7 +6,6 @@ public static class Calcoli
 {
     public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento abbonamento, DateTimeOffset dataInizioAbbonamento)
     {
-        Console.WriteLine($"Calcolaprezzofinale: prezzoMovie={prezzoMovie}, maggiorazione={maggiorazione}, numeroBiglietti={numeroBiglietti}, metodoPagamento={metodoPagamento}, utente.SeAbbonato={utente.SeAbbonato}, utente.AbbonamentoId={utente.AbbonamentoId}");
         int prezzoBiglietto = prezzoMovie + maggiorazione;
         DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
         if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)

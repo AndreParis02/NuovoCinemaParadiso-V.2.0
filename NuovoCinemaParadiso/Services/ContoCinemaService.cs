@@ -17,12 +17,8 @@ public class ContoCinemaService
     public async Task<DtoContoCinema> OttieniDatiContoAsync()
     {
 
-        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
-
-        if(contoCinema == null)
-        {
-            return null;
-        }
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
 
         DtoContoCinema dto = new DtoContoCinema();
 
@@ -36,7 +32,9 @@ public class ContoCinemaService
 
     public async Task<DtoContoCinema?> CreazioneAsync(DtoCreazioneContoCinema dto)
     {
-        ContoCinema risutato = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        ContoCinema risutato = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
 
         if(risutato != null)
         {
