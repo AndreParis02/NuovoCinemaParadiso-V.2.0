@@ -2140,6 +2140,7 @@ public class BigliettoController : ControllerBase
 
     // GET: api/Biglietto - Recupera tutti gli biglietti dell'utente loggato
     [HttpGet]
+    [Authorize (Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTutti()
     {
         // Estrae l'ID dell'utente dal token JWT

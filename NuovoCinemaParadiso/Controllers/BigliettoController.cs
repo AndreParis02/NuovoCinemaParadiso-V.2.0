@@ -21,6 +21,7 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize (Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTutti()
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
