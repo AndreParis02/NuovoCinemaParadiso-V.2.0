@@ -4083,9 +4083,25 @@ public class BigliettoService
     // Rimuove un biglietto dal database
     public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
     {
+        //trova il biglietto da eliminare e controlla che esista
         var biglietto = await _contesto.Biglietti.FindAsync(id);
         if (biglietto == null) return (false, "Biglietto non trovato.");
 
+        //prende l'utente relivo al biglietto
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        //istanza del conto del cinema
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        //controlla che l'utente e il conto del cinema esistano
+        if (utente == null || contoCinema == null)
+        return (false, "Dati correlati all'biglietto non trovati.");
+
+        //restituisce i crediti all'utende detraendoli dal conto del cinema    
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
+
+        // rimiove il biglietto dal database e salva i cambiamenti
         _contesto.Biglietti.Remove(biglietto);
         await _contesto.SaveChangesAsync();
         return (true, null);

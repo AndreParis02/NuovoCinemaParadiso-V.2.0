@@ -196,6 +196,15 @@ public class BigliettoService
         var biglietto = await _contesto.Biglietti.FindAsync(id);
         if (biglietto == null) return (false, "Biglietto non trovato.");
 
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        if (utente == null || contoCinema == null)
+            return (false, "Dati correlati all'biglietto non trovati.");
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
+
         _contesto.Biglietti.Remove(biglietto);
         await _contesto.SaveChangesAsync();
         return (true, null);
