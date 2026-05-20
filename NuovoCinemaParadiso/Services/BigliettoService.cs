@@ -9,11 +9,11 @@ namespace NuovoCinemaParadiso.Services;
 public class BigliettoService
 {
     private readonly ContestoDb _contesto;
-    private readonly CalcoliHelper _calcoli;
-    public BigliettoService(ContestoDb contesto, CalcoliHelper calcoli)
+
+    public BigliettoService(ContestoDb contesto,)
     {
         _contesto = contesto;
-        _calcoli = calcoli;
+        
     }
 
     public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
@@ -115,7 +115,7 @@ public class BigliettoService
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");  
 
         /*controlla che l'utente abbia un saldo sufficiente*/
-        if (utente.Saldo < _calcoli.CalcolaPrezzoFinale(0, 0, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
+        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(0, 0, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 
         Biglietto biglietto = new Biglietto
@@ -125,12 +125,12 @@ public class BigliettoService
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
             MetodoPagamento = dto.MetodoPagamento,
-            PrezzoFinale = _calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento)
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento)
         };
 
 
         _contesto.Biglietti.Add(biglietto);
-        utente.Saldo = await _calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente);
+        utente.Saldo = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente);
         await _contesto.SaveChangesAsync();
 
 
