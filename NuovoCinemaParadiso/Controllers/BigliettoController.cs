@@ -22,7 +22,7 @@ public class BigliettoController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> OttieniTuttiIMovies()
+    public async Task<IActionResult> OttieniTutti()
     {
         List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
