@@ -42,10 +42,6 @@
         <article class="card">
             <h2>{{ modificaId() ? 'Modifica tipologia' : 'Aggiungi tipologia' }}</h2>
 
-
-
-            <button class="btn btn-primary" type="submit" style="margin-bottom: 1rem;">{{ modificaId() ? 'Salva modifiche' : 'Aggiungi tipologia'
-                }}</button>
             @if (!modificabileDa()) {
             <div>
                 Il tuo ruolo non ti permette di modificare o eliminare tipologie.
