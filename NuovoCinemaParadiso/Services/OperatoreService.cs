@@ -117,7 +117,7 @@ public class OperatoreService
             dto.Id = bigliettoCorrente.Id;
             dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
             dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente, bigliettoCorrente.MetodoPagamento);
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
             dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
 
@@ -151,7 +151,7 @@ public class OperatoreService
         dto.Id = biglietto.Id;
         dto.UtenteId = biglietto.UtenteId;
         dto.ProiezioneId = biglietto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento);
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
         dto.OrarioCreazione = biglietto.OrarioCreazione;
         dto.NumeroBiglietti = biglietto.NumeroBiglietti;
 
