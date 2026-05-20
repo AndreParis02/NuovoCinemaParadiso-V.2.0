@@ -552,10 +552,11 @@ curl -s -X POST "http://localhost:5226/api/Utente/abbonati" \
 ## GiftCard:
 
 ```bash
-curl -s -X POST "http://localhost:5226/api/Utente/giftcard" \
+curl -s -X POST "http://localhost:5226/api/Utente/giftCard/ricarica" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
-  "giftCardId": "id giftCardId"
+  "Importo": int
 }'
 ```
+

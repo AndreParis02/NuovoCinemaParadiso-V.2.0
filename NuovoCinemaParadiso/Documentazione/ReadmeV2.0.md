@@ -1664,6 +1664,162 @@ public class UtentiController : ControllerBase
 
 ```
 
+## UtenteController.cs V1.1 del 20/05/2026 implementazione saldo da Simeone
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class UtenteController : ControllerBase
+{
+    private readonly UtenteService _utenteService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public UtenteController(UtenteService utenteService, LogAzioniService logAzioniService)
+    {
+        _utenteService = utenteService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpPost("abbonati")]
+    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            return BadRequest("Dati non validi");
+        }
+        try
+        {
+            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            return NotFound(new { errore = ex.Message });
+        }
+        catch (ItemAlredyexist ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            return NotFound(new { errore = ex.Message });
+        }
+        catch (Exception ex) // AGGIUNTA - Cattura l'errore del saldo insufficiente
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            return BadRequest(new { errore = ex.Message});
+        }
+    }
+
+    [HttpPut("giftCard/riscatta")]
+    public async Task<IActionResult> RiscattaGiftCard(
+    [FromBody] string giftCardCodiceRiscatto)
+    {
+        // Recupero ID utente autenticato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Controllo autenticazione
+        if (utenteId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
+
+        // Controllo validità codice
+        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Codice riscatto non valido.");
+        }
+
+        try
+        {
+            // Chiamata al service
+            DtoGiftCard risultato =
+                await _utenteService.RiscattaGiftCardAsync(
+                    giftCardCodiceRiscatto,
+                    utenteId);
+
+            // Salvataggio log successo
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                true);
+
+            // Restituzione risultato
+            return Ok(risultato);
+        }
+        catch (NotFoundException ex)
+        {
+            // Log errore
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return NotFound(new { errore = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log errore generico
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest(new { errore = ex.Message });
+        }
+    }
+
+    [HttpPost("giftCard/ricarica")]
+    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
+
+        if (dto == null || dto.Importo <= 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = "L'importo della ricarica deve essere maggiore di zero." });
+        }
+
+        try
+        {
+            var risultato = await _utenteService.RicaricaGiftCardAsync(utenteId, dto);
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
+            
+            return Ok(risultato);
+        }
+        catch (Exception ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = ex.Message });
+        }
+    }
+}
+```
+
 ## GestoreController.cs
 
 ```c#
@@ -3240,7 +3396,180 @@ public class UtenteService
     }
 }
 ```
+## UtenteService.cs v1.1 del 20/05/2026 implementazione saldo da Simeone
+```c#
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Helpers;
+using System.Linq.Expressions;
 
+namespace NuovoCinemaParadiso.Services;
+
+public class UtenteService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        Abbonamento? abbonamentoTrovato = null;
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+            if (abbonamentoCorrente.Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamentoCorrente;
+                break;
+            }
+        }
+
+        if (abbonamentoTrovato == null)
+        {
+            throw new NotFoundException("Abbonamento", abbonamentoId);
+        }
+
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteTrovato == null)
+        {
+            throw new NotFoundException("Utente", utenteId);
+
+        }
+
+        if (utenteTrovato.SeAbbonato)
+        {
+            throw new ItemAlredyexist("Abbonamento");
+        }
+        // --- INIZIO AGGIUNTA ---
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo) // Controllo che l'utente abbia abbastanza soldi
+        {
+            throw new Exception("Impossibile abbonarsi. Credito insufficiente sul saldo.");
+        }
+
+        utenteTrovato.Saldo -= abbonamentoTrovato.Prezzo; // Scalo i soldi dal saldo dell'utente
+        // --- FINE AGGIUNTA ---
+        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+        await _contesto.SaveChangesAsync();
+
+        return new DtoUtente()
+        {
+            Id = utenteTrovato.Id,
+            NomeCompleto = utenteTrovato.NomeCompleto,
+            Email = utenteTrovato.Email,
+            Eta = utenteTrovato.Eta,
+            SeAbbonato = utenteTrovato.SeAbbonato,
+            DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
+            AbbonamentoId = utenteTrovato.AbbonamentoId,
+            TipoAbbonamento = abbonamentoTrovato.Nome
+        };
+    }
+
+
+    public async Task<DtoGiftCard> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+    {
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        Console.WriteLine($"utenteId: {utenteCorrente.Id}");
+
+        Console.WriteLine($"Saldo letto dal DB: {utenteCorrente.Saldo}");
+
+        if (utenteCorrente?.Id == null)
+        {
+            throw new NotFoundException("Utente", utenteId);
+        }
+
+        if (dto.Importo <= 0)
+        {
+            throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
+        }
+
+        if (utenteCorrente.Saldo < dto.Importo)
+        {
+            throw new Exception("Impossibile caricare la giftcard. Importo superiore al saldo");
+        }
+
+        utenteCorrente.Saldo -= dto.Importo;
+
+        GiftCard? nuovaGiftCard = new GiftCard()
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice()
+        };
+
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard()
+        {
+            Id = nuovaGiftCard.Id,
+            Nome = nuovaGiftCard.Nome,
+            Valore = nuovaGiftCard.Valore,
+            CodiceRiscatto = nuovaGiftCard.CodiceRiscatto
+        };
+    }
+
+    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardCodiceRiscatto, string utenteId)
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+        GiftCard? giftCardTrovata = null;
+
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente?.Id == null)
+        {
+            throw new NotFoundException("Utente", utenteId);
+        }
+
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            if (giftCardCorrente.CodiceRiscatto == giftCardCodiceRiscatto)
+            {
+                giftCardTrovata = giftCardCorrente;
+                break;
+            }
+        }
+
+        if (giftCardTrovata == null)
+        {
+            throw new NotFoundException("GiftCard", giftCardCodiceRiscatto);
+        }
+
+        if (giftCardTrovata.Riscattata == true)
+        {
+            throw new Exception("Il codice riscatto è già stato utilizzato.");
+        }
+
+        utenteCorrente.Saldo += giftCardTrovata.Valore;
+        giftCardTrovata.Riscattata = true;
+
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard()
+        {
+            Id = giftCardTrovata.Id,
+            Nome = giftCardTrovata.Nome,
+            Valore = giftCardTrovata.Valore,
+            CodiceRiscatto = giftCardTrovata.CodiceRiscatto
+        };
+    }
+}
+```
 
 
 ## GestoreService.cs
