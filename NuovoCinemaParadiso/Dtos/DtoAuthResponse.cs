@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoAuthResponse
 {
     public string Id { get; set; } = string.Empty;

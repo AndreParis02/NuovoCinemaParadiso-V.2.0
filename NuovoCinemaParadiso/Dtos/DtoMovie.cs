@@ -9,4 +9,3 @@ public class DtoMovie
     public string GenereId {get;set;} = string.Empty;
     public string Genere {get;set;} = string.Empty;
 }
-    
