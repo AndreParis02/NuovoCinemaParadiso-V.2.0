@@ -1,3 +1,532 @@
+# Seed
+
+## DataSeeder.cs
+
+```c#
+using System.ComponentModel;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Seed;
+
+public static class DataSeeder
+{
+    public static async Task SeedAsync(IServiceProvider serviceProvider)
+    {
+        using IServiceScope scope = serviceProvider.CreateScope(); // Crea scope per i servizi
+
+        DateTime oggi = DateTime.Today; // Data odierna
+        ContestoDb contestoDb = scope.ServiceProvider.GetRequiredService<ContestoDb>(); // DbContext
+        UserManager<Utente> gestioneUtenti = scope.ServiceProvider.GetRequiredService<UserManager<Utente>>(); // Gestione utenti
+        RoleManager<IdentityRole> gestioneRuoli = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(); // Gestione ruoli
+
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Gestore);   // Crea ruolo se non esiste
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Operatore);
+        await AssicuraEsistenzaRuoloAsync(gestioneRuoli, Ruoli.Utente);
+
+        // Crea utenti base
+        Utente gestore = await AssicuraEsistenzaUtenteAsync(gestioneUtenti, "gestore@gmail.com", "123456", "Gestore", 60, false);
+        Utente operatore = await AssicuraEsistenzaUtenteAsync(gestioneUtenti, "operatore@gmail.com", "123456", "Operatore", 35, false);
+        Utente utente = await AssicuraEsistenzaUtenteAsync(gestioneUtenti, "utente1@gmail.com", "123456", "Utente Uno", 15, true);
+
+        // Crea conto cinema se non esiste
+        ContoCinema contoCinema = await AssicuraEsistenzaConto(contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
+
+        // Imposta ruolo unico per ogni utente
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, gestore, Ruoli.Gestore);
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, operatore, Ruoli.Operatore);
+        await ImpostaRuoloUnicoAsync(gestioneUtenti, utente, Ruoli.Utente);
+
+        // Generi film
+        var genereAzione       = await AssicuraEsistenzaGenereMovie(contestoDb, "Azione");
+        var genereHorror       = await AssicuraEsistenzaGenereMovie(contestoDb, "Horror");
+        var genereCommedia     = await AssicuraEsistenzaGenereMovie(contestoDb, "Commedia");
+        var genereAnimazione   = await AssicuraEsistenzaGenereMovie(contestoDb, "Animazione");
+        var genereAvventura    = await AssicuraEsistenzaGenereMovie(contestoDb, "Avventura");
+        var genereDocumentario = await AssicuraEsistenzaGenereMovie(contestoDb, "Documentario");
+        var genereDrammatico   = await AssicuraEsistenzaGenereMovie(contestoDb, "Drammatico");
+        var genereFantascienza = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantascienza");
+        var genereFantasy      = await AssicuraEsistenzaGenereMovie(contestoDb, "Fantasy");
+        var genereMusical      = await AssicuraEsistenzaGenereMovie(contestoDb, "Musical");
+        var genereRomantico    = await AssicuraEsistenzaGenereMovie(contestoDb, "Romantico");
+        var genereThriller     = await AssicuraEsistenzaGenereMovie(contestoDb, "Thriller");
+        var genereWestern      = await AssicuraEsistenzaGenereMovie(contestoDb, "Western");
+
+        // Film
+        var movie1 = await AssicuraEsistenzaMovie(contestoDb, "Movie1", "Film del drago", 60, 10, genereAzione.Id);
+        var movie2 = await AssicuraEsistenzaMovie(contestoDb, "Movie2", "Film del lupo", 80, 12, genereHorror.Id);
+        var movie3 = await AssicuraEsistenzaMovie(contestoDb, "Movie3", "Film del cane", 100, 14, genereCommedia.Id);
+
+        // Tipologie sala
+        var tipologia2D = await AssicuraEsistenzaTipologiaSala(contestoDb, "2D", 2);
+        var tipologia3D = await AssicuraEsistenzaTipologiaSala(contestoDb, "3D", 3);
+        var tipologiaImax = await AssicuraEsistenzaTipologiaSala(contestoDb, "IMAX", 4);
+
+        // Turni
+        var turnoMattina = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(10, 0), new TimeOnly(13, 0), "Mattina");
+        var turnoPomeriggio = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(13, 0), new TimeOnly(18, 0), "Pomeriggio");
+        var turnoSera = await AssicuraEsistenzaTurno(contestoDb, new TimeOnly(18, 0), new TimeOnly(22, 0), "Sera");
+
+        // Sale
+        var sala1 = await AssicuraEsistenzaSala(contestoDb, "Sala1", 30, tipologia2D.Id);
+        var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia3D.Id);
+        var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologiaImax.Id);
+
+        // Abbonamenti
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
+
+        // Proiezioni
+        var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
+        var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
+        var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
+
+        // Biglietti di esempio
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, DateTimeOffset.Now, 10);
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, DateTimeOffset.Now, 20);
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, DateTimeOffset.Now, 30);
+
+        // Crea un secondo conto cinema (duplicato)
+        await AssicuraEsistenzaContoCinema(contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
+    }
+
+    private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
+    {
+        bool seEsiste = await managerRuolo.RoleExistsAsync(nomeRuolo); // Controlla se il ruolo esiste
+        if (!seEsiste)
+        {
+            IdentityRole ruolo = new IdentityRole { Name = nomeRuolo }; // Crea nuovo ruolo
+            await managerRuolo.CreateAsync(ruolo);
+        }
+    }
+
+    private static async Task<Utente> AssicuraEsistenzaUtenteAsync(
+        UserManager<Utente> gestioneUtenti,
+        string email,
+        string password,
+        string nomeCompleto,
+        int eta,
+        bool abbonato)
+    {
+        Utente? utenteEsistente = await gestioneUtenti.FindByEmailAsync(email); // Cerca utente
+
+        if (utenteEsistente != null)
+            return utenteEsistente; // Se esiste lo restituisce
+
+        Utente utente = new Utente
+        {
+            UserName = email,
+            Email = email,
+            NomeCompleto = nomeCompleto,
+            Eta = eta,
+            SeAbbonato = abbonato,
+            AbbonamentoId = null
+        };
+
+        IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password); // Crea utente
+
+        if (!risultato.Succeeded)
+        {
+            List<string> errori = new List<string>();
+            foreach (IdentityError errore in risultato.Errors)
+                errori.Add(errore.Description);
+
+            throw new Exception($"Errore durante il seed dell'utente {email} : {string.Join("|", errori)}");
+        }
+
+        return utente;
+    }
+
+    private static async Task<ContoCinema> AssicuraEsistenzaConto(ContestoDb context, string iban, string titolareConto, int conto)
+    {
+        ContoCinema? contoEsistente = await context.ContoCinema.FirstOrDefaultAsync(); // Prende il primo conto se esiste
+        if (contoEsistente != null)
+            return contoEsistente;
+
+        ContoCinema nuovoContoCinema = new ContoCinema
+        {
+            Iban = iban,
+            TitolareConto = titolareConto,
+            Conto = conto
+        };
+
+        context.ContoCinema.Add(nuovoContoCinema); // Crea nuovo conto
+        await context.SaveChangesAsync();
+
+        return nuovoContoCinema;
+    }
+
+    private static async Task ImpostaRuoloUnicoAsync(UserManager<Utente> gestioneUtenti, Utente utente, string ruoloTarget)
+    {
+        IList<string> ruoliCorrenti = await gestioneUtenti.GetRolesAsync(utente); // Ruoli attuali
+
+        // Rimuove eventuali ruoli cinema
+        for (int i = 0; i < ruoliCorrenti.Count; i++)
+        {
+            string ruoloCorrente = ruoliCorrenti[i];
+
+            if (ruoloCorrente == Ruoli.Gestore || ruoloCorrente == Ruoli.Operatore || ruoloCorrente == Ruoli.Utente)
+                await gestioneUtenti.RemoveFromRoleAsync(utente, ruoloCorrente);
+        }
+
+        bool alreadyInTargetRole = await gestioneUtenti.IsInRoleAsync(utente, ruoloTarget);
+
+        if (!alreadyInTargetRole)
+            await gestioneUtenti.AddToRoleAsync(utente, ruoloTarget); // Assegna ruolo finale
+    }
+
+    private static async Task<GenereMovie> AssicuraEsistenzaGenereMovie(ContestoDb context, string genere)
+    {
+        List<GenereMovie> generiMovies = await context.GeneriMovies.ToListAsync(); // Tutti i generi
+
+        for (int i = 0; i < generiMovies.Count; i++)
+        {
+            GenereMovie genereCorrente = generiMovies[i];
+
+            bool nomeUguale = string.Equals(genereCorrente.Genere, genere, StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+                return genereCorrente; // Già esiste
+        }
+
+        GenereMovie nuovoGenere = new GenereMovie { Genere = genere };
+
+        context.GeneriMovies.Add(nuovoGenere); // Crea nuovo genere
+        await context.SaveChangesAsync();
+
+        return nuovoGenere;
+    }
+
+    private static async Task<Movie> AssicuraEsistenzaMovie(
+        ContestoDb context,
+        string titolo,
+        string descrizione,
+        int durataMinuti,
+        int prezzoMovie,
+        string genereId)
+    {
+        List<Movie> movies = await context.Movies.ToListAsync(); // Tutti i film
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+
+            bool nomeUguale = string.Equals(movieCorrente.Titolo, titolo, StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+                return movieCorrente; // Film già presente
+        }
+
+        Movie nuovoMovie = new Movie
+        {
+            Titolo = titolo,
+            Descrizione = descrizione,
+            DurataMinuti = durataMinuti,
+            PrezzoMovie = prezzoMovie,
+            GenereId = genereId
+        };
+
+        context.Movies.Add(nuovoMovie); // Crea film
+        await context.SaveChangesAsync();
+
+        return nuovoMovie;
+    }
+
+    private static async Task<TipologiaSala> AssicuraEsistenzaTipologiaSala(
+        ContestoDb context,
+        string nome,
+        int maggiorazioneprezzo)
+    {
+        List<TipologiaSala> tipologieSala = await context.TipologieSala.ToListAsync(); // Tutte le tipologie
+
+        for (int i = 0; i < tipologieSala.Count; i++)
+        {
+            TipologiaSala tipologiaCorrente = tipologieSala[i];
+
+            bool nomeUguale = string.Equals(tipologiaCorrente.Nome, nome, StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+                return tipologiaCorrente;
+        }
+
+        TipologiaSala nuovaTipologia = new TipologiaSala
+        {
+            Nome = nome,
+            MaggiorazionePrezzo = maggiorazioneprezzo
+        };
+
+        context.TipologieSala.Add(nuovaTipologia); // Crea tipologia
+        await context.SaveChangesAsync();
+
+        return nuovaTipologia;
+    }
+
+    private static async Task<Sala> AssicuraEsistenzaSala(
+        ContestoDb context,
+        string nome,
+        int capienza,
+        string tipologiaSalaId)
+    {
+        List<Sala> sale = await context.Sale.ToListAsync(); // Tutte le sale
+
+        for (int i = 0; i < sale.Count; i++)
+        {
+            Sala salaCorrente = sale[i];
+
+            bool nomeUguale = string.Equals(salaCorrente.Nome, nome, StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+                return salaCorrente;
+        }
+
+        Sala nuovaSala = new Sala
+        {
+            Nome = nome,
+            Capienza = capienza,
+            TipologiaSalaId = tipologiaSalaId
+        };
+
+        context.Sale.Add(nuovaSala); // Crea sala
+        await context.SaveChangesAsync();
+
+        return nuovaSala;
+    }
+
+    private static async Task<Turno> AssicuraEsistenzaTurno(
+        ContestoDb context,
+        TimeOnly oraInizio,
+        TimeOnly oraFine,
+        string nome)
+    {
+        List<Turno> turni = await context.Turni.ToListAsync(); // Tutti i turni
+
+        for (int i = 0; i < turni.Count; i++)
+        {
+            Turno turnoCorrente = turni[i];
+
+            bool nomeUguale = string.Equals(turnoCorrente.Nome, nome, StringComparison.OrdinalIgnoreCase);
+
+            bool stessoOrario = turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine;
+
+            if (nomeUguale || stessoOrario)
+                return turnoCorrente;
+        }
+
+        Turno nuovoTurno = new Turno
+        {
+            Nome = nome,
+            OraInizio = oraInizio,
+            OraFine = oraFine
+        };
+
+        context.Turni.Add(nuovoTurno); // Crea turno
+        await context.SaveChangesAsync();
+
+        return nuovoTurno;
+    }
+
+    private static async Task AssicuraEsistenzaAbbonamento(
+        ContestoDb context,
+        string nome,
+        int prezzo,
+        int sconto,
+        int durata)
+    {
+        List<Abbonamento> abbonamenti = await context.Abbonamenti.ToListAsync(); // Tutti gli abbonamenti
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+            bool nomeUguale = string.Equals(abbonamentoCorrente.Nome, nome, StringComparison.OrdinalIgnoreCase);
+            if (nomeUguale)
+                return; // Già esiste
+        }
+
+        Abbonamento nuovoAbbonamento = new Abbonamento
+        {
+            Nome = nome,
+            Prezzo = prezzo,
+            Sconto = sconto,
+            Durata = durata
+        };
+
+        context.Abbonamenti.Add(nuovoAbbonamento); // Crea abbonamento
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task<Proiezione> AssicuraEsistenzaProiezione(
+        ContestoDb context,
+        DateOnly dataProiezione,
+        string movieId,
+        string salaId,
+        string turnoId)
+    {
+        List<Proiezione> proiezioni = await context.Proiezioni.ToListAsync(); // Tutte le proiezioni
+
+        for (int i = 0; i < proiezioni.Count; i++)
+        {
+            Proiezione proiezione = proiezioni[i];
+
+            bool stessaSala = proiezione.SalaId == salaId;
+            bool stessoMovie = proiezione.MovieId == movieId;
+            bool stessoTurno = proiezione.TurnoId == turnoId;
+
+            if (stessaSala && stessoMovie && stessoTurno)
+                return proiezione; // Già esiste
+        }
+
+        Proiezione nuovaProiezione = new Proiezione
+        {
+            DataProiezione = dataProiezione,
+            MovieId = movieId,
+            SalaId = salaId,
+            TurnoId = turnoId,
+            Attivo = true
+        };
+
+        context.Proiezioni.Add(nuovaProiezione); // Crea proiezione
+        await context.SaveChangesAsync();
+
+        return nuovaProiezione;
+    }
+
+        private static async Task AssicuraEsistenzaBiglietto(
+        ContestoDb context,
+        string proiezioneId,
+        string utenteId,
+        int numeroBiglietti,
+        DateTimeOffset orarioCreazione,
+        int prezzoFinale)
+    {
+        List<Biglietto> biglietti = await context.Biglietti.ToListAsync(); 
+        // Recupera tutti i biglietti (non usato, ma presente nel metodo)
+
+        Biglietto nuovoBiglietto = new Biglietto
+        {
+            ProiezioneId = proiezioneId,       // FK proiezione
+            UtenteId = utenteId,               // FK utente
+            NumeroBiglietti = numeroBiglietti, // Quantità acquistata
+            OrarioCreazione = orarioCreazione, // Timestamp creazione
+            PrezzoFinale = prezzoFinale        // Prezzo totale
+        };
+
+        context.Biglietti.Add(nuovoBiglietto); // Inserisce il biglietto
+        await context.SaveChangesAsync();      // Salva su DB
+    }
+
+    private static async Task AssicuraEsistenzaContoCinema(
+        ContestoDb context,
+        string iban,
+        string titolareConto,
+        int conto)
+    {
+        ContoCinema nuovoContoCinema = new ContoCinema
+        {
+            Iban = iban,               // IBAN del conto
+            TitolareConto = titolareConto, // Nome titolare
+            Conto = conto              // Importo iniziale
+        };
+
+        context.ContoCinema.Add(nuovoContoCinema); // Crea nuovo conto
+        await context.SaveChangesAsync();          // Salva su DB
+    }
+}
+```
+
+# Controllers
+
+## OperatoreController.cs
+
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Biglietti")]
+public class Biglietto
+{
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString(); 
+    // Id univoco del biglietto
+
+    [Required]
+    public string ProiezioneId { get; set; } = string.Empty; 
+    // FK verso la proiezione
+
+    [ForeignKey("ProiezioneId")]
+    public Proiezione? Proiezione { get; set; } 
+    // Navigazione verso la proiezione (nullable per EF)
+
+    [Required]
+    public string UtenteId { get; set; } = string.Empty; 
+    // FK verso l’utente
+
+    [ForeignKey("UtenteId")]
+    public Utente? Utente { get; set; } 
+    // Navigazione verso l’utente (nullable per EF)
+
+    [Required]
+    [Range(1, 100, ErrorMessage = "Il numero di biglietti deve essere maggiore di zero e massimo 100.")]
+    public int NumeroBiglietti { get; set; } 
+    // Numero di biglietti acquistati
+
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow; 
+    // Timestamp di creazione
+
+    [Required]
+    public int PrezzoFinale { get; set; } 
+    // Prezzo totale pagato
+}
+```
+
+# modelli
+
+## Biglietto.cs
+
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Biglietti")]
+public class Biglietto
+{
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString(); 
+    // Id univoco del biglietto
+
+    [Required]
+    public string ProiezioneId { get; set; } = string.Empty; 
+    // FK verso la proiezione
+
+    [ForeignKey("ProiezioneId")]
+    public Proiezione? Proiezione { get; set; } 
+    // Navigazione verso la proiezione (nullable per EF)
+
+    [Required]
+    public string UtenteId { get; set; } = string.Empty; 
+    // FK verso l’utente
+
+    [ForeignKey("UtenteId")]
+    public Utente? Utente { get; set; } 
+    // Navigazione verso l’utente (nullable per EF)
+
+    [Required]
+    [Range(1, 100, ErrorMessage = "Il numero di biglietti deve essere maggiore di zero e massimo 100.")]
+    public int NumeroBiglietti { get; set; } 
+    // Numero di biglietti acquistati
+
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow; 
+    // Timestamp di creazione
+
+    [Required]
+    public int PrezzoFinale { get; set; } 
+    // Prezzo totale pagato
+}
+```
+
 # Dtos
 
 ## DtoAbbonamento.cs
@@ -56,8 +585,6 @@ public class DtoBiglietto
     public DateTimeOffset OrarioCreazione { get; set; }      // Timestamp di generazione del biglietto
 
     public int NumeroBiglietti { get; set; }                 // Numero di biglietti acquistati
-
-    public string MetodoPagamento { get; set; } = "standard"; // Metodo di pagamento scelto
 }
 ```
 
@@ -110,8 +637,6 @@ public class DtoCreazioneBiglietto
     [Required]
     [Range(1, 100, ErrorMessage = "Il numero di biglietti deve essere maggiore di zero e massimo 100.")]
     public int NumeroBiglietti { get; set; }                   // Numero di biglietti richiesti
-
-    public string MetodoPagamento { get; set; } = "standard";  // Metodo di pagamento selezionato
 }
 ```
 
@@ -479,6 +1004,18 @@ namespace NuovoCinemaParadiso.Dtos;
 public class DtoRicaricaGiftCard
 {
     public int Importo { get; set; }   // Importo da aggiungere al saldo della gift card
+}
+```
+
+## DtoRicaricaSaldoUtente.cs
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoRicaricaSaldoUtente
+{
+    public string Email { get; set; } = string.Empty; // Email dell’utente da ricaricare
+    public int Ricarica { get; set; }                 // Importo della ricarica da aggiungere al saldo
 }
 ```
 

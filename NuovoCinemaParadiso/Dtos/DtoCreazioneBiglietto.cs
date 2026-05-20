@@ -7,5 +7,4 @@ public class DtoCreazioneBiglietto
     [Required]
     [Range(1, 100, ErrorMessage = "Il numero di biglietti deve essere maggiore di zero e massimo 100.")]
     public int NumeroBiglietti { get; set; }
-    public string MetodoPagamento { get; set; } = "standard";
 }

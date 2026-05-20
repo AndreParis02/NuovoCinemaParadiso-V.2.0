@@ -22,17 +22,17 @@ public class OperatoreController : ControllerBase
 
     [HttpPost("ricarica")]
     [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> Ricarica([FromBody] DtoRicarica dtoRicarica)
+    public async Task<IActionResult> RicaricaSaldoUtente([FromBody] DtoRicaricaSaldoUtente dtoRicaricaSaldoUtente)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-        bool successo = await _operatoreService.RicaricaAsync(dtoRicarica);
+        bool successo = await _operatoreService.RicaricaAsync(dtoRicaricaSaldoUtente);
         if (!successo)        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica fallita per {dtoRicarica.Email}", false);
-            return NotFound($"Utente con email {dtoRicarica.Email} non trovato.");
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica fallita per {dtoRicaricaSaldoUtente.Email}", false);
+            return NotFound($"Utente con email {dtoRicaricaSaldoUtente.Email} non trovato.");
         }
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica riuscita per {dtoRicarica.Email}", true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica riuscita per {dtoRicaricaSaldoUtente.Email}", true);
 
         return Ok("Ricarica effettuata con successo.");
     }

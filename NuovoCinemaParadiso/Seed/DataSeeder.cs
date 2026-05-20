@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
@@ -90,9 +89,9 @@ public static class DataSeeder
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
         var proiezione3 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie3.Id, sala3.Id, turnoSera.Id);
 
-        await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10, "standard");
-        await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20, "abbonamento");
-        await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30, "giftcard");
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10);
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20);
+        await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30);
 
         await AssicuraEsistenzaContoCinema(contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
     }
@@ -108,7 +107,6 @@ public static class DataSeeder
             await managerRuolo.CreateAsync(ruolo);
         }
     }
-
 
     private static async Task<Utente> AssicuraEsistenzaUtenteAsync(
         UserManager<Utente> gestioneUtenti,
@@ -152,10 +150,10 @@ public static class DataSeeder
 
     private static async Task<ContoCinema> AssicuraEsistenzaConto(ContestoDb context ,string iban, string titolareConto, int conto)
     {
-        ContoCinema contoEsistente = await context.ContoCinema.FirstOrDefaultAsync();
+        ContoCinema? contoEsistente = await context.ContoCinema.FirstOrDefaultAsync();
         if(contoEsistente != null)
         {
-            return null;
+            return contoEsistente;
         }
 
         ContoCinema nuovoContoCinema = new ContoCinema
@@ -425,8 +423,7 @@ public static class DataSeeder
     string utenteId,
     int numeroBiglietti,
     DateTimeOffset orarioCreazione,
-    int prezzoFinale,
-    string metodoPagamento)
+    int prezzoFinale)
     {
         List<Biglietto> biglietti = await context.Biglietti.ToListAsync();
 
@@ -437,7 +434,6 @@ public static class DataSeeder
             NumeroBiglietti = numeroBiglietti,
             OrarioCreazione = orarioCreazione,
             PrezzoFinale = prezzoFinale,
-            MetodoPagamento = metodoPagamento,
         };
 
         context.Biglietti.Add(nuovoBiglietto);
@@ -450,8 +446,6 @@ public static class DataSeeder
     string titolareConto,
     int conto)
     {
-        List <ContoCinema> ContiCinema = await context.ContoCinema.ToListAsync();
-
         ContoCinema nuovoContoCinema = new ContoCinema
         {
             Iban = iban,
