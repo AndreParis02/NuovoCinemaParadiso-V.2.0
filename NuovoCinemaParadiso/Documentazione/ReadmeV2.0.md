@@ -4712,54 +4712,66 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace NuovoCinemaParadiso.Services;
 
+// Servizio applicativo per la registrazione e lettura dei log delle azioni degli utenti
 public class LogAzioniService
 {
-  private readonly ContestoDb _contesto;
-  public LogAzioniService(ContestoDb contesto) 
-  {
-    _contesto = contesto; 
-  }
+    // Riferimento al DbContext per operazioni sul database
+    private readonly ContestoDb _contesto;
 
-    public async Task SalvataggioLogAzioneAsync(string idUtente, string azione, bool effettuato)
-  {
-      string messaggio = "operazione fallita";
-      if(effettuato) messaggio = "operazione eseguita";
-
-      LogAzioni log = new LogAzioni();
-
-      log.IdUtente = idUtente;
-      log.NomeAzione = azione;
-      log.Effettuato = effettuato;
-      log.Messaggio = messaggio;
-      log.TimeStamp = DateTimeOffset.UtcNow;
-
-        _contesto.LogAzioni.Add(log);
-      await _contesto.SaveChangesAsync();
-  }
-
-    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    // Iniezione delle dipendenze tramite costruttore
+    public LogAzioniService(ContestoDb contesto) 
     {
-        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
-        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
-        foreach (LogAzioni log in logs)
-        {
-          DtoLogAzioni risultato = new DtoLogAzioni();
-          risultato.Id = log.Id;
-          risultato.IdUtente = log.IdUtente;
-          risultato.NomeAzione = log.NomeAzione;
-          risultato.Effettuato = log.Effettuato;
-          risultato.Messaggio = log.Messaggio;
-          risultato.TimeStamp = log.TimeStamp;
-          risultati.Add(risultato);
-        }
-
-
-        return risultati;
+        _contesto = contesto; 
     }
 
+    // Crea e salva nel database un nuovo record di log per un'azione specifica
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
+    {
+        // Determinazione del messaggio testuale in base all'esito dell'azione
+        string messaggio = "operazione fallita";
+        if(effettuato) 
+            messaggio = "operazione eseguita";
+
+        // Costruzione dell'entità LogAzioni da salvare
+        LogAzioni log = new LogAzioni();
+
+        log.IdUtente = idUtente;
+        log.NomeAzione = azione;
+        log.Effettuato = effettuato;
+        log.Messaggio = messaggio;
+        log.TimeStamp = DateTimeOffset.UtcNow; // Impostazione data e ora correnti in UTC
+
+        // Salvataggio nel database
+        _contesto.LogAzioni.Add(log);
+        await _contesto.SaveChangesAsync();
+    }
+
+    // Restituisce la lista completa di tutti i log registrati nel sistema
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        // Lettura completa della tabella LogAzioni
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        
+        // Mappatura manuale Entità → DTO per ogni record trovato
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni();
+            risultato.Id = log.Id;
+            risultato.IdUtente = log.IdUtente;
+            risultato.NomeAzione = log.NomeAzione;
+            risultato.Effettuato = log.Effettuato;
+            risultato.Messaggio = log.Messaggio;
+            risultato.TimeStamp = log.TimeStamp;
+            
+            risultati.Add(risultato);
+        }
+
+        // Restituzione della lista elaborata
+        return risultati;
+    }
 }
 ```
 
