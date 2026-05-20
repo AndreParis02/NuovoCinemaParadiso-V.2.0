@@ -14,17 +14,20 @@ public class BigliettoService
         _contesto = contesto;
     }
 
-    public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
+ public async Task<List<DtoBiglietto>> OttieniTutto()
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
         List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        foreach (var bigliettoCorrente in biglietti)
+        for (int i = 0; i < biglietti.Count; i++)
         {
             if (bigliettoCorrente.UtenteId == utenteId)
             {
                 // Recupero entità per i calcoli
                 var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
+                utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
                 var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
 
                 if (utente == null || proiezione == null) continue; // Salta se mancano dati integri
@@ -53,8 +56,10 @@ public class BigliettoService
                 risultato.Add(dto);
             }
         }
-        return (risultato, null);
+        return risultato;
     }
+
+
 
     public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
     {
@@ -66,6 +71,8 @@ public class BigliettoService
 
 
         var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
         var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId);
         if (utente == null || proiezione == null) return (null, "Dati della proiezione o utente non trovati.");
 
@@ -97,6 +104,9 @@ public class BigliettoService
 
         var utente = await _contesto.Utenti.FindAsync(utenteId);
         if (utente == null) return (null, "Utente non trovato.");
+
+        utente.Abbonamento= await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        if (utente.Abbonamento == null) return (null, "Abbonamento non trovato.");
 
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         if (proiezione == null) return (null, "Proiezione non trovata.");
@@ -153,6 +163,8 @@ public class BigliettoService
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala?.TipologiaSalaId);
 
         if (movie == null || sala == null || utente == null || tipologiaSala == null)

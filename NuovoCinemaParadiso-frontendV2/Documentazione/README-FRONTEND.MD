@@ -161,7 +161,7 @@ operatore
 I generi dei movies sono hard-coded, preimpostati nel data seeder.
 La giftcard è hard-coded con id, email e valore che andrà scalato dal conto utente e avrà uno stato true o false per il riscatto della stessa.
 
-### operatore:
+### GESTORE:
 
 - leggere la lista dei biglietti.
 - leggere la lista degli audit.

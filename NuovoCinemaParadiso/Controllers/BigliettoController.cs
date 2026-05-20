@@ -21,21 +21,16 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize (Roles = Ruoli.Gestore)]
+    [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTutti()
     {
+        List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _bigliettoService.OttieniTutto(utenteId);
-        
-        if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", false);
-            return BadRequest(new { messaggio = errore });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", true);
-        return Ok(risultato);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i biglietti" ,true);
+        return Ok(biglietti);
     }
 
     [HttpGet("{id}")]

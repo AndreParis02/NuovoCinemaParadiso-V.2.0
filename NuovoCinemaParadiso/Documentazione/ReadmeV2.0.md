@@ -419,6 +419,15 @@ namespace NuovoCinemaParadiso.Data
 
 # Dtos
 
+## DtoAbbonati
+
+```c#
+public class DtoAbbonati
+{
+    public string IdAbbonamento {get; set;} = string.Empty;
+}
+```
+
 ## DtoCreazioneGiftCard.cs
 
 ```c#
@@ -2138,28 +2147,34 @@ public class BigliettoController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
-    // GET: api/Biglietto - Recupera tutti gli biglietti dell'utente loggato
     [HttpGet]
-    [Authorize (Roles = Ruoli.Gestore)]
-    public async Task<IActionResult> OttieniTutti()
-    {
-        // Estrae l'ID dell'utente dal token JWT
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+    [Authorize(Roles = Ruoli.Gestore)]
+public async Task<IActionResult> OttieniTutti()
+{
+    // 1️⃣ Chiede al service di recuperare TUTTI i biglietti dal database
+    //    Questo metodo non filtra per utente, quindi restituisce l'intera lista.
+    List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();
 
-        // Chiama il service per ottenere i dati e spacchetta la tupla
-        var (risultato, errore) = await _bigliettoService.OttieniTutto(utenteId);
-        
-        // Gestione errori: se c'è un errore, registra il fallimento e restituisce 400 Bad Request
-        if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", false);
-            return BadRequest(new { messaggio = errore });
-        }
+    // 2️⃣ Recupera l'ID dell'utente autenticato dal token JWT
+    //    Serve per registrare nel log chi ha fatto l'azione.
+    string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Caso di successo: registra l'azione e restituisce 200 OK con i dati
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti", true);
-        return Ok(risultato);
-    }
+    // 3️⃣ Se per qualche motivo il token non contiene l'ID → l'utente non è autenticato
+    if (utenteId == null)
+        return Unauthorized("Utente non autenticato.");
+
+    // 4️⃣ Registra nel log che l'utente ha richiesto la lista di tutti i biglietti
+    //    Il terzo parametro 'true' indica che l'operazione è andata a buon fine.
+    await _logAzioniService.SalvataggioLogAzioneAsync(
+        utenteId,
+        "Ottieni tutti i biglietti",
+        true
+    );
+
+    // 5️⃣ Restituisce al client la lista dei biglietti in formato JSON
+    return Ok(biglietti);
+}
+
 
     // GET: api/Biglietto/{id} - Recupera un singolo biglietto dell'utente loggato
     [HttpGet("{id}")]
@@ -2698,8 +2713,7 @@ public class AuthService
         utente.UserName = dto.Email;
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
-        dto.Saldo = 100;
-        utente.Saldo = dto.Saldo;
+        utente.Saldo = 1000;
         utente.Eta = dto.Eta;
         // Creazione utente con password
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
@@ -3897,52 +3911,61 @@ public class BigliettoService
         _contesto = contesto;
     }
 
-    // Recupera la lista di tutti gli biglietti legati a uno specifico utente
-    public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
+   public async Task<List<DtoBiglietto>> OttieniTutto()
+{
+    // 1️⃣ Recupera tutti i biglietti dal database
+    List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
+    // 2️⃣ Lista che conterrà i DTO finali da restituire
+    List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+    // 3️⃣ Cicla ogni biglietto trovato nel database
+    for (int i = 0; i < biglietti.Count; i++)
     {
-        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+        Biglietto bigliettoCorrente = biglietti[i];
 
-        foreach (var bigliettoCorrente in biglietti)
-        {
-            // Filtra solo gli biglietti dell'utente richiedente
-            if (bigliettoCorrente.UtenteId == utenteId)
-            {
-                // Recupero delle entità correlate necessarie per calcolare il prezzo finale
-                var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
-                var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
-                
-                if (utente == null || proiezione == null) continue; // Salta iterazione se i dati sono corrotti
+        // 4️⃣ Recupera il genere del film (⚠️ probabilmente errato: FindAsync richiede una chiave primaria, non un oggetto)
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(bigliettoCorrente);
 
-                var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-                var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-                
-                if (movie == null || sala == null) continue;
+        // 5️⃣ Recupera la proiezione associata al biglietto
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
 
-                var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-                if (tipologiaSala == null) continue;
+        // 6️⃣ Recupera il film della proiezione
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
 
-                // Popolamento del DTO da restituire al client
-                DtoBiglietto dto = new DtoBiglietto
-                {
-                    Id = bigliettoCorrente.Id,
-                    UtenteId = utente.Id,
-                    ProiezioneId = bigliettoCorrente.ProiezioneId,
-                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
-                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
-                    MetodoPagamento = bigliettoCorrente.MetodoPagamento,
-                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
-                        movie.PrezzoMovie,
-                        tipologiaSala.MaggiorazionePrezzo,
-                        bigliettoCorrente.NumeroBiglietti,
-                        utente,
-                        bigliettoCorrente.MetodoPagamento)
-                };
-                risultato.Add(dto);
-            }
-        }
-        return (risultato, null);
+        // 7️⃣ Recupera la sala della proiezione
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+
+        // 8️⃣ Recupera la tipologia della sala (serve per la maggiorazione)
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        // 9️⃣ Recupera l’utente che ha acquistato il biglietto
+        Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
+
+        // 🔟 Crea il DTO da restituire al frontend
+        DtoBiglietto dto = new DtoBiglietto();
+        dto.Id = bigliettoCorrente.Id;
+        dto.UtenteId = bigliettoCorrente.UtenteId;
+        dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+        dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+        dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+
+        // 1️⃣1️⃣ Calcola il prezzo finale usando la logica del tuo helper Calcoli
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            bigliettoCorrente.NumeroBiglietti,
+            utente.Abbonamento
+        );
+
+        // 1️⃣2️⃣ Aggiunge il DTO alla lista finale
+        risultato.Add(dto);
     }
+
+    // 1️⃣3️⃣ Restituisce la lista completa dei biglietti convertiti in DTO
+    return risultato;
+}
+
 
     // Recupera i dettagli di un singolo biglietto, verificandone la proprietà
     public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
@@ -4713,54 +4736,66 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace NuovoCinemaParadiso.Services;
 
+// Servizio applicativo per la registrazione e lettura dei log delle azioni degli utenti
 public class LogAzioniService
 {
-  private readonly ContestoDb _contesto;
-  public LogAzioniService(ContestoDb contesto) 
-  {
-    _contesto = contesto; 
-  }
+    // Riferimento al DbContext per operazioni sul database
+    private readonly ContestoDb _contesto;
 
-    public async Task SalvataggioLogAzioneAsync(string idUtente, string azione, bool effettuato)
-  {
-      string messaggio = "operazione fallita";
-      if(effettuato) messaggio = "operazione eseguita";
-
-      LogAzioni log = new LogAzioni();
-
-      log.IdUtente = idUtente;
-      log.NomeAzione = azione;
-      log.Effettuato = effettuato;
-      log.Messaggio = messaggio;
-      log.TimeStamp = DateTimeOffset.UtcNow;
-
-        _contesto.LogAzioni.Add(log);
-      await _contesto.SaveChangesAsync();
-  }
-
-    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    // Iniezione delle dipendenze tramite costruttore
+    public LogAzioniService(ContestoDb contesto) 
     {
-        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
-        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
-        foreach (LogAzioni log in logs)
-        {
-          DtoLogAzioni risultato = new DtoLogAzioni();
-          risultato.Id = log.Id;
-          risultato.IdUtente = log.IdUtente;
-          risultato.NomeAzione = log.NomeAzione;
-          risultato.Effettuato = log.Effettuato;
-          risultato.Messaggio = log.Messaggio;
-          risultato.TimeStamp = log.TimeStamp;
-          risultati.Add(risultato);
-        }
-
-
-        return risultati;
+        _contesto = contesto; 
     }
 
+    // Crea e salva nel database un nuovo record di log per un'azione specifica
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
+    {
+        // Determinazione del messaggio testuale in base all'esito dell'azione
+        string messaggio = "operazione fallita";
+        if(effettuato) 
+            messaggio = "operazione eseguita";
+
+        // Costruzione dell'entità LogAzioni da salvare
+        LogAzioni log = new LogAzioni();
+
+        log.IdUtente = idUtente;
+        log.NomeAzione = azione;
+        log.Effettuato = effettuato;
+        log.Messaggio = messaggio;
+        log.TimeStamp = DateTimeOffset.UtcNow; // Impostazione data e ora correnti in UTC
+
+        // Salvataggio nel database
+        _contesto.LogAzioni.Add(log);
+        await _contesto.SaveChangesAsync();
+    }
+
+    // Restituisce la lista completa di tutti i log registrati nel sistema
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        // Lettura completa della tabella LogAzioni
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        
+        // Mappatura manuale Entità → DTO per ogni record trovato
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni();
+            risultato.Id = log.Id;
+            risultato.IdUtente = log.IdUtente;
+            risultato.NomeAzione = log.NomeAzione;
+            risultato.Effettuato = log.Effettuato;
+            risultato.Messaggio = log.Messaggio;
+            risultato.TimeStamp = log.TimeStamp;
+            
+            risultati.Add(risultato);
+        }
+
+        // Restituzione della lista elaborata
+        return risultati;
+    }
 }
 ```
 
@@ -4769,111 +4804,57 @@ public class LogAzioniService
 ## CalcoliHelper.cs
 
 ```c#
+using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
 
-/// <summary>
-/// Classe statica che contiene funzioni di utilità per calcoli
-/// relativi a prezzi, scadenze e gestione temporale.
-/// </summary>
 public static class Calcoli
 {
-    /// <summary>
-    /// Calcola il prezzo finale dei biglietti in base al metodo di pagamento scelto.
-    /// Supporta tre modalità:
-    /// - "abbonamento": applica lo sconto previsto dal tipo di abbonamento
-    /// - "giftcard": scala i film disponibili e calcola eventuali biglietti rimanenti
-    /// - default: prezzo pieno
-    /// 
-    /// Aggiorna automaticamente lo stato della gift card (numero film rimanenti).
-    /// </summary>
-    public static Decimal CalcolaPrezzoFinale(
-        decimal prezzoMovie,
-        decimal maggiorazione,
-        int numeroBiglietti,
-        Utente utente,
-        string metodoPagamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento abbonamento, DateTimeOffset dataInizioAbbonamento)
     {
-        // Prezzo base del singolo biglietto (film + eventuale maggiorazione sala)
-        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
-
-        // ---------------------------------------------------------
-        // PAGAMENTO CON ABBONAMENTO
-        // ---------------------------------------------------------
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
+        int prezzoBiglietto = prezzoMovie + maggiorazione;
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
-            // Calcolo dello sconto percentuale
-            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-
-            // Prezzo del biglietto dopo lo sconto
-            decimal prezzoScontato = prezzoBiglietto - sconto;
-
-            // Prezzo finale per il numero di biglietti richiesti
+            
+           int sconto = (prezzoBiglietto * abbonamento.Sconto) / 100;
+           int prezzoScontato = prezzoBiglietto - sconto;
+            
             return prezzoScontato * numeroBiglietti;
         }
-
-        // ---------------------------------------------------------
-        // PAGAMENTO CON GIFT CARD
-        // ---------------------------------------------------------
-        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        else
         {
-            // Caso 1: la gift card copre più biglietti di quelli richiesti
-            if (utente.GiftCard.NumeroMovie > numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie -= numeroBiglietti;
-                return 0;
-            }
-
-            // Caso 2: la gift card copre esattamente i biglietti richiesti
-            else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-                return 0;
-            }
-
-            // Caso 3: la gift card copre solo una parte dei biglietti
-            else
-            {
-                int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
-
-                // La gift card viene completamente consumata
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-
-                // Si paga solo per i biglietti non coperti
-                return prezzoBiglietto * bigliettiRimanenti;
-            }
+            return prezzoBiglietto * numeroBiglietti;   
         }
-
-        // ---------------------------------------------------------
-        // PAGAMENTO STANDARD (prezzo pieno)
-        // ---------------------------------------------------------
-        return prezzoBiglietto * numeroBiglietti;
     }
 
-    /// <summary>
-    /// Calcola la data di scadenza aggiungendo un numero di mesi
-    /// alla data di inizio (usato per abbonamenti e gift card).
-    /// </summary>
+    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    {
+        utente.Saldo = utente.Saldo - prezzo;
+        contoCinema.Conto = contoCinema.Conto + prezzo;
+    }
+   
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
     }
 
-    /// <summary>
-    /// Restituisce il numero di giorni rimanenti alla scadenza.
-    /// Se il valore è 0, significa che l'abbonamento/gift card è scaduto.
-    /// </summary>
     public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
-
-        // Differenza tra la data di scadenza e la data attuale
         TimeSpan differenza = dataScadenza - DateTime.Now;
-
         return (int)differenza.TotalDays;
+    }
+
+    public static int CaricaGiftCard(Utente utente, GiftCard giftCard)
+    {
+        if(giftCard.Valore > utente.Saldo)
+        {
+           throw new Exception("Saldo utente non sufficente");
+        }
+        
+        return utente.Saldo = utente.Saldo - giftCard.Valore;    
     }
 }
 ```
@@ -5962,38 +5943,31 @@ public class UtenteController : ControllerBase
 
     // Endpoint per la sottoscrizione a un abbonamento
     [HttpPost("abbonati")]
-    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
     {
-        // Recupero ID utente autenticato tramite i Claims del token
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        // Controllo validità input
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        if (string.IsNullOrEmpty(dto.IdAbbonamento))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
         try
         {
-            // Chiamata al service per effettuare l'abbonamento
-            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
-            
-            // Salvataggio log di successo
+            var risultato = await _utenteService.AbbonatiAsync(dto.IdAbbonamento, utenteId);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
         catch (ItemAlredyexist ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
     }
@@ -6001,10 +5975,11 @@ public class UtenteController : ControllerBase
     // Endpoint per incassare una GiftCard
     [HttpPut("giftCard/riscatta")]
     public async Task<IActionResult> RiscattaGiftCard(
-    [FromBody] string giftCardCodiceRiscatto)
+        [FromBody] DtoCodiceRiscatto dto)
     {
         // Recupero ID utente autenticato
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Controllo autenticazione
         if (utenteId == null)
@@ -6012,8 +5987,19 @@ public class UtenteController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         }
 
-        // Controllo validità codice
-        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
+        // Controllo body nullo
+        if (dto == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Body richiesta non valido.");
+        }
+
+        // Controllo codice riscatto
+        if (string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
@@ -6028,16 +6014,16 @@ public class UtenteController : ControllerBase
             // Chiamata al service
             DtoGiftCard risultato =
                 await _utenteService.RiscattaGiftCardAsync(
-                    giftCardCodiceRiscatto,
+                    dto,
                     utenteId);
 
-            // Salvataggio log successo
+            // Log successo
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "RiscattoGiftCard",
                 true);
 
-            // Restituzione risultato
+            // Risposta OK
             return Ok(risultato);
         }
         catch (NotFoundException ex)
@@ -6048,7 +6034,10 @@ public class UtenteController : ControllerBase
                 "RiscattoGiftCard",
                 false);
 
-            return NotFound(new { errore = ex.Message });
+            return NotFound(new
+            {
+                errore = ex.Message
+            });
         }
         catch (Exception ex)
         {
@@ -6058,7 +6047,10 @@ public class UtenteController : ControllerBase
                 "RiscattoGiftCard",
                 false);
 
-            return BadRequest(new { errore = ex.Message });
+            return BadRequest(new
+            {
+                errore = ex.Message
+            });
         }
     }
 
