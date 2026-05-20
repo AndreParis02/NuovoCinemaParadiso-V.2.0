@@ -5,15 +5,17 @@ namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Utente utente, string metodoPagamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento abbonamento, DateTimeOffset dataInizioAbbonamento)
     {
         Console.WriteLine($"Calcolaprezzofinale: prezzoMovie={prezzoMovie}, maggiorazione={maggiorazione}, numeroBiglietti={numeroBiglietti}, metodoPagamento={metodoPagamento}, utente.SeAbbonato={utente.SeAbbonato}, utente.AbbonamentoId={utente.AbbonamentoId}");
         int prezzoBiglietto = prezzoMovie + maggiorazione;
-
-        if (metodoPagamento == "abbonamento")
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
-            int sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-            int prezzoScontato = prezzoBiglietto - sconto;
+            
+           int sconto = (prezzoBiglietto * abbonamento.Sconto) / 100;
+           int prezzoScontato = prezzoBiglietto - sconto;
+            
             return prezzoScontato * numeroBiglietti;
         }
         else

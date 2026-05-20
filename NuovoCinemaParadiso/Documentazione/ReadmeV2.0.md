@@ -419,6 +419,15 @@ namespace NuovoCinemaParadiso.Data
 
 # Dtos
 
+## DtoAbbonati
+
+```c#
+public class DtoAbbonati
+{
+    public string IdAbbonamento {get; set;} = string.Empty;
+}
+```
+
 ## DtoCreazioneGiftCard.cs
 
 ```c#
@@ -2704,8 +2713,7 @@ public class AuthService
         utente.UserName = dto.Email;
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
-        dto.Saldo = 100;
-        utente.Saldo = dto.Saldo;
+        utente.Saldo = 1000;
         utente.Eta = dto.Eta;
         // Creazione utente con password
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
@@ -4796,111 +4804,57 @@ public class LogAzioniService
 ## CalcoliHelper.cs
 
 ```c#
+using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Helpers;
 
-/// <summary>
-/// Classe statica che contiene funzioni di utilità per calcoli
-/// relativi a prezzi, scadenze e gestione temporale.
-/// </summary>
 public static class Calcoli
 {
-    /// <summary>
-    /// Calcola il prezzo finale dei biglietti in base al metodo di pagamento scelto.
-    /// Supporta tre modalità:
-    /// - "abbonamento": applica lo sconto previsto dal tipo di abbonamento
-    /// - "giftcard": scala i film disponibili e calcola eventuali biglietti rimanenti
-    /// - default: prezzo pieno
-    /// 
-    /// Aggiorna automaticamente lo stato della gift card (numero film rimanenti).
-    /// </summary>
-    public static Decimal CalcolaPrezzoFinale(
-        decimal prezzoMovie,
-        decimal maggiorazione,
-        int numeroBiglietti,
-        Utente utente,
-        string metodoPagamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento abbonamento, DateTimeOffset dataInizioAbbonamento)
     {
-        // Prezzo base del singolo biglietto (film + eventuale maggiorazione sala)
-        decimal prezzoBiglietto = prezzoMovie + maggiorazione;
-
-        // ---------------------------------------------------------
-        // PAGAMENTO CON ABBONAMENTO
-        // ---------------------------------------------------------
-        if (metodoPagamento == "abbonamento" && utente.SeAbbonato)
+        int prezzoBiglietto = prezzoMovie + maggiorazione;
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
-            // Calcolo dello sconto percentuale
-            decimal sconto = (prezzoBiglietto / 100) * utente.Abbonamento.Sconto;
-
-            // Prezzo del biglietto dopo lo sconto
-            decimal prezzoScontato = prezzoBiglietto - sconto;
-
-            // Prezzo finale per il numero di biglietti richiesti
+            
+           int sconto = (prezzoBiglietto * abbonamento.Sconto) / 100;
+           int prezzoScontato = prezzoBiglietto - sconto;
+            
             return prezzoScontato * numeroBiglietti;
         }
-
-        // ---------------------------------------------------------
-        // PAGAMENTO CON GIFT CARD
-        // ---------------------------------------------------------
-        if (metodoPagamento == "giftcard" && utente.PossiedeGiftCard)
+        else
         {
-            // Caso 1: la gift card copre più biglietti di quelli richiesti
-            if (utente.GiftCard.NumeroMovie > numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie -= numeroBiglietti;
-                return 0;
-            }
-
-            // Caso 2: la gift card copre esattamente i biglietti richiesti
-            else if (utente.GiftCard.NumeroMovie == numeroBiglietti)
-            {
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-                return 0;
-            }
-
-            // Caso 3: la gift card copre solo una parte dei biglietti
-            else
-            {
-                int bigliettiRimanenti = numeroBiglietti - utente.GiftCard.NumeroMovie;
-
-                // La gift card viene completamente consumata
-                utente.GiftCard.NumeroMovie = 0;
-                utente.PossiedeGiftCard = false;
-
-                // Si paga solo per i biglietti non coperti
-                return prezzoBiglietto * bigliettiRimanenti;
-            }
+            return prezzoBiglietto * numeroBiglietti;   
         }
-
-        // ---------------------------------------------------------
-        // PAGAMENTO STANDARD (prezzo pieno)
-        // ---------------------------------------------------------
-        return prezzoBiglietto * numeroBiglietti;
     }
 
-    /// <summary>
-    /// Calcola la data di scadenza aggiungendo un numero di mesi
-    /// alla data di inizio (usato per abbonamenti e gift card).
-    /// </summary>
+    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    {
+        utente.Saldo = utente.Saldo - prezzo;
+        contoCinema.Conto = contoCinema.Conto + prezzo;
+    }
+   
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
     {
         return dataInizio.AddMonths(durata);
     }
 
-    /// <summary>
-    /// Restituisce il numero di giorni rimanenti alla scadenza.
-    /// Se il valore è 0, significa che l'abbonamento/gift card è scaduto.
-    /// </summary>
     public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
     {
         DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
-
-        // Differenza tra la data di scadenza e la data attuale
         TimeSpan differenza = dataScadenza - DateTime.Now;
-
         return (int)differenza.TotalDays;
+    }
+
+    public static int CaricaGiftCard(Utente utente, GiftCard giftCard)
+    {
+        if(giftCard.Valore > utente.Saldo)
+        {
+           throw new Exception("Saldo utente non sufficente");
+        }
+        
+        return utente.Saldo = utente.Saldo - giftCard.Valore;    
     }
 }
 ```
@@ -5989,38 +5943,31 @@ public class UtenteController : ControllerBase
 
     // Endpoint per la sottoscrizione a un abbonamento
     [HttpPost("abbonati")]
-    public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
+    public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
     {
-        // Recupero ID utente autenticato tramite i Claims del token
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        // Controllo validità input
-        if (dto == null || string.IsNullOrEmpty(dto.AbbonamentoId))
+        if (string.IsNullOrEmpty(dto.IdAbbonamento))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
             return BadRequest("Dati non validi");
         }
         try
         {
-            // Chiamata al service per effettuare l'abbonamento
-            var risultato = await _utenteService.AbbonatiAsync(dto.AbbonamentoId, utenteId);
-            
-            // Salvataggio log di successo
+            var risultato = await _utenteService.AbbonatiAsync(dto.IdAbbonamento, utenteId);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
         catch (ItemAlredyexist ex)
         {
-            // Salvataggio log di fallimento
-            await _logAzioniService.SalvataggioLogAzioneAsync(dto.AbbonamentoId, "Abbonati", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
     }
