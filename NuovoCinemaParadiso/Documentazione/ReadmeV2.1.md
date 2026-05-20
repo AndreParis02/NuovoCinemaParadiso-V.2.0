@@ -1,7 +1,25 @@
 # NuovoCinemaParadisoV2.0
 
-# implementazioni 
+# Convenzioni
 
+1. La modifica del codice deve essere riportata sul readme come una versione indipendente dello stesso ma con l'aggiunta del codice     modificato commentato;
+
+2. Il commit deve, a livello descrittivo in modo sintetico, rimandare alla modifica/implementazione fatta;
+
+Esempio: 
+
+## Versione 1.0
+```c#
+```
+
+## Versione 1.1 
+Utente:
+Data:
+Descrizione:
+Id_commit:
+
+
+# implementazioni 
 
 # Models
 
