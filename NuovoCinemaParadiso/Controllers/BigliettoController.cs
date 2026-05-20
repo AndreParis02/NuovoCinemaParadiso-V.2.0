@@ -33,24 +33,7 @@ public class BigliettoController : ControllerBase
         return Ok(biglietti);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteId(string id)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null) return Unauthorized("Utente non autenticato.");
-
-        var (risultato, errore) = await _bigliettoService.OttieniTramiteIdAsync(id, utenteId);
-
-        if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", false);
-            if (errore.Contains("non trovato")) return NotFound(new { messaggio = errore });
-            return BadRequest(new { messaggio = errore });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietto ID", true);
-        return Ok(risultato);
-    }
-
+   
     [HttpPost]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneBiglietto dto)
     {

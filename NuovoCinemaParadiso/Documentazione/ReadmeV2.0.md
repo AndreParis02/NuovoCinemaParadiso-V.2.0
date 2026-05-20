@@ -2166,7 +2166,7 @@ public async Task<IActionResult> OttieniTutti()
     return Ok(biglietti);
 }
 
-
+                                                    //(HARD CODED)
     // GET: api/Biglietto/{id} - Recupera un singolo biglietto dell'utente loggato
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
@@ -3958,7 +3958,7 @@ public class BigliettoService
     return risultato;
 }
 
-
+                                                         //(HARD CODED)
     // Recupera i dettagli di un singolo biglietto, verificandone la proprietà
     public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
     {
