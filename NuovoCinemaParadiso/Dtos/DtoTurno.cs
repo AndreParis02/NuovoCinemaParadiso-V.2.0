@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoTurno
 {
     public string? Id { get; set; }
