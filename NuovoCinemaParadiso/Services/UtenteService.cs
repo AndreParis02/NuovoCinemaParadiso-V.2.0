@@ -53,6 +53,12 @@ public class UtenteService
             throw new ItemAlredyexist("Abbonamento");
         }
 
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
+        {
+            throw new Exception("Impossibile abbonarsi. Credito insufficiente sul saldo.");
+        }
+
+        utenteTrovato.Saldo -= abbonamentoTrovato.Prezzo;
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
         utenteTrovato.SeAbbonato = true;
         utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
