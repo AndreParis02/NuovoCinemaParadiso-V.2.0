@@ -21,7 +21,7 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = Ruoli.Operatore)]
+    [Authorize(Roles = Ruoli.Gestore)]
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();

@@ -2139,7 +2139,7 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = Ruoli.Operatore)]
+    [Authorize(Roles = Ruoli.Gestore)]
 public async Task<IActionResult> OttieniTutti()
 {
     // 1️⃣ Chiede al service di recuperare TUTTI i biglietti dal database
