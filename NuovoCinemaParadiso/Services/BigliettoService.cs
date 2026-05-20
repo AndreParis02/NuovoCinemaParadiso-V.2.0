@@ -25,6 +25,8 @@ public class BigliettoService
             {
                 // Recupero entità per i calcoli
                 var utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId);
+                utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
                 var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
 
                 if (utente == null || proiezione == null) continue; // Salta se mancano dati integri
@@ -49,8 +51,8 @@ public class BigliettoService
                         movie.PrezzoMovie,
                         tipologiaSala.MaggiorazionePrezzo,
                         bigliettoCorrente.NumeroBiglietti,
-                        utente,
-                        bigliettoCorrente.MetodoPagamento)
+                        utente.Abbonamento,
+                        utente.DataInizioAbbonamento)
                 };
                 risultato.Add(dto);
             }
@@ -68,6 +70,8 @@ public class BigliettoService
 
 
         var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
         var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId);
         if (utente == null || proiezione == null) return (null, "Dati della proiezione o utente non trovati.");
 
@@ -86,7 +90,7 @@ public class BigliettoService
             OrarioCreazione = biglietto.OrarioCreazione,
             NumeroBiglietti = biglietto.NumeroBiglietti,
             MetodoPagamento = biglietto.MetodoPagamento,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento)
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
         };
 
         return (dto, null);
@@ -100,6 +104,9 @@ public class BigliettoService
 
         var utente = await _contesto.Utenti.FindAsync(utenteId);
         if (utente == null) return (null, "Utente non trovato.");
+
+        utente.Abbonamento= await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        if (utente.Abbonamento == null) return (null, "Abbonamento non trovato.");
 
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         if (proiezione == null) return (null, "Proiezione non trovata.");
@@ -121,7 +128,7 @@ public class BigliettoService
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
             MetodoPagamento = dto.MetodoPagamento,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento)
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
         };
 
         _contesto.Biglietti.Add(biglietto);
@@ -158,13 +165,15 @@ public class BigliettoService
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala?.TipologiaSalaId);
 
         if (movie == null || sala == null || utente == null || tipologiaSala == null)
             return (null, "Dati correlati all'biglietto non trovati o non validi.");
 
         bigliettoEsistente.NumeroBiglietti = dto.NumeroBiglietti;
-        bigliettoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoEsistente.NumeroBiglietti, utente, bigliettoEsistente.MetodoPagamento);
+        bigliettoEsistente.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoEsistente.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
 
         await _contesto.SaveChangesAsync();
 
