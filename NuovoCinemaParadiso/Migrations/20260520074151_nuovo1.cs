@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class secondaMigrazione : Migration
+    public partial class nuovo1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

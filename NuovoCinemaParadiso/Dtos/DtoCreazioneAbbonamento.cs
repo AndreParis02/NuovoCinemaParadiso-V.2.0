@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoCreazioneAbbonamento
 {
     public string Nome { get; set; } = string.Empty;

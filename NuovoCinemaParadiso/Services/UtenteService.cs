@@ -115,7 +115,7 @@ public class UtenteService
         };
     }
 
-    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardCodiceRiscatto, string utenteId)
+    public async Task<DtoGiftCard> RiscattaGiftCardAsync(DtoCodiceRiscatto dto, string utenteId)
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
         GiftCard? giftCardTrovata = null;
@@ -131,7 +131,7 @@ public class UtenteService
         {
             GiftCard giftCardCorrente = giftCards[i];
 
-            if (giftCardCorrente.CodiceRiscatto == giftCardCodiceRiscatto)
+            if (giftCardCorrente.CodiceRiscatto == dto.CodiceRiscatto)
             {
                 giftCardTrovata = giftCardCorrente;
                 break;
@@ -140,8 +140,10 @@ public class UtenteService
 
         if (giftCardTrovata == null)
         {
-            throw new NotFoundException("GiftCard", giftCardCodiceRiscatto);
+            throw new Exception("Codice riscatto non disponibile.");
         }
+
+        if(giftCardTrovata.CodiceRiscatto != dto.CodiceRiscatto)
 
         if (giftCardTrovata.Riscattata == true)
         {

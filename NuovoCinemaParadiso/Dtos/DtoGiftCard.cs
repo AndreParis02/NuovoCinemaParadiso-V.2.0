@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoGiftCard
 {
     public string? Id {get; set;}

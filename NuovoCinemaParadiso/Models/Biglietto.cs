@@ -27,7 +27,4 @@ public class Biglietto
 
     [Required]
     public int PrezzoFinale {get; set;}
-    
-    [Required]
-    public string MetodoPagamento { get; set; } = "standard";
 }
