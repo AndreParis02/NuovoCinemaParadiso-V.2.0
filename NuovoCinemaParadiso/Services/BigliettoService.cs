@@ -10,7 +10,7 @@ public class BigliettoService
 {
     private readonly ContestoDb _contesto;
 
-    public BigliettoService(ContestoDb contesto,)
+    public BigliettoService(ContestoDb contesto)
     {
         _contesto = contesto;
         
