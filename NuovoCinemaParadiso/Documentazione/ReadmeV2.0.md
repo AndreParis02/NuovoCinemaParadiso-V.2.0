@@ -6013,10 +6013,11 @@ public class UtenteController : ControllerBase
     // Endpoint per incassare una GiftCard
     [HttpPut("giftCard/riscatta")]
     public async Task<IActionResult> RiscattaGiftCard(
-    [FromBody] string giftCardCodiceRiscatto)
+        [FromBody] DtoCodiceRiscatto dto)
     {
         // Recupero ID utente autenticato
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? utenteId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Controllo autenticazione
         if (utenteId == null)
@@ -6024,8 +6025,19 @@ public class UtenteController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         }
 
-        // Controllo validità codice
-        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
+        // Controllo body nullo
+        if (dto == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "RiscattoGiftCard",
+                false);
+
+            return BadRequest("Body richiesta non valido.");
+        }
+
+        // Controllo codice riscatto
+        if (string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
@@ -6040,16 +6052,16 @@ public class UtenteController : ControllerBase
             // Chiamata al service
             DtoGiftCard risultato =
                 await _utenteService.RiscattaGiftCardAsync(
-                    giftCardCodiceRiscatto,
+                    dto,
                     utenteId);
 
-            // Salvataggio log successo
+            // Log successo
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "RiscattoGiftCard",
                 true);
 
-            // Restituzione risultato
+            // Risposta OK
             return Ok(risultato);
         }
         catch (NotFoundException ex)
@@ -6060,7 +6072,10 @@ public class UtenteController : ControllerBase
                 "RiscattoGiftCard",
                 false);
 
-            return NotFound(new { errore = ex.Message });
+            return NotFound(new
+            {
+                errore = ex.Message
+            });
         }
         catch (Exception ex)
         {
@@ -6070,7 +6085,10 @@ public class UtenteController : ControllerBase
                 "RiscattoGiftCard",
                 false);
 
-            return BadRequest(new { errore = ex.Message });
+            return BadRequest(new
+            {
+                errore = ex.Message
+            });
         }
     }
 

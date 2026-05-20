@@ -52,96 +52,55 @@ public class UtenteController : ControllerBase
     }
 
     [HttpPut("giftCard/riscatta")]
-    public async Task<IActionResult> RiscattaGiftCard(
-    [FromBody] string giftCardCodiceRiscatto)
+    public async Task<IActionResult> RiscattaGiftCard([FromBody] DtoCodiceRiscatto dto)
     {
-        // Recupero ID utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Controllo autenticazione
         if (utenteId == null)
         {
             return Unauthorized("Utente non autenticato.");
         }
 
-        // Controllo validità codice
-        if (string.IsNullOrEmpty(giftCardCodiceRiscatto))
+        if (dto == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "RiscattoGiftCard",
-                false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RiscattoGiftCard",false);
+
+            return BadRequest("Body richiesta non valido.");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"RiscattoGiftCard",false);
 
             return BadRequest("Codice riscatto non valido.");
         }
 
         try
         {
-            // Chiamata al service
             DtoGiftCard risultato =
-                await _utenteService.RiscattaGiftCardAsync(
-                    giftCardCodiceRiscatto,
-                    utenteId);
+                await _utenteService.RiscattaGiftCardAsync(dto, utenteId);
 
-            // Salvataggio log successo
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "RiscattoGiftCard",
-                true);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"RiscattoGiftCard",true);
 
-            // Restituzione risultato
             return Ok(risultato);
         }
         catch (NotFoundException ex)
         {
-            // Log errore
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "RiscattoGiftCard",
-                false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"RiscattoGiftCard",false);
 
-            return NotFound(new { errore = ex.Message });
+            return NotFound(new
+            {
+                errore = ex.Message
+            });
         }
         catch (Exception ex)
         {
-            // Log errore generico
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "RiscattoGiftCard",
-                false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"RiscattoGiftCard",false);
 
-            return BadRequest(new { errore = ex.Message });
-        }
-    }
-
-    [HttpPost("giftCard/ricarica")]
-    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (utenteId == null)
-        {
-            return Unauthorized("Utente non autenticato.");
-        }
-
-        if (dto == null || dto.Importo <= 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
-            return BadRequest(new { errore = "L'importo della ricarica deve essere maggiore di zero." });
-        }
-
-        try
-        {
-            var risultato = await _utenteService.RicaricaGiftCardAsync(utenteId, dto);
-
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
-            
-            return Ok(risultato);
-        }
-        catch (Exception ex)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
-            return BadRequest(new { errore = ex.Message });
+            return BadRequest(new
+            {
+                errore = ex.Message
+            });
         }
     }
 }
