@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Data;
 
 namespace NuovoCinemaParadiso.Helpers;
 
@@ -21,10 +22,14 @@ public static class Calcoli
         }
     }
 
-    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    public static async Task<int> CalcolaSaldo(int prezzo, Utente utente)
     {
+        var contesto = new ContestoDb(new DbContextOptions<ContestoDb>());
+        var contoCinema = await contesto.ContiCinema.FirstOrDefaultAsync();
         utente.Saldo = utente.Saldo - prezzo;
         contoCinema.Conto = contoCinema.Conto + prezzo;
+        await contesto.SaveChangesAsync();
+        return utente.Saldo;
     }
    
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
