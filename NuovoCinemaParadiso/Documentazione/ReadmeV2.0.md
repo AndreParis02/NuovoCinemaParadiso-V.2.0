@@ -3982,25 +3982,33 @@ public class BigliettoService
     // Registra un nuovo biglietto nel database
     public async Task<(DtoBiglietto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
-        // Validazione della business logic sui limiti dei biglietti
-        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100)
-            return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
-
-        // Verifica dell'esistenza delle entità correlate necessarie
+        
+        /*controlla che l'utente esista*/
         var utente = await _contesto.Utenti.FindAsync(utenteId);
         if (utente == null) return (null, "Utente non trovato.");
 
+        /*controlla che la proiezione esista*/
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         if (proiezione == null) return (null, "Proiezione non trovata.");
 
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        if (movie == null || sala == null) return (null, "Dati del film o della sala non validi.");
+        if (sala == null) return (null, "Sala non trovata.");
+        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        
+        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");  
 
+        /*controlla che l'utente abbia un saldo sufficiente*/
+        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        /*necessari per il calcolo del prezzo del biglietto*/
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-        if (tipologiaSala == null) return (null, "Tipologia sala non trovata.");
 
-        // Creazione del modello da salvare
+
         Biglietto biglietto = new Biglietto
         {
             UtenteId = utenteId,
@@ -4011,11 +4019,15 @@ public class BigliettoService
             PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento)
         };
 
-        // Salvataggio nel database
+
         _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente,contoCinema);
+        utente.Saldo = saldi[0]; //aggiorna il saldo dell'utente
+        contoCinema.Conto = saldi[1];//aggiorna il saldo del cinema
         await _contesto.SaveChangesAsync();
 
-        // Mappatura del risultato nel DTO
+
         DtoBiglietto risultato = new DtoBiglietto
         {
             Id = biglietto.Id,
@@ -4873,6 +4885,16 @@ public static class Calcoli
         TimeSpan differenza = dataScadenza - DateTime.Now;
 
         return (int)differenza.TotalDays;
+    }
+    /// <summary>
+    /// Restituisce il saldo dell'utente e il saldo del cinema aggiornato,
+    ///  se il prezzo inserito è negativo si posso restituire i crediti agli utenti 
+    /// </summary>
+    public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    {
+        utente.Saldo = utente.Saldo - prezzo;
+        contoCinema.Conto = contoCinema.Conto + prezzo;
+        return new int[] { utente.Saldo, contoCinema.Conto };
     }
 }
 ```
