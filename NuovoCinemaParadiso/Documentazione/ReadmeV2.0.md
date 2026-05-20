@@ -2698,8 +2698,7 @@ public class AuthService
         utente.UserName = dto.Email;
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
-        dto.Saldo = 100;
-        utente.Saldo = dto.Saldo;
+        utente.Saldo = 1000;
         utente.Eta = dto.Eta;
         // Creazione utente con password
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
