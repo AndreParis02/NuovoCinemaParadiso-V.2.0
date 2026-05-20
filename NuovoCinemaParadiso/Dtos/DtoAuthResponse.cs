@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoAuthResponse
 {
     public string Id { get; set; } = string.Empty;
@@ -9,9 +8,6 @@ public class DtoAuthResponse
     public string Email { get; set; } = string.Empty;
     public string Ruolo { get; set; } = string.Empty;
     public DateTimeOffset DataInizioAbbonamento { get; set; }
-    public DateTimeOffset DataInizioGiftCard { get; set; }
     public bool SeAbbonato { get; set; }
-    public bool PossiedeGiftCard { get; set; } = false;
-
     public int Saldo { get; set; }
 }

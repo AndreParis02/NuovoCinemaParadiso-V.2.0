@@ -1,5 +1,4 @@
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoMovie
 {
     public string? Id {get;set;}
@@ -10,4 +9,3 @@ public class DtoMovie
     public string GenereId {get;set;} = string.Empty;
     public string Genere {get;set;} = string.Empty;
 }
-    

@@ -14,12 +14,13 @@ public class BigliettoService
         _contesto = contesto;
     }
 
-    public async Task<(List<DtoBiglietto>? Dati, string? Errore)> OttieniTutto(string utenteId)
+ public async Task<List<DtoBiglietto>> OttieniTutto()
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
         List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        foreach (var bigliettoCorrente in biglietti)
+        for (int i = 0; i < biglietti.Count; i++)
         {
             if (bigliettoCorrente.UtenteId == utenteId)
             {
@@ -57,8 +58,10 @@ public class BigliettoService
                 risultato.Add(dto);
             }
         }
-        return (risultato, null);
+        return risultato;
     }
+
+
 
     public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id, string utenteId)
     {

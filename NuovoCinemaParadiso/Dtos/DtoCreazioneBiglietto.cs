@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoCreazioneBiglietto
 {
     [Required]
