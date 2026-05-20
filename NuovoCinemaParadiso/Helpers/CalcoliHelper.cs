@@ -22,14 +22,11 @@ public static class Calcoli
         }
     }
 
-    public static async Task<int> CalcolaSaldo(int prezzo, Utente utente)
+    public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
     {
-        var contesto = new ContestoDb(new DbContextOptions<ContestoDb>());
-        var contoCinema = await contesto.ContiCinema.FirstOrDefaultAsync();
         utente.Saldo = utente.Saldo - prezzo;
         contoCinema.Conto = contoCinema.Conto + prezzo;
-        await contesto.SaveChangesAsync();
-        return utente.Saldo;
+        return new int[] { utente.Saldo, contoCinema.Conto };
     }
    
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)

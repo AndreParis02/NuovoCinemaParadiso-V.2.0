@@ -118,6 +118,10 @@ public class BigliettoService
         if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(0, 0, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+
         Biglietto biglietto = new Biglietto
         {
             UtenteId = utenteId,
@@ -130,7 +134,10 @@ public class BigliettoService
 
 
         _contesto.Biglietti.Add(biglietto);
-        utente.Saldo = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente,contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
         await _contesto.SaveChangesAsync();
 
 
