@@ -113,13 +113,15 @@ public class BigliettoService
         
         /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
         if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");  
-
+        
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        
         /*controlla che l'utente abbia un saldo sufficiente*/
         if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        
 
 
         Biglietto biglietto = new Biglietto

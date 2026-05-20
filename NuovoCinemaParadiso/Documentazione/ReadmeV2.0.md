@@ -2219,9 +2219,9 @@ public class BigliettoController : ControllerBase
         return Ok(risultato);
     }
 
-    // DELETE: api/Biglietto/{id} - Elimina un biglietto (Solo Gestore o Operatore)
+    // DELETE: api/Biglietto/{id} - Elimina un biglietto e da il rimborsa l'utente
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
+    
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
