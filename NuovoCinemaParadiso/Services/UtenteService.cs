@@ -20,6 +20,39 @@ public class UtenteService
         _gestioneUtenti = gestioneUtenti;
     }
 
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
+    {
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            if (bigliettoCorrente.UtenteId == utenteId)
+            {
+                Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+                
+                DtoBiglietto dto = new DtoBiglietto
+                {
+                    Id = bigliettoCorrente.Id,
+                    UtenteId = bigliettoCorrente.UtenteId,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento, (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento)
+                };
+
+                listaBiglietti.Add(dto);
+            }
+            
+        }
+        return listaBiglietti;
+
+    }
+
     public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
 {
     List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();

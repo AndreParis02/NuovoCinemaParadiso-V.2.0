@@ -20,6 +20,20 @@ public class UtenteController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
+    [HttpGet("biglietti")]
+    public async Task<IActionResult> OttieniTuttiBiglietti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
+        if(utenteId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
+
+        var biglietti = await _utenteService.OttieniTuttiBigliettiAsync(utenteId);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i biglietti", true);
+        return Ok(biglietti);
+    }
+
     [HttpPost("abbonati")]
     public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
     {
