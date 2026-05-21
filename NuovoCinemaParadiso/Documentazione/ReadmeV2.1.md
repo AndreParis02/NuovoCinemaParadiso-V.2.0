@@ -4262,15 +4262,6 @@ public class TurnoController : ControllerBase
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Services;
-using NuovoCinemaParadiso.Exceptions;
-
-namespace NuovoCinemaParadiso.Controllers;
-
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Exceptions;
@@ -4290,6 +4281,40 @@ public class UtenteController : ControllerBase
         _utenteService = utenteService;
         _logAzioniService = logAzioniService;
     }
+
+    // Endpoint HTTP GET che permette all’utente autenticato di visualizzare
+// tutti i biglietti che ha acquistato. 
+// La route finale sarà:  GET /api/Utente/biglietti
+[HttpGet("biglietti")]
+public async Task<IActionResult> OttieniTuttiBiglietti()
+{
+    // Recupera l'ID dell'utente attualmente autenticato leggendo il token JWT.
+    // Questo ID è fondamentale per filtrare i biglietti appartenenti al singolo utente.
+    string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);    
+
+    // Se per qualche motivo il token non contiene l'ID, l'utente non è considerato autenticato.
+    if(utenteId == null)
+    {
+        return Unauthorized("Utente non autenticato.");
+    }
+
+    // Chiede al servizio UtenteService di recuperare TUTTI i biglietti
+    // appartenenti a questo utente. Il service si occupa della logica di filtraggio
+    // e della costruzione dei DTO.
+    var biglietti = await _utenteService.OttieniTuttiBigliettiAsync(utenteId);
+
+    // Registra nel sistema di logging che l’utente ha richiesto la lista dei suoi biglietti.
+    // Questo serve per audit, tracciamento e sicurezza.
+    await _logAzioniService.SalvataggioLogAzioneAsync(
+        utenteId, 
+        "Ottieni tutti i biglietti", 
+        true
+    );
+
+    // Restituisce al client la lista dei biglietti in formato JSON.
+    // Se l’utente non ha biglietti, verrà restituita una lista vuota (comportamento corretto).
+    return Ok(biglietti);
+}
 
     [HttpPost("abbonati")]
     public async Task<IActionResult> Abbonati([FromBody] DtoUtente dto)
@@ -7560,103 +7585,151 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 using NuovoCinemaParadiso.Helpers;
+using System.Linq.Expressions;
 
 namespace NuovoCinemaParadiso.Services;
 
-/// <summary>
-/// Servizio che gestisce le operazioni relative agli utenti:
-/// abbonamenti, ricarica saldo e riscatto gift card.
-/// </summary>
 public class UtenteService
 {
+    // Riferimento al database dell'applicazione
     private readonly ContestoDb _contesto;
+
+    // Gestore utenti di Identity, usato per trovare e aggiornare gli utenti
     private readonly UserManager<Utente> _gestioneUtenti;
 
-    /// <summary>
-    /// Inizializza una nuova istanza del servizio UtenteService.
-    /// </summary>
-    /// <param name="contestoDb">Contesto del database EF Core.</param>
-    /// <param name="gestioneUtenti">UserManager per gestione Identity degli utenti.</param>
+    // Costruttore: riceve database e gestore utenti tramite Dependency Injection
     public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
     {
         _contesto = contestoDb;
         _gestioneUtenti = gestioneUtenti;
     }
 
-    /// <summary>
-    /// Associa un abbonamento a un utente.
-    /// </summary>
-    /// <param name="abbonamentoId">ID dell'abbonamento.</param>
-    /// <param name="utenteId">ID dell'utente.</param>
-    /// <returns>DTO dell'utente aggiornato.</returns>
-    /// <exception cref="NotFoundException">Se utente o abbonamento non esistono.</exception>
-    /// <exception cref="ItemAlredyexist">Se l'utente è già abbonato.</exception>
-    public async Task<DtoUtente> AbbonatiAsync(string abbonamentoId, string utenteId)
+    // Metodo che recupera tutti i biglietti appartenenti a un singolo utente
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
     {
+        // Recupera tutti i biglietti dal database
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+
+        // Lista finale che conterrà solo i biglietti dell'utente
+        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+
+        // Ciclo manuale su tutti i biglietti
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+
+            // Se il biglietto appartiene all'utente richiesto
+            if (bigliettoCorrente.UtenteId == utenteId)
+            {
+                // Recupera la proiezione collegata al biglietto
+                Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
+
+                // Recupera il film della proiezione
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+
+                // Recupera la sala della proiezione
+                Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+
+                // Recupera la tipologia della sala (per calcolare il prezzo)
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+                // Crea il DTO del biglietto con tutte le informazioni necessarie
+                DtoBiglietto dto = new DtoBiglietto
+                {
+                    Id = bigliettoCorrente.Id,
+                    UtenteId = bigliettoCorrente.UtenteId,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+
+                    // Calcolo del prezzo finale usando il metodo helper
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                        movie.PrezzoMovie,
+                        tipologiaSala.MaggiorazionePrezzo,
+                        bigliettoCorrente.NumeroBiglietti,
+                        (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento,
+                        (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento
+                    )
+                };
+
+                // Aggiunge il DTO alla lista finale
+                listaBiglietti.Add(dto);
+            }
+        }
+
+        // Restituisce tutti i biglietti dell'utente
+        return listaBiglietti;
+    }
+
+    // Metodo che permette a un utente di attivare un abbonamento
+    public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        // Recupera tutti gli abbonamenti dal database
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
         Abbonamento? abbonamentoTrovato = null;
 
-        foreach (var abbonamento in abbonamenti)
+        // Cerca manualmente l'abbonamento richiesto
+        for (int i = 0; i < abbonamenti.Count; i++)
         {
-            if (abbonamento.Id == abbonamentoId)
+            if (abbonamenti[i].Id == abbonamentoId)
             {
-                abbonamentoTrovato = abbonamento;
+                abbonamentoTrovato = abbonamenti[i];
                 break;
             }
         }
 
+        // Se non esiste → errore
         if (abbonamentoTrovato == null)
-            throw new NotFoundException("Abbonamento", abbonamentoId);
+            return (false, "Abbonamento non trovato.");
 
+        // Recupera l'utente che vuole abbonarsi
         Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
-
         if (utenteTrovato == null)
-            throw new NotFoundException("Utente", utenteId);
+            return (false, "Utente non trovato.");
 
+        // Se è già abbonato → non può abbonarsi di nuovo
         if (utenteTrovato.SeAbbonato)
-            throw new ItemAlredyexist("Abbonamento");
+            return (false, "L'utente è già abbonato.");
 
+        // Controlla che l'utente abbia abbastanza saldo
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
+            return (false, "Credito insufficiente per abbonarsi.");
+
+        // Scala il prezzo dal saldo dell'utente
+        utenteTrovato.Saldo -= abbonamentoTrovato.Prezzo;
+
+        // Imposta i dati dell'abbonamento
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
         utenteTrovato.SeAbbonato = true;
         utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
 
+        // Salva le modifiche nel database
         await _contesto.SaveChangesAsync();
 
-        return new DtoUtente
-        {
-            Id = utenteTrovato.Id,
-            NomeCompleto = utenteTrovato.NomeCompleto,
-            Email = utenteTrovato.Email,
-            Eta = utenteTrovato.Eta,
-            SeAbbonato = utenteTrovato.SeAbbonato,
-            DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
-            AbbonamentoId = utenteTrovato.AbbonamentoId,
-            TipoAbbonamento = abbonamentoTrovato.Nome
-        };
+        return (true, "Abbonamento attivato correttamente.");
     }
 
-    /// <summary>
-    /// Crea una gift card sottraendo il valore dal saldo dell'utente.
-    /// </summary>
-    /// <param name="utenteId">ID dell'utente.</param>
-    /// <param name="dto">Dati della ricarica gift card.</param>
-    /// <returns>Gift card generata.</returns>
-    /// <exception cref="NotFoundException">Se l'utente non esiste.</exception>
-    public async Task<DtoGiftCard> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+    // Metodo che permette di ricaricare una gift card
+    public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
     {
+        // Recupera l'utente che vuole ricaricare la gift card
         Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
 
-        if (utenteCorrente == null || utenteCorrente.Id == null)
-            throw new NotFoundException("Utente", utenteId);
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.");
 
+        // Controlla che l'importo sia valido
         if (dto.Importo <= 0)
-            throw new Exception("Importo non valido.");
+            return (false, "Importo non valido.");
 
+        // Controlla che l'utente abbia abbastanza saldo
         if (utenteCorrente.Saldo < dto.Importo)
-            throw new Exception("Saldo insufficiente.");
+            return (false, "Saldo insufficiente per ricaricare la gift card.");
 
+        // Scala l'importo dal saldo dell'utente
         utenteCorrente.Saldo -= dto.Importo;
 
+        // Crea una nuova gift card con un codice generato automaticamente
         GiftCard nuovaGiftCard = new GiftCard
         {
             Nome = "GiftCard",
@@ -7664,64 +7737,57 @@ public class UtenteService
             CodiceRiscatto = GiftCardHelper.GeneraCodice()
         };
 
+        // Aggiunge la gift card al database
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
         await _contesto.SaveChangesAsync();
 
-        return new DtoGiftCard
-        {
-            Id = nuovaGiftCard.Id,
-            Nome = nuovaGiftCard.Nome,
-            Valore = nuovaGiftCard.Valore,
-            CodiceRiscatto = nuovaGiftCard.CodiceRiscatto
-        };
+        return (true, "Gift card creata correttamente.");
     }
 
-    /// <summary>
-    /// Riscatta una gift card tramite codice e accredita il valore al saldo utente.
-    /// </summary>
-    /// <param name="giftCardCodiceRiscatto">Codice della gift card.</param>
-    /// <param name="utenteId">ID dell'utente.</param>
-    /// <returns>Gift card riscattata.</returns>
-    /// <exception cref="NotFoundException">Se utente o gift card non esistono.</exception>
-    public async Task<DtoGiftCard> RiscattaGiftCardAsync(string giftCardCodiceRiscatto, string utenteId)
+    // Metodo che permette di riscattare una gift card tramite codice
+    public async Task<(bool Successo, string Messaggio)> RiscattaGiftCardAsync(DtoCodiceRiscatto dto, string utenteId)
     {
+        // Recupera l'utente che vuole riscattare la gift card
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.");
+
+        // Recupera tutte le gift card dal database
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
         GiftCard? giftCardTrovata = null;
 
-        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
-
-        if (utenteCorrente == null || utenteCorrente.Id == null)
-            throw new NotFoundException("Utente", utenteId);
-
-        foreach (var giftCard in giftCards)
+        // Cerca manualmente la gift card tramite codice
+        for (int i = 0; i < giftCards.Count; i++)
         {
-            if (giftCard.CodiceRiscatto == giftCardCodiceRiscatto)
+            if (giftCards[i].CodiceRiscatto == dto.CodiceRiscatto)
             {
-                giftCardTrovata = giftCard;
+                giftCardTrovata = giftCards[i];
                 break;
             }
         }
 
+        // Se non esiste → errore
         if (giftCardTrovata == null)
-            throw new NotFoundException("GiftCard", giftCardCodiceRiscatto);
+            return (false, "Codice riscatto non valido.");
 
+        // Se è già stata usata → errore
         if (giftCardTrovata.Riscattata)
-            throw new Exception("Codice già utilizzato.");
+            return (false, "Il codice riscatto è già stato utilizzato.");
 
+        // Aggiunge il valore della gift card al saldo dell'utente
         utenteCorrente.Saldo += giftCardTrovata.Valore;
+
+        // Segna la gift card come riscattata
         giftCardTrovata.Riscattata = true;
 
+        // Salva le modifiche
         await _contesto.SaveChangesAsync();
 
-        return new DtoGiftCard
-        {
-            Id = giftCardTrovata.Id,
-            Nome = giftCardTrovata.Nome,
-            Valore = giftCardTrovata.Valore,
-            CodiceRiscatto = giftCardTrovata.CodiceRiscatto
-        };
+        return (true, "Gift card riscattata correttamente.");
     }
 }
+
 ```
 
 # Helpers (CalcoliHelper da aggiungere dopo il merge)
