@@ -4095,6 +4095,36 @@ public class UtenteController : ControllerBase
         }
     }
 
+    [HttpPost("giftCard/ricarica")]
+    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        // Validazione importo
+        if (dto == null || dto.Importo <= 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = "L'importo della ricarica deve essere maggiore di zero." });
+        }
+
+        try
+        {
+            var risultato = await _utenteService.RicaricaGiftCardAsync(utenteId, dto);
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
+
+            return Ok(risultato);
+        }
+        catch (Exception ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = ex.Message });
+        }
+    }
+
     [HttpPut("giftCard/riscatta")]
     public async Task<IActionResult> RiscattaGiftCard([FromBody] string giftCardCodiceRiscatto)
     {
@@ -4130,35 +4160,7 @@ public class UtenteController : ControllerBase
         }
     }
 
-    [HttpPost("giftCard/ricarica")]
-    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        // Validazione importo
-        if (dto == null || dto.Importo <= 0)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
-            return BadRequest(new { errore = "L'importo della ricarica deve essere maggiore di zero." });
-        }
-
-        try
-        {
-            var risultato = await _utenteService.RicaricaGiftCardAsync(utenteId, dto);
-
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
-
-            return Ok(risultato);
-        }
-        catch (Exception ex)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
-            return BadRequest(new { errore = ex.Message });
-        }
-    }
+    
 }
 ```
 
