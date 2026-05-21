@@ -86,3 +86,33 @@ Biglietto; (fatto)
            
 
 - MARCO: MODIFICA DEL CALCOLAPREZZOFINALE - IN CORSO
+
+
+
+# TASKS 21/05/2026
+
+MODIFICARE CONTROLLER E SERVICE CHE NON HANNO LA NECESSITà DI AVERE DTO IN USCITA CHE PORTINO DATI NON NECESSARI AL FRONTEND.
+DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGGIO DI RIUSCITA O FALLIMENTO.
+
+## SERVICES
+
+- ANDREA PARIS:- BigliettoService
+               - ContoCinemaService
+
+- FABIO: - GenereMovieService
+         - GestoreService
+
+- ANDREA BRUNO: - GiftCardService
+                - LogazioniService
+- GREG: - MovieService
+        - OperatoreService
+- Simeone: - ProiezioneService
+           - RuoloUtenteService
+- FRANCESCO: - SalaService
+             - TipologiaSalaService
+
+- LORENZO: - TurnoService
+           - UtenteService
+
+- MARCO: - AbbonamentoService
+         - AuthService
