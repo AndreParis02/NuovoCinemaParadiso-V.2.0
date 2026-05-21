@@ -98,16 +98,16 @@ public class MovieController : ControllerBase
             }
         }
         
-        DtoMovie? risultato = await _movieService.CreazioneAsync(dto);
+        bool risultato = await _movieService.CreazioneAsync(dto);
 
-        if (risultato == null)
+        if (!risultato)
         {
           await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
           return BadRequest(new { messaggio = "id del genere non valido." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
-        return Ok(risultato);
+        return Ok();
     }
 
     [HttpPut("{id}")]
@@ -129,16 +129,16 @@ public class MovieController : ControllerBase
             }
         }
         
-        DtoMovie? risultato = await _movieService.ModificaAsync(id, dto);
+        bool risultato = await _movieService.ModificaAsync(id, dto);
 
-        if (risultato == null)
+        if (!risultato)
         {
           await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
           return NotFound(new { messaggio = "Film non trovato." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
-        return Ok(risultato);
+        return Ok();
     }
 
     [HttpDelete("{id}")]
