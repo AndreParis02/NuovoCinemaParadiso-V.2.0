@@ -141,8 +141,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FRANCESCO: - SalaController
              - TipologiaSalaController
 
-- LORENZO: - TurnoController
+- LORENZO: - AbbonamentoController (fatto)
            - UtenteController
 
-- MARCO: - AbbonamentoController
+- MARCO: - TurnoController
          - AuthController
