@@ -2131,6 +2131,43 @@ public class GestoreController : ControllerBase
     }
 }
 ```
+### GestoreController.cs V1.1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Modificata la dependency injections del logAzioniService poichè ora la lettura di log è nel dominio del gestore.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class GestoreController : ControllerBase
+{
+    private readonly GestoreService _gestoreService;
+
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
+    {
+        _gestoreService = gestoreService;
+    }
+
+
+    [HttpGet("logs")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        // richiamo al service del gestore per il metodo della lettura degli audit.
+        List<DtoLogAzioni> risultatiLog = await _gestoreService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+}
+```
 
 ## GestoreUtentiController.cs
 
