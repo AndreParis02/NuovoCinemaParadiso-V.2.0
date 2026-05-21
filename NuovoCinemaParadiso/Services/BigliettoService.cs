@@ -80,6 +80,7 @@ public class BigliettoService
             ?? throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
 
 
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId); // <-- AGGIUNTA
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         if (movie == null || sala == null) return (null, "Dati del film o sala non trovati.");
@@ -131,8 +132,8 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         
         /*controlla che l'utente abbia un saldo sufficiente*/
-        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
-            return (null, "Saldo insufficiente per acquistare i biglietti.");
+        /*if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente, dto.MetodoPagamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");*/
 
         
 

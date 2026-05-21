@@ -106,8 +106,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
                 - LogazioniService
 - GREG: - MovieService
         - OperatoreService
-- Simeone: - ProiezioneService
-           - RuoloUtenteService
+- Simeone: - ProiezioneService (Fatto)
+           - RuoloUtenteService (Modifiche non necessarie concordando con Andrea Paris)
 - FRANCESCO: - SalaService
              - TipologiaSalaService
 
