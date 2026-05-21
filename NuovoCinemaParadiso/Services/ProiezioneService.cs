@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
@@ -161,7 +162,7 @@ public class ProiezioneService
 
     }
 
-    public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
+    public async Task<bool> CreazioneAsync(DtoCreazioneProiezione dto)
     {
         Proiezione proiezione = new Proiezione();
 
@@ -170,32 +171,21 @@ public class ProiezioneService
         proiezione.MovieId = dto.MovieId;
         proiezione.SalaId = dto.SalaId;
         proiezione.TurnoId = dto.TurnoId;
+        proiezione.Attivo = true; // <- AGGIUNTA perché altrimenti andava direttamente nello storico e non nel get standard per le attive
         
         _contesto.Proiezioni.Add(proiezione);
         await _contesto.SaveChangesAsync();
 
-        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
-
-        
-        DtoProiezione risultato = new DtoProiezione();
-        risultato.Id = proiezione.Id;
-        risultato.DataProiezione = proiezione.DataProiezione;
-        risultato.MovieId = proiezione.MovieId;
-        risultato.SalaId = proiezione.SalaId;
-        risultato.TurnoId = proiezione.TurnoId;
-        risultato.Attivo = proiezione.Attivo;
-        return risultato;
+        return true;
     }
 
-    public async Task<DtoProiezione?> ModificaAsync(string id, DtoCreazioneProiezione dto)
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneProiezione dto)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
 
         if (proiezione == null)
         {
-            return null;
+            return false;
         }
 
         proiezione.DataProiezione = dto.DataProiezione;
@@ -205,20 +195,7 @@ public class ProiezioneService
 
         await _contesto.SaveChangesAsync();
 
-        Movie? film = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId);
-
-        DtoProiezione risultato = new DtoProiezione();
-        risultato.Id = proiezione.Id;
-        risultato.DataProiezione = proiezione.DataProiezione;
-        risultato.MovieId = proiezione.MovieId;
-        risultato.SalaId = proiezione.SalaId;
-        risultato.TurnoId = proiezione.TurnoId;
-        risultato.Attivo = proiezione.Attivo;
-        return risultato;
-
-
+        return true;
     }
 
     public async Task<bool> EliminaAsync(string id)
@@ -236,7 +213,7 @@ public class ProiezioneService
             return false;
         }
 
-        proiezione.Attivo = false;
+        proiezione.Attivo = false; // <-- ci si ricollega al commento sul controller
         await _contesto.SaveChangesAsync();
         
         return true;

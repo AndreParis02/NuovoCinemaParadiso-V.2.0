@@ -169,16 +169,16 @@ public class ProiezioneController : ControllerBase
             }
         }
 
-        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
+        bool creato = await _proiezioneService.CreazioneAsync(dto);
 
-        if (risultato == null)
+        if (!creato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
             return BadRequest(new { messaggio = "Proiezione non valida." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
-        return Ok(risultato);
+        return Ok(new { messaggio = "Creazione avvenuta con successo!" });
     }
 
     [HttpPut("{id}")]
@@ -189,9 +189,9 @@ public class ProiezioneController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        DtoProiezione? risultato = await _proiezioneService.ModificaAsync(id,dto);
+        bool modificato = await _proiezioneService.ModificaAsync(id,dto);
 
-        if (risultato == null)
+        if (!modificato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", false);
 
@@ -200,10 +200,10 @@ public class ProiezioneController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
 
-        return Ok(risultato);
+        return Ok(new { messaggio = "Proiezione modificata con successo!"});
     }
 
-    [HttpPut("elimina/{id}")]
+    [HttpPut("elimina/{id}")] //<- usiamo PUT con /elimina/id e non DELETE con /id perché il nostro obbiettivo non è eliminare il campo, bensì renderlo inattivo, in modo che possa comunque apparire nello storico proiezioni
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {

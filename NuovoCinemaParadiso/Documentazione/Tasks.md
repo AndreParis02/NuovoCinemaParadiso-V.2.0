@@ -108,9 +108,12 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - GREG: - MovieService (fatto)
         - OperatoreService (fatto)
 
-- Simeone: - ProiezioneService
-           - RuoloUtenteService
-
+- ANDREA BRUNO: - GiftCardService
+                - LogazioniService
+- GREG: - MovieService
+        - OperatoreService
+- Simeone: - ProiezioneService (Fatto)
+           - RuoloUtenteService (Modifiche non necessarie concordando con Andrea Paris)
 - FRANCESCO: - SalaService
              - BigliettoService
 
