@@ -66,10 +66,9 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
             return BadRequest(new { errore = risultato.Messaggio });
         }
-
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
-
-        return Ok(new { messaggio = risultato.Messaggio });
+        
+        return Ok(new{ messaggio = risultato.messaggio});
     }
 
     [HttpPut("giftCard/riscatta")]
@@ -78,15 +77,16 @@ public class UtenteController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
+        
 
-        if (dto == null || string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
+        if (dto == null ||  string.IsNullOfWhiteSpace(dto.CodiceRiscatto))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RiscattoGiftCard", false);
             return BadRequest("Codice riscatto non valido.");
         }
 
         var risultato = await _utenteService.RiscattaGiftCardAsync(dto, utenteId);
-
+        
         if (!risultato.Successo)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RiscattoGiftCard", false);
