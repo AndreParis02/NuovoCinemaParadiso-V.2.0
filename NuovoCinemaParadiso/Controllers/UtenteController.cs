@@ -68,7 +68,7 @@ public class UtenteController : ControllerBase
         }
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
         
-        return Ok(new{ messaggio = risultato.messaggio});
+        return Ok(new{ messaggio = risultato.Messaggio});
     }
 
     [HttpPut("giftCard/riscatta")]
@@ -79,7 +79,7 @@ public class UtenteController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         
 
-        if (dto == null ||  string.IsNullOfWhiteSpace(dto.CodiceRiscatto))
+        if (dto == null ||  string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RiscattoGiftCard", false);
             return BadRequest("Codice riscatto non valido.");
