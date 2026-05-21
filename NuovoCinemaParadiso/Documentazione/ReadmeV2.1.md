@@ -4328,6 +4328,269 @@ public class BigliettoService
 }
 ```
 
+## BigliettoServiceV1.2
+
+Francesco Lorenzi
+21/05/2026
+
+aggiunta la funzione `OttieniTramiteProiezione` che restituisce una lista di biglietti in base all'id di una proiezione,
+ho anche aggiutato tutti gli ottieni che in maniera inutilmente verbosa calcolavano ogni volta il prezzo finale del biglietto. 
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+
+namespace NuovoCinemaParadiso.Services;
+
+// Servizio che gestisce la logica di business e le operazioni sul DB per l'entità Biglietto
+public class BigliettoService
+{
+    private readonly ContestoDb _contesto;
+    
+    public BigliettoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    //funzione più decimata dalle modifiche, ottiene tutti i biglietti ritornando una lista di dto
+   public async Task<List<DtoBiglietto>> OttieniTutto()
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+
+    // Recupera i dettagli di un singolo biglietto, operazione che dovra fare il gestore(forse), non ci interessano troppe verifiche
+   public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id)
+    {
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (null, "Biglietto non trovato.");
+
+        DtoBiglietto dto = new DtoBiglietto
+        {
+            Id = biglietto.Id,
+            UtenteId = biglietto.UtenteId,
+            ProiezioneId = biglietto.ProiezioneId,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale
+        };
+
+        return (dto, null);
+    }
+
+    // Ottieni i biglietti relativi ad una proiezione in formato DTO
+    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string proiezioneId)
+    {
+        //prendo dal database tutti i biglietti dove l'id della proiezione del biglietto combacia con quella inserita nel parametro
+        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == proiezioneId).ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        //preparo la lista di dto per il trasferimento
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            DtoBiglietto dto = new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                UtenteId = bigliettoCorrente.UtenteId,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale
+            };
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    // Registra un nuovo biglietto nel database, solo se l'utente ha un abbonamento(per il momento)
+    public async Task<(DtoBiglietto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    {
+        
+        /*controlla che l'utente esista*/
+        var utente = await _contesto.Utenti.FindAsync(utenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        /*verifica se l'utente ha un abbonamento*/
+        if (utente.AbbonamentoId == null)
+            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
+        if (utente.Abbonamento == null)
+            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
+
+        /* prende la proiezione richiesta dal dto, se non la trova ritorna errore*/
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        
+        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");  
+        /*prende il film relativo alla proiezione(necessario per il calcolo del prezzo finale) e controlla che esista*/
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+        /*prende la tipologia della sala (necessaria per il calcolo del prezzo finale) e controlla che esista*/
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+        
+        
+
+        /*controlla che l'utente abbia un saldo sufficiente*/
+        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+        /*creazione del biglietto da aggiungere nel DB*/
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utenteId,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+
+        _contesto.Biglietti.Add(biglietto);
+        /*logica di transazione*/
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente,contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        /*creazione DTO di ritorno*/
+        DtoBiglietto risultato = new DtoBiglietto
+        {
+            Id = biglietto.Id,
+            ProiezioneId = biglietto.ProiezioneId,
+            UtenteId = biglietto.UtenteId,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale,
+            OrarioCreazione = biglietto.OrarioCreazione
+        };
+
+        return (risultato, null);
+    }
+
+    // Aggiorna la quantità di biglietti e ricalcola il prezzo di un biglietto esistente
+    public async Task<(DtoBiglietto? Dto, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
+    {
+        /*trova e controlla che il biglietto da modificare esista*/
+        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
+        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
+        /*trova e controlla l'utente a cui appartiene quel biglietto */
+        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+        /*trova e controlla che la proiezione esita*/
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);//design
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
+        /*giustamente in questo controllo voglio sottrarre il numero di posti presi dal biglietto gia esistente solo se la proiezione è la stessa*/
+        if (proiezione.Id != bigliettoEsistente.ProiezioneId)
+        {
+            if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        }else
+        {
+             postiOccupati = postiOccupati - bigliettoEsistente.NumeroBiglietti;
+        }
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        
+        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");  
+        
+        /*trova il film per calcolare il prezzo finale, se non lo trova rtorna errore*/
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+        /*trova la tipologia sala per calcolare il prezzo finale, se non la trova rtorna errore*/
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+        
+        /*controlla che l'utente abbia un abbonamento*/
+        if (utente.AbbonamentoId == null)
+            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
+        if (utente.Abbonamento == null)
+            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
+
+        /*controlla che l'utente abbia un saldo sufficiente*/
+        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+        
+        /*creo l'oggetto modello da salvare nel DB*/
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utente.Id,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+        /*calcolo la differenza di prezzo per la transazionine */
+        var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente,contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return (new DtoBiglietto
+        {
+            Id = bigliettoEsistente.Id,
+            UtenteId = bigliettoEsistente.UtenteId,
+            ProiezioneId = bigliettoEsistente.ProiezioneId,
+            NumeroBiglietti = bigliettoEsistente.NumeroBiglietti,
+            PrezzoFinale = bigliettoEsistente.PrezzoFinale,
+            OrarioCreazione = bigliettoEsistente.OrarioCreazione,
+        }, null);
+    }
+
+    // Rimuove un biglietto dal database
+    public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
+    {
+        var biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (false, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        //rimborso all'utente
+        if (utente == null || contoCinema == null)
+            return (false, "Dati correlati all'biglietto non trovati.");
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Conto = saldi[1];
+
+        _contesto.Biglietti.Remove(biglietto);
+        await _contesto.SaveChangesAsync();
+        return (true, null);
+    }
+}
+```
+
 ## ContoCinemaService.cs
 
 ```c#
