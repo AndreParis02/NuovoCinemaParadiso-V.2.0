@@ -16,7 +16,6 @@ Esempio:
 Utente:
 Data:
 Descrizione:
-Id_commit:
 
 
 # implementazioni 
