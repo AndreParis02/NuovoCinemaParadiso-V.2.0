@@ -132,8 +132,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - ANDREA BRUNO: - GiftCardController (Fatto)
                 - LogazioniController (Fatto)
 
-- GREG: - MovieController
-        - OperatoreController
+- GREG: - MovieController (fatto)
+        - OperatoreController (fatto)
 
 - Simeone: - ProiezioneController
            - RuoloUtenteController
