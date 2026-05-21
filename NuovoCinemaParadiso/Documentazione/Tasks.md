@@ -96,7 +96,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## SERVICES
 
-- ANDREA PARIS:- TipologiaSalaService
+- ANDREA PARIS:- TipologiaSalaService (Fatto)
                - ContoCinemaService (Fatto)
 
 - FABIO: - GenereMovieService
@@ -123,8 +123,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## CONTROLLERS
 
-- ANDREA PARIS:- BigliettoController
-               - ContoCinemaController
+- ANDREA PARIS:- TipologiaSalaController (Fatto)
+               - ContoCinemaController (Fatto)
 
 - FABIO: - GenereMovieController
          - GestoreController
@@ -139,7 +139,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
            - RuoloUtenteController
 
 - FRANCESCO: - SalaController
-             - TipologiaSalaController
+             - BigliettoController
 
 - LORENZO: - TurnoController
            - UtenteController

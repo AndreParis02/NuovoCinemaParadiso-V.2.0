@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NuovoCinemaParadiso.Data;
 
@@ -11,11 +10,9 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260520074151_nuovo1")]
-    partial class nuovo1
+    partial class ContestoDbModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.6");
@@ -175,10 +172,6 @@ namespace NuovoCinemaParadiso.Migrations
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Biglietto", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MetodoPagamento")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("NumeroBiglietti")
