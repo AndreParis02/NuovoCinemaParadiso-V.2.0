@@ -231,7 +231,7 @@ public class GenereMovie
 }
 ```
 
-## GiftCard.cs
+## GiftCard.cs V 1.0
 
 ```c#
 using System.ComponentModel.DataAnnotations;
@@ -268,6 +268,46 @@ public class GiftCard
     // ✔ Lista degli utenti che possiedono questa Gift Card
     // ✔ Relazione uno-a-molti (una Gift Card → più utenti)
     public List<Utente> Utenti { get; set; } = new List<Utente>();
+}
+```
+
+## GiftCard.cs V 1.1
+
+Utente: Andrea Paris
+Data: 21/05/2026
+Descrizione: Cambato modello per esigenze (scollegato da Utente)
+    Elementi eliminati:
+    Durata, Prezzo, NumeroMovie, Utenti;
+
+    Elementi aggiunti:
+    Riscattata, Valore, CodiceRiscatto;
+
+
+```C#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("GiftCard")]
+public class GiftCard
+{
+    [Key]
+    public string Id {get;set;} = Guid.NewGuid().ToString();
+    [Required]
+    [StringLength(50)]
+    public string Nome {get;set;} = string.Empty;
+
+    [Required]
+    public bool Riscattata{get;set;} = false;
+
+    [Required]
+    [Range(0, 1000)]
+    public int Valore{get;set;}
+
+    [Required]
+    public string CodiceRiscatto{get;set;} = string.Empty;
+
 }
 ```
 
@@ -3722,7 +3762,7 @@ public class SalaController : ControllerBase
 }
 ```
 
-##  TipologiaSalaController.cs
+##  TipologiaSalaController.cs V 1.0
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -3878,6 +3918,147 @@ public class TipologiaSalaController : ControllerBase
 }
 ```
 
+## TipologiaSalaController.cs V 1.1
+
+Utente: Andrea Paris
+Data: 21/05/2026
+Descrizione: Modifiche fatte di conseguenza all'eliminazione dei dto in uscita in TipologiaSalaService.cs 
+
+```C#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TipologiaSalaController : ControllerBase
+{
+    private readonly TipologiaSalaService _tipologiaSalaService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public TipologiaSalaController(TipologiaSalaService tipologiaSalaService, LogAzioniService logAzioniService)
+    {
+        _tipologiaSalaService = tipologiaSalaService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
+
+        return Ok(tipologieSala);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        var risultato = await _tipologiaSalaService.OttieniTramiteIdAsync(id);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", false);
+
+            return NotFound($"TipologiaSala con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tipologie tramite id", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTipologiaSala dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+
+        foreach (var tipologiaSala in tipologieSala)
+        {
+            if (tipologiaSala.Nome.Contains(dto.Nome))
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
+
+                return BadRequest(new { messaggio = "Tipologia sala già presente." });
+            }
+        }
+
+        bool risultato = await _tipologiaSalaService.CreazioneAsync(dto);
+
+        if (!risultato) // sostituito risultato == null con !risultato
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
+
+            return BadRequest(new { messaggio = "Tipologia sala non valida." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", true);
+
+        return Ok(new { messaggio = "Tipologia sala aggiunta con successo!" }); // aggiunto messaggio di successo
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
+    {
+        bool risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (!risultato) // sostituito risultato == null con !risultato
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", false);
+
+            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", true);
+
+        return Ok(new { messaggio = "Tipologia sala modificata con successo!" }); // aggiunto messaggio di successo
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        bool eliminato = await _tipologiaSalaService.EliminaAsync(id);
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", false);
+
+            return NotFound(new { messaggio = "Tipologia sala non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina tipologia", true);
+
+        return Ok(new { messaggio = "Tipologia sala eliminata con successo!" });
+    }
+}
+```
+
 ##  TurnoController.cs
 
 ```c#
@@ -3887,14 +4068,6 @@ using System.Security.Claims;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Exceptions;
-
-namespace NuovoCinemaParadiso.Controllers;
-
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -7022,7 +7195,7 @@ public class SalaService
 }
 ```
 
-## TipologiaSalaService.cs
+## TipologiaSalaService.cs V 1.0
 
 ```c#
 using Microsoft.EntityFrameworkCore;
@@ -7152,6 +7325,117 @@ public class TipologiaSalaService
 
         if (tipologiaSala == null)
             return false;
+
+        _contesto.TipologieSala.Remove(tipologiaSala);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## TipologiaSalaService.cs V 1.1
+
+Utente: Andrea Paris
+Data: 21/05/2026
+Descrizione: Rimozione dto in uscita dove non necessari (per evitare di passare dati che non servono)
+Sono stati sostituiti da un bool 
+
+Metodi dove è stata apportata la modifica:
+Creazione, Modifica
+
+
+```C#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class TipologiaSalaService
+{
+    private readonly ContestoDb _contesto;
+    public TipologiaSalaService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<List<DtoTipologiaSala>> OttieniTuttoAsync()
+    {
+        List<TipologiaSala> tipologieSala = await _contesto.TipologieSala.ToListAsync();
+        
+        List<DtoTipologiaSala> risultati = new List<DtoTipologiaSala>();
+
+        foreach (var tipologiaSala in tipologieSala)
+        {
+            DtoTipologiaSala dto = new DtoTipologiaSala();
+            dto.Id = tipologiaSala.Id;
+            dto.Nome = tipologiaSala.Nome;
+            dto.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
+
+            risultati.Add(dto);
+        }
+        return risultati;
+    }
+
+    public async Task<DtoTipologiaSala?> OttieniTramiteIdAsync(string id)
+    {
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
+
+        if (tipologiaSala == null)
+        {
+            return null;
+        }
+
+        DtoTipologiaSala risultato = new DtoTipologiaSala();
+        risultato.Id = tipologiaSala.Id;
+        risultato.Nome = tipologiaSala.Nome;
+        risultato.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
+
+        return risultato;
+    }
+
+    public async Task<bool> CreazioneAsync(DtoCreazioneTipologiaSala dto)
+    {
+
+        TipologiaSala tipologiaSala = new TipologiaSala();
+        tipologiaSala.Nome = dto.Nome;
+        tipologiaSala.MaggiorazionePrezzo = dto.MaggiorazionePrezzo;
+
+        _contesto.TipologieSala.Add(tipologiaSala);
+        await _contesto.SaveChangesAsync();
+
+        // Eliminato il dto in uscita e sostituiti con un bool
+        return true;
+    }
+
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneTipologiaSala dto)
+    {
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
+
+        if (tipologiaSala == null)
+        {
+            return false;
+        }
+
+        tipologiaSala.Nome = dto.Nome;
+        tipologiaSala.MaggiorazionePrezzo = dto.MaggiorazionePrezzo;
+
+        await _contesto.SaveChangesAsync();
+
+         // Eliminato il dto in uscita e sostituiti con un bool
+        return true;
+    }
+
+    public async Task<bool> EliminaAsync(string id)
+    {
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
+
+        if (tipologiaSala == null)
+        {
+            return false;
+        }
 
         _contesto.TipologieSala.Remove(tipologiaSala);
         await _contesto.SaveChangesAsync();

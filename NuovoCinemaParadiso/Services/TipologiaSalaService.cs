@@ -47,7 +47,8 @@ public class TipologiaSalaService
 
         return risultato;
     }
-    public async Task<DtoTipologiaSala> CreazioneAsync(DtoCreazioneTipologiaSala dto)
+
+    public async Task<bool> CreazioneAsync(DtoCreazioneTipologiaSala dto)
     {
 
         TipologiaSala tipologiaSala = new TipologiaSala();
@@ -57,21 +58,16 @@ public class TipologiaSalaService
         _contesto.TipologieSala.Add(tipologiaSala);
         await _contesto.SaveChangesAsync();
 
-        DtoTipologiaSala risultato = new DtoTipologiaSala();
-        risultato.Id = tipologiaSala.Id;
-        risultato.Nome = tipologiaSala.Nome;
-        risultato.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
-
-        return risultato;
+        return true;
     }
 
-    public async Task<DtoTipologiaSala?> ModificaAsync(string id, DtoCreazioneTipologiaSala dto)
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneTipologiaSala dto)
     {
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
 
         if (tipologiaSala == null)
         {
-            return null;
+            return false;
         }
 
         tipologiaSala.Nome = dto.Nome;
@@ -79,12 +75,7 @@ public class TipologiaSalaService
 
         await _contesto.SaveChangesAsync();
 
-        DtoTipologiaSala risultato = new DtoTipologiaSala();
-        risultato.Id = tipologiaSala.Id;
-        risultato.Nome = tipologiaSala.Nome;
-        risultato.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
-
-        return risultato;
+        return true;
     }
 
     public async Task<bool> EliminaAsync(string id)

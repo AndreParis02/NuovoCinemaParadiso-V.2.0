@@ -74,9 +74,9 @@ public class TipologiaSalaController : ControllerBase
             }
         }
 
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.CreazioneAsync(dto);
+        bool risultato = await _tipologiaSalaService.CreazioneAsync(dto);
 
-        if (risultato == null)
+        if (!risultato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
 
@@ -85,19 +85,19 @@ public class TipologiaSalaController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", true);
 
-        return Ok(risultato);
+        return Ok(new { messaggio = "Tipologia sala aggiunta con successo!" });
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTipologiaSala dto)
     {
-        DtoTipologiaSala? risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
+        bool risultato = await _tipologiaSalaService.ModificaAsync(id, dto);
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (risultato == null)
+        if (!risultato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", false);
 
@@ -106,7 +106,7 @@ public class TipologiaSalaController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica tipologia", true);
 
-        return Ok(risultato);
+        return Ok(new { messaggio = "Tipologia sala modificata con successo!" });
     }
 
     [HttpDelete("{id}")]
