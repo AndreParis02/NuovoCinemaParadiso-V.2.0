@@ -102,8 +102,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FABIO: - GenereMovieService
          - GestoreService
 
-- ANDREA BRUNO: - GiftCardService
-                - LogazioniService
+- ANDREA BRUNO: - GiftCardService (Fatto)
+                - LogazioniService (Fatto)
 
 - GREG: - MovieService
         - OperatoreService
@@ -129,8 +129,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FABIO: - GenereMovieController
          - GestoreController
 
-- ANDREA BRUNO: - GiftCardController
-                - LogazioniController
+- ANDREA BRUNO: - GiftCardController (Fatto)
+                - LogazioniController (Fatto)
 
 - GREG: - MovieController
         - OperatoreController
