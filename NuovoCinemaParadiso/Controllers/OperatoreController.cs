@@ -83,9 +83,9 @@ public class OperatoreController : ControllerBase
             return Unauthorized("Utente non autenticato.");
         try
         {
-            var risultato = await _operatoreService.EliminaUtentePerIdAsync(Id);
+            await _operatoreService.EliminaUtentePerIdAsync(Id);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
-            return Ok(risultato);
+            return Ok();
         }
         catch
         {
@@ -179,11 +179,11 @@ public class OperatoreController : ControllerBase
 
         try
         {
-            var risultato = await _operatoreService.RicaricaGiftCardAsync(dto);
+            await _operatoreService.RicaricaGiftCardAsync(dto);
 
             await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", true);
             
-            return Ok(risultato);
+            return Ok();
         }
         catch (Exception ex)
         {

@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 

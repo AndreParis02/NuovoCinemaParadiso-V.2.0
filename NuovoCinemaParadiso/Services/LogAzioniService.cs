@@ -1,7 +1,5 @@
 using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -30,22 +28,5 @@ public class LogAzioniService
       await _contesto.SaveChangesAsync();
     }
 
-    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
-    {
-        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
-        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
-        foreach (LogAzioni log in logs)
-        {
-          DtoLogAzioni risultato = new DtoLogAzioni();
-          risultato.Id = log.Id;
-          risultato.IdUtente = log.IdUtente;
-          risultato.NomeAzione = log.NomeAzione;
-          risultato.Effettuato = log.Effettuato;
-          risultato.Messaggio = log.Messaggio;
-          risultato.TimeStamp = log.TimeStamp;
-          risultati.Add(risultato);
-        }
-
-        return risultati;
-    }
+    
 }
