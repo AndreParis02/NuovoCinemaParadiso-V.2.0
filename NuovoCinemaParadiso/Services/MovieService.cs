@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -107,9 +108,17 @@ public class MovieService
     {
         Movie? movieEsistente = await _contesto.Movies.FindAsync(id);
 
-        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null || movieEsistente == null)
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
         {
-            return false;
+            Console.WriteLine("GENERE PROBLEMA");
+            throw new NotFoundException("genere", dto.GenereId);
+
+        }
+
+        if (movieEsistente == null)
+        {
+            Console.WriteLine("PROBLEMA ESISTENZIALE");
+            throw new NotFoundException("movie",id);
         }
 
         movieEsistente.Titolo = dto.Titolo;
@@ -123,6 +132,7 @@ public class MovieService
         return true;
     }
 
+//TODO: IMPLEMENTARE ELIMINAZIONE A CASCATA O TRAMITE BOOL
     public async Task<bool> EliminaAsync(string id)
     {
         Movie? movie = await _contesto.Movies.FindAsync(id);

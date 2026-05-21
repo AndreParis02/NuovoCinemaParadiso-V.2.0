@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -80,7 +81,7 @@ public class MovieController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -111,7 +112,7 @@ public class MovieController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -128,21 +129,21 @@ public class MovieController : ControllerBase
               return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
             }
         }
-        
-        bool risultato = await _movieService.ModificaAsync(id, dto);
-
-        if (!risultato)
+        try
         {
-          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
-          return NotFound(new { messaggio = "Film non trovato." });
+            await _movieService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+            return Ok();
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
-        return Ok();
+        catch(NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", false);
+            return NotFound(new { messaggio = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
