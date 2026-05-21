@@ -79,7 +79,7 @@ public class OperatoreService
         return dto;
     }
 
-    public async Task<IdentityResult> EliminaUtentePerIdAsync(string id)
+    public async Task<bool> EliminaUtentePerIdAsync(string id)
     {
         Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
         if (utente == null)
@@ -88,7 +88,7 @@ public class OperatoreService
         }
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
 
-        return risultato;
+        return true;
     }
 
     public async Task<List<DtoBiglietto>> OttieniBiglietti()
@@ -226,7 +226,7 @@ public class OperatoreService
         return risultato;
     }
 
-    public async Task<DtoGiftCard> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
+    public async Task<bool> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
     {
         if (dto.Importo <= 0)
         {
@@ -245,13 +245,7 @@ public class OperatoreService
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
         await _contesto.SaveChangesAsync();
 
-        return new DtoGiftCard()
-        {
-            Id = nuovaGiftCard.Id,
-            Nome = nuovaGiftCard.Nome,
-            Valore = nuovaGiftCard.Valore,
-            CodiceRiscatto = nuovaGiftCard.CodiceRiscatto
-        };
+        return true;
     }
 
 }

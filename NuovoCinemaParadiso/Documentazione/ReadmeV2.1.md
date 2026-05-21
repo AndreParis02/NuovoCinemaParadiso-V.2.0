@@ -1362,19 +1362,24 @@ using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
-[ApiController] // Indica che il controller è un'API REST
-[Route("api/[controller]")] // Definisce la route base: api/Abbonamento
-[Authorize] // Richiede autenticazione per accedere al controller
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
 public class AbbonamentoController : ControllerBase
 {
+    // Service che gestisce la logica sugli abbonamenti
     private readonly AbbonamentoService _abbonamentoService;
-    private readonly GestoreService _gestoreService;
+
+    // Service che registra le azioni dell’utente
     private readonly LogAzioniService _logAzioniService;
 
+    // Service per la gestione dei gestori (non usato qui ma mantenuto)
+    private readonly GestoreService _gestoreService;
+
+    // Costruttore che riceve i servizi tramite dependency injection
     public AbbonamentoController(
         AbbonamentoService abbonamentoService,
         LogAzioniService logAzioniService,
@@ -1385,134 +1390,194 @@ public class AbbonamentoController : ControllerBase
         _gestoreService = gestoreService;
     }
 
+    // -----------------------------
+    // GET: Ottieni tutti gli abbonamenti
+    // -----------------------------
     [HttpGet]
     public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier); // recupera id utente loggato
+        // Recupera l’ID dell’utente autenticato
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non autenticato → errore
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
+        // Recupera tutti gli abbonamenti dal service
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
+        // Registra il log dell’azione
         await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
             "Ottieni tutti gli abbonamenti utente",
-            true);
+            true
+        );
 
+        // Restituisce la lista
         return Ok(abbonamenti);
     }
 
+    // -----------------------------
+    // GET: Ottieni abbonamento tramite ID
+    // -----------------------------
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
     {
+        // Recupera l’ID dell’utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non autenticato → errore
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
+        // Recupera l’abbonamento solo se appartiene all’utente
         var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
 
+        // Se non trovato → errore + log
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "Ottieni abbonamenti tramite id utente",
-                false);
+                false
+            );
 
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
+        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
             "Ottieni abbonamenti tramite id utente",
-            true);
+            true
+        );
 
+        // Restituisce il DTO
         return Ok(risultato);
     }
 
+    // -----------------------------
+    // POST: Creazione abbonamento
+    // -----------------------------
     [HttpPost]
-    [Authorize(Roles = Ruoli.Operatore)] // solo Operatori possono creare abbonamenti
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
     {
+        // Recupera l’ID dell’utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non autenticato → errore
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
+        // Chiama il service che restituisce solo (bool, messaggio)
+        var risultato = await _abbonamentoService.CreazioneAsync(dto);
 
-        if (risultato == null)
+        // Se fallito → log + errore
+        if (!risultato.Successo)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "Creazione abbonamento",
-                false);
+                false
+            );
 
-            return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
+            return BadRequest(new { messaggio = risultato.Messaggio });
         }
 
+        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
             "Creazione abbonamento",
-            true);
+            true
+        );
 
-        return Ok(risultato);
+        // Restituisce solo messaggio
+        return Ok(new { messaggio = risultato.Messaggio });
     }
 
+    // -----------------------------
+    // PUT: Modifica abbonamento
+    // -----------------------------
     [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)] // solo Operatori possono modificare
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
+        // Recupera l’ID dell’utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non autenticato → errore
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
+        // Chiama il service
+        var risultato = await _abbonamentoService.ModificaAsync(id, dto);
 
-        if (risultato == null)
+        // Se fallito → log + errore
+        if (!risultato.Successo)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "Modifica abbonamento",
-                false);
+                false
+            );
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+            return NotFound(new { messaggio = risultato.Messaggio });
         }
 
+        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
             "Modifica abbonamento",
-            true);
+            true
+        );
 
-        return Ok(risultato);
+        // Restituisce solo messaggio
+        return Ok(new { messaggio = risultato.Messaggio });
     }
 
+    // -----------------------------
+    // DELETE: Elimina abbonamento
+    // -----------------------------
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)] // solo Operatori possono eliminare
+    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
+        // Recupera l’ID dell’utente autenticato
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se non autenticato → errore
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
+        // Chiama il service
+        var risultato = await _abbonamentoService.EliminazioneAsync(id);
 
-        if (!eliminato)
+        // Se fallito → log + errore
+        if (!risultato.Successo)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(
                 utenteId,
                 "Elimina abbonamento",
-                false);
+                false
+            );
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+            return NotFound(new { messaggio = risultato.Messaggio });
         }
 
+        // Log successo
         await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
             "Elimina abbonamento",
-            true);
+            true
+        );
 
+        // Restituisce 204 NoContent
         return NoContent();
     }
 }
+
+
 ```
 
 ## AuthController.cs
@@ -2066,6 +2131,43 @@ public class GestoreController : ControllerBase
     }
 }
 ```
+### GestoreController.cs V1.1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Modificata la dependency injections del logAzioniService poichè ora la lettura di log è nel dominio del gestore.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class GestoreController : ControllerBase
+{
+    private readonly GestoreService _gestoreService;
+
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
+    {
+        _gestoreService = gestoreService;
+    }
+
+
+    [HttpGet("logs")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        // richiamo al service del gestore per il metodo della lettura degli audit.
+        List<DtoLogAzioni> risultatiLog = await _gestoreService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+}
+```
 
 ## GestoreUtentiController.cs
 
@@ -2269,7 +2371,7 @@ public class GiftCardController : ControllerBase
 }
 ```
 
-## MovieController.cs
+## Giftcard.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -2397,6 +2499,178 @@ public class GiftCardController : ControllerBase
             true);
 
         return NoContent();
+    }
+}
+```
+
+## MovieController.cs (versione 1.1)
+
+Utente: Greg
+Data: 21/05/2026
+Descrizione: Modificare i valori di ritorno per non esporre dati superflui
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController] // Indica che il controller espone API REST
+[Route("api/[controller]")] // Route base: api/MovieController
+[Authorize] // Richiede autenticazione per tutte le azioni
+public class MovieController : ControllerBase
+{
+    private readonly MovieService _movieService;
+    private readonly LogAzioniService _logAzioniService;
+    
+
+    public MovieController(MovieService movieService, LogAzioniService logAzioniService)
+    {
+        _movieService = movieService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet] // GET api/Movie
+    public async Task<IActionResult> OttieniTuttiIMovies()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier); // id utente loggato
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+
+    [HttpGet("genere/{genereId}")] // GET api/Movie/genere/{id}
+    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrWhiteSpace(genereId))
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni movie per genereId" ,false);
+          return BadRequest("GenereId non valido");
+        }
+
+        var risultato = await _movieService.OttieniTramiteGenere(genereId);
+
+        if (risultato.Count() == 0)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
+
+          return NotFound("Nessun film trovato per questo genere");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);;
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("{id}")]  // GET api/Movie/{id}
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        DtoMovie? risultato = await _movieService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", false);
+          return NotFound($"Film con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", true);
+        return Ok(risultato);
+    }
+
+    [HttpPost] // POST api/Movie
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo))
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "Film già presente." });
+            }
+        }
+        
+        bool risultato = await _movieService.CreazioneAsync(dto);
+
+        if (!risultato)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+          return BadRequest(new { messaggio = "id del genere non valido." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
+        return Ok();
+    }
+
+    [HttpPut("{id}")] // PUT api/Movie/{id}
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo) && movie.Id != id)
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
+            }
+        }
+        
+        bool risultato = await _movieService.ModificaAsync(id, dto);
+
+        if (!risultato)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+          return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+        return Ok();
+    }
+
+    [HttpDelete("{id}")] // DELETE api/Movie/{id}
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _movieService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", false);
+            return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
+        return Ok(new { messaggio = "Film eliminato con successo!" });
     }
 }
 ```
@@ -2663,6 +2937,206 @@ public class OperatoreController : ControllerBase
     }
 }
 ```
+
+## OperatoreController.cs (versione 1.1)
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController] // Indica che il controller espone API REST
+[Route("api/[controller]")] // Route base: api/Operatore
+[Authorize] // Richiede autenticazione per accedere al controller
+public class OperatoreController : ControllerBase
+{
+    private readonly OperatoreService _operatoreService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public OperatoreController(OperatoreService operatoreService, LogAzioniService logAzioniService)
+    {
+        _operatoreService = operatoreService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpPost("ricarica")] // POST api/Operatore/ricarica
+    [Authorize(Roles = Ruoli.Operatore)] // solo Operatore
+    public async Task<IActionResult> RicaricaSaldoUtente([FromBody] DtoRicaricaSaldoUtente dtoRicaricaSaldoUtente)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        bool successo = await _operatoreService.RicaricaAsync(dtoRicaricaSaldoUtente);
+        if (!successo)        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica fallita per {dtoRicaricaSaldoUtente.Email}", false);
+            return NotFound($"Utente con email {dtoRicaricaSaldoUtente.Email} non trovato.");
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, $"Ricarica riuscita per {dtoRicaricaSaldoUtente.Email}", true);
+
+        return Ok("Ricarica effettuata con successo.");
+    }
+
+    [HttpGet("listaUtenti")] // GET api/Operatore/listaUtenti
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniTuttiIProfili()
+    {
+        List<DtoUtente> utenti = await _operatoreService.OttieniUtentiAsync();
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profili", true);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i profili", true);
+
+        return Ok(utenti);
+    }
+
+    [HttpGet("ricercaProfilo/{id}")] // GET api/Operatore/ricercaProfilo/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> RicercaProfiloTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        try
+        {
+            DtoUtente? utente = await _operatoreService.OttieniUtenteTramiteIdAsync(id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo", true);
+            return Ok(utente);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo", false);
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+    }
+
+    [HttpDelete("eliminaUtente/{id}")] // DELETE api/Operatore/eliminaUtente/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> EliminaTramiteId(string Id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        try
+        {
+            await _operatoreService.EliminaUtentePerIdAsync(Id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
+            return Ok();
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", false);
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+    }
+
+    [HttpGet("biglietto")] // GET api/Operatore/biglietto
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniTuttiGliBiglietti()
+    {
+        List<DtoBiglietto> biglietti = await _operatoreService.OttieniBiglietti();
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti gli biglietti gestore", true);
+        return Ok(biglietti);
+    }
+
+    [HttpGet("biglietto/{id}")] // GET api/Operatore/biglietto/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniBigliettoTramiteId(string id)
+    {
+
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        try
+        {
+            var risultato = await _operatoreService.OttieniBigliettoTramiteIdAsync(id);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti tramite id gestore", true);
+            return Ok(risultato);
+        }
+        catch
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni biglietti tramite id gestore", false);
+            return NotFound($"Biglietto con id {id} non trovato");
+        }
+
+
+    }
+
+    [HttpGet("utenti/abbonamento/{abbonamentoId}")] // GET utenti per abbonamento
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<ActionResult<List<DtoUtente>>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrWhiteSpace(abbonamentoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", false);
+
+            return BadRequest("AbbonamentoId non valido");
+        }
+
+        var risultato = await _operatoreService.OttieniUtentiTramiteAbbonamentoAsync(abbonamentoId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", false);
+
+            return NotFound("Nessun utente trovato per questo abbonamento");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni gli utenti per abbonamento", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpPost("giftCard/ricarica")] // POST giftcard
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
+    {
+        string? operatoreId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (operatoreId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
+
+        if (dto == null || dto.Importo <= 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = "L'importo della Gift Card deve essere maggiore di zero." });
+        }
+
+        try
+        {
+            await _operatoreService.RicaricaGiftCardAsync(dto);
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", true);
+            
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(operatoreId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = ex.Message });
+        }
+    }
+}
+```
+
 
 ## OperatoreUtentiController.cs
 
@@ -3932,7 +4406,6 @@ public class UtenteController : ControllerBase
 ## AbbonamentoService.cs
 
 ```c#
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
@@ -3942,93 +4415,79 @@ namespace NuovoCinemaParadiso.Services;
 
 public class AbbonamentoService
 {
+    // DbContext per accedere al database
     private readonly ContestoDb _contesto;
 
-    // ✔ Iniezione del DbContext per accedere al database
+    // Inietta il DbContext nel service
     public AbbonamentoService(ContestoDb contesto)
     {
         _contesto = contesto;
     }
 
-    // ------------------------------------------------------------
-    // ✔ Restituisce tutti gli abbonamenti presenti nel sistema
-    // ✔ Conversione manuale in DTO (senza LINQ)
-    // ------------------------------------------------------------
+    // -----------------------------
+    // OTTIENI TUTTI GLI ABBONAMENTI
+    // -----------------------------
     public async Task<List<DtoAbbonamento>> OttieniTutto()
     {
+        // Carica tutti gli abbonamenti dal database
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        // Lista DTO da restituire al frontend
         List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
 
-        // ✔ Conversione iterativa in DTO
+        // Converte ogni entità in un DTO
         for (int i = 0; i < abbonamenti.Count; i++)
         {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
+            Abbonamento a = abbonamenti[i];
 
             DtoAbbonamento dto = new DtoAbbonamento();
-            dto.Id = abbonamentoCorrente.Id;
-            dto.Nome = abbonamentoCorrente.Nome;
-            dto.Durata = abbonamentoCorrente.Durata;
-            dto.Prezzo = abbonamentoCorrente.Prezzo;
-            dto.Sconto = abbonamentoCorrente.Sconto;
+            dto.Id = a.Id;
+            dto.Nome = a.Nome;
+            dto.Durata = a.Durata;
+            dto.Prezzo = a.Prezzo;
+            dto.Sconto = a.Sconto;
 
             risultato.Add(dto);
         }
 
+        // Restituisce la lista completa
         return risultato;
     }
 
-    // ------------------------------------------------------------
-    // ✔ Restituisce un abbonamento SOLO se appartiene all’utente
-    // ✔ Nessun LINQ, nessun Include() (richiede Lazy Loading o dati già caricati)
-    // ------------------------------------------------------------
+    // -----------------------------
+    // OTTIENI ABBONAMENTO SOLO SE È DELL’UTENTE
+    // -----------------------------
     public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
     {
-        // ✔ Recupera l’abbonamento tramite chiave primaria
+        // Cerca l’abbonamento richiesto
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
+        // Se non esiste → niente da restituire
         if (abbonamento == null)
-        {
             return null;
-        }
 
-        // ✔ Controllo manuale della lista utenti (senza LINQ)
-        foreach (var utente in abbonamento.Utenti)
+        // Carica tutti gli utenti per verificare la proprietà dell’abbonamento
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+
+        // Flag per capire se l’utente possiede l’abbonamento
+        bool trovato = false;
+
+        // Cerca un utente che abbia quell’abbonamento
+        for (int i = 0; i < utenti.Count; i++)
         {
-            if (utente.Id == utenteId)
+            if (utenti[i].Id == utenteId &&
+                utenti[i].AbbonamentoId == abbonamento.Id)
             {
-                // ✔ Conversione in DTO solo se l’utente è autorizzato
-                DtoAbbonamento risultato = new DtoAbbonamento();
-                risultato.Id = abbonamento.Id;
-                risultato.Nome = abbonamento.Nome;
-                risultato.Durata = abbonamento.Durata;
-                risultato.Prezzo = abbonamento.Prezzo;
-                risultato.Sconto = abbonamento.Sconto;
-
-                return risultato;
+                trovato = true;
+                break;
             }
         }
 
-        // ❌ L’utente non è associato all’abbonamento
-        return null;
-    }
+        // Se l’utente non lo possiede → non autorizzato a vederlo
+        if (!trovato)
+            return null;
 
-    // ------------------------------------------------------------
-    // ✔ Crea un nuovo abbonamento
-    // ✔ Restituisce il DTO dell’oggetto appena creato
-    // ------------------------------------------------------------
-    public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
-    {
-        Abbonamento abbonamento = new Abbonamento();
-        abbonamento.Nome = dto.Nome;
-        abbonamento.Durata = dto.Durata;
-        abbonamento.Prezzo = dto.Prezzo;
-        abbonamento.Sconto = dto.Sconto;
-
-        // ✔ Inserimento nel database
-        _contesto.Abbonamenti.Add(abbonamento);
-        await _contesto.SaveChangesAsync();
-
-        // ✔ Conversione in DTO
+        // Converte l’entità in DTO
         DtoAbbonamento risultato = new DtoAbbonamento();
         risultato.Id = abbonamento.Id;
         risultato.Nome = abbonamento.Nome;
@@ -4039,55 +4498,94 @@ public class AbbonamentoService
         return risultato;
     }
 
-    // ------------------------------------------------------------
-    // ✔ Modifica un abbonamento esistente
-    // ✔ Restituisce null se non trovato
-    // ------------------------------------------------------------
-    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+    // -----------------------------
+    // CREAZIONE ABBONAMENTO
+    // -----------------------------
+    public async Task<(bool Successo, string Messaggio)> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
+        // Carica tutti gli abbonamenti per controllare duplicati
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        // Verifica se esiste già un abbonamento con lo stesso nome
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
+                return (false, "Esiste già un abbonamento con questo nome.");
+        }
+
+        // Crea un nuovo abbonamento
+        Abbonamento nuovo = new Abbonamento();
+        nuovo.Nome = dto.Nome;
+        nuovo.Durata = dto.Durata;
+        nuovo.Prezzo = dto.Prezzo;
+        nuovo.Sconto = dto.Sconto;
+
+        // Salva nel database
+        _contesto.Abbonamenti.Add(nuovo);
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento creato correttamente.");
+    }
+
+    // -----------------------------
+    // MODIFICA ABBONAMENTO
+    // -----------------------------
+    public async Task<(bool Successo, string Messaggio)> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+    {
+        // Cerca l’abbonamento da modificare
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
+        // Se non esiste → errore
         if (abbonamento == null)
-            return null;
+            return (false, "Abbonamento non trovato.");
 
-        // ✔ Aggiornamento dei campi
+        // Carica tutti gli abbonamenti per controllare duplicati
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        // Verifica se un altro abbonamento usa lo stesso nome
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Id != id &&
+                abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
+            {
+                return (false, "Esiste già un altro abbonamento con questo nome.");
+            }
+        }
+
+        // Aggiorna i campi dell’abbonamento
         abbonamento.Nome = dto.Nome;
         abbonamento.Durata = dto.Durata;
         abbonamento.Prezzo = dto.Prezzo;
         abbonamento.Sconto = dto.Sconto;
 
+        // Salva le modifiche
         await _contesto.SaveChangesAsync();
 
-        // ✔ Restituzione del DTO aggiornato
-        return new DtoAbbonamento
-        {
-            Id = abbonamento.Id,
-            Nome = abbonamento.Nome,
-            Durata = abbonamento.Durata,
-            Prezzo = abbonamento.Prezzo,
-            Sconto = abbonamento.Sconto,
-        };
+        return (true, "Abbonamento modificato correttamente.");
     }
 
-    // ------------------------------------------------------------
-    // ✔ Elimina un abbonamento tramite ID
-    // ✔ Restituisce true/false per indicare l’esito
-    // ------------------------------------------------------------
-    public async Task<bool> EliminazioneAsync(string id)
+    // -----------------------------
+    // ELIMINAZIONE ABBONAMENTO
+    // -----------------------------
+    public async Task<(bool Successo, string Messaggio)> EliminazioneAsync(string id)
     {
+        // Cerca l’abbonamento da eliminare
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
+        // Se non esiste → errore
         if (abbonamento == null)
-        {
-            return false;
-        }
+            return (false, "Abbonamento non trovato.");
 
+        // Rimuove l’abbonamento dal database
         _contesto.Abbonamenti.Remove(abbonamento);
+
+        // Applica la modifica
         await _contesto.SaveChangesAsync();
 
-        return true;
+        return (true, "Abbonamento eliminato correttamente.");
     }
 }
+
 ```
 
 
@@ -4561,6 +5059,45 @@ public class BigliettoService
 }
 ```
 
+Aggiornate le chiamate a CalcolaPrezzoFinale
+```c#
+
+    /*
+    dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            bigliettoCorrente.NumeroBiglietti,
+            utente.Abbonamento
+        );
+    */
+    //calcola il prezzo del biglietto
+    dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                bigliettoCorrente.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            );
+
+    /*
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento)
+    */
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                biglietto.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            )
+
+    /*
+    aggiunto controllo sul saldo del conto per la creazione biglietto dopo
+    var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+    */
+    /*controlla che l'utente abbia un saldo sufficiente*/
+    if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+        return (null, "Saldo insufficiente per acquistare i biglietti.");
+    
+```
 ## ContoCinemaService.cs
 
 ```c#
@@ -4697,6 +5234,104 @@ public class ContoCinemaService
 }
 ```
 
+## ContoCinemaController.cs V 1.1
+
+Utente: Andrea Paris
+Data: 21/05/2026
+Descrizione: Ho "Eliminato" i metodi di Creazione, Modifica e eliminazione e 
+li ho commentati qui per una possibile implementazione futura.
+
+```C#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Controllers;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class ContoCinemaService
+{
+    private readonly ContestoDb _contesto;
+    public ContoCinemaService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+    public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Conto = contoCinema.Conto;
+
+        return dto;
+    }
+}
+
+//POSSIBILE IMPLEMENTAZIONE FUTURA
+
+/*public async Task<bool> CreazioneAsync(DtoCreazioneContoCinema dto)
+    {
+        ContoCinema risutato = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+
+        if(risutato != null)
+        {
+            return false;
+        }
+
+        ContoCinema contoCinema = new ContoCinema();
+        contoCinema.Iban = dto.Iban;
+        contoCinema.TitolareConto = dto.TitolareConto;
+        contoCinema.Conto = dto.Conto;
+
+        _contesto.ContoCinema.Add(contoCinema);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    } 
+
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneContoCinema dto)
+    {
+        ContoCinema? contoCinema = await _contesto.ContoCinema.FindAsync(id);
+
+        if (contoCinema == null)
+        {
+            return false;
+        }
+
+        contoCinema.Iban = dto.Iban;
+        contoCinema.TitolareConto = dto.TitolareConto;
+
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> EliminaAsync(string id)
+    {
+        ContoCinema? contoCinema = await _contesto.ContoCinema.FindAsync(id);
+
+        if (contoCinema == null)
+        {
+            return false;
+        }
+
+        _contesto.ContoCinema.Remove(contoCinema);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }*/
+```
+
 ## GenereMovieService.cs
 
 ```c#
@@ -4805,6 +5440,63 @@ public class GestoreService
 }
 ```
 
+### GestoreService V1.1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Eliminata la lettura dei log poichè di competenza del gestore.
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+// Service dedicato alle operazioni riservate al gestore
+public class GestoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    // Dependency injection del contesto database e della gestione utenti
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    // Lettura completa dei log delle azioni effettuate nel sistema
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        // Recupero dei log dal database
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+
+        // Lista dei DTO da restituire
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+
+        // Conversione entità -> DTO
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni
+            {
+                Id = log.Id,
+                IdUtente = log.IdUtente,
+                NomeAzione = log.NomeAzione,
+                Effettuato = log.Effettuato,
+                Messaggio = log.Messaggio,
+                TimeStamp = log.TimeStamp
+            };
+
+            risultati.Add(risultato);
+        }
+
+        return risultati;
+    }
+}
+```
 ## GiftCardService.cs
 
 ```c#
@@ -5006,6 +5698,52 @@ public class LogAzioniService
 }
 ```
 
+### LogAzioniService.cs Versione 1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Eliminata la lettura dei log poichè di competenza del gestore.
+
+```c#
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class LogAzioniService
+{
+  private readonly ContestoDb _contesto;
+  public LogAzioniService(ContestoDb contesto) 
+  {
+    _contesto = contesto; 
+  }
+
+// qui è stato eliminato il metodo che leggeva tutti i log.
+
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
+    {
+      string messaggio = "operazione fallita";
+      if(effettuato) messaggio = "operazione eseguita";
+
+      LogAzioni log = new LogAzioni();
+
+      log.IdUtente = idUtente;
+      log.NomeAzione = azione;
+      log.Effettuato = effettuato;
+      log.Messaggio = messaggio;
+      log.TimeStamp = DateTimeOffset.UtcNow;
+
+        _contesto.LogAzioni.Add(log);
+      await _contesto.SaveChangesAsync();
+    }
+
+    
+}
+
+```
+
+
+
 ## MovieService.cs
 
 ```c#
@@ -5016,30 +5754,18 @@ using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Services;
 
-/// <summary>
-/// Service responsabile della gestione dei film.
-/// Gestisce operazioni CRUD e associazione con i generi.
-/// </summary>
+
 public class MovieService
 {
     private readonly ContestoDb _contesto;
     private readonly GenereMovieService _genereMovieService;
 
-    /// <summary>
-    /// Inizializza una nuova istanza del servizio Movie.
-    /// </summary>
-    /// <param name="contesto">Contesto database EF Core.</param>
-    /// <param name="genereMovieService">Servizio per la gestione dei generi film.</param>
     public MovieService(ContestoDb contesto, GenereMovieService genereMovieService)
     {
         _contesto = contesto;
         _genereMovieService = genereMovieService;
     }
 
-    /// <summary>
-    /// Recupera tutti i film presenti nel sistema con informazioni sul genere.
-    /// </summary>
-    /// <returns>Lista di DTO dei film.</returns>
     public async Task<List<DtoMovie>> OttieniTutto()
     {
         List<Movie> movies = await _contesto.Movies.ToListAsync();
@@ -5190,6 +5916,194 @@ public class MovieService
 
         if (movie == null)
             return false;
+
+        _contesto.Movies.Remove(movie);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## MovieService.cs (Versione 1.1)
+
+Utente: Greg
+Data: 21/05/2026
+Descrizione: Modificare i valori di ritorno per non esporre dati superflui
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Service responsabile della gestione dei film.
+/// Gestisce operazioni CRUD e associazione con i generi.
+/// </summary>
+public class MovieService
+{
+    private readonly ContestoDb _contesto;
+    private readonly GenereMovieService _genereMovieService;
+
+    /// <summary>
+    /// Inizializza una nuova istanza del servizio Movie.
+    /// </summary>
+    /// <param name="contesto">Contesto database EF Core.</param>
+    /// <param name="genereMovieService">Servizio per la gestione dei generi film.</param>
+    public MovieService(ContestoDb contesto, GenereMovieService genereMovieService)
+    {
+        _contesto = contesto;
+        _genereMovieService = genereMovieService;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film presenti nel sistema con informazioni sul genere.
+    /// </summary>
+    /// <returns>Lista di DTO dei film.</returns>
+    public async Task<List<DtoMovie>> OttieniTutto()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera un film tramite ID.
+    /// </summary>
+    /// <param name="id">ID del film.</param>
+    /// <returns>DTO del film se trovato, altrimenti null.</returns>
+    public async Task<DtoMovie?> OttieniTramiteIdAsync(string id)
+    {
+        
+        Movie? movie = await _contesto.Movies.FindAsync(id);
+
+        if (movie == null)
+        {
+            return null;
+        }
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movie.GenereId);
+
+        DtoMovie risultato = new DtoMovie
+        {
+            Id = movie.Id,
+            Titolo = movie.Titolo,
+            Descrizione = movie.Descrizione,
+            DurataMinuti = movie.DurataMinuti,
+            PrezzoMovie = movie.PrezzoMovie,
+            GenereId = movie.GenereId,
+            Genere = genereMovie?.Genere ?? ""
+        };
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film appartenenti a un genere specifico.
+    /// </summary>
+    /// <param name="genereId">ID del genere.</param>
+    /// <returns>Lista di film filtrati per genere.</returns>
+    public async Task<List<DtoMovie>> OttieniTramiteGenere(string genereId)
+    {
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        List<DtoMovie> movies = await OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.GenereId.Trim() == genereId)
+            {
+                risultato.Add(movie);
+            }
+        }
+        return risultato;
+    }
+    
+    /// <summary>
+    /// Crea un nuovo film.
+    /// </summary>
+    /// <param name="dto">Dati del film da creare.</param>
+    /// <returns>booleano che da conferma tramite true o false in caso il genere non sia valido</returns>
+    public async Task<bool> CreazioneAsync(DtoCreazioneMovie dto)
+    {
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
+        {
+            return false;
+        }
+        
+        Movie movie = new Movie();
+
+        movie.Titolo = dto.Titolo;
+        movie.Descrizione = dto.Descrizione;
+        movie.DurataMinuti = dto.DurataMinuti;
+        movie.PrezzoMovie = dto.PrezzoMovie;
+        movie.GenereId = dto.GenereId;
+
+        _contesto.Movies.Add(movie);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Modifica un film esistente.
+    /// </summary>
+    /// <param name="id">ID del film da modificare.</param>
+    /// <param name="dto">Nuovi dati del film.</param>
+    /// <returns>booleano che da conferma tramite true o false in caso il genere non sia valido</returns>
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneMovie dto)
+    {
+        Movie? movieEsistente = await _contesto.Movies.FindAsync(id);
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null || movieEsistente == null)
+        {
+            return false;
+        }
+
+        movieEsistente.Titolo = dto.Titolo;
+        movieEsistente.Descrizione = dto.Descrizione;
+        movieEsistente.DurataMinuti = dto.DurataMinuti;
+        movieEsistente.PrezzoMovie = dto.PrezzoMovie;
+        movieEsistente.GenereId = dto.GenereId;
+
+        await _contesto.SaveChangesAsync();
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Elimina un film dal sistema.
+    /// </summary>
+    /// <param name="id">ID del film da eliminare.</param>
+    /// <returns>True se eliminato, false se non trovato.</returns>
+    public async Task<bool> EliminaAsync(string id)
+    {
+        Movie? movie = await _contesto.Movies.FindAsync(id);
+
+        if (movie == null)
+        {
+            return false;
+        }
 
         _contesto.Movies.Remove(movie);
         await _contesto.SaveChangesAsync();
@@ -5499,6 +6413,19 @@ public class OperatoreService
 }
 ```
 
+```c#
+
+    /*
+    Aggiornata la chiamata al calcolo prezzo finale abbonamento
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                    movie.PrezzoMovie,
+                    tipologiaSala.MaggiorazionePrezzo,
+                    bigliettoCorrente.NumeroBiglietti,
+                    utente,
+                    bigliettoCorrente.MetodoPagamento)
+    */
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+```
 ## ProiezioneService.cs
 
 ```c#

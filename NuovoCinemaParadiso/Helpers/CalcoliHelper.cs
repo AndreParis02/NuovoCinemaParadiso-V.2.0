@@ -9,7 +9,7 @@ public static class Calcoli
     {
         int prezzoBiglietto = prezzoMovie + maggiorazione;
         DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
-        if (abbonamento != null && DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
+        if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
             
            int sconto = (prezzoBiglietto * abbonamento.Sconto) / 100;

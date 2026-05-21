@@ -81,12 +81,12 @@ public class MovieService
         return risultato;
     }
 
-    public async Task<DtoMovie> CreazioneAsync(DtoCreazioneMovie dto)
+    public async Task<bool> CreazioneAsync(DtoCreazioneMovie dto)
     {
 
         if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
         {
-            return null;
+            return false;
         }
         
         Movie movie = new Movie();
@@ -100,27 +100,16 @@ public class MovieService
         _contesto.Movies.Add(movie);
         await _contesto.SaveChangesAsync();
 
-        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movie.GenereId);
-
-        DtoMovie risultato = new DtoMovie();
-        risultato.Id = movie.Id;
-        risultato.Titolo = movie.Titolo;
-        risultato.Descrizione = movie.Descrizione;
-        risultato.DurataMinuti = movie.DurataMinuti;
-        risultato.PrezzoMovie = movie.PrezzoMovie;
-        risultato.GenereId = movie.GenereId;
-        risultato.Genere = genereMovie?.Genere ?? "";
-
-        return risultato;
+        return true;
     }
 
-    public async Task<DtoMovie?> ModificaAsync(string id, DtoCreazioneMovie dto)
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneMovie dto)
     {
         Movie? movieEsistente = await _contesto.Movies.FindAsync(id);
 
         if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null || movieEsistente == null)
         {
-            return null;
+            return false;
         }
 
         movieEsistente.Titolo = dto.Titolo;
@@ -130,19 +119,8 @@ public class MovieService
         movieEsistente.GenereId = dto.GenereId;
 
         await _contesto.SaveChangesAsync();
-        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieEsistente.GenereId);
-
-
-        DtoMovie risultato = new DtoMovie();
-        risultato.Id = movieEsistente.Id;
-        risultato.Titolo = movieEsistente.Titolo;
-        risultato.Descrizione = movieEsistente.Descrizione;
-        risultato.DurataMinuti = movieEsistente.DurataMinuti;
-        risultato.PrezzoMovie = movieEsistente.PrezzoMovie;
-        risultato.GenereId = movieEsistente.GenereId;
-        risultato.Genere = genereMovie?.Genere ?? "";
-
-        return risultato;
+        
+        return true;
     }
 
     public async Task<bool> EliminaAsync(string id)

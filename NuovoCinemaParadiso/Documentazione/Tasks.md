@@ -85,7 +85,7 @@ Biglietto; (fatto)
 - LORENZO: - CONTROLLARE CHE SIA SOLO IL GESTORE A LEGGERE LA LISTA DEI BIGLIETTI. - FATTO
            
 
-- MARCO: MODIFICA DEL CALCOLAPREZZOFINALE - IN CORSO
+- MARCO: MODIFICA DEL CALCOLAPREZZOFINALE - FATTO
 
 
 
@@ -96,11 +96,17 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## SERVICES
 
-- ANDREA PARIS:- BigliettoService
-               - ContoCinemaService
+- ANDREA PARIS:- TipologiaSalaService
+               - ContoCinemaService (Fatto)
 
-- FABIO: - GenereMovieService
-         - GestoreService
+- FABIO: - GenereMovieService (NULLA DA MODIFICARE).
+         - GestoreService - LogAzioni(fatto)  - OttieniBiglietti(IN CORSO).
+
+- ANDREA BRUNO: - GiftCardService (Fatto)
+                - LogazioniService (Fatto)
+
+- GREG: - MovieService (fatto)
+        - OperatoreService (fatto)
 
 - ANDREA BRUNO: - GiftCardService
                 - LogazioniService
@@ -109,10 +115,37 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - Simeone: - ProiezioneService (Fatto)
            - RuoloUtenteService (Modifiche non necessarie concordando con Andrea Paris)
 - FRANCESCO: - SalaService
-             - TipologiaSalaService
+             - BigliettoService
 
-- LORENZO: - TurnoService
+- LORENZO: - AbbonamentoService (fatto)
            - UtenteService
 
-- MARCO: - AbbonamentoService
+- MARCO: - TurnoService
          - AuthService
+
+
+## CONTROLLERS
+
+- ANDREA PARIS:- BigliettoController
+               - ContoCinemaController
+
+- FABIO: - GenereMovieController (fatto)
+         - GestoreController (fatto solo il logazioni, in attesta del bigliettoservice).
+
+- ANDREA BRUNO: - GiftCardController (Fatto)
+                - LogazioniController (Fatto)
+
+- GREG: - MovieController (fatto)
+        - OperatoreController (fatto)
+
+- Simeone: - ProiezioneController
+           - RuoloUtenteController
+
+- FRANCESCO: - SalaController
+             - TipologiaSalaController
+
+- LORENZO: - AbbonamentoController (fatto)
+           - UtenteController
+
+- MARCO: - AbbonamentoController
+         - AuthController
