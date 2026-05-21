@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NuovoCinemaParadiso.Migrations
 {
     /// <inheritdoc />
-    public partial class nuovo1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -351,8 +351,7 @@ namespace NuovoCinemaParadiso.Migrations
                     UtenteId = table.Column<string>(type: "TEXT", nullable: false),
                     NumeroBiglietti = table.Column<int>(type: "INTEGER", nullable: false),
                     OrarioCreazione = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    PrezzoFinale = table.Column<int>(type: "INTEGER", nullable: false),
-                    MetodoPagamento = table.Column<string>(type: "TEXT", nullable: false)
+                    PrezzoFinale = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

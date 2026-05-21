@@ -11,7 +11,7 @@ using NuovoCinemaParadiso.Data;
 namespace NuovoCinemaParadiso.Migrations
 {
     [DbContext(typeof(ContestoDb))]
-    [Migration("20260520074840_InitialCreate")]
+    [Migration("20260521081118_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -175,10 +175,6 @@ namespace NuovoCinemaParadiso.Migrations
             modelBuilder.Entity("NuovoCinemaParadiso.Models.Biglietto", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MetodoPagamento")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("NumeroBiglietti")

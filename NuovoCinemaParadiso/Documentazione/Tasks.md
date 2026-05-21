@@ -126,8 +126,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - ANDREA PARIS:- BigliettoController
                - ContoCinemaController
 
-- FABIO: - GenereMovieController
-         - GestoreController
+- FABIO: - GenereMovieController (fatto)
+         - GestoreController (fatto solo il logazioni, in attesta del bigliettoservice).
 
 - ANDREA BRUNO: - GiftCardController
                 - LogazioniController
