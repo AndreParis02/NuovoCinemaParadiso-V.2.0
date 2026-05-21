@@ -96,7 +96,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## SERVICES
 
-- ANDREA PARIS:- BigliettoService
+- ANDREA PARIS:- TipologiaSalaService
                - ContoCinemaService
 
 - FABIO: - GenereMovieService
@@ -104,12 +104,15 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 - ANDREA BRUNO: - GiftCardService
                 - LogazioniService
+                
 - GREG: - MovieService
         - OperatoreService
+
 - Simeone: - ProiezioneService
            - RuoloUtenteService
+
 - FRANCESCO: - SalaService
-             - TipologiaSalaService
+             - BigliettoService
 
 - LORENZO: - TurnoService
            - UtenteService
