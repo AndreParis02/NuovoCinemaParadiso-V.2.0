@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -14,16 +13,17 @@ namespace NuovoCinemaParadiso.Controllers;
 public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
+    private readonly LogAzioniService _logAzioniService;
     private readonly GestoreService _gestoreService;
 
-    private readonly LogAzioniService _logAzioniService;
-
-    public AbbonamentoController(AbbonamentoService abbonamentoService, LogAzioniService logAzioniService, GestoreService gestoreService)
+    public AbbonamentoController(
+        AbbonamentoService abbonamentoService,
+        LogAzioniService logAzioniService,
+        GestoreService gestoreService)
     {
         _abbonamentoService = abbonamentoService;
         _logAzioniService = logAzioniService;
         _gestoreService = gestoreService;
-
     }
 
     [HttpGet]
@@ -35,8 +35,12 @@ public class AbbonamentoController : ControllerBase
 
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti gli abbonamenti utente" ,true);
-       
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni tutti gli abbonamenti utente",
+            true
+        );
+
         return Ok(abbonamenti);
     }
 
@@ -51,12 +55,20 @@ public class AbbonamentoController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id utente",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni abbonamenti tramite id utente",
+                false
+            );
 
             return NotFound($"Abbonamento con id {id} non trovato");
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni abbonamenti tramite id utente",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni abbonamenti tramite id utente",
+            true
+        );
 
         return Ok(risultato);
     }
@@ -69,60 +81,82 @@ public class AbbonamentoController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        DtoAbbonamento? risultato = await _abbonamentoService.CreazioneAsync(dto);
+        var risultato = await _abbonamentoService.CreazioneAsync(dto);
 
-        if (risultato == null)
+        if (!risultato.Successo)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync( utenteId,"Creazione abbonamento",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Creazione abbonamento",
+                false
+            );
 
-            return BadRequest(new { messaggio = "Abbonamento già presente oppure non valido." });
+            return BadRequest(new { messaggio = risultato.Messaggio });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync( utenteId,"Creazione abbonamento",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Creazione abbonamento",
+            true
+        );
 
-        return Ok(risultato);
+        return Ok(new { messaggio = risultato.Messaggio });
     }
 
     [HttpPut("{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
     {
-        DtoAbbonamento? risultato = await _abbonamentoService.ModificaAsync(id, dto);
-
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica abbonamento",false);
+        var risultato = await _abbonamentoService.ModificaAsync(id, dto);
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica abbonamento",
+                false
+            );
+
+            return NotFound(new { messaggio = risultato.Messaggio });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica abbonamento",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Modifica abbonamento",
+            true);
 
-        return Ok(risultato);
+        return Ok(new { messaggio = risultato.Messaggio });
     }
 
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
-        bool eliminato = await _abbonamentoService.EliminazioneAsync(id);
-        
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        if (!eliminato)
+        var risultato = await _abbonamentoService.EliminazioneAsync(id);
+
+        if (!risultato.Successo)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina abbonamento", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Elimina abbonamento",
+                false
+            );
 
-            return NotFound(new { messaggio = "Abbonamento non trovato." });
+            return NotFound(new { messaggio = risultato.Messaggio });
         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Elimina abbonamento", true);
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Elimina abbonamento",
+            true
+        );
 
         return NoContent();
     }
