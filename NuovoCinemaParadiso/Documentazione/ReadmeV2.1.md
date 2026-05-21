@@ -4670,6 +4670,63 @@ public class GestoreService
 }
 ```
 
+### GestoreService V1.1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Eliminata la lettura dei log poichè di competenza del gestore.
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+// Service dedicato alle operazioni riservate al gestore
+public class GestoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    // Dependency injection del contesto database e della gestione utenti
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    // Lettura completa dei log delle azioni effettuate nel sistema
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        // Recupero dei log dal database
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+
+        // Lista dei DTO da restituire
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+
+        // Conversione entità -> DTO
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni
+            {
+                Id = log.Id,
+                IdUtente = log.IdUtente,
+                NomeAzione = log.NomeAzione,
+                Effettuato = log.Effettuato,
+                Messaggio = log.Messaggio,
+                TimeStamp = log.TimeStamp
+            };
+
+            risultati.Add(risultato);
+        }
+
+        return risultati;
+    }
+}
+```
 ## GiftCardService.cs
 
 ```c#
@@ -4871,6 +4928,52 @@ public class LogAzioniService
 }
 ```
 
+### LogAzioniService.cs Versione 1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Eliminata la lettura dei log poichè di competenza del gestore.
+
+```c#
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class LogAzioniService
+{
+  private readonly ContestoDb _contesto;
+  public LogAzioniService(ContestoDb contesto) 
+  {
+    _contesto = contesto; 
+  }
+
+// qui è stato eliminato il metodo che leggeva tutti i log.
+
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
+    {
+      string messaggio = "operazione fallita";
+      if(effettuato) messaggio = "operazione eseguita";
+
+      LogAzioni log = new LogAzioni();
+
+      log.IdUtente = idUtente;
+      log.NomeAzione = azione;
+      log.Effettuato = effettuato;
+      log.Messaggio = messaggio;
+      log.TimeStamp = DateTimeOffset.UtcNow;
+
+        _contesto.LogAzioni.Add(log);
+      await _contesto.SaveChangesAsync();
+    }
+
+    
+}
+
+```
+
+
+
 ## MovieService.cs
 
 ```c#
@@ -4881,30 +4984,18 @@ using NuovoCinemaParadiso.Models;
 
 namespace NuovoCinemaParadiso.Services;
 
-/// <summary>
-/// Service responsabile della gestione dei film.
-/// Gestisce operazioni CRUD e associazione con i generi.
-/// </summary>
+
 public class MovieService
 {
     private readonly ContestoDb _contesto;
     private readonly GenereMovieService _genereMovieService;
 
-    /// <summary>
-    /// Inizializza una nuova istanza del servizio Movie.
-    /// </summary>
-    /// <param name="contesto">Contesto database EF Core.</param>
-    /// <param name="genereMovieService">Servizio per la gestione dei generi film.</param>
     public MovieService(ContestoDb contesto, GenereMovieService genereMovieService)
     {
         _contesto = contesto;
         _genereMovieService = genereMovieService;
     }
 
-    /// <summary>
-    /// Recupera tutti i film presenti nel sistema con informazioni sul genere.
-    /// </summary>
-    /// <returns>Lista di DTO dei film.</returns>
     public async Task<List<DtoMovie>> OttieniTutto()
     {
         List<Movie> movies = await _contesto.Movies.ToListAsync();
