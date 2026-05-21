@@ -97,14 +97,14 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 ## SERVICES
 
 - ANDREA PARIS:- TipologiaSalaService
-               - ContoCinemaService
+               - ContoCinemaService (Fatto)
 
 - FABIO: - GenereMovieService
          - GestoreService
 
 - ANDREA BRUNO: - GiftCardService
                 - LogazioniService
-                
+
 - GREG: - MovieService
         - OperatoreService
 
