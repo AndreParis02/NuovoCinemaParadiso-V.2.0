@@ -4328,7 +4328,7 @@ public class BigliettoService
 }
 ```
 
-## ContoCinemaService.cs
+## ContoCinemaService.cs V 1.0
 
 ```c#
 using Microsoft.EntityFrameworkCore;
@@ -4462,6 +4462,104 @@ public class ContoCinemaService
         return true;
     }
 }
+```
+
+## ContoCinemaController.cs V 1.1
+
+Utente: Andrea Paris
+Data: 21/05/2026
+Descrizione: Ho "Eliminato" i metodi di Creazione, Modifica e eliminazione e 
+li ho commentati qui per una possibile implementazione futura.
+
+```C#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Controllers;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class ContoCinemaService
+{
+    private readonly ContestoDb _contesto;
+    public ContoCinemaService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+    public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Conto = contoCinema.Conto;
+
+        return dto;
+    }
+}
+
+//POSSIBILE IMPLEMENTAZIONE FUTURA
+
+/*public async Task<bool> CreazioneAsync(DtoCreazioneContoCinema dto)
+    {
+        ContoCinema risutato = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+
+        if(risutato != null)
+        {
+            return false;
+        }
+
+        ContoCinema contoCinema = new ContoCinema();
+        contoCinema.Iban = dto.Iban;
+        contoCinema.TitolareConto = dto.TitolareConto;
+        contoCinema.Conto = dto.Conto;
+
+        _contesto.ContoCinema.Add(contoCinema);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    } 
+
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneContoCinema dto)
+    {
+        ContoCinema? contoCinema = await _contesto.ContoCinema.FindAsync(id);
+
+        if (contoCinema == null)
+        {
+            return false;
+        }
+
+        contoCinema.Iban = dto.Iban;
+        contoCinema.TitolareConto = dto.TitolareConto;
+
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> EliminaAsync(string id)
+    {
+        ContoCinema? contoCinema = await _contesto.ContoCinema.FindAsync(id);
+
+        if (contoCinema == null)
+        {
+            return false;
+        }
+
+        _contesto.ContoCinema.Remove(contoCinema);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }*/
 ```
 
 ## GenereMovieService.cs
