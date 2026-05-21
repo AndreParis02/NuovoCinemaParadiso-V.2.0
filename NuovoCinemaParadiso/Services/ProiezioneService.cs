@@ -2,15 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Services;
 
 namespace NuovoCinemaParadiso.Services;
 
 public class ProiezioneService
 {
     private readonly ContestoDb _contesto;
-    public ProiezioneService(ContestoDb contesto)
+    private readonly BigliettoService _bigliettoService;
+    public ProiezioneService(ContestoDb contesto, BigliettoService bigliettoService)
     {
         _contesto = contesto;
+        _bigliettoService = bigliettoService;
     }
 
     public async Task<List<DtoProiezione>> OttieniTuttoAsync()
@@ -221,6 +224,12 @@ public class ProiezioneService
     public async Task<bool> EliminaAsync(string id)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
+        List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTramiteProiezioneAsync(id);
+
+        foreach (DtoBiglietto biglietto in biglietti)
+        {
+            await _bigliettoService.EliminazioneAsync(biglietto.Id);
+        }
 
         if (proiezione == null)
         {
