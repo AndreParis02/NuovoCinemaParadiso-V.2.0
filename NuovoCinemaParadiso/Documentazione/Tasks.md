@@ -85,7 +85,7 @@ Biglietto; (fatto)
 - LORENZO: - CONTROLLARE CHE SIA SOLO IL GESTORE A LEGGERE LA LISTA DEI BIGLIETTI. - FATTO
            
 
-- MARCO: MODIFICA DEL CALCOLAPREZZOFINALE - IN CORSO
+- MARCO: MODIFICA DEL CALCOLAPREZZOFINALE - FATTO
 
 
 
@@ -96,7 +96,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## SERVICES
 
-- ANDREA PARIS:- TipologiaSalaService (Fatto)
+- ANDREA PARIS:- TipologiaSalaService
                - ContoCinemaService (Fatto)
 
 - FABIO: - GenereMovieService (NULLA DA MODIFICARE).
@@ -123,8 +123,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 ## CONTROLLERS
 
-- ANDREA PARIS:- TipologiaSalaController (Fatto)
-               - ContoCinemaController (Fatto)
+- ANDREA PARIS:- BigliettoController
+               - ContoCinemaController
 
 - FABIO: - GenereMovieController (fatto)
          - GestoreController (fatto solo il logazioni, in attesta del bigliettoservice).
@@ -139,7 +139,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
            - RuoloUtenteController
 
 - FRANCESCO: - SalaController
-             - BigliettoController
+             - TipologiaSalaController
 
 - LORENZO: - AbbonamentoController (fatto)
            - UtenteController
