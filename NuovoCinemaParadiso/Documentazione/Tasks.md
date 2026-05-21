@@ -102,11 +102,11 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FABIO: - GenereMovieService (NULLA DA MODIFICARE).
          - GestoreService - LogAzioni(fatto)  - OttieniBiglietti(IN CORSO).
 
-- ANDREA BRUNO: - GiftCardService
-                - LogazioniService
+- ANDREA BRUNO: - GiftCardService (Fatto)
+                - LogazioniService (Fatto)
 
-- GREG: - MovieService
-        - OperatoreService
+- GREG: - MovieService (fatto)
+        - OperatoreService (fatto)
 
 - Simeone: - ProiezioneService
            - RuoloUtenteService
@@ -114,10 +114,10 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FRANCESCO: - SalaService
              - BigliettoService
 
-- LORENZO: - TurnoService
+- LORENZO: - AbbonamentoService (fatto)
            - UtenteService
 
-- MARCO: - AbbonamentoService
+- MARCO: - TurnoService
          - AuthService
 
 
@@ -129,8 +129,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FABIO: - GenereMovieController (fatto)
          - GestoreController (fatto solo il logazioni, in attesta del bigliettoservice).
 
-- ANDREA BRUNO: - GiftCardController
-                - LogazioniController
+- ANDREA BRUNO: - GiftCardController (Fatto)
+                - LogazioniController (Fatto)
 
 - GREG: - MovieController
         - OperatoreController
@@ -141,7 +141,7 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FRANCESCO: - SalaController
              - TipologiaSalaController
 
-- LORENZO: - TurnoController
+- LORENZO: - AbbonamentoController (fatto)
            - UtenteController
 
 - MARCO: - AbbonamentoController
