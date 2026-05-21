@@ -1,4 +1,5 @@
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Data;
 
 namespace NuovoCinemaParadiso.Helpers;
 
@@ -22,10 +23,11 @@ public static class Calcoli
         }
     }
 
-    public static void CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
     {
         utente.Saldo = utente.Saldo - prezzo;
         contoCinema.Conto = contoCinema.Conto + prezzo;
+        return new int[] { utente.Saldo, contoCinema.Conto };
     }
    
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)

@@ -49,6 +49,11 @@ public class UtenteController : ControllerBase
             await _logAzioniService.SalvataggioLogAzioneAsync(dto.IdAbbonamento, "Abbonati", false);
             return NotFound(new { errore = ex.Message });
         }
+        catch (Exception ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            return BadRequest(new { errore = ex.Message});
+        }
     }
 
     [HttpPut("giftCard/riscatta")]
