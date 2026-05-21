@@ -124,7 +124,8 @@ public class AuthService
 
     public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
     {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
+            ?? throw new NotFoundException("Utente", id);
 
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
 
@@ -134,8 +135,8 @@ public class AuthService
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
         dto.SeAbbonato = utente.SeAbbonato;
-        dto.AbbonamentoId = utente?.AbbonamentoId ?? "";
-        dto.TipoAbbonamento = abbonamento?.Nome ?? "";
+        dto.AbbonamentoId = utente?.AbbonamentoId ?? string.Empty;
+        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
 
         return dto;

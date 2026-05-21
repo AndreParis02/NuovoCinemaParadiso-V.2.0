@@ -111,13 +111,24 @@ public class OperatoreService
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
                 ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
 
+            if (utente.AbbonamentoId == null)
+                throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
+
+            if (utente.Abbonamento == null)
+                throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
+
             DtoBiglietto dto = new DtoBiglietto();
             dto.Id = bigliettoCorrente.Id;
             dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
             dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, utente.Abbonamento);
             dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                bigliettoCorrente.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            );
 
             risultato.Add(dto);
         }
@@ -140,18 +151,27 @@ public class OperatoreService
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
 
+        if (utente.AbbonamentoId == null)
+            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
+
+        if (utente.Abbonamento == null)
+            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
+
         if (biglietto == null)
-        {
             throw new NotFoundException("Biglietto", id);
-        }
 
         DtoBiglietto dto = new DtoBiglietto();
         dto.Id = biglietto.Id;
         dto.UtenteId = biglietto.UtenteId;
         dto.ProiezioneId = biglietto.ProiezioneId;
-        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente.Abbonamento);
         dto.OrarioCreazione = biglietto.OrarioCreazione;
         dto.NumeroBiglietti = biglietto.NumeroBiglietti;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            biglietto.NumeroBiglietti,
+            utente.Abbonamento,
+            utente.DataInizioAbbonamento
+        );
 
         return dto;
     }

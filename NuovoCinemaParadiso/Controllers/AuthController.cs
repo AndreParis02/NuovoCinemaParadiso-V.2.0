@@ -3,8 +3,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using Microsoft.AspNetCore.Authorization;
-using System.ComponentModel.DataAnnotations;
 using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
@@ -35,7 +33,6 @@ public class AuthController : ControllerBase
             }
             await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", true);
             return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
-
         }
         catch (InvalidEmail ex)
         {
@@ -50,6 +47,11 @@ public class AuthController : ControllerBase
         try
         {
             DtoAuthResponse? risposta = await _authService.LoginAsync(dto);
+            if (risposta == null)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(null, "Login", false);
+                return BadRequest(new { messaggio = "Credenziali non valide." });
+            }
             await _logAzioniService.SalvataggioLogAzioneAsync(risposta.Id, "Login", true);
             return Ok(risposta);
         }

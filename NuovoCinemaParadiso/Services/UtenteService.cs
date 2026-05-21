@@ -68,7 +68,7 @@ public class UtenteService
         {
             Id = utenteTrovato.Id,
             NomeCompleto = utenteTrovato.NomeCompleto,
-            Email = utenteTrovato.Email,
+            Email = utenteTrovato.Email ?? string.Empty,
             Eta = utenteTrovato.Eta,
             SeAbbonato = utenteTrovato.SeAbbonato,
             DataInizioAbbonamento = utenteTrovato.DataInizioAbbonamento,
@@ -77,13 +77,9 @@ public class UtenteService
         };
     }
 
-
     public async Task<DtoGiftCard> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
     {
         Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
-        Console.WriteLine($"utenteId: {utenteCorrente.Id}");
-
-        Console.WriteLine($"Saldo letto dal DB: {utenteCorrente.Saldo}");
 
         if (utenteCorrente?.Id == null)
         {
