@@ -99,8 +99,8 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - ANDREA PARIS:- BigliettoService
                - ContoCinemaService
 
-- FABIO: - GenereMovieService
-         - GestoreService
+- FABIO: - GenereMovieService (NULLA DA MODIFICARE).
+         - GestoreService - LogAzioni(fatto)  - OttieniBiglietti(IN CORSO).
 
 - ANDREA BRUNO: - GiftCardService
                 - LogazioniService
