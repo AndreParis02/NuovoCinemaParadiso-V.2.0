@@ -119,3 +119,30 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 - MARCO: - AbbonamentoService
          - AuthService
+
+
+## CONTROLLERS
+
+- ANDREA PARIS:- BigliettoController
+               - ContoCinemaController
+
+- FABIO: - GenereMovieController
+         - GestoreController
+
+- ANDREA BRUNO: - GiftCardController
+                - LogazioniController
+
+- GREG: - MovieController
+        - OperatoreController
+
+- Simeone: - ProiezioneController
+           - RuoloUtenteController
+
+- FRANCESCO: - SalaController
+             - TipologiaSalaController
+
+- LORENZO: - TurnoController
+           - UtenteController
+
+- MARCO: - AbbonamentoController
+         - AuthController
