@@ -1,9 +1,7 @@
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -15,24 +13,26 @@ public class AbbonamentoService
         _contesto = contesto;
     }
 
+    // -----------------------------
+    // LETTURA (mantiene i DTO)
+    // -----------------------------
     public async Task<List<DtoAbbonamento>> OttieniTutto()
     {
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-
         List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
 
         for (int i = 0; i < abbonamenti.Count; i++)
         {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
+            Abbonamento a = abbonamenti[i];
 
-            DtoAbbonamento dto = new DtoAbbonamento();
-            dto.Id = abbonamentoCorrente.Id;
-            dto.Nome = abbonamentoCorrente.Nome;
-            dto.Durata = abbonamentoCorrente.Durata;
-            dto.Prezzo = abbonamentoCorrente.Prezzo;
-            dto.Sconto = abbonamentoCorrente.Sconto;
-
-            risultato.Add(dto);
+            risultato.Add(new DtoAbbonamento
+            {
+                Id = a.Id,
+                Nome = a.Nome,
+                Durata = a.Durata,
+                Prezzo = a.Prezzo,
+                Sconto = a.Sconto
+            });
         }
 
         return risultato;
@@ -41,20 +41,16 @@ public class AbbonamentoService
     public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
         if (abbonamento == null)
-        {
             return null;
-        }
 
         List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
         bool trovato = false;
 
         for (int i = 0; i < utenti.Count; i++)
         {
-            if (utenti[i].AbbonamentoId == abbonamento.Id &&
-                utenti[i].Id == utenteId)
+            if (utenti[i].Id == utenteId &&
+                utenti[i].AbbonamentoId == abbonamento.Id)
             {
                 trovato = true;
                 break;
@@ -62,55 +58,7 @@ public class AbbonamentoService
         }
 
         if (!trovato)
-        {
             return null;
-        }
-
-        DtoAbbonamento risultato = new DtoAbbonamento();
-        risultato.Id = abbonamento.Id;
-        risultato.Nome = abbonamento.Nome;
-        risultato.Durata = abbonamento.Durata;
-        risultato.Prezzo = abbonamento.Prezzo;
-        risultato.Sconto = abbonamento.Sconto;
-
-        return risultato;
-    }
-
-    public async Task<DtoAbbonamento> CreazioneAsync(DtoCreazioneAbbonamento dto)
-    {
-        Abbonamento abbonamento = new Abbonamento();
-        abbonamento.Nome = dto.Nome;
-        abbonamento.Durata = dto.Durata;
-        abbonamento.Prezzo = dto.Prezzo;
-        abbonamento.Sconto = dto.Sconto;
-
-        _contesto.Abbonamenti.Add(abbonamento);
-        await _contesto.SaveChangesAsync();
-
-        DtoAbbonamento risultato = new DtoAbbonamento();
-        risultato.Id = abbonamento.Id;
-        risultato.Nome = abbonamento.Nome;
-        risultato.Durata = abbonamento.Durata;
-        risultato.Prezzo = abbonamento.Prezzo;
-        risultato.Sconto = abbonamento.Sconto;
-
-        return risultato;
-    }
-
-    public async Task<DtoAbbonamento> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
-    {
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
-
-        if (abbonamento == null)
-            throw new NotFoundException("Abbonamento", id);
-
-        abbonamento.Nome = dto.Nome;
-        abbonamento.Durata = dto.Durata;
-        abbonamento.Prezzo = dto.Prezzo;
-        abbonamento.Sconto = dto.Sconto;
-
-
-        await _contesto.SaveChangesAsync();
 
         return new DtoAbbonamento
         {
@@ -118,22 +66,79 @@ public class AbbonamentoService
             Nome = abbonamento.Nome,
             Durata = abbonamento.Durata,
             Prezzo = abbonamento.Prezzo,
-            Sconto = abbonamento.Sconto,
+            Sconto = abbonamento.Sconto
         };
     }
 
-    public async Task<bool> EliminazioneAsync(string id)
+    public async Task<(bool Successo, string Messaggio)> CreazioneAsync(DtoCreazioneAbbonamento dto)
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
+            {
+                return (false, "Esiste già un abbonamento con questo nome.");
+            }
+        }
+
+        Abbonamento nuovo = new Abbonamento
+        {
+            Nome = dto.Nome,
+            Durata = dto.Durata,
+            Prezzo = dto.Prezzo,
+            Sconto = dto.Sconto
+        };
+
+        _contesto.Abbonamenti.Add(nuovo);
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento creato correttamente.");
+    }
+
+   
+    public async Task<(bool Successo, string Messaggio)> ModificaAsync(string id, DtoCreazioneAbbonamento dto)
+    {
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
+        if (abbonamento == null)
+        {
+            return (false, "Abbonamento non trovato.");
+        }
+
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Id != id &&
+                abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
+            {
+                return (false, "Esiste già un altro abbonamento con questo nome.");
+            }
+        }
+
+        abbonamento.Nome = dto.Nome;
+        abbonamento.Durata = dto.Durata;
+        abbonamento.Prezzo = dto.Prezzo;
+        abbonamento.Sconto = dto.Sconto;
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento modificato correttamente.");
+    }
+
+   
+    public async Task<(bool Successo, string Messaggio)> EliminazioneAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
 
         if (abbonamento == null)
         {
-            return false;
+            return (false, "Abbonamento non trovato.");
         }
 
         _contesto.Abbonamenti.Remove(abbonamento);
         await _contesto.SaveChangesAsync();
 
-        return true;
+        return (true, "Abbonamento eliminato correttamente.");
     }
 }
