@@ -114,10 +114,10 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - FRANCESCO: - SalaService
              - BigliettoService
 
-- LORENZO: - TurnoService
+- LORENZO: - AbbonamentoService (fatto)
            - UtenteService
 
-- MARCO: - AbbonamentoService
+- MARCO: - TurnoService
          - AuthService
 
 
