@@ -26,8 +26,8 @@ public static class Calcoli
     public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
     {
         utente.Saldo = utente.Saldo - prezzo;
-        contoCinema.Conto = contoCinema.Conto + prezzo;
-        return new int[] { utente.Saldo, contoCinema.Conto };
+        contoCinema.Saldo = contoCinema.Saldo + prezzo;
+        return new int[] { utente.Saldo, contoCinema.Saldo };
     }
    
     public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
