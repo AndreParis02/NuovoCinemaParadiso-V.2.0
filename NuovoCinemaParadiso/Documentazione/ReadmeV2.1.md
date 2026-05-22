@@ -199,6 +199,7 @@ public class ContoCinema
 Utente: Fabio Tammaro(github: FabTam)
 Data: 21/05/2026
 Descrizione: Modificato il nome della proprietà Conto in Saldo.
+
 ```c#
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -419,6 +420,85 @@ public class Movie
     // Permette di accedere ai dati del genere associato al film
     // Il ? indica che il valore può essere null
     public GenereMovie? Genere {get;set;}
+}
+```
+
+## Movie.cs ( versione 1.1 )
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto il campo IsDeleted per considerarlo come eliminato e mantenerlo all'interno del db discriminandolo
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+// Associa questa classe alla tabella "Movies" nel database
+[Table("Movies")]
+
+public class Movie
+{
+    // Indica che la proprietà Id è la chiave primaria della tabella
+    [Key]
+
+    // Proprietà che rappresenta l'identificativo univoco del film
+    // Viene generato automaticamente un GUID convertito in stringa
+    public string Id {get;set;} = Guid.NewGuid().ToString();
+
+    // Indica che il titolo del film è obbligatorio
+    [Required]
+
+    // Limita la lunghezza massima del titolo a 50 caratteri
+    [StringLength(50)]
+
+    // Proprietà che contiene il titolo del film
+    // Inizializzata con stringa vuota per evitare valori null
+    public string Titolo {get;set;} = string.Empty;
+
+    // Indica che la descrizione del film è obbligatoria
+    [Required]
+
+    // Limita la lunghezza massima della descrizione a 2000 caratteri
+    [StringLength(2000)]
+
+    // Proprietà che contiene la descrizione/trama del film
+    public string Descrizione {get;set;} = string.Empty;
+
+    // Valida che la durata sia maggiore o uguale a 1
+    // int.MaxValue rappresenta il valore massimo possibile per un intero
+    [Range(1, int.MaxValue)]
+
+    // Proprietà che rappresenta la durata del film in minuti
+    public int DurataMinuti {get;set;} 
+
+    // Valida che il prezzo sia compreso tra 0.01 e 999999999
+    // typeof(decimal) specifica che il controllo viene effettuato su valori decimali
+    [Range(typeof(decimal), "0.01", "999999999")]
+
+    // Proprietà che rappresenta il prezzo del film
+    public int PrezzoMovie {get;set;}
+
+    // Lista delle proiezioni associate a questo film
+    // Rappresenta una relazione uno-a-molti tra Movie e Proiezione
+    // La lista viene inizializzata vuota per evitare errori null reference
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
+
+    // Proprietà che contiene la chiave esterna del genere del film
+    public string GenereId {get;set;} = string.Empty;
+    
+    // Specifica che la proprietà Genere utilizza GenereId come chiave esterna
+    [ForeignKey("GenereId")]
+
+    // Proprietà di navigazione verso l'entità GenereMovie
+    // Permette di accedere ai dati del genere associato al film
+    // Il ? indica che il valore può essere null
+    public GenereMovie? Genere {get;set;}
+
+    // Proprietà che indica il fatto che sia stato eliminato, ma viene lasciato
+    // all'interno del db per avere uno storico e non perdere informazioni
+    public bool IsDeleted {get;set;} = false;
 }
 ```
 
@@ -1303,6 +1383,36 @@ public class DtoMovie
     public string GenereId { get; set; } = string.Empty; // Id del genere associato
 
     public string Genere { get; set; } = string.Empty;   // Nome del genere (dato derivato)
+}
+```
+
+## DtoMovie.cs (versione 1.1)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto il campo IsDeleted per considerarlo come eliminato e mantenerlo all'interno del db discriminandolo
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoMovie
+{
+    public string? Id { get; set; }                     // Id del film (null quando non ancora creato)
+
+    public string Titolo { get; set; } = string.Empty;  // Titolo del film
+
+    public string Descrizione { get; set; } = string.Empty; // Descrizione breve del film
+
+    public int DurataMinuti { get; set; }               // Durata del film in minuti
+
+    public int PrezzoMovie { get; set; }                // Prezzo base del film
+
+    public string GenereId { get; set; } = string.Empty; // Id del genere associato
+
+    public string Genere { get; set; } = string.Empty;   // Nome del genere (dato derivato)
+
+    public bool IsDeleted {get;set;} = false;            // Se è da considerarsi eliminato
+
 }
 ```
 
@@ -3200,6 +3310,193 @@ public class MovieController : ControllerBase
     }
 }
 ```
+
+## MovieController.cs (versione 1.3)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto endpoint per il service OttieniTuttoStorico
+[HttpGet("storico")] // GET api/Movie/storico
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController] // Indica che il controller espone API REST
+[Route("api/[controller]")] // Route base: api/Movie
+[Authorize] // Richiede autenticazione per tutte le azioni
+public class MovieController : ControllerBase
+{
+    private readonly MovieService _movieService;
+    private readonly LogAzioniService _logAzioniService;
+    
+
+    public MovieController(MovieService movieService, LogAzioniService logAzioniService)
+    {
+        _movieService = movieService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet] // GET api/Movie
+    public async Task<IActionResult> OttieniTuttiIMovies()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+
+    [HttpGet("storico")] // GET api/Movie/storico
+    public async Task<IActionResult> OttieniTuttiIMoviesStorico()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTuttoStorico();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+    
+    [HttpGet("genere/{genereId}")] // GET api/Movie/genere/{id}
+    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrWhiteSpace(genereId))
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni movie per genereId" ,false);
+          return BadRequest("GenereId non valido");
+        }
+
+        var risultato = await _movieService.OttieniTramiteGenere(genereId);
+
+        if (risultato.Count() == 0)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
+
+          return NotFound("Nessun film trovato per questo genere");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);;
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("{id}")]  // GET api/Movie/{id}
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        DtoMovie? risultato = await _movieService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", false);
+          return NotFound($"Film con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", true);
+        return Ok(risultato);
+    }
+
+    [HttpPost] // POST api/Movie
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo))
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "Film già presente." });
+            }
+        }
+        
+        bool risultato = await _movieService.CreazioneAsync(dto);
+
+        if (!risultato)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+          return BadRequest(new { messaggio = "id del genere non valido." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
+        return Ok();
+    }
+
+    [HttpPut("{id}")] // PUT api/Movie/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo) && movie.Id != id)
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
+            }
+        }
+        try
+        {
+            await _movieService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+            return Ok();
+        }
+        catch(NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", false);
+            return NotFound(new { messaggio = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id}")] // DELETE api/Movie/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _movieService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", false);
+            return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
+        return Ok(new { messaggio = "Film eliminato con successo!" });
+    }
+}
+```
+
 
 ## OperatoreController.cs
 
@@ -8741,6 +9038,257 @@ public class MovieService
         }
 
         _contesto.Movies.Remove(movie);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## MovieService.cs (Versione 1.3)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto OttieniTuttoStorico per mostrare anche i movie con IsDeleted = true + OttieniTutto solo quelli con IsDeleted = false + Disabilitazione delle proiezioni con determinate codnizioni dopo aver eliminato un film
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+/// <summary>
+/// Service responsabile della gestione dei film.
+/// Gestisce operazioni CRUD e associazione con i generi.
+/// </summary>
+public class MovieService
+{
+    private readonly ContestoDb _contesto;
+
+    private readonly GenereMovieService _genereMovieService;
+    /// <summary>
+    /// Inizializza una nuova istanza del servizio Movie.
+    /// </summary>
+    /// <param name="contesto">Contesto database EF Core.</param>
+    /// <param name="genereMovieService">Servizio per la gestione dei generi film.</param>
+    public MovieService(ContestoDb contesto, GenereMovieService genereMovieService)
+    {
+        _contesto = contesto;
+        _genereMovieService = genereMovieService;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film presenti nel sistema con informazioni sul genere non considerando quelli IsDeleted.
+    /// </summary>
+    /// <returns>Lista di DTO dei film.</returns>
+    public async Task<List<DtoMovie>> OttieniTutto()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+
+            // Discriminante dei IsDeleted
+            if (movieCorrente.IsDeleted)
+                continue;
+
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+
+    /// <summary>
+    /// Recupera tutti i film presenti nel sistema considerando anche quelli IsDeleted.
+    /// </summary>
+    /// <returns>Lista di DTO dei film.</returns>
+    /// 
+    public async Task<List<DtoMovie>> OttieniTuttoStorico()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+            dto.IsDeleted = movieCorrente.IsDeleted;
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera un film tramite ID.
+    /// </summary>
+    /// <param name="id">ID del film.</param>
+    /// <returns>DTO del film se trovato, altrimenti null.</returns>
+    public async Task<DtoMovie?> OttieniTramiteIdAsync(string id)
+    {
+        
+        Movie? movie = await _contesto.Movies.FindAsync(id);
+
+        if (movie == null)
+        {
+            return null;
+        }
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movie.GenereId);
+
+        DtoMovie risultato = new DtoMovie
+        {
+            Id = movie.Id,
+            Titolo = movie.Titolo,
+            Descrizione = movie.Descrizione,
+            DurataMinuti = movie.DurataMinuti,
+            PrezzoMovie = movie.PrezzoMovie,
+            GenereId = movie.GenereId,
+            Genere = genereMovie?.Genere ?? "",
+            // AGGINTO SOLO NEL TRAMITE SOLO OttieniTramiteIdAsync E NON GENERE O ALTRO
+            IsDeleted = movie.IsDeleted
+            //
+
+        };
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film appartenenti a un genere specifico.
+    /// </summary>
+    /// <param name="genereId">ID del genere.</param>
+    /// <returns>Lista di film filtrati per genere.</returns>
+    public async Task<List<DtoMovie>> OttieniTramiteGenere(string genereId)
+    {
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        List<DtoMovie> movies = await OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.GenereId.Trim() == genereId)
+            {
+                risultato.Add(movie);
+            }
+        }
+        return risultato;
+    }
+
+    /// <summary>
+    /// Crea un nuovo film.
+    /// </summary>
+    /// <param name="dto">Dati del film da creare.</param>
+    /// <returns>booleano che da conferma tramite true o false in caso il genere non sia valido</returns>
+    public async Task<bool> CreazioneAsync(DtoCreazioneMovie dto)
+    {
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
+        {
+            return false;
+        }
+        
+        Movie movie = new Movie();
+
+        movie.Titolo = dto.Titolo;
+        movie.Descrizione = dto.Descrizione;
+        movie.DurataMinuti = dto.DurataMinuti;
+        movie.PrezzoMovie = dto.PrezzoMovie;
+        movie.GenereId = dto.GenereId;
+
+        _contesto.Movies.Add(movie);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Modifica un film esistente nel database.
+    /// </summary>
+    /// <param name="id">ID del film da modificare.</param>
+    /// <param name="dto">Nuovi dati del film.</param>
+    /// <returns>Ritorna true se la modifica è avvenuta con successo.</returns>
+    /// <exception cref="NotFoundException">
+    /// Lanciata se il film specificato o il genere non vengono trovati nel database.
+    /// </exception>
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneMovie dto)
+    {
+        Movie? movieEsistente = await _contesto.Movies.FindAsync(id);
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
+        {
+            Console.WriteLine("GENERE PROBLEMA");
+            throw new NotFoundException("genere", dto.GenereId);
+
+        }
+
+        if (movieEsistente == null)
+        {
+            Console.WriteLine("PROBLEMA ESISTENZIALE");
+            throw new NotFoundException("movie",id);
+        }
+
+        movieEsistente.Titolo = dto.Titolo;
+        movieEsistente.Descrizione = dto.Descrizione;
+        movieEsistente.DurataMinuti = dto.DurataMinuti;
+        movieEsistente.PrezzoMovie = dto.PrezzoMovie;
+        movieEsistente.GenereId = dto.GenereId;
+
+        await _contesto.SaveChangesAsync();
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Elimina un film dal sistema.
+    /// </summary>
+    /// <param name="id">ID del film da eliminare.</param>
+    /// <returns>True se eliminato, false se non trovato.</returns>
+    public async Task<bool> EliminaAsync(string id)
+    {
+         Movie? movie = await _contesto.Movies.FindAsync(id);
+
+    // corretta la gestione degli errori
+        if (movie == null)
+            return false;
+
+        if(movie.IsDeleted)
+            return false;
+
+        movie.IsDeleted = true;
+
+        // disabilito le proiezioni che hanno lo stesso id del film ma non reatroattivamente
+        List<Proiezione> Proiezioni = await _contesto.Proiezioni.Where(P => P.MovieId == movie.Id && P.DataProiezione >= DateOnly.FromDateTime(DateTime.Now)).ToListAsync();
+
+        foreach(Proiezione temp in Proiezioni)
+        {
+            temp.Attivo = false;
+        }
+
         await _contesto.SaveChangesAsync();
 
         return true;

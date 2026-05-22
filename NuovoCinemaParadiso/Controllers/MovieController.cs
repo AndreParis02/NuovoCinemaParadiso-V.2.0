@@ -22,6 +22,7 @@ public class MovieController : ControllerBase
         _logAzioniService = logAzioniService;
     }
 
+
     [HttpGet]
     public async Task<IActionResult> OttieniTuttiIMovies()
     {
@@ -33,6 +34,19 @@ public class MovieController : ControllerBase
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
         return Ok(movies);
     }
+
+    [HttpGet("storico")]
+    public async Task<IActionResult> OttieniTuttiIMoviesStorico()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTuttoStorico();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+    
 
     [HttpGet("genere/{genereId}")]
     public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)

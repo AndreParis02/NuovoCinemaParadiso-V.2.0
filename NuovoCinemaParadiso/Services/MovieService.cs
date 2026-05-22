@@ -26,6 +26,10 @@ public class MovieService
         for (int i = 0; i < movies.Count; i++)
         {
             Movie movieCorrente = movies[i];
+
+            if (movieCorrente.IsDeleted)
+                continue;
+                
             GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
 
             DtoMovie dto = new DtoMovie();
@@ -36,6 +40,32 @@ public class MovieService
             dto.PrezzoMovie = movieCorrente.PrezzoMovie;
             dto.GenereId = movieCorrente.GenereId;
             dto.Genere = genereMovie?.Genere ?? "";
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+        public async Task<List<DtoMovie>> OttieniTuttoStorico()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+            dto.IsDeleted = movieCorrente.IsDeleted;
 
             risultato.Add(dto);
         }
@@ -61,7 +91,8 @@ public class MovieService
             DurataMinuti = movie.DurataMinuti,
             PrezzoMovie = movie.PrezzoMovie,
             GenereId = movie.GenereId,
-            Genere = genereMovie?.Genere ?? ""
+            Genere = genereMovie?.Genere ?? "",
+            IsDeleted = movie.IsDeleted
         };
         return risultato;
     }
@@ -97,7 +128,6 @@ public class MovieService
         movie.DurataMinuti = dto.DurataMinuti;
         movie.PrezzoMovie = dto.PrezzoMovie;
         movie.GenereId = dto.GenereId;
-
         _contesto.Movies.Add(movie);
         await _contesto.SaveChangesAsync();
 
@@ -132,17 +162,25 @@ public class MovieService
         return true;
     }
 
-//TODO: IMPLEMENTARE ELIMINAZIONE A CASCATA O TRAMITE BOOL
     public async Task<bool> EliminaAsync(string id)
     {
         Movie? movie = await _contesto.Movies.FindAsync(id);
 
         if (movie == null)
-        {
             return false;
+
+        if(movie.IsDeleted)
+            return false;
+
+        movie.IsDeleted = true;
+
+        List<Proiezione> Proiezioni = await _contesto.Proiezioni.Where(P => P.MovieId == movie.Id && P.DataProiezione >= DateOnly.FromDateTime(DateTime.Now)).ToListAsync();
+
+        foreach(Proiezione temp in Proiezioni)
+        {
+            temp.Attivo = false;
         }
 
-        _contesto.Movies.Remove(movie);
         await _contesto.SaveChangesAsync();
 
         return true;
