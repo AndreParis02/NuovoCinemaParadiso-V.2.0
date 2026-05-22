@@ -194,6 +194,42 @@ public class ContoCinema
 }
 ```
 
+### ContoCinema.cs Versione 1.1.1
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Modificato il nome della proprietà Conto in Saldo.
+```c#
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+
+
+namespace NuovoCinemaParadiso.Models;
+
+
+
+
+public class ContoCinema
+{
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    
+    [Required]
+    [StringLength(34, MinimumLength = 22, ErrorMessage = "La lunghezza dell'iban deve essere compresa tra 22 e 34.")]
+
+    public string Iban { get; set; }
+    [Required]
+
+    [StringLength(100)]
+    public string TitolareConto {get;set;}
+
+// modificato il nome della proprietà.
+    [Required]
+    public int Saldo {get;set;}
+}
+```
+
 ## GenereMovie.cs
 
 ```c#
@@ -866,6 +902,27 @@ public class DtoContoCinema
 
     public int Conto { get; set; }                              // Saldo o valore del conto
 }
+
+```
+### DtoContoCinema.cs Versione 1.1.1.
+
+Utente: Fabio
+Data: 21/05/2026
+Descrizione: Modificata la proprietà Conto in Saldo.
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoContoCinema
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString(); 
+
+    public string Iban { get; set; } = string.Empty;            
+
+    public string TitolareConto { get; set; } = string.Empty;   
+
+    // Modificata la proprietà Conto in Saldo.
+    public int Saldo { get; set; }            
+}                  
 ```
 
 ## DtoCreazioneAbbonamento.cs
@@ -1850,6 +1907,12 @@ public async Task<IActionResult> OttieniTutti()
 }
 ```
 
+## VERSIONE 1.1.1
+
+Utente: Fabio Tammaro
+Data: 22/05/2026
+Descrizione : Questa parte è stata rimossa in concomitanza con l'aggiunta del metodo di lettura nel conto nel dominio del gestore.
+
 ## ContoCinemaController.cs
 
 ```c#
@@ -2163,6 +2226,69 @@ public class GestoreController : ControllerBase
     public async Task<IActionResult> OttieniLogAzioni()
     {
         // richiamo al service del gestore per il metodo della lettura degli audit.
+        List<DtoLogAzioni> risultatiLog = await _gestoreService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+}
+```
+### GestoreController.cs V1.1.2
+
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Inserita la chiamata alla lettura dei dati del conto.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using System.Security.Claims;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class GestoreController : ControllerBase
+{
+    private readonly GestoreService _gestoreService;
+
+    // aggiunta la dependency injections necessaria al salvataggio degli audit.
+    private readonly LogAzioniService _logAzioniService;
+
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
+    {
+        _gestoreService   = gestoreService;
+        _logAzioniService = logAzioniService;
+    }
+    
+    //Chiamata get all'endpoint per leggere i dati dal conto
+    [HttpGet("conto")]
+    public async Task<IActionResult> OttieniDatiConto()
+    {
+        DtoContoCinema contoCinema = await _gestoreService.OttieniDatiContoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+
+        if(contoCinema == null)
+        {
+             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", false);
+
+            return BadRequest(new { messaggio = "Non è presente nessun conto." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", true);
+
+
+        return Ok(contoCinema);
+    }
+
+    [HttpGet("logs")]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
         List<DtoLogAzioni> risultatiLog = await _gestoreService.LetturaLogAzioneAsync();
         return Ok(risultatiLog);
     }
@@ -5296,6 +5422,11 @@ Aggiornate le chiamate a CalcolaPrezzoFinale
         return (null, "Saldo insufficiente per acquistare i biglietti.");
     
 ```
+## VERSIONE 1.1.1
+
+Utente: Fabio Tammaro
+Data: 22/05/2026
+Descrizione : Questa parte è stata rimossa in concomitanza con l'aggiunta del metodo di lettura nel conto nel dominio del gestore.    
 ## ContoCinemaService.cs
 
 ```c#
@@ -5692,6 +5823,70 @@ public class GestoreService
         }
 
         return risultati;
+    }
+}
+```
+### GestoreService.cs V1.1.2
+Utente: Fabio Tammaro(github: FabTam)
+Data: 21/05/2026
+Descrizione: Inserita la lettura dei dati del conto.
+```C#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GestoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+
+    }
+
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni
+            {
+                Id = log.Id,
+                IdUtente = log.IdUtente,
+                NomeAzione = log.NomeAzione,
+                Effettuato = log.Effettuato,
+                Messaggio = log.Messaggio,
+                TimeStamp = log.TimeStamp
+            };
+            risultati.Add(risultato);
+        }
+
+        return risultati;
+    }
+
+     public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Saldo = contoCinema.Saldo;
+
+        return dto;
     }
 }
 ```

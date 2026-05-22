@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -36,5 +38,21 @@ public class GestoreService
         }
 
         return risultati;
+    }
+
+     public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Saldo = contoCinema.Saldo;
+
+        return dto;
     }
 }
