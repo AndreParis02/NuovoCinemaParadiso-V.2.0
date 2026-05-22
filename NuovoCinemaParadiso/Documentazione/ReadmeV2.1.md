@@ -4555,6 +4555,129 @@ public class TurnoController : ControllerBase
 }
 ```
 
+## TurnoController.cs Versione 1.1
+- Utente: Simeone
+- Data: 22/05/2026
+- Descrizione: eseguo la task assegnatami su questo service e il conseguente controller: "MODIFICARE CONTROLLER E SERVICE CHE NON HANNO LA NECESSITà DI AVERE DTO IN USCITA CHE PORTINO DATI NON NECESSARI AL FRONTEND. DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGGIO DI RIUSCITA O FALLIMENTO."
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Services;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TurnoController : ControllerBase
+{
+    private readonly TurnoService _turnoService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
+    {
+        _turnoService = turnoService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
+        return Ok(turni);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", false);
+            return NotFound(new { messaggio = $"Turno con id {id} non trovato" });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", true);
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        bool creato = await _turnoService.CreazioneAsync(dto); // MODIFICATO: rimosso var e inserito il booleano in conseguenza alle modifiche apportate al service
+
+        if (!creato) // MODIFICATO: Se è false, sappiamo dal Service che il turno era già presente
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
+            return BadRequest(new { messaggio = "Turno già presente con questo nome." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true); // Se arriviamo qui, creato è true
+        return Ok(new { messaggio = "Turno creato con successo!"}); // MODIFICATO: Restituiamo un semplice messaggio invece dell'intero oggetto
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        bool modificato = await _turnoService.ModificaAsync(id, dto); // MODIFICATO: rimosso var e inserito il booleano in conseguenza alle modifiche apportate al service
+
+        if (!modificato) 
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
+            return BadRequest(new { messaggio = "Impossibile modificare: Turno non trovato o nome già in uso." }); // MODIFICATO: Accorpiamo l'errore in un unico messaggio generico e chiaro per il frontend in caso di esito false
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true); // Se arriviamo qui, creato è true
+        return Ok(new { messaggio = "Turno modificato con successo!"}); // MODIFICATO: Restituiamo un semplice messaggio invece dell'intero oggetto
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var (successo, errore) = await _turnoService.EliminaAsync(id); // MODIFICATO: rimossa la dupla come richiestomi
+
+        if (!successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", false);
+            
+            if (errore == "Turno non trovato.")
+            {
+                return NotFound(new { messaggio = errore });
+            }
+            else
+            {
+                return BadRequest(new { messaggio = errore });
+            }
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
+        return Ok(new { messaggio = "Turno cancellato correttamente!"}); // MODIFICATO: prima restituiva un 204 NoContent, adesso restituisce un messaggio di avvenuta
+    }
+}
+```
 ##  UtenteController.cs
 
 ```c#
@@ -8140,6 +8263,127 @@ public class TurnoService
 }
 ```
 
+## TurnoService.cs Versione 1.1
+- Utente: Simeone
+- Data: 22/05/2026
+- Descrizione: eseguo la task assegnatami su questo service ed il conseguente controller: "MODIFICARE CONTROLLER E SERVICE CHE NON HANNO LA NECESSITà DI AVERE DTO IN USCITA CHE PORTINO DATI NON NECESSARI AL FRONTEND. DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGGIO DI RIUSCITA O FALLIMENTO."
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services
+{
+    public class TurnoService
+    {
+        private readonly ContestoDb _contesto;
+        public TurnoService(ContestoDb contesto)
+        {
+            _contesto = contesto;
+        }
+
+        public async Task<List<DtoTurno>> OttieniTuttoAsync()
+        {
+            List<Turno> turni = await _contesto.Turni.ToListAsync();
+            List<DtoTurno> risultato = new List<DtoTurno>();
+
+            foreach (var turnoCorrente in turni)
+            {
+                DtoTurno dto = new DtoTurno();
+                dto.Id = turnoCorrente.Id;
+                dto.OraInizio = turnoCorrente.OraInizio;
+                dto.OraFine = turnoCorrente.OraFine;
+                dto.Nome = turnoCorrente.Nome;
+                risultato.Add(dto);
+            }
+
+            return risultato;
+        }
+
+        public async Task<DtoTurno?> OttieniTramiteIdAsync(string id)
+        {
+            Turno? turno = await _contesto.Turni.FindAsync(id);
+            if (turno == null)
+            {
+                return null;
+            }
+
+            DtoTurno dto = new DtoTurno();
+            dto.Id = turno.Id;
+            dto.Nome = turno.Nome;
+            dto.OraInizio = turno.OraInizio;
+            dto.OraFine = turno.OraFine;
+
+            return dto;
+        }
+
+        public async Task<bool> CreazioneAsync(DtoCreazioneTurno dto) // MODIFICATO in modo che restituisse un messaggio pulito e conciso e non l'oggetto intero appena creato
+        {
+
+            bool turnoGiaPresente = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower());
+            if (turnoGiaPresente)
+            {
+                return false;
+            }
+
+            Turno turno = new Turno();
+            turno.Nome = dto.Nome;
+            turno.OraInizio = dto.OraInizio;
+            turno.OraFine = dto.OraFine;
+
+            _contesto.Turni.Add(turno);
+            await _contesto.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> ModificaAsync(string id, DtoCreazioneTurno dto) // MODIFICATO in modo che restituisse un messaggio pulito e conciso e non l'oggetto intero appena modificato
+        {
+
+            Turno? turnoEsistente = await _contesto.Turni.FindAsync(id);
+            if (turnoEsistente == null)
+            {
+                return false;
+            }
+
+            bool nomeGiaUsato = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower() && t.Id != id);
+            if (nomeGiaUsato)
+            {
+                return false;
+            }
+
+            turnoEsistente.OraInizio = dto.OraInizio;
+            turnoEsistente.OraFine = dto.OraFine;
+            turnoEsistente.Nome = dto.Nome;
+
+            await _contesto.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<(bool Successo, string? Errore)> EliminaAsync(string id)
+        {
+            Turno? turno = await _contesto.Turni.FindAsync(id);
+            if (turno == null)
+            {
+                return (false, "Turno non trovato.");
+            }
+
+            bool haProiezioniCollegate = await _contesto.Proiezioni.AnyAsync(p => p.TurnoId == id);
+            if (haProiezioniCollegate)
+            {
+                return (false, "Impossibile eliminare il turno: ci sono ancora delle proiezioni assegnate a questo orario.");
+            }
+
+            _contesto.Turni.Remove(turno);
+            await _contesto.SaveChangesAsync();
+
+            return (true, null);
+        }
+    }
+}
+```
 ## UtenteService.cs
 
 ```c#
