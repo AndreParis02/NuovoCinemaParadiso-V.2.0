@@ -1633,8 +1633,89 @@ public class AbbonamentoController : ControllerBase
         return NoContent();
     }
 }
+```
 
+## GestoreControllerV1.0.1
 
+Andrea Bruno 22-05-2026 
+Aggiunta funzione OttieniTuttiBiglietti() e 
+Centralizzazione dell'Authorize
+
+```C#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using System.Security.Claims;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Roles = Ruoli.Gestore)] // Authorize centralizzato
+public class GestoreController : ControllerBase
+{
+    private readonly GestoreService _gestoreService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public GestoreController(GestoreService gestoreService, LogAzioniService logAzioniService)
+    {
+        _gestoreService = gestoreService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet("conto")]
+    public async Task<IActionResult> OttieniDatiConto()
+    {
+        DtoContoCinema contoCinema = await _gestoreService.OttieniDatiContoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (contoCinema == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", false);
+
+            return BadRequest(new { messaggio = "Non è presente nessun conto." });
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni dati Conto", true);
+        
+        return Ok(contoCinema);
+    }
+
+    [HttpGet("logs")]
+    public async Task<IActionResult> OttieniLogAzioni()
+    {
+        List<DtoLogAzioni> risultatiLog = await _gestoreService.LetturaLogAzioneAsync();
+        return Ok(risultatiLog);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTuttiBiglietti()
+    {
+        // Recupera l'ID dell'utente autenticato dal token JWT.
+        // FindFirstValue può restituire null → uso string? per sicurezza.
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Se l'utente non è autenticato, ritorno 401 Unauthorized.
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        // Recupera tutti i biglietti tramite il servizio Gestore.
+        // Il metodo restituisce una lista di DTO già pronti per l'API.
+        List<DtoBiglietto> biglietti = await _gestoreService.OttieniTuttiBigliettiAsync();
+
+        // Salva nel log l'azione eseguita dall'utente.
+        // Passo: ID utente, nome azione, esito (true = successo).
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni tutti i biglietti",
+            true
+        );
+        // Restituisce 200 OK con la lista dei biglietti.
+        return Ok(biglietti);
+    }
+}
 ```
 
 ## AuthController.cs
@@ -5890,6 +5971,102 @@ public class GestoreService
     }
 }
 ```
+
+## GestoreServiceV1.0.1
+
+Andrea Bruno 22-05-2026
+Implementazione OttieniTuttiBigliettiAsync() 
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GestoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni
+            {
+                Id = log.Id,
+                IdUtente = log.IdUtente,
+                NomeAzione = log.NomeAzione,
+                Effettuato = log.Effettuato,
+                Messaggio = log.Messaggio,
+                TimeStamp = log.TimeStamp
+            };
+            risultati.Add(risultato);
+        }
+
+        return risultati;
+    }
+
+    public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Saldo = contoCinema.Saldo;
+
+        return dto;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
+    {
+        // Recupera tutti i Biglietti dal database in modo asincrono.
+        // ToListAsync() esegue la query e materializza i risultati in memoria.
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
+        // Lista che conterrà i DTO da restituire al controller.
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        // Ciclo su ogni Biglietto per convertirlo nel corrispondente DTO.
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+
+            // Creazione del DTO e mappatura dei campi.
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+
+            // Aggiunge il DTO alla lista finale.
+            risultato.Add(dto);
+        }
+
+        // Restituisce la lista completa dei DTO.
+        return risultato;
+    }
+}
+```
+
 ## GiftCardService.cs
 
 ```c#
