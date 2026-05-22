@@ -19,20 +19,6 @@ public class BigliettoController : ControllerBase
         _bigliettoService = bigliettoService;
         _logAzioniService = logAzioniService;
     }
-
-    [HttpGet]
-    [Authorize(Roles = Ruoli.Gestore)]
-    public async Task<IActionResult> OttieniTutti()
-    {
-        List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTutto();
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i biglietti" ,true);
-        return Ok(biglietti);
-    }
-
    
     [HttpPost]
     public async Task<IActionResult> Creazione([FromBody] DtoCreazioneBiglietto dto)

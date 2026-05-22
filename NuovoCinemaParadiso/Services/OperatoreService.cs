@@ -110,6 +110,8 @@ public class OperatoreService
                 ?? throw new NotFoundException("Utente", bigliettoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
                 ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
+            Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
             if (utente.AbbonamentoId == null)
                 throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
@@ -123,6 +125,11 @@ public class OperatoreService
             dto.UtenteId = bigliettoCorrente.UtenteId;
             dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.NomeSala = sala.Nome;
+            dto.TitoloMovie = movie.Titolo;
+            dto.NomeTipologiaSala = tipologiaSala.Nome;
+            dto.OraInizio = turno.OraInizio;
+            dto.DataProiezione = proiezione.DataProiezione;
             dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
                 tipologiaSala.MaggiorazionePrezzo,
                 bigliettoCorrente.NumeroBiglietti,
@@ -150,6 +157,8 @@ public class OperatoreService
             ?? throw new NotFoundException("Utente", biglietto.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
         if (utente.AbbonamentoId == null)
             throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
@@ -166,6 +175,11 @@ public class OperatoreService
         dto.ProiezioneId = biglietto.ProiezioneId;
         dto.OrarioCreazione = biglietto.OrarioCreazione;
         dto.NumeroBiglietti = biglietto.NumeroBiglietti;
+        dto.NomeSala = sala.Nome;
+        dto.TitoloMovie = movie.Titolo;
+        dto.NomeTipologiaSala = tipologiaSala.Nome;
+        dto.OraInizio = turno.OraInizio;
+        dto.DataProiezione = proiezione.DataProiezione;
         dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             biglietto.NumeroBiglietti,
@@ -247,5 +261,4 @@ public class OperatoreService
 
         return true;
     }
-
 }
