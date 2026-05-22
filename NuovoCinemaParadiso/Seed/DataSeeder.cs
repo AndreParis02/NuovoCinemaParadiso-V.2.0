@@ -81,9 +81,9 @@ public static class DataSeeder
         var sala2 = await AssicuraEsistenzaSala(contestoDb, "Sala2", 40, tipologia3D.Id);
         var sala3 = await AssicuraEsistenzaSala(contestoDb, "Sala3", 50, tipologiaImax.Id);
 
-        await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 25, 1);
-        await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 50, 6);
-        await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 75, 12);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Mensile", 70, 2, 1);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Semestrale", 210, 4, 6);
+        await AssicuraEsistenzaAbbonamento(contestoDb, "Annuale", 300, 7, 12);
 
         var proiezione1 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie1.Id, sala1.Id, turnoMattina.Id);
         var proiezione2 = await AssicuraEsistenzaProiezione(contestoDb, new DateOnly(2027, 1, 1), movie2.Id, sala2.Id, turnoPomeriggio.Id);
