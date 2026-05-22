@@ -7,10 +7,71 @@
   },
   "item": [
     {
-      "name": "GenereMovie",
+      "name": "Abbonamenti",
       "item": [
         {
-          "name": "CreazioneGenereMovie",
+          "name": "LeggiAbbonamenti",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Abbonamento",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Abbonamento"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiAbbonamentoTramiteIdAbbonamento",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Abbonamento/6c062c32-997a-4849-8483-e4177edfbbb2",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Abbonamento",
+                "6c062c32-997a-4849-8483-e4177edfbbb2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneAbbonamento",
           "request": {
             "auth": {
               "type": "bearer",
@@ -26,7 +87,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"genere\":\"Crime\"}",
+              "raw": "{\r\n    \"Nome\": \"TEST\",\r\n    \"Durata\": 420,\r\n    \"Prezzo\": 32.50,\r\n    \"Sconto\" : 5\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -34,7 +95,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/GenereMovie",
+              "raw": "http://localhost:5226/api/Abbonamento",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -42,106 +103,14 @@
               "port": "5226",
               "path": [
                 "api",
-                "GenereMovie"
+                "Abbonamento"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "LetturaGenereMovieTramiteId",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/92e33e0c-1a6d-43a9-803e-302d9f2c96d1",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GenereMovie",
-                "92e33e0c-1a6d-43a9-803e-302d9f2c96d1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LetturaListaGeneriMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GenereMovie",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GenereMovie"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaGenereMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/a1fd62ff-3d4f-47d8-a22a-710056ec5757",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GenereMovie",
-                "a1fd62ff-3d4f-47d8-a22a-710056ec5757"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaGenereMovie",
+          "name": "ModificaAbbonamento",
           "request": {
             "auth": {
               "type": "bearer",
@@ -157,7 +126,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"genere\":\"Crime 2\"}",
+              "raw": "{\r\n    \"Nome\": \"Prova 1\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"Sconto\" : 47\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -165,7 +134,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/a1fd62ff-3d4f-47d8-a22a-710056ec5757",
+              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -173,20 +142,15 @@
               "port": "5226",
               "path": [
                 "api",
-                "GenereMovie",
-                "a1fd62ff-3d4f-47d8-a22a-710056ec5757"
+                "Abbonamento",
+                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
               ]
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "Log",
-      "item": [
+        },
         {
-          "name": "LetturaListaLog",
+          "name": "EliminaAbbonamento",
           "request": {
             "auth": {
               "type": "bearer",
@@ -198,10 +162,10 @@
                 }
               ]
             },
-            "method": "GET",
+            "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Gestore/log",
+              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -209,8 +173,8 @@
               "port": "5226",
               "path": [
                 "api",
-                "Gestore",
-                "log"
+                "Abbonamento",
+                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
               ]
             }
           },
@@ -221,6 +185,36 @@
     {
       "name": "Auth",
       "item": [
+        {
+          "name": "Registrazione",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"Utente Prova\",\"eta\":\"45\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Auth/registrazione",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Auth",
+                "registrazione"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "LoginGestore",
           "event": [
@@ -330,7 +324,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\"}",
+              "raw": "{\"email\":\"utente1@gmail.com\",\"password\":\"123456\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -348,36 +342,6 @@
                 "api",
                 "Auth",
                 "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Registrazione",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"Utente Prova\",\"eta\":\"45\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Auth/registrazione",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Auth",
-                "registrazione"
               ]
             }
           },
@@ -500,6 +464,1597 @@
       ]
     },
     {
+      "name": "Biglietto",
+      "item": [
+        {
+          "name": "LeggiBiglietti",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Biglietto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Biglietto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneBigletto",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"ProiezioneId\": \"e5fee05a-c054-4678-b00e-55ec4d502611\",\r\n    \"numeroBiglietti\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Biglietto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Biglietto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ModificaBiglietto",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"ProiezioneId\": \"e5fee05a-c054-4678-b00e-55ec4d502611\",\r\n    \"numeroBiglietti\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Biglietto/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Biglietto",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaBiglietto",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Biglietto/d547eddf-ba8a-4886-b515-ceb54edad85e",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Biglietto",
+                "d547eddf-ba8a-4886-b515-ceb54edad85e"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "GenereMovie",
+      "item": [
+        {
+          "name": "LetturaGenereMovieTramiteId",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GenereMovie/11076d57-d88b-429b-9997-88b8a390b071",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GenereMovie",
+                "11076d57-d88b-429b-9997-88b8a390b071"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LetturaListaGeneriMovie",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GenereMovie",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GenereMovie"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Gestore",
+      "item": [
+        {
+          "name": "OttieniLogAzioni",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Gestore/logs",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Gestore",
+                "logs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OttieniDatiConto",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Gestore/conto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Gestore",
+                "conto"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "GestoreUtenti",
+      "item": [
+        {
+          "name": "CambiaRuolo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"utente1@gmail.com\",\r\n    \"nuovoRuolo\": \"Utente\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/GestoreUtenti/cambia-ruolo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GestoreUtenti",
+                "cambia-ruolo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "GiftCards",
+      "item": [
+        {
+          "name": "LeggiGiftCards",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiGiftCardTramiteIdGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                "d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ModificaGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Nome\": \"GiftCard 1 modificata\",\r\n    \"Valore\": 520,\r\n    \"CodiceRiscatto\": 12345678\r\n \r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                "5ce09e37-033b-456b-b65b-3bc110a64041"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                "5ce09e37-033b-456b-b65b-3bc110a64041"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Movies",
+      "item": [
+        {
+          "name": "LeggiMovies",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Movie",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiMovieTramiteIdGenere",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Movie/genere/1eae688e-7d8a-4102-80ef-21998b78920a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie",
+                "genere",
+                "1eae688e-7d8a-4102-80ef-21998b78920a"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiMovieTramiteId",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie",
+                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneMovie",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Titolo\": \"Film 2\",\r\n    \"Descrizione\": \"Descrizione Film 2\",\r\n    \"DurataMinuti\": 120,\r\n    \"PrezzoMovie\": 12,\r\n    \"GenereId\":\"1eae688e-7d8a-4102-80ef-21998b78920a\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Movie",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ModificaMovie",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Titolo\": \"Lo squalo 2\", \r\n    \"Descrizione\": \"Uno squalo ammazza molta piu gente\",\r\n    \"DurataMinuti\": 90,\r\n    \"Prezzo\": 10,\r\n    \"GenereId\": \"61009589-9f1d-4f3d-bc52-0fb9967d6bd1\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie",
+                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaMovie",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie",
+                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operatore",
+      "item": [
+        {
+          "name": "RicaricaSaldoUtente",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Email\" : \"utente1@gmail.com\",\r\n    \"Ricarica\" : 10\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/ricarica",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "ricarica"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiListaUtenti",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/listaUtenti",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "listaUtenti"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RicercaProfiloUtente",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/ricercaProfilo/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "ricercaProfilo",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaUtenteTramiteId",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/eliminaUtente/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "eliminaUtente",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiListaBiglietti",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/biglietto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "biglietto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiBigliettoTramiteId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/biglietto/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "biglietto",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OttieniUtentiTramiteAbbonamento",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/utenti/abbonamento/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "utenti",
+                "abbonamento",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RicaricaGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Importo\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/giftCard/ricarica",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "giftCard",
+                "ricarica"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OperatoreUtenti",
+      "item": [
+        {
+          "name": "CambiaRuolo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"utente1@gmail.com\",\r\n    \"nuovoRuolo\": \"Utente\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/OperatoreUtenti/cambia-ruolo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "OperatoreUtenti",
+                "cambia-ruolo"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Proiezioni",
+      "item": [
+        {
+          "name": "LeggiProiezioni",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiStoricoProiezioni",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/storico",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "storico"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiProiezioneTramiteIdProiezione",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/eb1bf109-a332-43aa-a923-94105e2da915",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "eb1bf109-a332-43aa-a923-94105e2da915"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiProiezioneTramiteIdTurno",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/turno/87b22ceb-d36e-45ab-aceb-b6742da5d245",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "turno",
+                "87b22ceb-d36e-45ab-aceb-b6742da5d245"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiProiezioneTramiteIdSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/sala/9d6a8228-b50a-4012-b254-1eda0b068ee4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "sala",
+                "9d6a8228-b50a-4012-b254-1eda0b068ee4"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiProiezioneTramiteIdMovie",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/movie/d95f8c1b-e97e-4431-be50-ef319581c99r",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "movie",
+                "d95f8c1b-e97e-4431-be50-ef319581c99r"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneProiezione",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"MovieId\": \"d95f8c1b-e97e-4431-be50-ef319581c99d\",\r\n    \"SalaId\": \"9d6a8228-b50a-4012-b254-1eda0b068ee9\",\r\n    \"TurnoId\": \"24dce95b-ccd6-4fa7-8e93-0a9adb36965r\",\r\n    \"DataProiezione\": \"2025-11-01\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ModificaProiezione",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"MovieId\": \"b4a3ef64-8ff1-40aa-af76-dc81013c8715\",\r\n    \"SalaId\": \"2e35180c-46c3-4968-80b9-75a7af70d89d\",\r\n    \"TurnoId\": \"a7e663f4-7f1c-4e33-8cd3-9abc2881f705\",\r\n    \"DataProiezione\": \"2026-12-05\"\r\n    }\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "2eb40e35-8990-428f-a891-5dc964f907fd"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaProiezione",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Proiezione",
+                "2eb40e35-8990-428f-a891-5dc964f907fd"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sale",
+      "item": [
+        {
+          "name": "LeggiSale",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Sala",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiSaleTramiteIdTipologiaSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Sala/tipologia/86bd1b4f-92ba-4d71-9da1-18192be2a578",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala",
+                "tipologia",
+                "86bd1b4f-92ba-4d71-9da1-18192be2a578"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiSalaTramiteIdSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Sala/2e35180c-46c3-4968-80b9-75a7af70d89d",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala",
+                "2e35180c-46c3-4968-80b9-75a7af70d89d"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Nome\": \"Sala 2\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"86bd1b4f-92ba-4d71-9da1-18192be2a578\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Sala",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "ModificaSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"Nome\": \"Sala4\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"6fb11cc1-c058-4135-8351-a6577b7012ar\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Sala/1709d037-a472-4cc4-b5fe-b68966d9aade",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala",
+                "1709d037-a472-4cc4-b5fe-b68966d9aade"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "EliminaSala",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Sala/63839a93-a1d7-4c4a-8b87-f87b513d813a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala",
+                "63839a93-a1d7-4c4a-8b87-f87b513d813a"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "TipologieSala",
       "item": [
         {
@@ -580,7 +2135,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"nome\":\"3D 2.0\", \"maggiorazionePrezzo\": 2.00}",
+              "raw": "{\"nome\":\"3D 2.0\", \"maggiorazionePrezzo\": 2}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -619,7 +2174,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"nome\":\"3D 2.1\", \"maggiorazionePrezzo\": 3.00}",
+              "raw": "{\"nome\":\"3D 2.3\", \"maggiorazionePrezzo\": 3}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -627,7 +2182,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/858f2d73-0eed-4ac9-936f-cec9f5c5001d",
+              "raw": "http://localhost:5226/api/TipologiaSala/ea34899b-e525-4fbf-a39e-41b9e157aa3r",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -636,7 +2191,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "858f2d73-0eed-4ac9-936f-cec9f5c5001d"
+                "ea34899b-e525-4fbf-a39e-41b9e157aa3r"
               ]
             }
           },
@@ -658,7 +2213,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/858f2d73-0eed-4ac9-936f-cec9f5c5001d",
+              "raw": "http://localhost:5226/api/TipologiaSala/ea34899b-e525-4fbf-a39e-41b9e157aa3f",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -667,7 +2222,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "858f2d73-0eed-4ac9-936f-cec9f5c5001d"
+                "ea34899b-e525-4fbf-a39e-41b9e157aa3f"
               ]
             }
           },
@@ -856,1519 +2411,6 @@
       ]
     },
     {
-      "name": "Sale",
-      "item": [
-        {
-          "name": "CreazioneSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Sala 2\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"86bd1b4f-92ba-4d71-9da1-18192be2a578\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Sala",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiSale",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Sala",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiSalaTramiteIdSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Sala/2e35180c-46c3-4968-80b9-75a7af70d89d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala",
-                "2e35180c-46c3-4968-80b9-75a7af70d89d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiSaleTramiteIdTipologiaSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Sala/tipologia/86bd1b4f-92ba-4d71-9da1-18192be2a578",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala",
-                "tipologia",
-                "86bd1b4f-92ba-4d71-9da1-18192be2a578"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Sala 1 modificata\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"2d6fabc8-3c49-446a-9933-304ffb27c31c\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Sala/2e35180c-46c3-4968-80b9-75a7af70d89d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala",
-                "2e35180c-46c3-4968-80b9-75a7af70d89d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Sala/63839a93-a1d7-4c4a-8b87-f87b513d813a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Sala",
-                "63839a93-a1d7-4c4a-8b87-f87b513d813a"
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {},
-            "exec": [
-              ""
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {},
-            "exec": [
-              ""
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Movies",
-      "item": [
-        {
-          "name": "LeggiMovies",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Movie",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiMovieTramiteId",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiMovieTramiteIdGenere",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Movie/genere/1eae688e-7d8a-4102-80ef-21998b78920a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie",
-                "genere",
-                "1eae688e-7d8a-4102-80ef-21998b78920a"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "CreazioneMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Titolo\": \"Film 2\",\r\n    \"Descrizione\": \"Descrizione Film 2\",\r\n    \"DurataMinuti\": 120,\r\n    \"PrezzoMovie\": 12,\r\n    \"GenereId\":\"1eae688e-7d8a-4102-80ef-21998b78920a\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Movie",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Titolo\": \"Lo squalo 2\", \r\n    \"Descrizione\": \"Uno squalo ammazza molta piu gente\",\r\n    \"DurataMinuti\": 90,\r\n    \"Prezzo\": 10,\r\n    \"GenereId\": \"61009589-9f1d-4f3d-bc52-0fb9967d6bd1\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
-              ]
-            }
-          },
-          "response": []
-        }
-      ],
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "event": [
-        {
-          "listen": "prerequest",
-          "script": {
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {},
-            "exec": [
-              ""
-            ]
-          }
-        },
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {},
-            "exec": [
-              ""
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "Biglietti",
-      "item": [
-        {
-          "name": "LeggiBiglietti",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiBigliettoTramiteId",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto/17261237-6e1b-47b7-bf01-8099339f40fa",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto",
-                "17261237-6e1b-47b7-bf01-8099339f40fa"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "CreazioneBiglietto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"ProiezioneId\": \"50ff3cd8-8fb0-49d3-9f17-d60d0971f400\",\r\n    \"NumeroBiglietti\": 4\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaBiglietto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"ProiezioneId\": \"50ff3cd8-8fb0-49d3-9f17-d60d0971f400\",\r\n    \"NumeroBiglietti\": 4\r\n    }",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto/874098b3-1dae-4087-afb4-89f36057b54a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto",
-                "874098b3-1dae-4087-afb4-89f36057b54a"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaBiglietto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto/874098b3-1dae-4087-afb4-89f36057b54a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto",
-                "874098b3-1dae-4087-afb4-89f36057b54a"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Proiezioni",
-      "item": [
-        {
-          "name": "LeggiProiezioni",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiProiezioneTramiteIdProiezione",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "2eb40e35-8990-428f-a891-5dc964f907fd"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiProiezioneTramiteIdTurno",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/turno/a7e663f4-7f1c-4e33-8cd3-9abc2881f705",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "turno",
-                "a7e663f4-7f1c-4e33-8cd3-9abc2881f705"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiProiezioneTramiteIdSala",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/sala/2e35180c-46c3-4968-80b9-75a7af70d89d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "sala",
-                "2e35180c-46c3-4968-80b9-75a7af70d89d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiProiezioneTramiteIdMovie",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/movie/b4a3ef64-8ff1-40aa-af76-dc81013c8715",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "movie",
-                "b4a3ef64-8ff1-40aa-af76-dc81013c8715"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "CreazioneProiezione",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"MovieId\": \"b4a3ef64-8ff1-40aa-af76-dc81013c8715\",\r\n    \"SalaId\": \"2e35180c-46c3-4968-80b9-75a7af70d89d\",\r\n    \"TurnoId\": \"a7e663f4-7f1c-4e33-8cd3-9abc2881f705\",\r\n    \"DataProiezione\": \"2025-11-01\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaProiezione",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"MovieId\": \"b4a3ef64-8ff1-40aa-af76-dc81013c8715\",\r\n    \"SalaId\": \"2e35180c-46c3-4968-80b9-75a7af70d89d\",\r\n    \"TurnoId\": \"a7e663f4-7f1c-4e33-8cd3-9abc2881f705\",\r\n    \"DataProiezione\": \"2026-12-05\"\r\n    }\r\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "2eb40e35-8990-428f-a891-5dc964f907fd"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaProiezione",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Proiezione",
-                "2eb40e35-8990-428f-a891-5dc964f907fd"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Abbonamenti",
-      "item": [
-        {
-          "name": "LeggiAbbonamenti",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Abbonamento",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Abbonamento"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiAbbonamentoTramiteIdAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/6c062c32-997a-4849-8483-e4177edfbbb2",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Abbonamento",
-                "6c062c32-997a-4849-8483-e4177edfbbb2"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "CreazioneAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"TEST\",\r\n    \"Durata\": 420,\r\n    \"Prezzo\": 32.50,\r\n    \"Sconto\" : 5\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Abbonamento",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Abbonamento"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Prova 1\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"Sconto\" : 47\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Abbonamento",
-                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Abbonamento",
-                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "GiftCards",
-      "item": [
-        {
-          "name": "LeggiGiftCards",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiGiftCardTramiteIdGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard/d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard",
-                "d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "CreaGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"GiftCard 1\",\r\n    \"Durata\": 420,\r\n    \"Prezzo\": 32.50,\r\n    \"NUmeroMovie\" : 10\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"GiftCard 1 modificata\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"NUmeroMovie\" : 20\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard",
-                "5ce09e37-033b-456b-b65b-3bc110a64041"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard",
-                "5ce09e37-033b-456b-b65b-3bc110a64041"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Gestore",
-      "item": [
-        {
-          "name": "LeggiUtenti",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/listaUtenti",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "listaUtenti"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiProfiloTramiteIdUtente",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/ricercaProfilo/fe95779a-d007-42fc-893d-4eaa9c2f27f9",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "ricercaProfilo",
-                "fe95779a-d007-42fc-893d-4eaa9c2f27f9"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "EliminaUtenteTramiteIdUtente",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/eliminaUtente/c9abc33e-9dcc-44cc-a494-e98ae286e3e1",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "eliminaUtente",
-                "c9abc33e-9dcc-44cc-a494-e98ae286e3e1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiBigliettoTramiteIdBiglietto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/biglietto/263fa958-58fe-44a2-8c23-859d1ae23fd5",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "biglietto",
-                "263fa958-58fe-44a2-8c23-859d1ae23fd5"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiBiglietti",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/biglietto",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "biglietto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiUtentiPerIdAbbonamento",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/utenti/abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "utenti",
-                "abbonamento",
-                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiUtentiPerIdGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/utenti/giftCard/a008583c-b90c-43ea-86bb-5b8d069d00aa",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "utenti",
-                "giftCard",
-                "a008583c-b90c-43ea-86bb-5b8d069d00aa"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Utente",
       "item": [
         {
@@ -2388,7 +2430,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"abbonamentoId\": \"b55a86c5-404d-41b5-b9f7-b068786b2d4a\"\r\n}",
+              "raw": "{\r\n  \"abbonamentoId\": \"6f8387b5-9070-420f-a53d-0d7db6f05b3b\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2412,52 +2454,7 @@
           "response": []
         },
         {
-          "name": "GiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n  \"giftCardId\": \"a008583c-b90c-43ea-86bb-5b8d069d00aa\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Utente/giftcard",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Utente",
-                "giftcard"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "GestoreUtenti",
-      "item": [
-        {
-          "name": "CambiaRuolo",
+          "name": "RicaricaGiftCard",
           "request": {
             "auth": {
               "type": "bearer",
@@ -2473,7 +2470,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\":\"utente1@gmail.com\", \r\n    \"nuovoRuolo\":\"Operatore\"\r\n    }",
+              "raw": "{\r\n  \"Importo\": 100\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2481,7 +2478,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/GestoreUtenti/cambia-ruolo",
+              "raw": "http://localhost:5226/api/Utente/giftcard/ricarica",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2489,8 +2486,50 @@
               "port": "5226",
               "path": [
                 "api",
-                "GestoreUtenti",
-                "cambia-ruolo"
+                "Utente",
+                "giftcard",
+                "ricarica"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "RiscattaGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"CodiceRiscatto\" : 123445\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Utente/giftcard/riscatta",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Utente",
+                "giftcard",
+                "riscatta"
               ]
             }
           },
