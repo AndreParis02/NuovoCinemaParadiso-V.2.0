@@ -25,11 +25,12 @@ public class AuthController : ControllerBase
     {
         try
         {
-            IdentityResult result = await _authService.RegistrazioneAsync(dto);
-            if (!result.Succeeded)
+            //ritorna true o false e un eventuale messaggio di errore
+            var (result, errors) = await _authService.RegistrazioneAsync(dto);
+            if (!result)
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", false);
-                return BadRequest(result.Errors);
+                return BadRequest(errors);
             }
             await _logAzioniService.SalvataggioLogAzioneAsync(null, "Registrazione utente", true);
             return Ok(new { messaggio = "Registrazione avvenuta con successo!" });
@@ -103,7 +104,8 @@ public class AuthController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", true);
-        return Ok(risultato);
+        //ritorna true se la modifica ha successo, altrimenti false
+        return Ok(new { messaggio = "Utente modificato con successo." });
     }
 
     [HttpDelete("elimina")]
@@ -121,6 +123,7 @@ public class AuthController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione profilo", true);
-        return Ok(risultato);
+        //ritorna true se la modifica ha successo, altrimenti false
+        return Ok(new { messaggio = "Utente eliminato con successo." });
     }
 }
