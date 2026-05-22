@@ -9,12 +9,12 @@ namespace NuovoCinemaParadiso.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = Ruoli.Operatore)]
-public class OperatoreUtentiController : ControllerBase
+public class RuoloUtentiController : ControllerBase
 {
     private readonly RuoloUtenteService _ruoloUtenteService;
     private readonly LogAzioniService _logAzioniService;
 
-    public OperatoreUtentiController(RuoloUtenteService ruoloUtenteService, LogAzioniService logAzioniService)
+    public RuoloUtentiController(RuoloUtenteService ruoloUtenteService, LogAzioniService logAzioniService)
     {
         _ruoloUtenteService = ruoloUtenteService;
         _logAzioniService = logAzioniService;
