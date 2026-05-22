@@ -4,6 +4,7 @@ using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -168,17 +169,19 @@ public class ProiezioneController : ControllerBase
                 return BadRequest(new { messaggio = "Proiezione già presente." });
             }
         }
-
-        bool creato = await _proiezioneService.CreazioneAsync(dto);
-
-        if (!creato)
+        try
+        { bool creato = await _proiezioneService.CreazioneAsync(dto);
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+          return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+        }
+        catch(NotFoundException ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
-            return BadRequest(new { messaggio = "Proiezione non valida." });
+
+            return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
-        return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+       
     }
 
     [HttpPut("{id}")]
