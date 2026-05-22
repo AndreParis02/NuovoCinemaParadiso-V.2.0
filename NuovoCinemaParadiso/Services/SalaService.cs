@@ -85,7 +85,7 @@ public class SalaService
         return risultato;
     }
 
-    public async Task<DtoSala> CreazioneAsync(DtoCreazioneSala dto)
+    public async Task<string?> CreazioneAsync(DtoCreazioneSala dto)
     {
         Sala sala = new Sala
         {
@@ -97,21 +97,10 @@ public class SalaService
         _contesto.Sale.Add(sala);
         await _contesto.SaveChangesAsync();
 
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-        DtoSala risultato = new DtoSala
-        {
-            Id = sala.Id,
-            Nome = sala.Nome,
-            Capienza = sala.Capienza,
-            TipologiaSalaId = tipologiaSala?.Id ?? "",
-            NomeTipologia = sala.TipologiaSala?.Nome ?? ""
-        };
-
-        return risultato;
+        return "Sala creata con successo.";
     }
 
-   public async Task<DtoSala?> ModificaAsync(string id, DtoCreazioneSala dto)
+   public async Task<string?> ModificaAsync(string id, DtoCreazioneSala dto)
 {
     
     Sala? salaEsistente = await _contesto.Sale.FindAsync(id);
@@ -150,17 +139,7 @@ public class SalaService
 
     await _contesto.SaveChangesAsync();
 
-    TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaEsistente.TipologiaSalaId);
-
-    
-    DtoSala risultato = new DtoSala();
-    risultato.Id = salaEsistente.Id;
-    risultato.Nome = salaEsistente.Nome;
-    risultato.Capienza = salaEsistente.Capienza;
-    risultato.TipologiaSalaId = salaEsistente.TipologiaSalaId;
-    risultato.NomeTipologia = tipologiaSala?.Nome ?? "";
-
-    return risultato;
+    return "Sala modificata con successo.";
 }
 
 

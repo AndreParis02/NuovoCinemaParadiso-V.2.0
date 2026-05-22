@@ -90,7 +90,7 @@ public class SalaController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
-        DtoSala? risultato = await _salaService.CreazioneAsync(dto);
+        var risultato = await _salaService.CreazioneAsync(dto);
         if (risultato == null)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione sala", false);
@@ -115,7 +115,7 @@ public class SalaController : ControllerBase
 
         try
         {
-            DtoSala? risultato = await _salaService.ModificaAsync(id, dto);
+            var risultato = await _salaService.ModificaAsync(id, dto);
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", true);
 
             return Ok(risultato);

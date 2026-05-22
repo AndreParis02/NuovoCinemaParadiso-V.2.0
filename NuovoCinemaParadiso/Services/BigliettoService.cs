@@ -78,7 +78,7 @@ public class BigliettoService
         return risultato;
     }
 
-    public async Task<(DtoBiglietto? Dto, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
 
         /*controlla che l'utente esista*/
@@ -132,21 +132,10 @@ public class BigliettoService
         contoCinema.Saldo = saldi[1];
         await _contesto.SaveChangesAsync();
 
-
-        DtoBiglietto risultato = new DtoBiglietto
-        {
-            Id = biglietto.Id,
-            ProiezioneId = biglietto.ProiezioneId,
-            UtenteId = biglietto.UtenteId,
-            NumeroBiglietti = biglietto.NumeroBiglietti,
-            PrezzoFinale = biglietto.PrezzoFinale,
-            OrarioCreazione = biglietto.OrarioCreazione
-        };
-
-        return (risultato, null);
+        return ("Biglietto creato con successo.", null);
     }
 
-    public async Task<(DtoBiglietto? Dto, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
+    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
     {
         var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
         if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
@@ -205,15 +194,7 @@ public class BigliettoService
         contoCinema.Saldo = saldi[1];
         await _contesto.SaveChangesAsync();
 
-        return (new DtoBiglietto
-        {
-            Id = bigliettoEsistente.Id,
-            UtenteId = bigliettoEsistente.UtenteId,
-            ProiezioneId = bigliettoEsistente.ProiezioneId,
-            NumeroBiglietti = bigliettoEsistente.NumeroBiglietti,
-            PrezzoFinale = bigliettoEsistente.PrezzoFinale,
-            OrarioCreazione = bigliettoEsistente.OrarioCreazione,
-        }, null);
+        return ("Biglietto modificato con successo.", null);
     }
 
     public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
