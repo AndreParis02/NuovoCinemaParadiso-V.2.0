@@ -86,7 +86,6 @@ public class BigliettoService
         if (utente == null) return (null, "Utente non trovato.");
 
         utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        if (utente.Abbonamento == null) return (null, "Abbonamento non trovato.");
 
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         if (proiezione == null) return (null, "Proiezione non trovata.");
@@ -94,7 +93,9 @@ public class BigliettoService
         /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         if (sala == null) return (null, "Sala non trovata.");
-        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
+
+        //i posti occupati sono definiti tramite il numero di biglietti venduti per quella proiezione, quindi si somma il numero di biglietti di tutti i biglietti venduti per quella proiezione
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count;
         if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
 
         /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
@@ -105,11 +106,6 @@ public class BigliettoService
 
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
-
-        if (utente.AbbonamentoId == null)
-            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-        if (utente.Abbonamento == null)
-            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
 
         /*controlla che l'utente abbia un saldo sufficiente*/
         if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))

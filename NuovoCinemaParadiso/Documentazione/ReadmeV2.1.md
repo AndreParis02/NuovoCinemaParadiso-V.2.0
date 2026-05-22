@@ -5999,6 +5999,11 @@ public class BigliettoService
     }
 }
 ```
+
+```c#
+
+```
+
 ## BigliettoServiceV1.2
 Francesco lorenzi
 22/05/2026
