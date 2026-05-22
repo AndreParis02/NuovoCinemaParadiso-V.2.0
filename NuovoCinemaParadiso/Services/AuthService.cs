@@ -22,7 +22,7 @@ public class AuthService
         _contesto = contesto;
     }
 
-    public async Task<IdentityResult> RegistrazioneAsync(DtoRegistrazione dto)
+    public async Task<(bool successo, string? Errore)> RegistrazioneAsync(DtoRegistrazione dto)
     {
         Utente? esisteUtente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
 
@@ -34,7 +34,7 @@ public class AuthService
             List<IdentityError> errori = new List<IdentityError>();
             errori.Add(errore);
 
-            return IdentityResult.Failed(errori.ToArray());
+            return (false, "Utente già registrato.");
         }
 
         if (!dto.Email.Contains('.'))
@@ -53,14 +53,11 @@ public class AuthService
 
         if (!risultato.Succeeded)
         {
-            return risultato;
+            return (false, "Errore durante la registrazione.");
         }
-        IdentityResult aggiuntaRisultatoRuolo = await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
-
-        if (!aggiuntaRisultatoRuolo.Succeeded)
-            return aggiuntaRisultatoRuolo;
-
-        return risultato;
+        await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
+        //ritorna true perché la registrazione ha avuto successo
+        return (true,null);
     }
 
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
