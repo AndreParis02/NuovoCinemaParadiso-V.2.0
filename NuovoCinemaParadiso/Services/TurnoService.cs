@@ -48,13 +48,13 @@ namespace NuovoCinemaParadiso.Services
             return dto;
         }
 
-        public async Task<(DtoTurno? Dto, string? Errore)> CreazioneAsync(DtoCreazioneTurno dto)
+        public async Task<bool> CreazioneAsync(DtoCreazioneTurno dto)
         {
 
             bool turnoGiaPresente = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower());
             if (turnoGiaPresente)
             {
-                return (null, "Turno già presente con questo nome.");
+                return false;
             }
 
             Turno turno = new Turno();
@@ -65,31 +65,22 @@ namespace NuovoCinemaParadiso.Services
             _contesto.Turni.Add(turno);
             await _contesto.SaveChangesAsync();
 
-            DtoTurno risultato = new DtoTurno();
-            risultato.Id = turno.Id;
-            risultato.Nome = turno.Nome;
-            risultato.OraInizio = turno.OraInizio;
-            risultato.OraFine = turno.OraFine;
-
-            return (risultato, null);
+            return true;
         }
 
-        public async Task<(DtoTurno? Dto, string? Errore)> ModificaAsync(string id, DtoCreazioneTurno dto)
+        public async Task<bool> ModificaAsync(string id, DtoCreazioneTurno dto) 
         {
 
             Turno? turnoEsistente = await _contesto.Turni.FindAsync(id);
             if (turnoEsistente == null)
             {
-                return (null, "Turno non trovato.");
+                return false;
             }
 
-            if (turnoEsistente.Nome.ToLower() != dto.Nome.ToLower())
+            bool nomeGiaUsato = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower() && t.Id != id);
+            if (nomeGiaUsato)
             {
-                bool nomeGiaUsato = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower() && t.Id != id);
-                if (nomeGiaUsato)
-                {
-                    return (null, "Esiste già un altro turno con questo nome.");
-                }
+                return false;
             }
 
             turnoEsistente.OraInizio = dto.OraInizio;
@@ -98,13 +89,7 @@ namespace NuovoCinemaParadiso.Services
 
             await _contesto.SaveChangesAsync();
 
-            DtoTurno risultato = new DtoTurno();
-            risultato.Id = turnoEsistente.Id;
-            risultato.OraInizio = turnoEsistente.OraInizio;
-            risultato.OraFine = turnoEsistente.OraFine;
-            risultato.Nome = turnoEsistente.Nome;
-
-            return (risultato, null);
+            return true;
         }
 
         public async Task<(bool Successo, string? Errore)> EliminaAsync(string id)

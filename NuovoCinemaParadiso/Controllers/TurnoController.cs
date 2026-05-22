@@ -57,22 +57,16 @@ public class TurnoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _turnoService.CreazioneAsync(dto);
+        bool creato = await _turnoService.CreazioneAsync(dto); 
 
-        if (errore != null)
+        if (!creato) 
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
-            return BadRequest(new { messaggio = errore });
+            return BadRequest(new { messaggio = "Turno già presente con questo nome." });
         }
 
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
-            return StatusCode(500, new { messaggio = "Errore generico durante la creazione." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true);
-        return Ok(risultato);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true); 
+        return Ok(new { messaggio = "Turno creato con successo!"}); 
     }
 
     [HttpPut("{id}")]
@@ -82,21 +76,16 @@ public class TurnoController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null) return Unauthorized("Utente non autenticato.");
 
-        var (risultato, errore) = await _turnoService.ModificaAsync(id, dto);
+        bool modificato = await _turnoService.ModificaAsync(id, dto); 
 
-        if (errore == "Turno non trovato.")
+        if (!modificato) 
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
-            return NotFound(new { messaggio = errore });
-        }
-        else if (errore != null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
-            return BadRequest(new { messaggio = errore });
+            return BadRequest(new { messaggio = "Impossibile modificare: Turno non trovato o nome già in uso." });
         }
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true);
-        return Ok(risultato);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true); 
+        return Ok(new { messaggio = "Turno modificato con successo!"}); 
     }
 
     [HttpDelete("{id}")]
@@ -123,6 +112,6 @@ public class TurnoController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
-        return NoContent();
+        return Ok(new { messaggio = "Turno cancellato correttamente!"}); 
     }
 }
