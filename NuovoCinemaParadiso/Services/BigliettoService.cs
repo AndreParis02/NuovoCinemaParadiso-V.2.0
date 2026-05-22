@@ -129,7 +129,7 @@ public class BigliettoService
         var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
         var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
         utente.Saldo = saldi[0];
-        contoCinema.Conto = saldi[1];
+        contoCinema.Saldo = saldi[1];
         await _contesto.SaveChangesAsync();
 
 
@@ -202,7 +202,7 @@ public class BigliettoService
         var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
         var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente, contoCinema);
         utente.Saldo = saldi[0];
-        contoCinema.Conto = saldi[1];
+        contoCinema.Saldo = saldi[1];
         await _contesto.SaveChangesAsync();
 
         return (new DtoBiglietto
@@ -228,7 +228,7 @@ public class BigliettoService
             return (false, "Dati correlati all'biglietto non trovati.");
         var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
         utente.Saldo = saldi[0];
-        contoCinema.Conto = saldi[1];
+        contoCinema.Saldo = saldi[1];
 
         _contesto.Biglietti.Remove(biglietto);
         await _contesto.SaveChangesAsync();
