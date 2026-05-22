@@ -112,16 +112,17 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
                 - LogazioniService
 - GREG: - MovieService
         - OperatoreService
+
 - Simeone: - ProiezioneService (Fatto)
            - RuoloUtenteService (Modifiche non necessarie concordando con Andrea Paris)
+
 - FRANCESCO: - SalaService
              - BigliettoService
 
 - LORENZO: - AbbonamentoService (fatto)
            - UtenteService
 
-- MARCO: - TurnoService
-         - AuthService
+- MARCO: - AuthService(in corso)
 
 
 ## CONTROLLERS
@@ -138,14 +139,30 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 - GREG: - MovieController (fatto)
         - OperatoreController (fatto)
 
-- Simeone: - ProiezioneController
-           - RuoloUtenteController
+- Simeone: - ProiezioneController(fatto)
+           - RuoloUtenteController(fatto)
 
 - FRANCESCO: - SalaController
              - TipologiaSalaController
 
 - LORENZO: - AbbonamentoController (fatto)
-           - UtenteController
+           - UtenteController(fatto)
 
-- MARCO: - AbbonamentoController
-         - AuthController
+- MARCO:  - AuthController (fatto)
+
+
+## TASKS 22/05/2026
+
+- SIMEONE: - TURNO SERVICE (in corso)
+           - TURNO CONTROLLER(in corso)
+
+- ANDREA PARIS:
+
+- ANDREA BRUNO: GESTORE CONTROLLER E SERVICE - OTTIENI TUTTI I BIGLIETTI.(in corso)
+
+- FABIO: 
+
+- GREG: ELIMINAZIONE FILM CON AGGIUNTA DI BOOLEANO.(in corso)
+
+- LORENZO: OperatoreUtentiController si deve chiamare RuoloUtentiController.
+           - Controllare i dto di ritorno.
