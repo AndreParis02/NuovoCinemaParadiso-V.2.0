@@ -164,5 +164,5 @@ DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGG
 
 - GREG: ELIMINAZIONE FILM CON AGGIUNTA DI BOOLEANO.(in corso)
 
-- LORENZO: OperatoreUtentiController si deve chiamare RuoloUtentiController.
-           - Controllare i dto di ritorno.
+- LORENZO: OperatoreUtentiController si deve chiamare RuoloUtentiController.(fatto)
+           - Controllare i dto di ritorno.(fatto)

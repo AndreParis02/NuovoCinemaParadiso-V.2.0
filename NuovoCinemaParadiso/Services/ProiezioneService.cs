@@ -4,6 +4,7 @@ using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -166,7 +167,22 @@ public class ProiezioneService
     {
         Proiezione proiezione = new Proiezione();
 
-        
+        Movie? film = await _contesto.Movies.FindAsync(dto.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(dto.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(dto.TurnoId);
+        if (film == null)
+        {
+            throw new NotFoundException("Movie", dto.MovieId);
+        }
+        if (sala == null)
+        {
+            throw new NotFoundException("Sala", dto.SalaId);
+        }
+        if (turno == null)
+        {
+            throw new NotFoundException("Turno", dto.TurnoId);
+        }
+
         proiezione.DataProiezione = dto.DataProiezione;
         proiezione.MovieId = dto.MovieId;
         proiezione.SalaId = dto.SalaId;
