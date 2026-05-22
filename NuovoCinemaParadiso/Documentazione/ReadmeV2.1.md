@@ -3721,7 +3721,225 @@ public class SalaController : ControllerBase
     }
 }
 ```
+## SalaControllerV1.2
 
+Francesco Lorenzi
+22/05/2026
+
+modificati i tipi di risposta accettabili per la creazione e la modifica
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController] 
+[Route("api/[controller]")] 
+[Authorize]
+public class SalaController : ControllerBase
+{
+    private readonly SalaService _salaService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public SalaController(
+        SalaService salaService,
+        LogAzioniService logAzioniService)
+    {
+        _salaService = salaService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet] 
+    public async Task<IActionResult> OttieniTutti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni tutte le sale",
+            true);
+
+        return Ok(sale);
+    }
+
+    [HttpGet("tipologia/{tipologiaId}")] 
+    public async Task<ActionResult<List<DtoSala>>> OttieniPerTipologia(string tipologiaId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrWhiteSpace(tipologiaId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni sala per tipologia",
+                false);
+
+            return BadRequest("TipologiaId non valida");
+        }
+
+        var risultato = await _salaService.OttieniTramiteTipologiaAsync(tipologiaId);
+
+        if (risultato == null || risultato.Count == 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni sala per tipologia",
+                false);
+
+            return NotFound("Nessuna sala trovata per questa tipologia");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni sala per tipologia",
+            true);
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("{id}")] 
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _salaService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni sala tramite id",
+                false);
+
+            return NotFound($"Sala con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni sala tramite id",
+            true);
+
+        return Ok(risultato);
+    }
+
+    [HttpPost] 
+    [Authorize(Roles = Ruoli.Operatore)] 
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneSala dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _salaService.CreazioneAsync(dto);//ora accetta un var
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Creazione sala",
+                false);
+
+            return BadRequest(new { messaggio = "Sala non valida." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Creazione sala",
+            true);
+
+        return Ok(risultato);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneSala dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        try
+        {
+            var risultato = await _salaService.ModificaAsync(id, dto);// ora accetta un var
+
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica sala",
+                true);
+
+            return Ok(risultato);
+        }
+        catch (ModificaException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica sala",
+                false);
+
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ItemNotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica sala",
+                false);
+
+            return NotFound(new { message = ex.Message });
+        }
+        catch (NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica sala",
+                false);
+
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id}")] 
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _salaService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Elimina sala",
+                false);
+
+            return NotFound(new { messaggio = "Sala non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Elimina sala",
+            true);
+
+        return Ok(new { messaggio = "Sala eliminata con successo!" });
+    }
+}
+```
 ##  TipologiaSalaController.cs
 
 ```c#
@@ -6970,6 +7188,166 @@ public class SalaService
     /// </summary>
     /// <param name="id">ID della sala da eliminare.</param>
     /// <returns>True se eliminata, false se non trovata.</returns>
+    public async Task<bool> EliminaAsync(string id)
+    {
+        Sala? sala = await _contesto.Sale.FindAsync(id);
+
+        if (sala == null)
+            return false;
+
+        _contesto.Sale.Remove(sala);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
+## SalaServiceV1.2
+Francesco lorenzi
+22/05/2026
+
+modificati gli outpu della creazione e la modifica
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+/// <summary>
+/// Servizio che gestisce le operazioni CRUD e le query sulle sale cinematografiche.
+/// Permette la gestione delle sale e delle relative tipologie.
+/// </summary>
+public class SalaService
+{
+    private readonly ContestoDb _contesto;
+
+    public SalaService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<List<DtoSala>> OttieniTuttoAsync()
+    {
+        List<Sala> sale = await _contesto.Sale.ToListAsync();
+        List<DtoSala> risultato = new List<DtoSala>();
+
+        for (int i = 0; i < sale.Count; i++)
+        {
+            Sala salaCorrente = sale[i];
+
+            TipologiaSala? tipologiaSala =
+                await _contesto.TipologieSala.FindAsync(salaCorrente.TipologiaSalaId);
+
+            DtoSala dto = new DtoSala
+            {
+                Id = salaCorrente.Id,
+                Nome = salaCorrente.Nome,
+                Capienza = salaCorrente.Capienza,
+                NomeTipologia = tipologiaSala?.Nome ?? "",
+                TipologiaSalaId = tipologiaSala?.Id ?? ""
+            };
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+    public async Task<DtoSala?> OttieniTramiteIdAsync(string id)
+    {
+        Sala? sala = await _contesto.Sale.FindAsync(id);
+
+        if (sala == null)
+            return null;
+
+        TipologiaSala? tipologiaSala =
+            await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+        return new DtoSala
+        {
+            Id = sala.Id,
+            Nome = sala.Nome,
+            Capienza = sala.Capienza,
+            NomeTipologia = tipologiaSala?.Nome ?? "",
+            TipologiaSalaId = tipologiaSala?.Id ?? ""
+        };
+    }
+
+    public async Task<List<DtoSala>> OttieniTramiteTipologiaAsync(string tipologiaId)
+    {
+        List<Sala> tutteLeSale = await _contesto.Sale.ToListAsync();
+        List<DtoSala> risultato = new List<DtoSala>();
+
+        foreach (var sala in tutteLeSale)
+        {
+            if (sala.TipologiaSalaId != tipologiaId)
+                continue;
+
+            TipologiaSala? tipologia =
+                await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+
+            risultato.Add(new DtoSala
+            {
+                Id = sala.Id,
+                Nome = sala.Nome,
+                Capienza = sala.Capienza,
+                TipologiaSalaId = sala.TipologiaSalaId,
+                NomeTipologia = tipologia?.Nome ?? ""
+            });
+        }
+
+        return risultato;
+    }
+
+    public async Task<string?> CreazioneAsync(DtoCreazioneSala dto)
+    {
+        Sala sala = new Sala
+        {
+            Nome = dto.Nome,
+            Capienza = dto.Capienza,
+            TipologiaSalaId = dto.TipologiaSalaId
+        };
+
+        _contesto.Sale.Add(sala);
+        await _contesto.SaveChangesAsync();
+
+        return "Sala creata con successo."; //ritorno modificato, ora ritorna una stringa messaggio
+    }
+
+    public async Task<string?> ModificaAsync(string id, DtoCreazioneSala dto)
+    {
+        Sala? salaEsistente = await _contesto.Sale.FindAsync(id);
+
+        if (salaEsistente == null)
+            throw new ItemNotFoundException("Sala");
+
+        TipologiaSala? tipologia =
+            await _contesto.TipologieSala.FindAsync(dto.TipologiaSalaId);
+
+        if (tipologia == null)
+            throw new NotFoundException("TipologiaSala", dto.TipologiaSalaId);
+
+        List<Sala> listaSale = await _contesto.Sale.ToListAsync();
+
+        foreach (var salaCorrente in listaSale)
+        {
+            if (string.Equals(salaCorrente.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase))
+                throw new ModificaException("sala");
+        }
+
+        salaEsistente.Nome = dto.Nome;
+        salaEsistente.Capienza = dto.Capienza;
+        salaEsistente.TipologiaSalaId = dto.TipologiaSalaId;
+
+        await _contesto.SaveChangesAsync();
+
+        return "Sala modificata con successo.";
+    }
+
+
     public async Task<bool> EliminaAsync(string id)
     {
         Sala? sala = await _contesto.Sale.FindAsync(id);
