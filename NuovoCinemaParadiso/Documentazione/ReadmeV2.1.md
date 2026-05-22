@@ -3927,51 +3927,58 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpPost] // POST api/Proiezione
-    [Authorize(Roles = Ruoli.Operatore)] // solo Operatore
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    // Endpoint POST per creare una nuova proiezione, accessibile solo agli Operatori
+[HttpPost]
+[Authorize(Roles = Ruoli.Operatore)]
+public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+{
+    // Recupera l'ID dell'utente autenticato dai claims
+    string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // Se l'utente non è autenticato, blocca subito la richiesta
+    if (utenteId == null)
+        return Unauthorized("Utente non autenticato.");
+
+    // Recupera tutte le proiezioni esistenti per controllare duplicati
+    List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+    // Cicla tutte le proiezioni per verificare se esiste già una proiezione identica
+    foreach (var proiezione in proiezioni)
     {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        // Controllo duplicati (stessa sala, turno e data)
-        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-
-        foreach (var proiezione in proiezioni)
+        // Controllo duplicato: stessa sala, stesso turno, stessa data
+        if (proiezione.TurnoId == dto.TurnoId &&
+            proiezione.SalaId == dto.SalaId &&
+            proiezione.DataProiezione == dto.DataProiezione)
         {
-            if (proiezione.TurnoId == dto.TurnoId &&
-                proiezione.SalaId == dto.SalaId &&
-                proiezione.DataProiezione == dto.DataProiezione)
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(
-                    utenteId,
-                    "Crea proiezione",
-                    false);
+            // Registra nel log un tentativo fallito di creazione
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
-                return BadRequest(new { messaggio = "Proiezione già presente." });
-            }
+            // Restituisce errore: proiezione già presente
+            return BadRequest(new { messaggio = "Proiezione già presente." });
         }
-
-        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "Crea proiezione",
-                false);
-
-            return BadRequest(new { messaggio = "Proiezione non valida." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(
-            utenteId,
-            "Crea proiezione",
-            true);
-
-        return Ok(risultato);
     }
+
+    try
+    {
+        // Tenta la creazione della nuova proiezione tramite il service
+        bool creato = await _proiezioneService.CreazioneAsync(dto);
+
+        // Registra nel log un'azione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+
+        // Restituisce conferma di avvenuta creazione
+        return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+    }
+    catch (NotFoundException ex)
+    {
+        // Registra nel log un fallimento dovuto a entità mancanti (sala, turno, film, ecc.)
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+        // Restituisce errore con messaggio dettagliato
+        return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
+    }
+}
+
 
     [HttpPut("{id}")] // PUT api/Proiezione/{id}
     [Authorize(Roles = Ruoli.Operatore)]
@@ -9189,29 +9196,56 @@ public class ProiezioneService
     /// <summary>
     /// Crea una nuova proiezione.
     /// </summary>
-    public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
+    public async Task<bool> CreazioneAsync(DtoCreazioneProiezione dto)
+{
+    // Istanzia una nuova entità Proiezione che verrà popolata e salvata
+    Proiezione proiezione = new Proiezione();
+
+    // Recupera il film associato all'ID fornito nel DTO
+    Movie? film = await _contesto.Movies.FindAsync(dto.MovieId);
+
+    // Recupera la sala associata all'ID fornito nel DTO
+    Sala? sala = await _contesto.Sale.FindAsync(dto.SalaId);
+
+    // Recupera il turno associato all'ID fornito nel DTO
+    Turno? turno = await _contesto.Turni.FindAsync(dto.TurnoId);
+
+    // Se il film non esiste, solleva un'eccezione specifica
+    if (film == null)
     {
-        Proiezione proiezione = new Proiezione
-        {
-            DataProiezione = dto.DataProiezione,
-            MovieId = dto.MovieId,
-            SalaId = dto.SalaId,
-            TurnoId = dto.TurnoId
-        };
-
-        _contesto.Proiezioni.Add(proiezione);
-        await _contesto.SaveChangesAsync();
-
-        return new DtoProiezione
-        {
-            Id = proiezione.Id,
-            DataProiezione = proiezione.DataProiezione,
-            MovieId = proiezione.MovieId,
-            SalaId = proiezione.SalaId,
-            TurnoId = proiezione.TurnoId,
-            Attivo = proiezione.Attivo
-        };
+        throw new NotFoundException("Movie", dto.MovieId);
     }
+
+    // Se la sala non esiste, solleva un'eccezione specifica
+    if (sala == null)
+    {
+        throw new NotFoundException("Sala", dto.SalaId);
+    }
+
+    // Se il turno non esiste, solleva un'eccezione specifica
+    if (turno == null)
+    {
+        throw new NotFoundException("Turno", dto.TurnoId);
+    }
+
+    // Popola i campi della nuova proiezione con i dati del DTO
+    proiezione.DataProiezione = dto.DataProiezione;
+    proiezione.MovieId = dto.MovieId;
+    proiezione.SalaId = dto.SalaId;
+    proiezione.TurnoId = dto.TurnoId;
+
+    // Imposta la proiezione come attiva (necessario per non inserirla nello storico)
+    proiezione.Attivo = true;
+
+    // Aggiunge la nuova proiezione al contesto EF
+    _contesto.Proiezioni.Add(proiezione);
+
+    // Salva le modifiche nel database
+    await _contesto.SaveChangesAsync();
+
+    // Ritorna true per indicare che la creazione è avvenuta correttamente
+    return true;
+}
 
     /// <summary>
     /// Modifica una proiezione esistente.
