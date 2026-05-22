@@ -78,7 +78,7 @@ public class BigliettoService
         return risultato;
     }
 
-    public async Task<(string successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
 
         /*controlla che l'utente esista*/
@@ -135,7 +135,7 @@ public class BigliettoService
         return ("Biglietto creato con successo.", null);
     }
 
-    public async Task<(string successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
+    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
     {
         var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
         if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
