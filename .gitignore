@@ -3,6 +3,7 @@
 bin
 obj
 .DS_Store
+Migrations/
 
 *.db
 *.db-shm
