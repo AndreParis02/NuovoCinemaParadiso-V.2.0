@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 namespace NuovoCinemaParadiso.Models;
 
 [Table("ContoCinema")]
@@ -18,5 +17,5 @@ public class ContoCinema
     public string TitolareConto {get;set;} = string.Empty;
 
     [Required]
-    public int Conto {get;set;}
+    public int Saldo {get;set;}
 }
