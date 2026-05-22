@@ -116,8 +116,8 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
 
-        /*controlla che l'utente abbia un saldo sufficiente*/
-        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+        int prezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        if (utente.Saldo < prezzoFinale)
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 
         Biglietto biglietto = new Biglietto
@@ -126,7 +126,7 @@ public class BigliettoService
             ProiezioneId = proiezione.Id,
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+            PrezzoFinale = prezzoFinale
         };
 
         _contesto.Biglietti.Add(biglietto);
@@ -173,8 +173,8 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
 
-
-        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+        int prezzofinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < prezzofinale)
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 
         Biglietto biglietto = new Biglietto
@@ -183,7 +183,7 @@ public class BigliettoService
             ProiezioneId = proiezione.Id,
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+            PrezzoFinale = prezzofinale
         };
 
         var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
