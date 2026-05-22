@@ -40,22 +40,30 @@ public class GestoreService
 
     public async Task<DtoContoCinema> OttieniDatiContoAsync()
     {
-
         ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
             ?? throw new NotFoundException("Conto Cinema", "");
 
         DtoContoCinema dto = new DtoContoCinema();
-
         dto.Id = contoCinema.Id;
         dto.Iban = contoCinema.Iban;
         dto.TitolareConto = contoCinema.TitolareConto;
         dto.Saldo = contoCinema.Saldo;
-
         return dto;
     }
     public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        Biglietto biglietto = new Biglietto();
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new Exception("Proiezione non trovato");
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new Exception("Movie non trovato");
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new Exception("Sala non trovato");
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new Exception("TipologiaSala non trovato");
+        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new Exception("Turno non trovato");
         List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
         for (int i = 0; i < biglietti.Count; i++)
@@ -68,6 +76,11 @@ public class GestoreService
             dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
             dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
             dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.NomeSala = sala.Nome;
+            dto.TitoloMovie = movie.Titolo;
+            dto.NomeTipologiaSala = tipologiaSala.Nome;
+            dto.OraInizio = turno.OraInizio;
+            dto.DataProiezione = proiezione.DataProiezione;
 
             risultato.Add(dto);
         }
