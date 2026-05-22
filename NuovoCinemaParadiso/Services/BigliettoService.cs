@@ -153,8 +153,8 @@ public class BigliettoService
 
         var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
         if (sala == null) return (null, "Sala non trovata.");
-        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
-
+        
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count();
         if (proiezione.Id != bigliettoEsistente.ProiezioneId)
         {
             if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
@@ -173,10 +173,6 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
 
-        if (utente.AbbonamentoId == null)
-            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-        if (utente.Abbonamento == null)
-            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
 
         if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
             return (null, "Saldo insufficiente per acquistare i biglietti.");
