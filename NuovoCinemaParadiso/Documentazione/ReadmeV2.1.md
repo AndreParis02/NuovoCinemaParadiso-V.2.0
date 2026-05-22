@@ -9451,12 +9451,69 @@ public class UtenteService
 
 ```
 
-# Helpers (CalcoliHelper da aggiungere dopo il merge)
+# Helpers 
 
-## CalcoliHelper.cs (Da aggiungere dopo il merge)
-
+## CalcoliHelper.cs 
+Francesco Lorenzi
+22/05/2026
+calcolaPrezzoFinale ora può calcolare il prezzo finale anche per chi non è abbonato
 ```c#
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Data;
 
+namespace NuovoCinemaParadiso.Helpers;
+
+public static class Calcoli
+{
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento? abbonamento, DateTimeOffset dataInizioAbbonamento)
+    {
+        int prezzoBiglietto = prezzoMovie + maggiorazione;
+        if(abbonamento == null)//se non ha abbonamento ritorna semplicemente:
+        {
+            return prezzoBiglietto * numeroBiglietti;
+        }
+        //se invece ha abbonamento, calcola la sua scadenza e applica lo sconto se non è scaduto
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
+        {
+            int prezzoScontato = prezzoBiglietto - abbonamento.Sconto;
+            return prezzoScontato * numeroBiglietti;
+        }
+        else
+        {
+            return prezzoBiglietto * numeroBiglietti;   
+        }
+    }
+
+    public static async Task<int[]> CalcolaSaldo(int prezzo, Utente utente, ContoCinema contoCinema)
+    {
+        utente.Saldo = utente.Saldo - prezzo;
+        contoCinema.Saldo = contoCinema.Saldo + prezzo;
+        return new int[] { utente.Saldo, contoCinema.Saldo };
+    }
+   
+    public static DateTimeOffset? CalcolaScadenza(DateTimeOffset dataInizio, int durata)
+    {
+        return dataInizio.AddMonths(durata);
+    }
+
+    public static int GiorniAllaScadenza(DateTimeOffset dataInizio, int durata)
+    {
+        DateTimeOffset dataScadenza = dataInizio.AddMonths(durata);
+        TimeSpan differenza = dataScadenza - DateTime.Now;
+        return (int)differenza.TotalDays;
+    }
+
+    public static int CaricaGiftCard(Utente utente, GiftCard giftCard)
+    {
+        if(giftCard.Valore > utente.Saldo)
+        {
+           throw new Exception("Saldo utente non sufficente");
+        }
+        
+        return utente.Saldo = utente.Saldo - giftCard.Valore;    
+    }
+}
 ```
 
 ## GiftCard.Helper.cs
