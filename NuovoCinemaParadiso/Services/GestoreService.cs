@@ -5,7 +5,6 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 
-
 namespace NuovoCinemaParadiso.Services;
 
 public class GestoreService
@@ -16,12 +15,11 @@ public class GestoreService
     {
         _contesto = contestoDb;
         _gestioneUtenti = gestioneUtenti;
-
     }
 
     public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
     {
-        List<LogAzioni> logs= await _contesto.LogAzioni.ToListAsync();
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
         List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
         foreach (LogAzioni log in logs)
         {
@@ -40,7 +38,7 @@ public class GestoreService
         return risultati;
     }
 
-     public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    public async Task<DtoContoCinema> OttieniDatiContoAsync()
     {
 
         ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
@@ -54,5 +52,25 @@ public class GestoreService
         dto.Saldo = contoCinema.Saldo;
 
         return dto;
+    }
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+
+            risultato.Add(dto);
+        }
+        return risultato;
     }
 }
