@@ -613,7 +613,7 @@ import { GenereMovie } from '../../models/genere-movie.model';
   templateUrl: './movie.page.html'
 })
 
-export class TipologiaSalaPage {
+export class MoviePage {
   //servizi
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
