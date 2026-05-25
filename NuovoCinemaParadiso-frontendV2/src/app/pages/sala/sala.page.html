@@ -1,1 +1,74 @@
-<p>sala works!</p>
+<section>
+    <h1 class="page-title">Sale</h1>
+    <p class="page-subtitle">Gestisci le tue sale</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Sale</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (Sala().length === 0) {
+            <p class="muted">Nessuna Sala presente.</p>
+            } @else {
+            <div class="list">
+                
+                @for (item of Sala(); track item.id) {
+                <div class="list-item">
+                    <div>
+                        <strong>Nome: {{ item.nome }}</strong>
+                        <p>Capienza: {{ item.capienza }}</p>
+                        <p>Tipologia: {{ item.nomeTipologia }}</p>
+                        <p>TipologiaID: {{ item.tipologiaSalaId }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica Sala' : 'Aggiungi Sala' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare le Sale.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome Sala</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="capienza">capienza</label>
+                    <input id="capienza" type="number" formControlName="capienza" [disabled]="!modificabileDa()">
+                    <label for="tipologiaSalaId">tipologiaSalaId</label>
+                    <input id="tipologiaSalaId" type="text" formControlName="tipologiaSalaId" [disabled]="!modificabileDa()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>

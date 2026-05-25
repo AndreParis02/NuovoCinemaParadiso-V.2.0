@@ -105,17 +105,18 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tipologia-sala/tipologia-sala-list.component').then((m) => m.TipologiaSalaListComponent)
     },
 ]
-
+*/
 {
     path: 'sala',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaDetailPage)
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
 },
 {
     path: 'sala',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaListPage)
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
 },
+/*
 {
     path: 'proiezione',
     canActivate: [authGuard],
