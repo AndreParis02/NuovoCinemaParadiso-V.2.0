@@ -63,7 +63,7 @@ Simeone: operatore cambio ruolo.
 Greg: Sala.
 Marco: Generemovie(fatto).
 Simeone: LogAzioni.
-Francesco: Movie.
+Francesco: Movie.(fatto)
 Fabio: Navbar.
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
@@ -71,7 +71,7 @@ Andrea Paris: Registrazione.
 
 ### Tasks 2
 
-Marco: Turno.
+Francesco: Turno.(fatto)
 
 ## A fine frontend
 ### in corso

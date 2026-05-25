@@ -131,11 +131,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneListPage)
 },
+*/
 {
     path: 'turno',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoDetailPage)
+    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage)
 },
+/*
 {
     path: 'turno',
     canActivate: [authGuard],
