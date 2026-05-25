@@ -60,12 +60,19 @@ Simeone: operatore cambio ruolo.
 
 ## 25/05/2025
 
-Greg: Sala
-Marco: Generemovie
-Simeone: LogAzioni
-Francesco: Movie
-Fabio: Giftcard
-Lorenzo:
+Greg: Sala.
+Marco: Generemovie(fatto).
+Simeone: LogAzioni.
+Francesco: Movie.
+Fabio: Navbar.
+Lorenzo: Giftcard.
+Andrea Bruno: Utente.
+Andrea Paris: Registrazione.
+
+### Tasks 2
+
+Marco: Turno.
+
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )
