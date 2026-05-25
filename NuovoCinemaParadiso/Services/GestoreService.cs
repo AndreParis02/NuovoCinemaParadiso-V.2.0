@@ -53,36 +53,39 @@ public class GestoreService
     public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
-        Biglietto biglietto = new Biglietto();
-        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
-            ?? throw new Exception("Proiezione non trovato");
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
-            ?? throw new Exception("Movie non trovato");
-        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
-            ?? throw new Exception("Sala non trovato");
-        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
-            ?? throw new Exception("TipologiaSala non trovato");
-        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
-            ?? throw new Exception("Turno non trovato");
         List<DtoBiglietto> risultato = new List<DtoBiglietto>();
 
-        for (int i = 0; i < biglietti.Count; i++)
+        foreach (var bigliettoCorrente in biglietti)
         {
-            Biglietto bigliettoCorrente = biglietti[i];
-            DtoBiglietto dto = new DtoBiglietto();
-            dto.Id = bigliettoCorrente.Id;
-            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
-            dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
-            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
-            dto.NomeSala = sala.Nome;
-            dto.TitoloMovie = movie.Titolo;
-            dto.NomeTipologiaSala = tipologiaSala.Nome;
-            dto.OraInizio = turno.OraInizio;
-            dto.DataProiezione = proiezione.DataProiezione;
+            var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
+                ?? throw new Exception("Proiezione non trovata");
 
-            risultato.Add(dto);
+            var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+                ?? throw new Exception("Movie non trovato");
+
+            var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+                ?? throw new Exception("Sala non trovata");
+
+            var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+                ?? throw new Exception("TipologiaSala non trovata");
+
+            var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                ?? throw new Exception("Turno non trovato");
+
+            risultato.Add(new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                UtenteId = bigliettoCorrente.UtenteId,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                NomeSala = sala.Nome,
+                TitoloMovie = movie.Titolo,
+                NomeTipologiaSala = tipologiaSala.Nome,
+                OraInizio = turno.OraInizio,
+                DataProiezione = proiezione.DataProiezione
+            });
         }
         return risultato;
     }

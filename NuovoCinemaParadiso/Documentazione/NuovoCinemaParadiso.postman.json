@@ -1,9 +1,10 @@
 {
   "info": {
-    "_postman_id": "5f3f8c1d-7191-4a66-987a-ab408c94fc52",
+    "_postman_id": "215ea172-730c-4cd8-ae7e-a992352c7e2d",
     "name": "NuovoCinemaParadiso",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "45839519"
+    "_exporter_id": "54160318",
+    "_collection_link": "https://go.postman.co/collection/54160318-215ea172-730c-4cd8-ae7e-a992352c7e2d?source=collection_link"
   },
   "item": [
     {
@@ -467,36 +468,6 @@
       "name": "Biglietto",
       "item": [
         {
-          "name": "LeggiBiglietti",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "CreazioneBigletto",
           "request": {
             "auth": {
@@ -530,46 +501,6 @@
               "path": [
                 "api",
                 "Biglietto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "ModificaBiglietto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"ProiezioneId\": \"e5fee05a-c054-4678-b00e-55ec4d502611\",\r\n    \"numeroBiglietti\": 1\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Biglietto/",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Biglietto",
-                ""
               ]
             }
           },
@@ -734,6 +665,37 @@
                 "api",
                 "Gestore",
                 "conto"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiBiglietti",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Gestore/biglietti",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Gestore",
+                "biglietti"
               ]
             }
           },
@@ -1717,7 +1679,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"MovieId\": \"d95f8c1b-e97e-4431-be50-ef319581c99d\",\r\n    \"SalaId\": \"9d6a8228-b50a-4012-b254-1eda0b068ee9\",\r\n    \"TurnoId\": \"24dce95b-ccd6-4fa7-8e93-0a9adb36965r\",\r\n    \"DataProiezione\": \"2025-11-01\"\r\n}",
+              "raw": "{\r\n    \"MovieId\": \"95ab0b1b-7b7b-4739-b121-b1792636aa54\",\r\n    \"SalaId\": \"4c926b21-a46c-411e-acc1-15f296633343\",\r\n    \"TurnoId\": \"82c3f522-1aed-4ef9-95a2-d5d14c6442d9\",\r\n    \"DataProiezione\": \"2026-11-01\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2532,6 +2494,14 @@
                 "riscatta"
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiBigliettiUtente",
+          "request": {
+            "method": "GET",
+            "header": []
           },
           "response": []
         }
