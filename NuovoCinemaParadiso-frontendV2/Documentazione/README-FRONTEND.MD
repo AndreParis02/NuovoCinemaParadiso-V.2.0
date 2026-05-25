@@ -182,6 +182,7 @@ La giftcard è hard-coded. Avrà un codice di riscatto alla sua creazione che po
 - homepage del sito dove ci saranno:
 - pulsanti di registrazione e login.
 - pulsante di visualizzazione delle proiezioni.
+- pulsante di visualizzazione dei film(solo per operatore)
 
 
 ## DASHBORD DA LOGGATO
