@@ -67,7 +67,7 @@ Francesco: Movie.
 Fabio: Navbar.
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
-Andrea Paris: Registrazione.
+Andrea Paris: Registrazione. (fatto)
 
 ### Tasks 2
 

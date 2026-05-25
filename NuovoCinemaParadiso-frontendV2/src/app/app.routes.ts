@@ -14,13 +14,12 @@ export const routes: Routes = [
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage) // load component carica le pagine in lazyloagin nel modello standalone di angular
     },
-    /*
+    
     {
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
     },
-     */
     {
         path: 'dashboard',
         canActivate: [authGuard],
