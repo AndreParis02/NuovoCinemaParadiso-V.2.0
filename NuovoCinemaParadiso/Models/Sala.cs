@@ -18,4 +18,6 @@ public class Sala
 
     [ForeignKey("TipologiaSalaId")]
     public TipologiaSala? TipologiaSala {get; set;}
+
+    public bool IsDeleted {get;set;} = false;
 }

@@ -29,6 +29,29 @@ public class SalaController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
+        List<DtoSala> saleFiltrate = new List<DtoSala>();
+        foreach (DtoSala temp in sale)
+        {
+            if (!temp.IsDeleted)
+            {
+                saleFiltrate.Add(temp);
+            }
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
+
+        return Ok(saleFiltrate);
+    }
+
+    [HttpGet("storico")]
+    [Authorize (Roles = Ruoli.Operatore)]
+
+    public async Task<IActionResult> OttieniTuttiStorico()
+    {
+        
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+        List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(sale);
@@ -147,7 +170,7 @@ public class SalaController : ControllerBase
 
     }
 
-    [HttpDelete("{id}")]
+    [HttpPut("elimina/{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
@@ -155,6 +178,7 @@ public class SalaController : ControllerBase
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
+            
         bool eliminato = await _salaService.EliminaAsync(id);
         if (!eliminato)
         {

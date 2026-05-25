@@ -30,6 +30,6 @@ export class SalaService {
   }
 
   elimina(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.put<void>(`${this.baseUrl}/elimina/${id}`, null);
   }
 }
