@@ -73,6 +73,10 @@ Andrea Paris: Registrazione. (fatto)
 
 Francesco: Turno.
 
+
+## 26/05/2026
+
+- Marco : biglietto.
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )
