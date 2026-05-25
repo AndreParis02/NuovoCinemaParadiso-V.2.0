@@ -22,6 +22,11 @@ export const routes: Routes = [
     },
      */
     {
+        path: 'movie',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage)
+    },
+    {
         path: 'dashboard',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage)
