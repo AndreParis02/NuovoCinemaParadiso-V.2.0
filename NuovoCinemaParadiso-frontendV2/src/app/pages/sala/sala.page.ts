@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { SalaService } from '../../services/sala.service';
+import { Observable } from 'rxjs';
 // path del modello Sala, da adattare in base alla struttura del progetto
 import { Sala } from '../../models/sala.model';
 
@@ -91,9 +92,10 @@ export class SalaPage {
     this.staInviando.set(true);
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
-    const request$ = this.modificaId()
-      ? this.SalaService.modifica(this.modificaId(), this.form.getRawValue())
-      : this.SalaService.crea(this.form.getRawValue());
+    
+    const request$: Observable<string> = this.modificaId()
+  ? this.SalaService.modifica(this.modificaId(), this.form.getRawValue())
+  : this.SalaService.crea(this.form.getRawValue());
 
     request$.subscribe({
       next: () => {

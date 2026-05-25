@@ -22,11 +22,11 @@ export class SalaService {
   }
 
   crea(payload: SalaCreazione): Observable<string> {
-    return this.http.post<string>(this.baseUrl, payload);
+    return this.http.post(`${this.baseUrl}`, payload, { responseType: 'text' });
   }
-
+  
   modifica(id: string, payload: SalaCreazione): Observable<string> {
-    return this.http.put<string>(`${this.baseUrl}/${id}`, payload);
+    return this.http.put(`${this.baseUrl}/${id}`, payload, { responseType: 'text' });
   }
 
   elimina(id: string): Observable<void> {
