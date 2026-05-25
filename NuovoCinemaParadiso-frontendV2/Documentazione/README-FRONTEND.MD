@@ -905,6 +905,10 @@ Francesco Lorenzi 25/05/2026
 
 ### register.page.html v1.0
 
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
+
 ```c#
 <section>
     <h1 class="page-title">Registrazione</h1>
@@ -994,6 +998,10 @@ Francesco Lorenzi 25/05/2026
 ```
 
 ### register.page.ts v1.0
+
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
 
 ```c#
 import { Component, inject, signal } from '@angular/core';
