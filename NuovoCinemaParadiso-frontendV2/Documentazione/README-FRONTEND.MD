@@ -526,6 +526,48 @@ export class TipologiaSalaListComponent implements OnInit {
   }
 }
 ```
+
+### genere-movie.page.html
+
+```html
+<section>
+    <h1 class="page-title">Generi di Film</h1>
+    <p class="page-subtitle"> il backend restituisce la lista generi di film</p>
+
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista generi di film</h2>
+
+            @if(isLoading()){
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(generiMovies().length === 0){
+                <p class="muted"> Nessun genere di film presente</p>
+            } @else{
+                <div class="list">
+                    @for(item of generiMovies(); track item.id) {
+                        <div class="list-item">
+                            <div>
+                                <strong>{{ item.genere }}</strong>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>
+
+```
+
+
 ### tipologia-sala-list.component.html
 componente html template della lista di tipologia-sala
 ```html
@@ -649,7 +691,7 @@ export interface BigliettoCreazione {
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
-    id: string | null;
+    id: string;
     genere: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un modello Genere
@@ -657,6 +699,25 @@ export interface GenereMovieCreazione {
     genere: string;
 }
 ```
+
+Utente: Marco Strazzeri(github: FabTam)
+Data: 25/05/2026
+Descrizione: Commentato GenereMovieCreazione perché non creiamo generi
+
+```ts
+// modello di ritorno che rappresenta un Genere
+export interface GenereMovie {
+    id: string | null;
+    genere: string;
+}
+
+/*
+export interface GenereMovieCreazione {
+    genere: string;
+}
+*/
+```
+
 
 ### giftCard
 
@@ -1375,6 +1436,76 @@ export class GenereMovieService {
   }
 }
 ```
+
+Utente: Marco Strazzeri(github: FabTam)
+Data: 25/05/2026
+Descrizione: Modificato per gestire il solo caricamento della lista dei generi
+
+```ts
+
+//controllare gli import. nomi classi e file sono differenti per "-"
+import { Component, inject, signal } from '@angular/core';
+//import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { GenereMovieService } from '../../services/genere-movie.service';
+import { GenereMovie } from '../../models/genere-movie.model';
+
+@Component({
+  selector: 'app-genere-movie',
+  imports: [],
+  templateUrl: './genere-movie.page.html',
+  styleUrl: './genere-movie.page.css',
+})
+
+export class GenereMoviePage {
+
+  private readonly authService = inject(AuthService);
+  private readonly genereMovieService = inject(GenereMovieService);
+
+  readonly generiMovies = signal<GenereMovie[]>([]);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+
+  constructor() {
+    this.loadGeneriMovies();
+  }
+
+  //carica la lista dei generi dal backend
+  loadGeneriMovies(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    //chiamata al servizio ottienitutto per ottenere la lista dei generi dei film
+    this.genereMovieService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generiMovies.set(items);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(
+          this.extractErrorMessage(error, 'Impossibile caricare i generi dei film')
+        );
+      }
+    });
+  }
+
+  trackById(_: string, item: GenereMovie): string | null {
+    return item.id
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error?.message ?? fallback;
+    }
+    return fallback
+  }
+}
+
+```
+
 
 
 ### auth.service.ts

@@ -93,6 +93,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
     },
+        {
+        path: 'genere-movie',
+        canActivate: [authGuard],
+        loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    },
     /*
     {
         path: 'tipologia-sala',

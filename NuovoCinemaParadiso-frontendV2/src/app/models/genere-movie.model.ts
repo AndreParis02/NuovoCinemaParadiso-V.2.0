@@ -1,8 +1,10 @@
 export interface GenereMovie {
-    id: string | null;
+    id: string;
     genere: string;
 }
 
+/*
 export interface GenereMovieCreazione {
     genere: string;
 }
+*/
