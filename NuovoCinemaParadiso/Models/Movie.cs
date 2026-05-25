@@ -23,4 +23,5 @@ public class Movie
     
     [ForeignKey("GenereId")]
     public GenereMovie? Genere {get;set;}
+    public bool IsDeleted {get;set;} = false;
 }

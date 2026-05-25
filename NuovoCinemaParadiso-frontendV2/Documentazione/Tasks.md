@@ -57,6 +57,15 @@ Fabio: operatore utenti lista.
 Simeone: operatore cambio ruolo.
 
 
+
+## 25/05/2025
+
+Greg: Sala
+Marco: Generemovie
+Simeone: LogAzioni
+Francesco: Movie
+Fabio: Giftcard
+Lorenzo:
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )

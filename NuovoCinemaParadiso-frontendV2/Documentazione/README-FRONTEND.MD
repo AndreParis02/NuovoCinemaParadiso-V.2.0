@@ -159,13 +159,65 @@ operatore
 - gestione delle proiezioni(operazioni crud).
 
 I generi dei movies sono hard-coded, preimpostati nel data seeder.
-La giftcard è hard-coded con id, email e valore che andrà scalato dal conto utente e avrà uno stato true o false per il riscatto della stessa.
+La giftcard è hard-coded. Avrà un codice di riscatto alla sua creazione che potrà essere usato per aggiungere il valore di quella giftcard al saldo di chi riscatta il codice.
 
 ### GESTORE:
 
 - leggere la lista dei biglietti.
 - leggere la lista degli audit.
+- leggere il saldo del conto del cinema.
 
+
+### UTENTE
+
+- leggere la lista dei propri biglietti.
+- visualizzare tutte le informazioni anagrafiche del suo profilo, saldo compreso.
+- creare un codice di riscatto da poter usare per caricare il proprio conto.
+
+
+# DASHBOARD
+
+## DASHBOARD GUEST
+
+- homepage del sito dove ci saranno:
+- pulsanti di registrazione e login.
+- pulsante di visualizzazione delle proiezioni.
+- pulsante di visualizzazione dei film(solo per operatore)
+
+
+## DASHBORD DA LOGGATO
+
+- homepage simile a quella guest ma con pulsanti di:
+- pulsante di logout.
+- visualizzazione del proprio profilo:
+  - ogni ruolo avrà la sua pagina profilo diversa in base alle azioni che può fare.
+- pulsante di visualizzazione delle proiezioni.
+
+# PAGINE 
+
+## Pagina proiezioni
+
+- lista delle proiezioni con pulsanti di:
+- acquisto.
+- modifica(operatore).
+- eliminazione(operatore).
+
+## Pagina movies
+
+- lista dei film con pulsanti di:
+
+- creazione(operatore).
+- modifica(operatore).
+- eliminazione(operatore).
+
+
+## Pagina sale:
+
+- lista delle sale con pulsanti di:
+
+- creazione(operatore).
+- modifica(operatore).
+- eliminazione(operatore).
 
 
 

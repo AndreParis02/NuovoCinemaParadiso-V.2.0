@@ -8,4 +8,5 @@ public class DtoMovie
     public int PrezzoMovie {get;set;}
     public string GenereId {get;set;} = string.Empty;
     public string Genere {get;set;} = string.Empty;
+    public bool IsDeleted {get;set;} = false;
 }

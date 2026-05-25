@@ -199,6 +199,7 @@ public class ContoCinema
 Utente: Fabio Tammaro(github: FabTam)
 Data: 21/05/2026
 Descrizione: Modificato il nome della proprietà Conto in Saldo.
+
 ```c#
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -419,6 +420,85 @@ public class Movie
     // Permette di accedere ai dati del genere associato al film
     // Il ? indica che il valore può essere null
     public GenereMovie? Genere {get;set;}
+}
+```
+
+## Movie.cs ( versione 1.1 )
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto il campo IsDeleted per considerarlo come eliminato e mantenerlo all'interno del db discriminandolo
+
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+// Associa questa classe alla tabella "Movies" nel database
+[Table("Movies")]
+
+public class Movie
+{
+    // Indica che la proprietà Id è la chiave primaria della tabella
+    [Key]
+
+    // Proprietà che rappresenta l'identificativo univoco del film
+    // Viene generato automaticamente un GUID convertito in stringa
+    public string Id {get;set;} = Guid.NewGuid().ToString();
+
+    // Indica che il titolo del film è obbligatorio
+    [Required]
+
+    // Limita la lunghezza massima del titolo a 50 caratteri
+    [StringLength(50)]
+
+    // Proprietà che contiene il titolo del film
+    // Inizializzata con stringa vuota per evitare valori null
+    public string Titolo {get;set;} = string.Empty;
+
+    // Indica che la descrizione del film è obbligatoria
+    [Required]
+
+    // Limita la lunghezza massima della descrizione a 2000 caratteri
+    [StringLength(2000)]
+
+    // Proprietà che contiene la descrizione/trama del film
+    public string Descrizione {get;set;} = string.Empty;
+
+    // Valida che la durata sia maggiore o uguale a 1
+    // int.MaxValue rappresenta il valore massimo possibile per un intero
+    [Range(1, int.MaxValue)]
+
+    // Proprietà che rappresenta la durata del film in minuti
+    public int DurataMinuti {get;set;} 
+
+    // Valida che il prezzo sia compreso tra 0.01 e 999999999
+    // typeof(decimal) specifica che il controllo viene effettuato su valori decimali
+    [Range(typeof(decimal), "0.01", "999999999")]
+
+    // Proprietà che rappresenta il prezzo del film
+    public int PrezzoMovie {get;set;}
+
+    // Lista delle proiezioni associate a questo film
+    // Rappresenta una relazione uno-a-molti tra Movie e Proiezione
+    // La lista viene inizializzata vuota per evitare errori null reference
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
+
+    // Proprietà che contiene la chiave esterna del genere del film
+    public string GenereId {get;set;} = string.Empty;
+    
+    // Specifica che la proprietà Genere utilizza GenereId come chiave esterna
+    [ForeignKey("GenereId")]
+
+    // Proprietà di navigazione verso l'entità GenereMovie
+    // Permette di accedere ai dati del genere associato al film
+    // Il ? indica che il valore può essere null
+    public GenereMovie? Genere {get;set;}
+
+    // Proprietà che indica il fatto che sia stato eliminato, ma viene lasciato
+    // all'interno del db per avere uno storico e non perdere informazioni
+    public bool IsDeleted {get;set;} = false;
 }
 ```
 
@@ -1303,6 +1383,36 @@ public class DtoMovie
     public string GenereId { get; set; } = string.Empty; // Id del genere associato
 
     public string Genere { get; set; } = string.Empty;   // Nome del genere (dato derivato)
+}
+```
+
+## DtoMovie.cs (versione 1.1)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto il campo IsDeleted per considerarlo come eliminato e mantenerlo all'interno del db discriminandolo
+
+```c#
+namespace NuovoCinemaParadiso.Dtos;
+
+public class DtoMovie
+{
+    public string? Id { get; set; }                     // Id del film (null quando non ancora creato)
+
+    public string Titolo { get; set; } = string.Empty;  // Titolo del film
+
+    public string Descrizione { get; set; } = string.Empty; // Descrizione breve del film
+
+    public int DurataMinuti { get; set; }               // Durata del film in minuti
+
+    public int PrezzoMovie { get; set; }                // Prezzo base del film
+
+    public string GenereId { get; set; } = string.Empty; // Id del genere associato
+
+    public string Genere { get; set; } = string.Empty;   // Nome del genere (dato derivato)
+
+    public bool IsDeleted {get;set;} = false;            // Se è da considerarsi eliminato
+
 }
 ```
 
@@ -3266,6 +3376,193 @@ public class MovieController : ControllerBase
 }
 ```
 
+## MovieController.cs (versione 1.3)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto endpoint per il service OttieniTuttoStorico
+[HttpGet("storico")] // GET api/Movie/storico
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController] // Indica che il controller espone API REST
+[Route("api/[controller]")] // Route base: api/Movie
+[Authorize] // Richiede autenticazione per tutte le azioni
+public class MovieController : ControllerBase
+{
+    private readonly MovieService _movieService;
+    private readonly LogAzioniService _logAzioniService;
+    
+
+    public MovieController(MovieService movieService, LogAzioniService logAzioniService)
+    {
+        _movieService = movieService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet] // GET api/Movie
+    public async Task<IActionResult> OttieniTuttiIMovies()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+
+    [HttpGet("storico")] // GET api/Movie/storico
+    public async Task<IActionResult> OttieniTuttiIMoviesStorico()
+    {
+        List<DtoMovie> movies = await _movieService.OttieniTuttoStorico();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutti i movies" ,true);
+        return Ok(movies);
+    }
+    
+    [HttpGet("genere/{genereId}")] // GET api/Movie/genere/{id}
+    public async Task<ActionResult<List<DtoMovie>>> OttieniPerGenere(string genereId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrWhiteSpace(genereId))
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni movie per genereId" ,false);
+          return BadRequest("GenereId non valido");
+        }
+
+        var risultato = await _movieService.OttieniTramiteGenere(genereId);
+
+        if (risultato.Count() == 0)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", false);
+
+          return NotFound("Nessun film trovato per questo genere");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per genereid", true);;
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("{id}")]  // GET api/Movie/{id}
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        DtoMovie? risultato = await _movieService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", false);
+          return NotFound($"Film con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni movie per id", true);
+        return Ok(risultato);
+    }
+
+    [HttpPost] // POST api/Movie
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo))
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "Film già presente." });
+            }
+        }
+        
+        bool risultato = await _movieService.CreazioneAsync(dto);
+
+        if (!risultato)
+        {
+          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+          return BadRequest(new { messaggio = "id del genere non valido." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", true);
+        return Ok();
+    }
+
+    [HttpPut("{id}")] // PUT api/Movie/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneMovie dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoMovie> movies = await _movieService.OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.Titolo.Contains(dto.Titolo) && movie.Id != id)
+            {
+              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
+            }
+        }
+        try
+        {
+            await _movieService.ModificaAsync(id, dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", true);
+            return Ok();
+        }
+        catch(NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", false);
+            return NotFound(new { messaggio = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id}")] // DELETE api/Movie/{id}
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _movieService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", false);
+            return NotFound(new { messaggio = "Film non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Eliminazione movie", true);
+        return Ok(new { messaggio = "Film eliminato con successo!" });
+    }
+}
+```
+
+
 ## OperatoreController.cs
 
 ```c#
@@ -3992,51 +4289,58 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpPost] // POST api/Proiezione
-    [Authorize(Roles = Ruoli.Operatore)] // solo Operatore
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    // Endpoint POST per creare una nuova proiezione, accessibile solo agli Operatori
+[HttpPost]
+[Authorize(Roles = Ruoli.Operatore)]
+public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+{
+    // Recupera l'ID dell'utente autenticato dai claims
+    string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    // Se l'utente non è autenticato, blocca subito la richiesta
+    if (utenteId == null)
+        return Unauthorized("Utente non autenticato.");
+
+    // Recupera tutte le proiezioni esistenti per controllare duplicati
+    List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+    // Cicla tutte le proiezioni per verificare se esiste già una proiezione identica
+    foreach (var proiezione in proiezioni)
     {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
-
-        // Controllo duplicati (stessa sala, turno e data)
-        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
-
-        foreach (var proiezione in proiezioni)
+        // Controllo duplicato: stessa sala, stesso turno, stessa data
+        if (proiezione.TurnoId == dto.TurnoId &&
+            proiezione.SalaId == dto.SalaId &&
+            proiezione.DataProiezione == dto.DataProiezione)
         {
-            if (proiezione.TurnoId == dto.TurnoId &&
-                proiezione.SalaId == dto.SalaId &&
-                proiezione.DataProiezione == dto.DataProiezione)
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(
-                    utenteId,
-                    "Crea proiezione",
-                    false);
+            // Registra nel log un tentativo fallito di creazione
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
-                return BadRequest(new { messaggio = "Proiezione già presente." });
-            }
+            // Restituisce errore: proiezione già presente
+            return BadRequest(new { messaggio = "Proiezione già presente." });
         }
-
-        DtoProiezione? risultato = await _proiezioneService.CreazioneAsync(dto);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(
-                utenteId,
-                "Crea proiezione",
-                false);
-
-            return BadRequest(new { messaggio = "Proiezione non valida." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(
-            utenteId,
-            "Crea proiezione",
-            true);
-
-        return Ok(risultato);
     }
+
+    try
+    {
+        // Tenta la creazione della nuova proiezione tramite il service
+        bool creato = await _proiezioneService.CreazioneAsync(dto);
+
+        // Registra nel log un'azione riuscita
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+
+        // Restituisce conferma di avvenuta creazione
+        return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+    }
+    catch (NotFoundException ex)
+    {
+        // Registra nel log un fallimento dovuto a entità mancanti (sala, turno, film, ecc.)
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+        // Restituisce errore con messaggio dettagliato
+        return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
+    }
+}
+
 
     [HttpPut("{id}")] // PUT api/Proiezione/{id}
     [Authorize(Roles = Ruoli.Operatore)]
@@ -5065,6 +5369,129 @@ public class TurnoController : ControllerBase
 }
 ```
 
+## TurnoController.cs Versione 1.1
+- Utente: Simeone
+- Data: 22/05/2026
+- Descrizione: eseguo la task assegnatami su questo service e il conseguente controller: "MODIFICARE CONTROLLER E SERVICE CHE NON HANNO LA NECESSITà DI AVERE DTO IN USCITA CHE PORTINO DATI NON NECESSARI AL FRONTEND. DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGGIO DI RIUSCITA O FALLIMENTO."
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Services;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class TurnoController : ControllerBase
+{
+    private readonly TurnoService _turnoService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public TurnoController(TurnoService turnoService, LogAzioniService logAzioniService)
+    {
+        _turnoService = turnoService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        List<DtoTurno> turni = await _turnoService.OttieniTuttoAsync();
+        
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i turni", true);
+        return Ok(turni);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _turnoService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", false);
+            return NotFound(new { messaggio = $"Turno con id {id} non trovato" });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni turno tramite id", true);
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneTurno dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        bool creato = await _turnoService.CreazioneAsync(dto); // MODIFICATO: rimosso var e inserito il booleano in conseguenza alle modifiche apportate al service
+
+        if (!creato) // MODIFICATO: Se è false, sappiamo dal Service che il turno era già presente
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", false);
+            return BadRequest(new { messaggio = "Turno già presente con questo nome." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione Turno", true); // Se arriviamo qui, creato è true
+        return Ok(new { messaggio = "Turno creato con successo!"}); // MODIFICATO: Restituiamo un semplice messaggio invece dell'intero oggetto
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneTurno dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        bool modificato = await _turnoService.ModificaAsync(id, dto); // MODIFICATO: rimosso var e inserito il booleano in conseguenza alle modifiche apportate al service
+
+        if (!modificato) 
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", false);
+            return BadRequest(new { messaggio = "Impossibile modificare: Turno non trovato o nome già in uso." }); // MODIFICATO: Accorpiamo l'errore in un unico messaggio generico e chiaro per il frontend in caso di esito false
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Turno", true); // Se arriviamo qui, creato è true
+        return Ok(new { messaggio = "Turno modificato con successo!"}); // MODIFICATO: Restituiamo un semplice messaggio invece dell'intero oggetto
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var (successo, errore) = await _turnoService.EliminaAsync(id); // MODIFICATO: rimossa la dupla come richiestomi
+
+        if (!successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", false);
+            
+            if (errore == "Turno non trovato.")
+            {
+                return NotFound(new { messaggio = errore });
+            }
+            else
+            {
+                return BadRequest(new { messaggio = errore });
+            }
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina Turno", true);
+        return Ok(new { messaggio = "Turno cancellato correttamente!"}); // MODIFICATO: prima restituiva un 204 NoContent, adesso restituisce un messaggio di avvenuta
+    }
+}
+```
 ##  UtenteController.cs
 
 ```c#
@@ -6346,6 +6773,271 @@ Utente: Marco Strazzeri
 Data: 22/05/2026
 Descrizione : adesso possono acquistare i biglietti anche gli utenti non abbonati
   
+## BigliettoServiceV1.3
+Francesco Lorenzi
+22/05/2026
+modificata la funzione Crea per poter creare un biglietto senza abbonamento
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class BigliettoService
+{
+    private readonly ContestoDb _contesto;
+
+    public BigliettoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTutto()
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id)
+    {
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (null, "Biglietto non trovato.");
+
+        DtoBiglietto dto = new DtoBiglietto
+        {
+            Id = biglietto.Id,
+            UtenteId = biglietto.UtenteId,
+            ProiezioneId = biglietto.ProiezioneId,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale
+        };
+
+        return (dto, null);
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string proiezioneId)
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == proiezioneId).ToListAsync();
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            DtoBiglietto dto = new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                UtenteId = bigliettoCorrente.UtenteId,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale
+            };
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    {
+
+        /*controlla che l'utente esista*/
+        var utente = await _contesto.Utenti.FindAsync(utenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        if (utente.Abbonamento == null) return (null, "Abbonamento non trovato.");
+
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+
+        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
+
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+
+        if (utente.AbbonamentoId == null)
+            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
+        if (utente.Abbonamento == null)
+            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
+
+        /*controlla che l'utente abbia un saldo sufficiente*/
+        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utenteId,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return ("Biglietto creato con successo.", null);
+    }
+
+    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
+    {
+        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
+        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+        
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count();
+        if (proiezione.Id != bigliettoEsistente.ProiezioneId)
+        {
+            if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        }else
+        {
+             postiOccupati = postiOccupati - bigliettoEsistente.NumeroBiglietti;
+        }
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
+
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+
+
+        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utente.Id,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+
+        var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return ("Biglietto modificato con successo.", null);
+    }
+
+    public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
+    {
+        var biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (false, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        if (utente == null || contoCinema == null)
+            return (false, "Dati correlati all'biglietto non trovati.");
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        _contesto.Biglietti.Remove(biglietto);
+        await _contesto.SaveChangesAsync();
+        return (true, null);
+    }
+}
+```
+Aggiornate le chiamate a CalcolaPrezzoFinale
+```c#
+
+    /*
+    dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+            movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            bigliettoCorrente.NumeroBiglietti,
+            utente.Abbonamento
+        );
+    */
+    //calcola il prezzo del biglietto
+    dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                bigliettoCorrente.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            );
+
+    /*
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, biglietto.NumeroBiglietti, utente, biglietto.MetodoPagamento)
+    */
+    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                biglietto.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            )
+
+    /*
+    aggiunto controllo sul saldo del conto per la creazione biglietto dopo
+    var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+    */
+    /*controlla che l'utente abbia un saldo sufficiente*/
+    if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+        return (null, "Saldo insufficiente per acquistare i biglietti.");
+    
+```
+##  BigliettoService.cs V1.2
+
+Utente: Marco Strazzeri
+Data: 22/05/2026
+Descrizione : adesso possono acquistare i biglietti anche gli utenti non abbonati
+  
 ```c#
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
@@ -6795,6 +7487,233 @@ public class BigliettoService
             NumeroBiglietti = dto.NumeroBiglietti,
             OrarioCreazione = DateTimeOffset.UtcNow,
             PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+
+        var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return ("Biglietto modificato con successo.", null);
+    }
+
+    public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
+    {
+        var biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (false, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        if (utente == null || contoCinema == null)
+            return (false, "Dati correlati all'biglietto non trovati.");
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        _contesto.Biglietti.Remove(biglietto);
+        await _contesto.SaveChangesAsync();
+        return (true, null);
+    }
+}
+```
+## BigliettoServiceV1.4
+
+Francesco Lorenzi
+22/05/2026
+
+modificacato il controllo mettendo il prezzo finale in variabile
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class BigliettoService
+{
+    private readonly ContestoDb _contesto;
+
+    public BigliettoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id)
+    {
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id)
+            ?? throw new Exception("Biglietto non trovato");
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new Exception("Proiezione non trovato");
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new Exception("Movie non trovato");
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new Exception("Sala non trovato");
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new Exception("TipologiaSala non trovato");
+        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new Exception("Turno non trovato");
+        if (biglietto == null) return (null, "Biglietto non trovato.");
+
+        DtoBiglietto dto = new DtoBiglietto
+        {
+            Id = biglietto.Id,
+            UtenteId = biglietto.UtenteId,
+            ProiezioneId = biglietto.ProiezioneId,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale,
+            NomeSala = sala.Nome,
+            TitoloMovie = movie.Titolo,
+            NomeTipologiaSala = tipologiaSala.Nome,
+            OraInizio = turno.OraInizio,
+            DataProiezione = proiezione.DataProiezione,
+        };
+
+        return (dto, null);
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string proiezioneId)
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == proiezioneId).ToListAsync();
+        Biglietto biglietto = new Biglietto();
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new Exception("Proiezione non trovato");
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new Exception("Movie non trovato");
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new Exception("Sala non trovato");
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new Exception("TipologiaSala non trovato");
+        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new Exception("Turno non trovato");
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            DtoBiglietto dto = new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                UtenteId = bigliettoCorrente.UtenteId,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale,
+                NomeSala = sala.Nome,
+                TitoloMovie = movie.Titolo,
+                NomeTipologiaSala = tipologiaSala.Nome,
+                OraInizio = turno.OraInizio,
+                DataProiezione = proiezione.DataProiezione,
+            };
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    {
+        
+        var utente = await _contesto.Utenti.FindAsync(utenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+        
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+
+        
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count;
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+
+        
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
+
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+        //variabile prezzo finale
+        int prezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        if (utente.Saldo < prezzoFinale)
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utenteId,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = prezzoFinale
+        };
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return ("Biglietto creato con successo.", null);
+    }
+
+    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
+    {
+        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
+        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+        
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count();
+        if (proiezione.Id != bigliettoEsistente.ProiezioneId)
+        {
+            if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+        }
+        else
+        {
+            postiOccupati = postiOccupati - bigliettoEsistente.NumeroBiglietti;
+        }
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
+
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+        //variabile prezzo finale
+        int prezzofinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < prezzofinale)
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utente.Id,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = prezzofinale
         };
 
         var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
@@ -8524,6 +9443,257 @@ public class MovieService
 }
 ```
 
+## MovieService.cs (Versione 1.3)
+
+Utente: Greg
+Data: 22/05/2026
+Descrizione: Aggiunto OttieniTuttoStorico per mostrare anche i movie con IsDeleted = true + OttieniTutto solo quelli con IsDeleted = false + Disabilitazione delle proiezioni con determinate codnizioni dopo aver eliminato un film
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+/// <summary>
+/// Service responsabile della gestione dei film.
+/// Gestisce operazioni CRUD e associazione con i generi.
+/// </summary>
+public class MovieService
+{
+    private readonly ContestoDb _contesto;
+
+    private readonly GenereMovieService _genereMovieService;
+    /// <summary>
+    /// Inizializza una nuova istanza del servizio Movie.
+    /// </summary>
+    /// <param name="contesto">Contesto database EF Core.</param>
+    /// <param name="genereMovieService">Servizio per la gestione dei generi film.</param>
+    public MovieService(ContestoDb contesto, GenereMovieService genereMovieService)
+    {
+        _contesto = contesto;
+        _genereMovieService = genereMovieService;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film presenti nel sistema con informazioni sul genere non considerando quelli IsDeleted.
+    /// </summary>
+    /// <returns>Lista di DTO dei film.</returns>
+    public async Task<List<DtoMovie>> OttieniTutto()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+
+            // Discriminante dei IsDeleted
+            if (movieCorrente.IsDeleted)
+                continue;
+
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+
+    /// <summary>
+    /// Recupera tutti i film presenti nel sistema considerando anche quelli IsDeleted.
+    /// </summary>
+    /// <returns>Lista di DTO dei film.</returns>
+    /// 
+    public async Task<List<DtoMovie>> OttieniTuttoStorico()
+    {
+        List<Movie> movies = await _contesto.Movies.ToListAsync();
+
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        for (int i = 0; i < movies.Count; i++)
+        {
+            Movie movieCorrente = movies[i];
+            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
+
+            DtoMovie dto = new DtoMovie();
+            dto.Id = movieCorrente.Id;
+            dto.Titolo = movieCorrente.Titolo;
+            dto.Descrizione = movieCorrente.Descrizione;
+            dto.DurataMinuti = movieCorrente.DurataMinuti;
+            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
+            dto.GenereId = movieCorrente.GenereId;
+            dto.Genere = genereMovie?.Genere ?? "";
+            dto.IsDeleted = movieCorrente.IsDeleted;
+
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera un film tramite ID.
+    /// </summary>
+    /// <param name="id">ID del film.</param>
+    /// <returns>DTO del film se trovato, altrimenti null.</returns>
+    public async Task<DtoMovie?> OttieniTramiteIdAsync(string id)
+    {
+        
+        Movie? movie = await _contesto.Movies.FindAsync(id);
+
+        if (movie == null)
+        {
+            return null;
+        }
+        GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movie.GenereId);
+
+        DtoMovie risultato = new DtoMovie
+        {
+            Id = movie.Id,
+            Titolo = movie.Titolo,
+            Descrizione = movie.Descrizione,
+            DurataMinuti = movie.DurataMinuti,
+            PrezzoMovie = movie.PrezzoMovie,
+            GenereId = movie.GenereId,
+            Genere = genereMovie?.Genere ?? "",
+            // AGGINTO SOLO NEL TRAMITE SOLO OttieniTramiteIdAsync E NON GENERE O ALTRO
+            IsDeleted = movie.IsDeleted
+            //
+
+        };
+        return risultato;
+    }
+
+    /// <summary>
+    /// Recupera tutti i film appartenenti a un genere specifico.
+    /// </summary>
+    /// <param name="genereId">ID del genere.</param>
+    /// <returns>Lista di film filtrati per genere.</returns>
+    public async Task<List<DtoMovie>> OttieniTramiteGenere(string genereId)
+    {
+        List<DtoMovie> risultato = new List<DtoMovie>();
+
+        List<DtoMovie> movies = await OttieniTutto();
+
+        foreach (var movie in movies)
+        {
+            if (movie.GenereId.Trim() == genereId)
+            {
+                risultato.Add(movie);
+            }
+        }
+        return risultato;
+    }
+
+    /// <summary>
+    /// Crea un nuovo film.
+    /// </summary>
+    /// <param name="dto">Dati del film da creare.</param>
+    /// <returns>booleano che da conferma tramite true o false in caso il genere non sia valido</returns>
+    public async Task<bool> CreazioneAsync(DtoCreazioneMovie dto)
+    {
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
+        {
+            return false;
+        }
+        
+        Movie movie = new Movie();
+
+        movie.Titolo = dto.Titolo;
+        movie.Descrizione = dto.Descrizione;
+        movie.DurataMinuti = dto.DurataMinuti;
+        movie.PrezzoMovie = dto.PrezzoMovie;
+        movie.GenereId = dto.GenereId;
+
+        _contesto.Movies.Add(movie);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Modifica un film esistente nel database.
+    /// </summary>
+    /// <param name="id">ID del film da modificare.</param>
+    /// <param name="dto">Nuovi dati del film.</param>
+    /// <returns>Ritorna true se la modifica è avvenuta con successo.</returns>
+    /// <exception cref="NotFoundException">
+    /// Lanciata se il film specificato o il genere non vengono trovati nel database.
+    /// </exception>
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneMovie dto)
+    {
+        Movie? movieEsistente = await _contesto.Movies.FindAsync(id);
+
+        if (await _genereMovieService.OttieniTramiteIdAsync(dto.GenereId) == null)
+        {
+            Console.WriteLine("GENERE PROBLEMA");
+            throw new NotFoundException("genere", dto.GenereId);
+
+        }
+
+        if (movieEsistente == null)
+        {
+            Console.WriteLine("PROBLEMA ESISTENZIALE");
+            throw new NotFoundException("movie",id);
+        }
+
+        movieEsistente.Titolo = dto.Titolo;
+        movieEsistente.Descrizione = dto.Descrizione;
+        movieEsistente.DurataMinuti = dto.DurataMinuti;
+        movieEsistente.PrezzoMovie = dto.PrezzoMovie;
+        movieEsistente.GenereId = dto.GenereId;
+
+        await _contesto.SaveChangesAsync();
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Elimina un film dal sistema.
+    /// </summary>
+    /// <param name="id">ID del film da eliminare.</param>
+    /// <returns>True se eliminato, false se non trovato.</returns>
+    public async Task<bool> EliminaAsync(string id)
+    {
+         Movie? movie = await _contesto.Movies.FindAsync(id);
+
+    // corretta la gestione degli errori
+        if (movie == null)
+            return false;
+
+        if(movie.IsDeleted)
+            return false;
+
+        movie.IsDeleted = true;
+
+        // disabilito le proiezioni che hanno lo stesso id del film ma non reatroattivamente
+        List<Proiezione> Proiezioni = await _contesto.Proiezioni.Where(P => P.MovieId == movie.Id && P.DataProiezione >= DateOnly.FromDateTime(DateTime.Now)).ToListAsync();
+
+        foreach(Proiezione temp in Proiezioni)
+        {
+            temp.Attivo = false;
+        }
+
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
+
 ## OperatoreService.cs V1.0
 
 ```c#
@@ -9581,29 +10751,56 @@ public class ProiezioneService
     /// <summary>
     /// Crea una nuova proiezione.
     /// </summary>
-    public async Task<DtoProiezione?> CreazioneAsync(DtoCreazioneProiezione dto)
+    public async Task<bool> CreazioneAsync(DtoCreazioneProiezione dto)
+{
+    // Istanzia una nuova entità Proiezione che verrà popolata e salvata
+    Proiezione proiezione = new Proiezione();
+
+    // Recupera il film associato all'ID fornito nel DTO
+    Movie? film = await _contesto.Movies.FindAsync(dto.MovieId);
+
+    // Recupera la sala associata all'ID fornito nel DTO
+    Sala? sala = await _contesto.Sale.FindAsync(dto.SalaId);
+
+    // Recupera il turno associato all'ID fornito nel DTO
+    Turno? turno = await _contesto.Turni.FindAsync(dto.TurnoId);
+
+    // Se il film non esiste, solleva un'eccezione specifica
+    if (film == null)
     {
-        Proiezione proiezione = new Proiezione
-        {
-            DataProiezione = dto.DataProiezione,
-            MovieId = dto.MovieId,
-            SalaId = dto.SalaId,
-            TurnoId = dto.TurnoId
-        };
-
-        _contesto.Proiezioni.Add(proiezione);
-        await _contesto.SaveChangesAsync();
-
-        return new DtoProiezione
-        {
-            Id = proiezione.Id,
-            DataProiezione = proiezione.DataProiezione,
-            MovieId = proiezione.MovieId,
-            SalaId = proiezione.SalaId,
-            TurnoId = proiezione.TurnoId,
-            Attivo = proiezione.Attivo
-        };
+        throw new NotFoundException("Movie", dto.MovieId);
     }
+
+    // Se la sala non esiste, solleva un'eccezione specifica
+    if (sala == null)
+    {
+        throw new NotFoundException("Sala", dto.SalaId);
+    }
+
+    // Se il turno non esiste, solleva un'eccezione specifica
+    if (turno == null)
+    {
+        throw new NotFoundException("Turno", dto.TurnoId);
+    }
+
+    // Popola i campi della nuova proiezione con i dati del DTO
+    proiezione.DataProiezione = dto.DataProiezione;
+    proiezione.MovieId = dto.MovieId;
+    proiezione.SalaId = dto.SalaId;
+    proiezione.TurnoId = dto.TurnoId;
+
+    // Imposta la proiezione come attiva (necessario per non inserirla nello storico)
+    proiezione.Attivo = true;
+
+    // Aggiunge la nuova proiezione al contesto EF
+    _contesto.Proiezioni.Add(proiezione);
+
+    // Salva le modifiche nel database
+    await _contesto.SaveChangesAsync();
+
+    // Ritorna true per indicare che la creazione è avvenuta correttamente
+    return true;
+}
 
     /// <summary>
     /// Modifica una proiezione esistente.
@@ -10660,6 +11857,127 @@ public class TurnoService
 }
 ```
 
+## TurnoService.cs Versione 1.1
+- Utente: Simeone
+- Data: 22/05/2026
+- Descrizione: eseguo la task assegnatami su questo service ed il conseguente controller: "MODIFICARE CONTROLLER E SERVICE CHE NON HANNO LA NECESSITà DI AVERE DTO IN USCITA CHE PORTINO DATI NON NECESSARI AL FRONTEND. DI CONSEGUENZA ALCUNI AZIONI RIPORTERANNO SOLO UN TRUE O UN FALSE CON UN MESSAGGIO DI RIUSCITA O FALLIMENTO."
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services
+{
+    public class TurnoService
+    {
+        private readonly ContestoDb _contesto;
+        public TurnoService(ContestoDb contesto)
+        {
+            _contesto = contesto;
+        }
+
+        public async Task<List<DtoTurno>> OttieniTuttoAsync()
+        {
+            List<Turno> turni = await _contesto.Turni.ToListAsync();
+            List<DtoTurno> risultato = new List<DtoTurno>();
+
+            foreach (var turnoCorrente in turni)
+            {
+                DtoTurno dto = new DtoTurno();
+                dto.Id = turnoCorrente.Id;
+                dto.OraInizio = turnoCorrente.OraInizio;
+                dto.OraFine = turnoCorrente.OraFine;
+                dto.Nome = turnoCorrente.Nome;
+                risultato.Add(dto);
+            }
+
+            return risultato;
+        }
+
+        public async Task<DtoTurno?> OttieniTramiteIdAsync(string id)
+        {
+            Turno? turno = await _contesto.Turni.FindAsync(id);
+            if (turno == null)
+            {
+                return null;
+            }
+
+            DtoTurno dto = new DtoTurno();
+            dto.Id = turno.Id;
+            dto.Nome = turno.Nome;
+            dto.OraInizio = turno.OraInizio;
+            dto.OraFine = turno.OraFine;
+
+            return dto;
+        }
+
+        public async Task<bool> CreazioneAsync(DtoCreazioneTurno dto) // MODIFICATO in modo che restituisse un messaggio pulito e conciso e non l'oggetto intero appena creato
+        {
+
+            bool turnoGiaPresente = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower());
+            if (turnoGiaPresente)
+            {
+                return false;
+            }
+
+            Turno turno = new Turno();
+            turno.Nome = dto.Nome;
+            turno.OraInizio = dto.OraInizio;
+            turno.OraFine = dto.OraFine;
+
+            _contesto.Turni.Add(turno);
+            await _contesto.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> ModificaAsync(string id, DtoCreazioneTurno dto) // MODIFICATO in modo che restituisse un messaggio pulito e conciso e non l'oggetto intero appena modificato
+        {
+
+            Turno? turnoEsistente = await _contesto.Turni.FindAsync(id);
+            if (turnoEsistente == null)
+            {
+                return false;
+            }
+
+            bool nomeGiaUsato = await _contesto.Turni.AnyAsync(t => t.Nome.ToLower() == dto.Nome.ToLower() && t.Id != id);
+            if (nomeGiaUsato)
+            {
+                return false;
+            }
+
+            turnoEsistente.OraInizio = dto.OraInizio;
+            turnoEsistente.OraFine = dto.OraFine;
+            turnoEsistente.Nome = dto.Nome;
+
+            await _contesto.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<(bool Successo, string? Errore)> EliminaAsync(string id)
+        {
+            Turno? turno = await _contesto.Turni.FindAsync(id);
+            if (turno == null)
+            {
+                return (false, "Turno non trovato.");
+            }
+
+            bool haProiezioniCollegate = await _contesto.Proiezioni.AnyAsync(p => p.TurnoId == id);
+            if (haProiezioniCollegate)
+            {
+                return (false, "Impossibile eliminare il turno: ci sono ancora delle proiezioni assegnate a questo orario.");
+            }
+
+            _contesto.Turni.Remove(turno);
+            await _contesto.SaveChangesAsync();
+
+            return (true, null);
+        }
+    }
+}
+```
 ## UtenteService.cs V1.0
 
 ```c#
