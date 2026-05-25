@@ -45,7 +45,7 @@ public class GestoreController : ControllerBase
         return Ok(risultatiLog);
     }
 
-    [HttpGet]
+    [HttpGet("biglietti")]
     public async Task<IActionResult> OttieniTuttiBiglietti()
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

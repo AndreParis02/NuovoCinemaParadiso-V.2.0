@@ -50,11 +50,11 @@ public class BigliettoService
         return (dto, null);
     }
 
-    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string proiezioneId)
+    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string id)
     {
-        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == proiezioneId).ToListAsync();
+        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == id).ToListAsync();
         Biglietto biglietto = new Biglietto();
-        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+        var proiezione = await _contesto.Proiezioni.FindAsync(id)
             ?? throw new Exception("Proiezione non trovato");
         var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
             ?? throw new Exception("Movie non trovato");

@@ -25,8 +25,10 @@ public static class DataSeeder
             "gestore@gmail.com",
             "123456",
             "Gestore",
-            60
-            , false);
+            60,
+            false,
+            1000
+            );
 
         Utente operatore = await AssicuraEsistenzaUtenteAsync(
             gestioneUtenti,
@@ -34,7 +36,8 @@ public static class DataSeeder
             "123456",
             "Operatore",
             35,
-            false);
+            false,
+            1000);
 
         Utente utente = await AssicuraEsistenzaUtenteAsync(
         gestioneUtenti,
@@ -42,7 +45,8 @@ public static class DataSeeder
             "123456",
             "Utente Uno",
             15,
-            true);
+            true,
+            1000);
 
         ContoCinema contoCinema = await AssicuraEsistenzaContoCinema ( contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
 
@@ -92,7 +96,6 @@ public static class DataSeeder
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione1.Id, utente.Id, 1, new DateTimeOffset(DateTime.Now), 10);
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione2.Id, utente.Id, 2, new DateTimeOffset(DateTime.Now), 20);
         await AssicuraEsistenzaBiglietto(contestoDb, proiezione3.Id, utente.Id, 3, new DateTimeOffset(DateTime.Now), 30);
-
     }
 
     private static async Task AssicuraEsistenzaRuoloAsync(RoleManager<IdentityRole> managerRuolo, string nomeRuolo)
@@ -113,7 +116,8 @@ public static class DataSeeder
         string password,
         string nomeCompleto,
         int eta,
-        bool abbonato
+        bool abbonato,
+        int saldo
         )
     {
         Utente? utenteEsistente = await gestioneUtenti.FindByEmailAsync(email);
@@ -130,6 +134,7 @@ public static class DataSeeder
         utente.Eta = eta;
         utente.SeAbbonato = abbonato;
         utente.AbbonamentoId = null;
+        utente.Saldo = saldo;
 
         IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
 

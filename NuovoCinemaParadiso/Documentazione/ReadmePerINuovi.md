@@ -96,18 +96,16 @@ Sul DB vedo 3 fasce orarie che hanno orainizio e orafine tipo 00:00:00.0000010. 
 Test Modifica turno
 Il test sembra dare esito positivo, i valori sul db vengono modificati correttamente
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+protected override void OnModelCreating (ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+    
+    // classe Biglietto
+    // proprietà "ProiezioneId"
+    modelBuilder.Entity<Biglietto>()
+        .HasOne(a => a.Poriezione)
+        .WithMany(p => p.Biglietti)
+        .HasForeignKey(a => a.PoriezioneId)
+        .OnDelete(DeleteBehavior.Restrict);
+    // restrict Impedisce la cancellazione della proiezione se esistono scontrini
+}
