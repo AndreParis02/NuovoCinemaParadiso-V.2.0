@@ -5,7 +5,6 @@ using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 using NuovoCinemaParadiso.Helpers;
-using System.Linq.Expressions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -93,7 +92,6 @@ public class UtenteService
 
         return (true, "Abbonamento attivato correttamente.");
     }
-
 
     public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
     {
