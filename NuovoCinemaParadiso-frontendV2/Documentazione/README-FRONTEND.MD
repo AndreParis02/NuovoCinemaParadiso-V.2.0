@@ -588,6 +588,279 @@ non vi è encora un css
 </div>
 ```
 
+### movie.page.ts
+**versione1.0**
+
+Francesco Lorenzi
+25/05/2026
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//importo servizi
+import { AuthService } from '../../services/auth.service';
+import { MovieService } from '../../services/movie.service';
+import { GenereMovieService } from '../../services/genere-movie.service';
+//importo modelli
+import { Movie } from '../../models/movie.model';
+import { GenereMovie } from '../../models/genere-movie.model';
+
+
+@Component({
+  selector: 'movie-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './movie.page.html'
+})
+
+export class TipologiaSalaPage {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly movieService = inject(MovieService);
+  private readonly genereService = inject(GenereMovieService);
+  //modelli
+  readonly movies = signal<Movie[]>([]);
+  readonly generi = signal<GenereMovie[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+  //form per la creazione di un modello Movie
+  readonly form = this.formBuilder.nonNullable.group({
+    titolo: ['', [Validators.required, Validators.maxLength(100)]],
+    descrizione: ['', [Validators.required, Validators.maxLength(200)]],
+    durataMinuti: [1, [Validators.required, Validators.min(1)]],
+    prezzoMovie: [0.01, [Validators.required, Validators.min(0.01), Validators.max(999999999)]],
+    genereId: ['', [Validators.required]]
+  });
+//il costruttore carica anche i generi  
+//cosicché questi possano essere selezionati nel form
+  constructor() {
+    this.caricaMovies();
+    this.caricaGeneri();
+  }
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //metodo per caricare i movie
+  caricaMovies(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.movieService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.movies.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+      }
+    });
+  }
+  //metodo per caricare i generi
+  caricaGeneri(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.genereService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generi.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'generi non trovati'));
+      }
+    });
+  }
+
+  invia(): void {
+  // Controlla se il form è invalido 
+  // o se l'utente non ha i permessi per modificare
+    if (this.form.invalid || !this.modificabileDa()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Determina se eseguire una update (se modificandoId è presente) o una create
+    // costante con tipo di dato anonimo che rappresenta la richiesta da inviare al servizio
+    // le parentesi servono per restituirci il dato manipolato
+    const request$ = this.modificaId()
+      // operatore ternario che restituisce quello alla sinistra dei : 
+      // se modificandoId è valido, altrimenti restituisce quello alla destra dei :
+      ? this.movieService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.movieService.crea(this.form.getRawValue());
+
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set(this.modificaId() ? 'Film aggiornato.' : 'Film creato.');
+        this.ripristinaForm();
+        this.caricaMovies();//ricarica la lista dei movie per mostrare l'aggiornamento
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Movie): void {
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id);
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ titolo: item.titolo, descrizione: item.descrizione, durataMinuti: item.durataMinuti, prezzoMovie: item.prezzoMovie, genereId: item.genereId });
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  elimina(item: Movie): void {
+    if (!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.movieService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaMovies();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+  //svuota il form della pagina
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ titolo: '', descrizione: '', durataMinuti: 0, prezzoMovie: 0, genereId: '' });
+  }
+  //questo metodo traccia per id un oggetto, questo può essere un movie o un genere
+  tracciaPerId(_: string, item: Movie | GenereMovie): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+### movie.page.html
+Francesco Lorenzi 25/05/2026
+```html
+<section>
+    <h1 class="page-title">Film</h1>
+    <p class="page-subtitle">Gestisci i film disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare film.
+            </div>
+            }
+            <!-- form per lacreazione o la modifica -->
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="titolo">Titolo</label>
+                    <input id="titolo" type="text" formControlName="titolo" [disabled]="!modificabileDa()">
+                    <label for="descrizione">Descrizione</label>
+                    <input id="descrizione" type="text" formControlName="descrizione" [disabled]="!modificabileDa()">
+                    <label for="durataMinuti">Durata (minuti)</label>
+                    <input id="durataMinuti" type="number" formControlName="durataMinuti" [disabled]="!modificabileDa()">
+                    <label for="prezzoMovie">Prezzo (€)</label>
+                    <input id="prezzoMovie" type="number" formControlName="prezzoMovie" [disabled]="!modificabileDa()">
+                    <!-- qua ho inserito un menù a tendina per scegliere il genere -->
+                    <label for="genereId">Genere</label>
+                    <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                        <option value="">Seleziona un genere</option>
+                        @for (genere of generi(); track tracciaPerId($index.toString(), genere)) {
+                        <option [value]="genere.id">{{ genere.genere }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- bottone per la modifica o la creazione -->
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+
 ## MODELS
 
 ### abbonamento
@@ -726,6 +999,31 @@ export interface Movie {
     genere: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un Movie (film)
+export interface MovieCreazione {
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+}
+```
+**vesione1.1**
+
+Francesco Lorenzi
+25/05/2026
+ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
+```ts
+
+export interface Movie {
+    id: string; //la chiave primaria non può essere null
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+    genere: string;
+}
+
 export interface MovieCreazione {
     titolo: string;
     descrizione: string;
