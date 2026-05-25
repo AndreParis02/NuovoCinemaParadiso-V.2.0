@@ -113,12 +113,6 @@ public class OperatoreService
             Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
                 ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
-            if (utente.AbbonamentoId == null)
-                throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-
-            if (utente.Abbonamento == null)
-                throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
-
             DtoBiglietto dto = new DtoBiglietto();
             dto.Id = bigliettoCorrente.Id;
             dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
@@ -145,8 +139,9 @@ public class OperatoreService
 
     public async Task<DtoBiglietto> OttieniBigliettoTramiteIdAsync(string id)
     {
-        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id)
-            ?? throw new NotFoundException("Biglietto", id);
+        Biglietto? biglietto = await _contesto.Biglietti
+          .FirstOrDefaultAsync(b => b.Id == id)
+          ?? throw new NotFoundException("Biglietto", id);
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
             ?? throw new NotFoundException("Proiezione", biglietto.ProiezioneId);
         Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
@@ -159,15 +154,6 @@ public class OperatoreService
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
         Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
             ?? throw new NotFoundException("Turno", proiezione.TurnoId);
-
-        if (utente.AbbonamentoId == null)
-            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-
-        if (utente.Abbonamento == null)
-            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
-
-        if (biglietto == null)
-            throw new NotFoundException("Biglietto", id);
 
         DtoBiglietto dto = new DtoBiglietto();
         dto.Id = biglietto.Id;
@@ -236,7 +222,6 @@ public class OperatoreService
                 risultato.Add(dto);
             }
         }
-
         return risultato;
     }
 

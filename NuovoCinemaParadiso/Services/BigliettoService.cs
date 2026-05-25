@@ -138,70 +138,7 @@ public class BigliettoService
 
         return ("Biglietto creato con successo.", null);
     }
-
-    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
-    {
-        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
-        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
-
-        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
-        if (utente == null) return (null, "Utente non trovato.");
-
-        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
-        if (proiezione == null) return (null, "Proiezione non trovata.");
-
-
-        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        if (sala == null) return (null, "Sala non trovata.");
-        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
-
-        if (proiezione.Id != bigliettoEsistente.ProiezioneId)
-        {
-            if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
-        }
-        else
-        {
-            postiOccupati = postiOccupati - bigliettoEsistente.NumeroBiglietti;
-        }
-        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
-
-        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
-
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        if (movie == null) return (null, "Film non trovato.");
-
-        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
-
-        if (utente.AbbonamentoId == null)
-            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-        if (utente.Abbonamento == null)
-            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
-
-        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
-            return (null, "Saldo insufficiente per acquistare i biglietti.");
-
-        Biglietto biglietto = new Biglietto
-        {
-            UtenteId = utente.Id,
-            ProiezioneId = proiezione.Id,
-            NumeroBiglietti = dto.NumeroBiglietti,
-            OrarioCreazione = DateTimeOffset.UtcNow,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
-        };
-
-        var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
-
-        _contesto.Biglietti.Add(biglietto);
-        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
-        var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente, contoCinema);
-        utente.Saldo = saldi[0];
-        contoCinema.Saldo = saldi[1];
-        await _contesto.SaveChangesAsync();
-
-        return ("Biglietto modificato con successo.", null);
-    }
-
+    
     public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
     {
         var biglietto = await _contesto.Biglietti.FindAsync(id);

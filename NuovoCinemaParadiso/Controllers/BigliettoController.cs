@@ -38,25 +38,6 @@ public class BigliettoController : ControllerBase
         return Ok(risultato);
     }
 
-    [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneBiglietto dto)
-    {
-        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null) return Unauthorized("Utente non autenticato.");
-
-        var (risultato, errore) = await _bigliettoService.ModificaAsync(id, dto);
-
-        if (errore != null) {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", false);
-            if (errore == "Biglietto non trovato.") return NotFound(new { messaggio = errore });
-            return BadRequest(new { messaggio = errore });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica biglietto", true);
-        return Ok(risultato);
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
@@ -72,6 +53,6 @@ public class BigliettoController : ControllerBase
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", true);
-        return NoContent();
+        return Ok(new {message = "Biglietto eliminato con successo"});
     }
 }
