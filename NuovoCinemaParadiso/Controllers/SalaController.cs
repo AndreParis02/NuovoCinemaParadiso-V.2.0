@@ -144,12 +144,6 @@ public class SalaController : ControllerBase
             return Ok(risultato);
         }
 
-        catch (ModificaException ex)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica sala", false);
-            return BadRequest(new { message = ex.Message });
-        }
-
         catch (ItemNotFoundException ex)
         {
 

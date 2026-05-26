@@ -119,22 +119,6 @@ public class SalaService
         throw new NotFoundException("TipologiaSala", dto.TipologiaSalaId);
     }
 
-
-    List<Sala> listaSale = await _contesto.Sale.ToListAsync();
-
-    for (int i = 0; i < listaSale.Count; i++)
-    {
-        Sala salaCorrente = listaSale[i];
-        bool stessoNome = string.Equals(salaCorrente.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
-
-       
-        if (stessoNome)
-        {
-            
-            throw new ModificaException("sala");
-        }
-    }
-
     
     salaEsistente.Nome = dto.Nome;
     salaEsistente.Capienza = dto.Capienza;
