@@ -1880,6 +1880,163 @@ export class GestioneUtenteService {
 
 ## SHARED
 
+### COMPONENTS
+
+### Navbar V1.0
+Utente: Fabio Tammaro
+Data: 26/05/2026
+Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruolo e all'autenticazione. (il nome del branch differisce: Modifiche-dashboard)
+
+### navbar.component.ts
+
+```typescript
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+  private readonly authService = inject(AuthService);
+
+  readonly utente          = this.authService.utenteCorrente;
+  // quando authService cambia il valore delle variabili sottostanti viene ricalcolato
+  // e si aggiorna di conseguenza.
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
+  readonly isUtente        = computed(()=> this.authService.ruoloCorrispondente('Utente'));
+
+  logout(): void {
+    this.authService.logout();
+  }
+}
+```
+
+### navbar.component.html 
+
+```html
+
+<!-- Header ereditato dal css -->
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if(!isAutenticato()){
+    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Film</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
+
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>
+```
+
+
+### navbar.component.css
+
+```css
+/* Contenitore principale della navbar */
+.navbar-shell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.links a {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.links a.active,
+.links a:hover {
+  color: var(--primary);
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.small {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+/* Responsività tablet/mobile*/
+@media (max-width: 900px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+  }
+
+  .user-box {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+```
 ## ENVIRONMENT
 
 

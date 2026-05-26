@@ -12,9 +12,8 @@ import { AuthService } from './../../../services/auth.service';
 export class NavbarComponent {
   private readonly authService = inject(AuthService);
 
-  readonly utente        = this.authService.utenteCorrente;
-  readonly isOperatore     = computed(() => this.authService.ruoloCorrispondente('Operatore'));
-  readonly isAutenticato = computed(() => this.authService.isAutenticato ());
+  readonly utente          = this.authService.utenteCorrente;
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
 
   logout(): void {
     this.authService.logout();

@@ -64,8 +64,8 @@ Greg: Sala
 Marco: Generemovie
 Simeone: LogAzioni
 Francesco: Movie
-Fabio: Giftcard
-Lorenzo:
+Fabio: Dashboard
+Lorenzo: Giftcard
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )
