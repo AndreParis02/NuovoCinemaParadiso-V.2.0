@@ -927,7 +927,8 @@ import { Turno } from '../../models/turno.model';
   templateUrl: './turno.page.html'
 })
 
-export class TurnoPage {
+ export class TurnoPage 
+ {
   //servizi
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
@@ -941,7 +942,7 @@ export class TurnoPage {
   readonly messaggioSuccesso = signal('');
   readonly modificaId = signal<string>('');
 
-// form
+  // form
   readonly form = this.formBuilder.nonNullable.group({
     oraInizio: ['', [Validators.required]],
     oraFine: ['', [Validators.required]],
@@ -976,102 +977,135 @@ export class TurnoPage {
 
   invia(): void {
     // Controlla se il form è invalido 
-  // o se l'utente non ha i permessi per modificare
+    // o se l'utente non ha i permessi per modificare
     if (this.form.invalid || !this.modificabileDa()) {
-### register.page.html v1.0
+    this.isLoading.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
-Utente: Andrea Paris;
-Data: 25-05-2026;
-Descrizione: Creazione pagina register
+    const payload = this.form.getRawValue();
 
-```c#
-<section>
-    <h1 class="page-title">Registrazione</h1>
+    this.authService.registrazione(payload).subscribe({
 
-    <p class="page-subtitle">
-        Il backend assegna automaticamente il ruolo
-        <strong>User</strong>
-        ai nuovi account
-    </p>
+      next: (response) => {
+        this.isLoading.set(false);
+        this.successMessage.set(response.message);
 
-    <div class="card">
+        setTimeout(() => {
+          void this.router.navigate(['/login']);
+        }, 900);
+      },
 
-        @if(successMessage()){
-        <div class="alert alert-success">
-            {{ successMessage() }}
-        </div>
-        }
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.exctractErrorMessage(error));
+      }
+    });
+  }
 
-        @if(errorMessage()){
-        <div class="alert alert-warning">
-            {{ errorMessage() }}
-        </div>
-        }
+  private exctractErrorMessage(error: unknown): string {
 
-        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+    if (error instanceof HttpErrorResponse) {
 
-            <div class="grid grid-2">
+      if (Array.isArray(error.error) && error.error.length > 0) {
+        return error.error
+          .map((item: { description?: string }) =>
+            item.description ?? 'Errore')
+          .join(' | ');
+      }
 
-                <div>
-                    <label for="nomeCompleto">
-                        Nome completo
-                    </label>
+      return error.error?.message ?? 'Registrazione non riuscita';
+    }
 
-                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
-                </div>
-
-                <div>
-                    <label for="eta">
-                        Età
-                    </label>
-
-                    <input id="eta" type="number" formControlName="eta" />
-                </div>
-
-            </div>
-
-            <div class="grid grid-2">
-
-                <div>
-                    <label for="email">
-                        Email
-                    </label>
-
-                    <input id="email" type="email" formControlName="email" />
-                </div>
-
-                <div>
-                    <label for="password">
-                        Password
-                    </label>
-
-                    <input id="password" type="password" formControlName="password" />
-                </div>
-
-            </div>
-
-            <div class="btn-row">
-
-                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
-
-                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
-
-                </button>
-
-                <a class="btn btn-secondary" routerLink="/login">
-
-                    Torna al login
-
-                </a>
-
-            </div>
-
-        </form>
-
-    </div>
-</section>
+    return 'Registrazione non riuscita';
+   }
+ }
+}
 ```
 
+```
+## turno.page.html
+**version1.0**
+
+Francesco Lorenzi 25/05/2026
+
+semplice html per la pagine della gestione dei turni
+```html
+<section>
+    <h1 class="page-title">Turni</h1>
+    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Turni</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (turni().length === 0) {
+            <p class="muted">Nessun turno presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare turni.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="oraInizio">Ora di inizio</label>
+                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
+                    <label for="oraFine">Ora di fine</label>
+                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+
+    
 ### register.page.ts v1.0
 
 Utente: Andrea Paris;
@@ -1215,130 +1249,100 @@ export class RegisterPage {
 }
 
 ```
+### register.page.html v1.0
 
-## turno.page.html
-**version1.0**
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
 
-Francesco Lorenzi 25/05/2026
-
-semplice html per la pagine della gestione dei turni
-```html
+```c#
 <section>
-    <h1 class="page-title">Turni</h1>
-    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+    <h1 class="page-title">Registrazione</h1>
 
-    @if (messaggioErrore()) {
-    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
-    }
+    <p class="page-subtitle">
+        Il backend assegna automaticamente il ruolo
+        <strong>User</strong>
+        ai nuovi account
+    </p>
 
-    @if (messaggioSuccesso()) {
-    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
-    }
+    <div class="card">
 
-    <div class="grid grid-2">
-        <article class="card">
-            <h2>Lista Turni</h2>
+        @if(successMessage()){
+        <div class="alert alert-success">
+            {{ successMessage() }}
+        </div>
+        }
 
-            @if (staCaricando()) {
-            <p class="muted">Caricamento in corso...</p>
-            } @else if (turni().length === 0) {
-            <p class="muted">Nessun turno presente.</p>
-            } @else {
-            <div class="list">
-                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
-                <div class="list-item">
-                    <div>
-                        <strong>{{ item.nome }}</strong>
-                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
-                        <div class="muted">ID: {{ item.id }}</div>
-                    </div>
+        @if(errorMessage()){
+        <div class="alert alert-warning">
+            {{ errorMessage() }}
+        </div>
+        }
 
-                    @if (modificabileDa()) {
-                    <div class="btn-row">
-                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
-                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
-                    </div>
-                    }
-                </div>
-                }
-            </div>
-            }
-        </article>
-        <article class="card">
-            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
 
-            @if (!modificabileDa()) {
-            <div>
-                Il tuo ruolo non ti permette di modificare o eliminare turni.
-            </div>
-            }
-            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+            <div class="grid grid-2">
+
                 <div>
-                    <label for="nome">Nome</label>
-                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
-                    <label for="oraInizio">Ora di inizio</label>
-                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
-                    <label for="oraFine">Ora di fine</label>
-                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                    <label for="nomeCompleto">
+                        Nome completo
+                    </label>
+
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
                 </div>
 
-                <div class="btn-row">
-                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
-                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
-                    </button>
-                    @if (modificaId()) {
-                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
-                    }
+                <div>
+                    <label for="eta">
+                        Età
+                    </label>
+
+                    <input id="eta" type="number" formControlName="eta" />
                 </div>
-            </form>
-        </article>
+
+            </div>
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" />
+                </div>
+
+                <div>
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input id="password" type="password" formControlName="password" />
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+
+                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+
+                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
+
+                </button>
+
+                <a class="btn btn-secondary" routerLink="/login">
+
+                    Torna al login
+
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
 </section>
-
 ```
 
-    this.isLoading.set(true);
-    this.successMessage.set('');
-    this.errorMessage.set('');
-
-    const payload = this.form.getRawValue();
-
-    this.authService.registrazione(payload).subscribe({
-
-      next: (response) => {
-        this.isLoading.set(false);
-        this.successMessage.set(response.message);
-
-        setTimeout(() => {
-          void this.router.navigate(['/login']);
-        }, 900);
-      },
-
-      error: (error: unknown) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(this.exctractErrorMessage(error));
-      }
-    });
-  }
-
-  private exctractErrorMessage(error: unknown): string {
-
-    if (error instanceof HttpErrorResponse) {
-
-      if (Array.isArray(error.error) && error.error.length > 0) {
-        return error.error
-          .map((item: { description?: string }) =>
-            item.description ?? 'Errore')
-          .join(' | ');
-      }
-
-      return error.error?.message ?? 'Registrazione non riuscita';
-    }
-
-    return 'Registrazione non riuscita';
-  }
-}
-```
 
 
 ## MODELS
