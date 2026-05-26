@@ -10,4 +10,5 @@ public class DtoSala
     public int Capienza {get; set;}
     public string TipologiaSalaId {get; set;} = string.Empty;
     public string NomeTipologia {get; set;} = string.Empty;
+    public bool IsDeleted {get; set;} = false;
 }

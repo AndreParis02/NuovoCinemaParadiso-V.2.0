@@ -21,15 +21,15 @@ export class SalaService {
     return this.http.get<Sala>(`${this.baseUrl}/${id}`);
   }
 
-  crea(payload: SalaCreazione): Observable<Sala> {
-    return this.http.post<Sala>(this.baseUrl, payload);
+  crea(payload: SalaCreazione): Observable<string> {
+    return this.http.post(`${this.baseUrl}`, payload, { responseType: 'text' });
   }
-
-  modifica(id: string, payload: SalaCreazione): Observable<Sala> {
-    return this.http.put<Sala>(`${this.baseUrl}/${id}`, payload);
+  
+  modifica(id: string, payload: SalaCreazione): Observable<string> {
+    return this.http.put(`${this.baseUrl}/${id}`, payload, { responseType: 'text' });
   }
 
   elimina(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.put<void>(`${this.baseUrl}/elimina/${id}`, null);
   }
 }

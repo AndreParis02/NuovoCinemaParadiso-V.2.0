@@ -31,7 +31,7 @@ public class SalaService
             dto.Capienza = salaCorrente.Capienza;
             dto.NomeTipologia = tipologiaSala?.Nome ?? "";
             dto.TipologiaSalaId = tipologiaSala?.Id ?? "";
-
+            dto.IsDeleted = salaCorrente.IsDeleted;
             risultato.Add(dto);
         }
         return risultato;
@@ -53,7 +53,9 @@ public class SalaService
             Nome = sala.Nome,
             Capienza = sala.Capienza,
             NomeTipologia = tipologiaSala?.Nome ?? "",
-            TipologiaSalaId = tipologiaSala?.Id ?? ""
+            TipologiaSalaId = tipologiaSala?.Id ?? "",
+            IsDeleted = sala.IsDeleted
+            
         };
         return risultato;
     }
@@ -78,6 +80,7 @@ public class SalaService
                 Capienza = sala.Capienza,
                 TipologiaSalaId = sala.TipologiaSalaId,
                 NomeTipologia = tipologia?.Nome ?? "",
+                IsDeleted = sala.IsDeleted
             };
 
             risultato.Add(dto);
@@ -116,22 +119,6 @@ public class SalaService
         throw new NotFoundException("TipologiaSala", dto.TipologiaSalaId);
     }
 
-
-    List<Sala> listaSale = await _contesto.Sale.ToListAsync();
-
-    for (int i = 0; i < listaSale.Count; i++)
-    {
-        Sala salaCorrente = listaSale[i];
-        bool stessoNome = string.Equals(salaCorrente.Nome, dto.Nome, StringComparison.OrdinalIgnoreCase);
-
-       
-        if (stessoNome)
-        {
-            
-            throw new ModificaException("sala");
-        }
-    }
-
     
     salaEsistente.Nome = dto.Nome;
     salaEsistente.Capienza = dto.Capienza;
@@ -153,7 +140,8 @@ public class SalaService
             return false;
         }
 
-        _contesto.Sale.Remove(sala);
+        sala.IsDeleted = true;
+        //_contesto.Sale.Remove(sala);
         await _contesto.SaveChangesAsync();
 
         return true;

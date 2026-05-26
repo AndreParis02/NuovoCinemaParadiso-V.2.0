@@ -146,17 +146,18 @@ export const routes: Routes = [
         redirectTo: 'dashboard'
     },
 ]
+*/
+{
+    path: 'sala',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
+},
+{
+    path: 'sala',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
+},
 /*
-{
-    path: 'sala',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaDetailPage)
-},
-{
-    path: 'sala',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaListPage)
-},
 {
     path: 'proiezione',
     canActivate: [authGuard],
