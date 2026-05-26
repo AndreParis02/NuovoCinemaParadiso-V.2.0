@@ -12,6 +12,19 @@
 - I nomi dei branch devono riportare la tipologia del file da modificare e il nome (Entità-Azione).
 - Da adesso in poi verranno accettate solo le pull requests con il readme relativo alle modifiche fatte.
 
+# IMPORTANTE
+- Per risolvere i conflitti nel merge della documentazione, stilarla usando i tag come nell'esempio.
+  Tra i tag summary avremo la versione
+
+### nome file
+Utente:
+Data:
+Descrizione: (rimando al nome del branch più descrizione aggiuntiva)
+<details>
+<summary>Versione 1.0</summary>
+ CODICE DEI FILE
+</details>
+
 
 # STABILIRE L'ORDINE DELLE COSE DA FARE!
 
@@ -1173,7 +1186,8 @@ import { Turno } from '../../models/turno.model';
   templateUrl: './turno.page.html'
 })
 
-export class TurnoPage {
+ export class TurnoPage 
+ {
   //servizi
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
@@ -1187,7 +1201,7 @@ export class TurnoPage {
   readonly messaggioSuccesso = signal('');
   readonly modificaId = signal<string>('');
 
-// form
+  // form
   readonly form = this.formBuilder.nonNullable.group({
     oraInizio: ['', [Validators.required]],
     oraFine: ['', [Validators.required]],
@@ -1222,102 +1236,135 @@ export class TurnoPage {
 
   invia(): void {
     // Controlla se il form è invalido 
-  // o se l'utente non ha i permessi per modificare
+    // o se l'utente non ha i permessi per modificare
     if (this.form.invalid || !this.modificabileDa()) {
-### register.page.html v1.0
+    this.isLoading.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
 
-Utente: Andrea Paris;
-Data: 25-05-2026;
-Descrizione: Creazione pagina register
+    const payload = this.form.getRawValue();
 
-```c#
-<section>
-    <h1 class="page-title">Registrazione</h1>
+    this.authService.registrazione(payload).subscribe({
 
-    <p class="page-subtitle">
-        Il backend assegna automaticamente il ruolo
-        <strong>User</strong>
-        ai nuovi account
-    </p>
+      next: (response) => {
+        this.isLoading.set(false);
+        this.successMessage.set(response.message);
 
-    <div class="card">
+        setTimeout(() => {
+          void this.router.navigate(['/login']);
+        }, 900);
+      },
 
-        @if(successMessage()){
-        <div class="alert alert-success">
-            {{ successMessage() }}
-        </div>
-        }
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.exctractErrorMessage(error));
+      }
+    });
+  }
 
-        @if(errorMessage()){
-        <div class="alert alert-warning">
-            {{ errorMessage() }}
-        </div>
-        }
+  private exctractErrorMessage(error: unknown): string {
 
-        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+    if (error instanceof HttpErrorResponse) {
 
-            <div class="grid grid-2">
+      if (Array.isArray(error.error) && error.error.length > 0) {
+        return error.error
+          .map((item: { description?: string }) =>
+            item.description ?? 'Errore')
+          .join(' | ');
+      }
 
-                <div>
-                    <label for="nomeCompleto">
-                        Nome completo
-                    </label>
+      return error.error?.message ?? 'Registrazione non riuscita';
+    }
 
-                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
-                </div>
-
-                <div>
-                    <label for="eta">
-                        Età
-                    </label>
-
-                    <input id="eta" type="number" formControlName="eta" />
-                </div>
-
-            </div>
-
-            <div class="grid grid-2">
-
-                <div>
-                    <label for="email">
-                        Email
-                    </label>
-
-                    <input id="email" type="email" formControlName="email" />
-                </div>
-
-                <div>
-                    <label for="password">
-                        Password
-                    </label>
-
-                    <input id="password" type="password" formControlName="password" />
-                </div>
-
-            </div>
-
-            <div class="btn-row">
-
-                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
-
-                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
-
-                </button>
-
-                <a class="btn btn-secondary" routerLink="/login">
-
-                    Torna al login
-
-                </a>
-
-            </div>
-
-        </form>
-
-    </div>
-</section>
+    return 'Registrazione non riuscita';
+   }
+ }
+}
 ```
 
+```
+## turno.page.html
+**version1.0**
+
+Francesco Lorenzi 25/05/2026
+
+semplice html per la pagine della gestione dei turni
+```html
+<section>
+    <h1 class="page-title">Turni</h1>
+    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Turni</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (turni().length === 0) {
+            <p class="muted">Nessun turno presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare turni.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="oraInizio">Ora di inizio</label>
+                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
+                    <label for="oraFine">Ora di fine</label>
+                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+
+    
 ### register.page.ts v1.0
 
 Utente: Andrea Paris;
@@ -1461,132 +1508,106 @@ export class RegisterPage {
 }
 
 ```
+### register.page.html v1.0
 
 ### turno.page.html
 **version1.0**
 
 Francesco Lorenzi 25/05/2026
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
 
-semplice html per la pagine della gestione dei turni
-```html
+```c#
 <section>
-    <h1 class="page-title">Turni</h1>
-    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+    <h1 class="page-title">Registrazione</h1>
 
-    @if (messaggioErrore()) {
-    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
-    }
+    <p class="page-subtitle">
+        Il backend assegna automaticamente il ruolo
+        <strong>User</strong>
+        ai nuovi account
+    </p>
 
-    @if (messaggioSuccesso()) {
-    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
-    }
+    <div class="card">
 
-    <div class="grid grid-2">
-        <article class="card">
-            <h2>Lista Turni</h2>
+        @if(successMessage()){
+        <div class="alert alert-success">
+            {{ successMessage() }}
+        </div>
+        }
 
-            @if (staCaricando()) {
-            <p class="muted">Caricamento in corso...</p>
-            } @else if (turni().length === 0) {
-            <p class="muted">Nessun turno presente.</p>
-            } @else {
-            <div class="list">
-                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
-                <div class="list-item">
-                    <div>
-                        <strong>{{ item.nome }}</strong>
-                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
-                        <div class="muted">ID: {{ item.id }}</div>
-                    </div>
+        @if(errorMessage()){
+        <div class="alert alert-warning">
+            {{ errorMessage() }}
+        </div>
+        }
 
-                    @if (modificabileDa()) {
-                    <div class="btn-row">
-                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
-                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
-                    </div>
-                    }
-                </div>
-                }
-            </div>
-            }
-        </article>
-        <article class="card">
-            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
 
-            @if (!modificabileDa()) {
-            <div>
-                Il tuo ruolo non ti permette di modificare o eliminare turni.
-            </div>
-            }
-            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+            <div class="grid grid-2">
+
                 <div>
-                    <label for="nome">Nome</label>
-                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
-                    <label for="oraInizio">Ora di inizio</label>
-                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
-                    <label for="oraFine">Ora di fine</label>
-                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                    <label for="nomeCompleto">
+                        Nome completo
+                    </label>
+
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
                 </div>
 
-                <div class="btn-row">
-                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
-                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
-                    </button>
-                    @if (modificaId()) {
-                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
-                    }
+                <div>
+                    <label for="eta">
+                        Età
+                    </label>
+
+                    <input id="eta" type="number" formControlName="eta" />
                 </div>
-            </form>
-        </article>
+
+            </div>
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" />
+                </div>
+
+                <div>
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input id="password" type="password" formControlName="password" />
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+
+                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+
+                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
+
+                </button>
+
+                <a class="btn btn-secondary" routerLink="/login">
+
+                    Torna al login
+
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
 </section>
-
 ```
 
-    this.isLoading.set(true);
-    this.successMessage.set('');
-    this.errorMessage.set('');
 
-    const payload = this.form.getRawValue();
 
-    this.authService.registrazione(payload).subscribe({
-
-      next: (response) => {
-        this.isLoading.set(false);
-        this.successMessage.set(response.message);
-
-        setTimeout(() => {
-          void this.router.navigate(['/login']);
-        }, 900);
-      },
-
-      error: (error: unknown) => {
-        this.isLoading.set(false);
-        this.errorMessage.set(this.exctractErrorMessage(error));
-      }
-    });
-  }
-
-  private exctractErrorMessage(error: unknown): string {
-
-    if (error instanceof HttpErrorResponse) {
-
-      if (Array.isArray(error.error) && error.error.length > 0) {
-        return error.error
-          .map((item: { description?: string }) =>
-            item.description ?? 'Errore')
-          .join(' | ');
-      }
-
-      return error.error?.message ?? 'Registrazione non riuscita';
-    }
-
-    return 'Registrazione non riuscita';
-  }
-}
-```
-
-```
 ## MODELS
 
 ### abbonamento
@@ -2827,8 +2848,10 @@ export class ProiezioneService {
     }
 }
 ```
-
 ### proiezione.service.ts
+
+<details>
+<summary>Versione 1.0</summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2945,6 +2968,8 @@ export class ProiezioneService {
     }
 }
 ```
+</details>
+
 
 ### GestoreService
 ```ts
@@ -3040,6 +3065,177 @@ export class GestioneUtenteService {
 
 ## SHARED
 
+### COMPONENTS
+
+### Navbar V1.0
+Utente: Fabio Tammaro
+Data: 26/05/2026
+Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruolo e all'autenticazione. (il nome del branch differisce: Modifiche-dashboard)
+
+### navbar.component.ts
+
+<details>
+<summary>Versione 1.0</summary>
+
+```typescript
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+  private readonly authService = inject(AuthService);
+
+  readonly utente          = this.authService.utenteCorrente;
+  // quando authService cambia il valore delle variabili sottostanti viene ricalcolato
+  // e si aggiorna di conseguenza.
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
+  readonly isUtente        = computed(()=> this.authService.ruoloCorrispondente('Utente'));
+
+  logout(): void {
+    this.authService.logout();
+  }
+}
+```
+</details>
+
+
+
+### navbar.component.html 
+
+<details>
+<summary>Versione 1.0</summary>
+
+```html
+
+<!-- Header ereditato dal css -->
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if(!isAutenticato()){
+    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Film</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
+
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>
+```
+</details>
+
+
+### navbar.component.css
+
+<details>
+<summary>Versione 1.0</summary>
+
+```css
+/* Contenitore principale della navbar */
+.navbar-shell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.links a {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.links a.active,
+.links a:hover {
+  color: var(--primary);
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.small {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+/* Responsività tablet/mobile*/
+@media (max-width: 900px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+  }
+
+  .user-box {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+```
+</details>
 ## ENVIRONMENT
 
 
