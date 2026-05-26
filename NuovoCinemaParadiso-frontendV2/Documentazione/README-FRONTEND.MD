@@ -634,7 +634,13 @@ non vi è encora un css
 </div>
 ```
 
-### sala.page.ts
+### sala.page.ts (V1.0)
+
+Alessandro Gregorio
+
+26/05/2026
+
+Componente CRUD per la gestione delle sale: carica la lista dal backend, permette a utenti con ruolo Operatore di creare, modificare ed eliminare sale tramite un form reattivo
 
 ```ts
 import { Component, inject, signal } from '@angular/core';
@@ -871,7 +877,13 @@ export class SalaPage {
 
 ```
 
-### sala.page.html
+### sala.page.html (V1.0)
+
+Alessandro Gregorio
+
+25/05/2026
+
+Template della pagina Sale: mostra la lista delle sale e un form reattivo per crearle o modificarle, con messaggi di feedback e controlli visibili solo agli utenti autorizzati.
 
 ```html
 <!-- ===========================

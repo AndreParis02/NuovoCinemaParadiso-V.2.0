@@ -19,7 +19,7 @@ Simeone
 
 ## 12/05/2026
 
-Andrea Bruno: 
+Andrea Bruno:
 Andrea Paris: AuthService (fatto)
 Greg: Giftcard Service (fatto)
 Francesco: AbbonamentoService (fatto)
@@ -31,11 +31,11 @@ Simeone:
 Task 2:
 
 Andrea Paris: UtenteService
-Greg: ProiezioniService
+Greg: ProiezioniService (fatto)
 Francesco: Creare le pagine angular di tipologiaSala (Vedi esempio nel Readme-frontend.md) (fatto)
 Fabio: routes.
 Lorenzo: BigliettoService (fatto)
-Marco: 
+Marco:
 
 task 3:
 
@@ -49,25 +49,25 @@ Marco: creare la pagina angular di sala (vedi esempio nel readme-frontend.md)
 
 Aggiungere modello giftcard collegato a tipologia giftcard ( giftcard attuale )
 
-
 ## 19/05/2026
 
 Greg: Dashboard operatore.
 Fabio: operatore utenti lista.
 Simeone: operatore cambio ruolo.
 
-
-
 ## 25/05/2025
 
-Greg: Sala
+Greg: Sala (fatto)
 Marco: Generemovie
 Simeone: LogAzioni
 Francesco: Movie
 Fabio: Giftcard
 Lorenzo:
+
 ## A fine frontend
+
 ### in corso
+
 Rivedere giftcard ( renderla gestibile dall'utente )
 Un utente può comprare un codice giftcard di valore scelto dall'utente e
 l'utente avrà l'azione riscatta codice giftcard,
