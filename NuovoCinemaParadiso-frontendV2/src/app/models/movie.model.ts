@@ -1,5 +1,5 @@
 export interface Movie {
-    id: string | null;
+    id: string ;
     titolo: string;
     descrizione: string;
     durataMinuti: number;

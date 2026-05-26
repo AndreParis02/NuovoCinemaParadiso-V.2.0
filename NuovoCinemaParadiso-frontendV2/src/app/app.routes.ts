@@ -15,10 +15,16 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage) // load component carica le pagine in lazyloagin nel modello standalone di angular
     },
 
+    
     {
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
+    },
+    {
+        path: 'movie',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage)
     },
     {
         path: 'dashboard',
@@ -91,6 +97,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
     },
+        {
+        path: 'genere-movie',
+        canActivate: [authGuard],
+        loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    },
+    /*
     {
         path: 'tipologia-sala',
         //canActivate: [authGuard],
@@ -122,11 +134,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneListPage)
 },
+*/
 {
     path: 'turno',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoDetailPage)
+    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage)
 },
+/*
 {
     path: 'turno',
     canActivate: [authGuard],

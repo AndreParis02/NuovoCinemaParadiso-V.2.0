@@ -2135,7 +2135,7 @@ public class AuthController : ControllerBase
 
 ```
 
-## BigliettoController.cs
+## BigliettoController.cs V1.0
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -2244,6 +2244,71 @@ public class BigliettoController : ControllerBase
 }
 ```
 
+## BigliettoController.cs V1.1
+
+Andrea Bruno 25-05.2026
+Cancellazione metodo modifica perchè non utilizzato
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class BigliettoController : ControllerBase
+{
+    private readonly BigliettoService _bigliettoService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public BigliettoController(BigliettoService bigliettoService, LogAzioniService logAzioniService)
+    {
+        _bigliettoService = bigliettoService;
+        _logAzioniService = logAzioniService;
+    }
+   
+    [HttpPost]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneBiglietto dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var (risultato, errore) = await _bigliettoService.CreazioneAsync(dto, utenteId);
+
+        if (errore != null) {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", false);
+            if (errore.Contains("non trovat")) return NotFound(new { messaggio = errore });
+            return BadRequest(new { messaggio = errore });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", true);
+        return Ok(risultato);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null) return Unauthorized("Utente non autenticato.");
+
+        var (successo, errore) = await _bigliettoService.EliminazioneAsync(id);
+
+        if (!successo) {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", false);
+            return NotFound(new { messaggio = errore });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina biglietto", true);
+        return Ok(new {message = "Biglietto eliminato con successo"});
+    }
+}
+```
 ## VERSIONE 1.1.1
 
 Utente: Fabio Tammaro
@@ -6662,226 +6727,6 @@ public class BigliettoService
     }
 }
 ```
-## BigliettoServiceV1.3
-Francesco Lorenzi
-22/05/2026
-modificata la funzione Crea per poter creare un biglietto senza abbonamento
-```c#
-using Microsoft.EntityFrameworkCore;
-using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
-using NuovoCinemaParadiso.Helpers;
-using NuovoCinemaParadiso.Exceptions;
-
-namespace NuovoCinemaParadiso.Services;
-
-public class BigliettoService
-{
-    private readonly ContestoDb _contesto;
-
-    public BigliettoService(ContestoDb contesto)
-    {
-        _contesto = contesto;
-
-    }
-
-    public async Task<List<DtoBiglietto>> OttieniTutto()
-    {
-        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
-        for (int i = 0; i < biglietti.Count; i++)
-        {
-            Biglietto bigliettoCorrente = biglietti[i];
-
-            DtoBiglietto dto = new DtoBiglietto();
-            dto.Id = bigliettoCorrente.Id;
-            dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
-            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
-            dto.PrezzoFinale = bigliettoCorrente.PrezzoFinale;
-
-            risultato.Add(dto);
-        }
-        return risultato;
-    }
-
-    public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id)
-    {
-        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id);
-        if (biglietto == null) return (null, "Biglietto non trovato.");
-
-        DtoBiglietto dto = new DtoBiglietto
-        {
-            Id = biglietto.Id,
-            UtenteId = biglietto.UtenteId,
-            ProiezioneId = biglietto.ProiezioneId,
-            OrarioCreazione = biglietto.OrarioCreazione,
-            NumeroBiglietti = biglietto.NumeroBiglietti,
-            PrezzoFinale = biglietto.PrezzoFinale
-        };
-
-        return (dto, null);
-    }
-
-    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string proiezioneId)
-    {
-        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == proiezioneId).ToListAsync();
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
-
-        for (int i = 0; i < biglietti.Count; i++)
-        {
-            Biglietto bigliettoCorrente = biglietti[i];
-            DtoBiglietto dto = new DtoBiglietto
-            {
-                Id = bigliettoCorrente.Id,
-                UtenteId = bigliettoCorrente.UtenteId,
-                ProiezioneId = bigliettoCorrente.ProiezioneId,
-                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
-                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
-                PrezzoFinale = bigliettoCorrente.PrezzoFinale
-            };
-            risultato.Add(dto);
-        }
-        return risultato;
-    }
-
-    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
-    {
-
-        /*controlla che l'utente esista*/
-        var utente = await _contesto.Utenti.FindAsync(utenteId);
-        if (utente == null) return (null, "Utente non trovato.");
-
-        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        if (utente.Abbonamento == null) return (null, "Abbonamento non trovato.");
-
-        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
-        if (proiezione == null) return (null, "Proiezione non trovata.");
-
-        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
-        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        if (sala == null) return (null, "Sala non trovata.");
-        int postiOccupati = await _contesto.Biglietti.Where(b => b.ProiezioneId == dto.ProiezioneId).SumAsync(b => b.NumeroBiglietti);
-        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
-
-        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
-        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
-
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        if (movie == null) return (null, "Film non trovato.");
-
-        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
-
-        if (utente.AbbonamentoId == null)
-            throw new NotFoundException("Abbonamento", "Nessun abbonamento associato all'utente");
-        if (utente.Abbonamento == null)
-            throw new NotFoundException("Abbonamento", utente.AbbonamentoId);
-
-        /*controlla che l'utente abbia un saldo sufficiente*/
-        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
-            return (null, "Saldo insufficiente per acquistare i biglietti.");
-
-        Biglietto biglietto = new Biglietto
-        {
-            UtenteId = utenteId,
-            ProiezioneId = proiezione.Id,
-            NumeroBiglietti = dto.NumeroBiglietti,
-            OrarioCreazione = DateTimeOffset.UtcNow,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
-        };
-
-
-        _contesto.Biglietti.Add(biglietto);
-        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
-        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
-        utente.Saldo = saldi[0];
-        contoCinema.Saldo = saldi[1];
-        await _contesto.SaveChangesAsync();
-
-        return ("Biglietto creato con successo.", null);
-    }
-
-    public async Task<(string? successo, string? Errore)> ModificaAsync(string id, DtoCreazioneBiglietto dto)
-    {
-        var bigliettoEsistente = await _contesto.Biglietti.FindAsync(id);
-        if (bigliettoEsistente == null) return (null, "Biglietto non trovato.");
-
-        var utente = await _contesto.Utenti.FindAsync(bigliettoEsistente.UtenteId);
-        if (utente == null) return (null, "Utente non trovato.");
-
-        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
-        if (proiezione == null) return (null, "Proiezione non trovata.");
-
-
-        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-        if (sala == null) return (null, "Sala non trovata.");
-        
-        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count();
-        if (proiezione.Id != bigliettoEsistente.ProiezioneId)
-        {
-            if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
-        }else
-        {
-             postiOccupati = postiOccupati - bigliettoEsistente.NumeroBiglietti;
-        }
-        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
-
-        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
-
-        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
-        if (movie == null) return (null, "Film non trovato.");
-
-        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
-
-
-        if (utente.Saldo + bigliettoEsistente.PrezzoFinale < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
-            return (null, "Saldo insufficiente per acquistare i biglietti.");
-
-        Biglietto biglietto = new Biglietto
-        {
-            UtenteId = utente.Id,
-            ProiezioneId = proiezione.Id,
-            NumeroBiglietti = dto.NumeroBiglietti,
-            OrarioCreazione = DateTimeOffset.UtcNow,
-            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
-        };
-
-        var differenzaPrezzo = biglietto.PrezzoFinale - bigliettoEsistente.PrezzoFinale;
-
-        _contesto.Biglietti.Add(biglietto);
-        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
-        var saldi = await Calcoli.CalcolaSaldo(differenzaPrezzo, utente, contoCinema);
-        utente.Saldo = saldi[0];
-        contoCinema.Saldo = saldi[1];
-        await _contesto.SaveChangesAsync();
-
-        return ("Biglietto modificato con successo.", null);
-    }
-
-    public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
-    {
-        var biglietto = await _contesto.Biglietti.FindAsync(id);
-        if (biglietto == null) return (false, "Biglietto non trovato.");
-
-        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
-        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
-
-        if (utente == null || contoCinema == null)
-            return (false, "Dati correlati all'biglietto non trovati.");
-        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
-        utente.Saldo = saldi[0];
-        contoCinema.Saldo = saldi[1];
-
-        _contesto.Biglietti.Remove(biglietto);
-        await _contesto.SaveChangesAsync();
-        return (true, null);
-    }
-}
-```
 Aggiornate le chiamate a CalcolaPrezzoFinale
 ```c#
 
@@ -6921,7 +6766,9 @@ Aggiornate le chiamate a CalcolaPrezzoFinale
         return (null, "Saldo insufficiente per acquistare i biglietti.");
     
 ```
-##  BigliettoService.cs V1.2
+
+
+## BigliettoService.cs V1.2
 
 Utente: Marco Strazzeri
 Data: 22/05/2026
@@ -7410,7 +7257,8 @@ public class BigliettoService
     }
 }
 ```
-## BigliettoServiceV1.4
+
+## BigliettoService.cs V1.4
 
 Francesco Lorenzi
 22/05/2026
@@ -7637,6 +7485,175 @@ public class BigliettoService
     }
 }
 ```
+
+## BigliettoService.cs V1.5
+
+Andrea Bruno 25-05-2026
+Cancellazione metodo modifica poichè non utilizzato
+
+```c#
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class BigliettoService
+{
+    private readonly ContestoDb _contesto;
+
+    public BigliettoService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<(DtoBiglietto? Dto, string? Errore)> OttieniTramiteIdAsync(string id)
+    {
+        Biglietto? biglietto = await _contesto.Biglietti.FindAsync(id)
+            ?? throw new Exception("Biglietto non trovato");
+        var proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new Exception("Proiezione non trovato");
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new Exception("Movie non trovato");
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new Exception("Sala non trovato");
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new Exception("TipologiaSala non trovato");
+        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new Exception("Turno non trovato");
+        if (biglietto == null) return (null, "Biglietto non trovato.");
+
+        DtoBiglietto dto = new DtoBiglietto
+        {
+            Id = biglietto.Id,
+            UtenteId = biglietto.UtenteId,
+            ProiezioneId = biglietto.ProiezioneId,
+            OrarioCreazione = biglietto.OrarioCreazione,
+            NumeroBiglietti = biglietto.NumeroBiglietti,
+            PrezzoFinale = biglietto.PrezzoFinale,
+            NomeSala = sala.Nome,
+            TitoloMovie = movie.Titolo,
+            NomeTipologiaSala = tipologiaSala.Nome,
+            OraInizio = turno.OraInizio,
+            DataProiezione = proiezione.DataProiezione,
+        };
+
+        return (dto, null);
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTramiteProiezioneAsync(string id)
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.Where(b => b.ProiezioneId == id).ToListAsync();
+        Biglietto biglietto = new Biglietto();
+        var proiezione = await _contesto.Proiezioni.FindAsync(id)
+            ?? throw new Exception("Proiezione non trovato");
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new Exception("Movie non trovato");
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new Exception("Sala non trovato");
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new Exception("TipologiaSala non trovato");
+        var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new Exception("Turno non trovato");
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            DtoBiglietto dto = new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                UtenteId = bigliettoCorrente.UtenteId,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale,
+                NomeSala = sala.Nome,
+                TitoloMovie = movie.Titolo,
+                NomeTipologiaSala = tipologiaSala.Nome,
+                OraInizio = turno.OraInizio,
+                DataProiezione = proiezione.DataProiezione,
+            };
+            risultato.Add(dto);
+        }
+        return risultato;
+    }
+
+    public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
+    {
+        /*controlla che l'utente esista*/
+        var utente = await _contesto.Utenti.FindAsync(utenteId);
+        if (utente == null) return (null, "Utente non trovato.");
+
+        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+
+        var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
+        if (proiezione == null) return (null, "Proiezione non trovata.");
+
+        /*controlla che ci siano abbastanza posti in sala per il numero di biglietti richiesti*/
+        var sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+        if (sala == null) return (null, "Sala non trovata.");
+
+        //i posti occupati sono definiti tramite il numero di biglietti venduti per quella proiezione, quindi si somma il numero di biglietti di tutti i biglietti venduti per quella proiezione
+        int postiOccupati = (await OttieniTramiteProiezioneAsync(dto.ProiezioneId)).Count;
+        if (postiOccupati + dto.NumeroBiglietti > sala.Capienza) return (null, "Posti insufficienti per la proiezione selezionata.");
+
+        /*controlla che il numero di biglietti sia positivo e non superiore a 100*/
+        if (dto.NumeroBiglietti <= 0 || dto.NumeroBiglietti > 100) return (null, "Il numero di biglietti deve essere compreso tra 1 e 100.");
+
+        var movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+        if (movie == null) return (null, "Film non trovato.");
+
+        var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+        if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
+
+        /*controlla che l'utente abbia un saldo sufficiente*/
+        if (utente.Saldo < Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento))
+            return (null, "Saldo insufficiente per acquistare i biglietti.");
+
+        Biglietto biglietto = new Biglietto
+        {
+            UtenteId = utenteId,
+            ProiezioneId = proiezione.Id,
+            NumeroBiglietti = dto.NumeroBiglietti,
+            OrarioCreazione = DateTimeOffset.UtcNow,
+            PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento)
+        };
+
+        _contesto.Biglietti.Add(biglietto);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+        await _contesto.SaveChangesAsync();
+
+        return ("Biglietto creato con successo.", null);
+    }
+    
+    public async Task<(bool Successo, string? Errore)> EliminazioneAsync(string id)
+    {
+        var biglietto = await _contesto.Biglietti.FindAsync(id);
+        if (biglietto == null) return (false, "Biglietto non trovato.");
+
+        var utente = await _contesto.Utenti.FindAsync(biglietto.UtenteId);
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+
+        if (utente == null || contoCinema == null)
+            return (false, "Dati correlati all'biglietto non trovati.");
+        var saldi = await Calcoli.CalcolaSaldo(-biglietto.PrezzoFinale, utente, contoCinema);
+        utente.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        _contesto.Biglietti.Remove(biglietto);
+        await _contesto.SaveChangesAsync();
+        return (true, null);
+    }
+}
+```
+
 ## VERSIONE 1.1.1
 
 Utente: Fabio Tammaro
@@ -8232,6 +8249,124 @@ public class GestoreService
 }
 ```
 
+## GestoreService.cs V1.2
+
+Andrea Bruno 25-05-2026
+Mpodifica OttieniTuttiBigliettiAsync
+
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GestoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+    public GestoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
+    {
+        List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
+        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
+        foreach (LogAzioni log in logs)
+        {
+            DtoLogAzioni risultato = new DtoLogAzioni
+            {
+                Id = log.Id,
+                IdUtente = log.IdUtente,
+                NomeAzione = log.NomeAzione,
+                Effettuato = log.Effettuato,
+                Messaggio = log.Messaggio,
+                TimeStamp = log.TimeStamp
+            };
+            risultati.Add(risultato);
+        }
+
+        return risultati;
+    }
+
+    public async Task<DtoContoCinema> OttieniDatiContoAsync()
+    {
+        ContoCinema contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Conto Cinema", "");
+
+        DtoContoCinema dto = new DtoContoCinema();
+        dto.Id = contoCinema.Id;
+        dto.Iban = contoCinema.Iban;
+        dto.TitolareConto = contoCinema.TitolareConto;
+        dto.Saldo = contoCinema.Saldo;
+        return dto;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
+    {
+        // Recupera tutti i biglietti dal database.
+        // NOTA: qui vengono caricati solo i dati della tabella Biglietti,
+        // le entità correlate verranno caricate manualmente nel ciclo.
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
+        // Lista che conterrà i DTO finali da restituire al client.
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        // Cicla ogni biglietto trovato nel database.
+        foreach (var bigliettoCorrente in biglietti)
+        {
+            // Carica la Proiezione collegata al biglietto.
+            // Se non esiste, lancia un'eccezione.
+            var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
+                ?? throw new Exception("Proiezione non trovata");
+
+            // Carica il Movie collegato alla Proiezione.
+            var movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+                ?? throw new Exception("Movie non trovato");
+
+            // Carica la Sala collegata alla Proiezione.
+            var sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+                ?? throw new Exception("Sala non trovata");
+
+            // Carica la TipologiaSala collegata alla Sala.
+            var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+                ?? throw new Exception("TipologiaSala non trovata");
+
+            // Carica il Turno collegato alla Proiezione.
+            var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                ?? throw new Exception("Turno non trovato");
+
+            // Mappa i dati raccolti nel DTO da restituire.
+            risultato.Add(new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                UtenteId = bigliettoCorrente.UtenteId,
+                PrezzoFinale = bigliettoCorrente.PrezzoFinale,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+
+                // Dati provenienti dalle entità correlate
+                NomeSala = sala.Nome,
+                TitoloMovie = movie.Titolo,
+                NomeTipologiaSala = tipologiaSala.Nome,
+                OraInizio = turno.OraInizio,
+                DataProiezione = proiezione.DataProiezione
+            });
+        }
+
+        // Restituisce la lista completa dei biglietti mappati.
+        return risultato;
+    }
+
+}
+```
 ## GiftCardService.cs
 
 ```c#
@@ -9889,6 +10024,265 @@ public class OperatoreService
 }
 ```
 
+## OperatoreService.cs V1.2
+
+Andrea Bruno 25-05-2026
+Cambiato da FindAsync a FirstOrDefaultAsync nel metodo OttieniBigliettoTramiteIdAsync per la ricerca del biglietto tramite id
+```c#
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Helpers;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class OperatoreService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+    public OperatoreService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<bool> RicaricaAsync(DtoRicaricaSaldoUtente dtoRicaricaSaldoUtente)
+    {
+        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dtoRicaricaSaldoUtente.Email);
+        if (utente == null)
+            return false;
+        utente.Saldo += dtoRicaricaSaldoUtente.Ricarica;
+        await _gestioneUtenti.UpdateAsync(utente);
+        return true;
+    }
+
+    public async Task<List<DtoUtente>> OttieniUtentiAsync()
+    {
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+
+        List<DtoUtente> risultato = new List<DtoUtente>();
+
+        for (int i = 0; i < utenti.Count; i++)
+        {
+            Utente utenteCorrente = utenti[i];
+
+            Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
+
+            DtoUtente dto = new DtoUtente();
+            dto.Id = utenteCorrente.Id;
+            dto.Email = utenteCorrente.Email ?? string.Empty;
+            dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
+            dto.Eta = utenteCorrente.Eta;
+            dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
+            dto.SeAbbonato = utenteCorrente.SeAbbonato;
+            dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
+            dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<DtoUtente?> OttieniUtenteTramiteIdAsync(string id)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
+            ?? throw new NotFoundException("Utente", id);
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        if (utente == null)
+        {
+            throw new NotFoundException("Utente", id);
+        }
+
+        DtoUtente dto = new DtoUtente();
+        dto.Id = utente.Id;
+        dto.Email = utente.Email ?? string.Empty;
+        dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
+        dto.Eta = utente.Eta;
+        dto.SeAbbonato = utente.SeAbbonato;
+        dto.AbbonamentoId = utente.AbbonamentoId ?? string.Empty;
+        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+
+        return dto;
+    }
+
+    public async Task<bool> EliminaUtentePerIdAsync(string id)
+    {
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+        if (utente == null)
+        {
+            throw new NotFoundException("Utente", id);
+        }
+        IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
+
+        return true;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniBiglietti()
+    {
+        List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
+
+        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
+                ?? throw new NotFoundException("Proiezione", bigliettoCorrente.ProiezioneId);
+            Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+                ?? throw new NotFoundException("Movie", proiezione.MovieId);
+            Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+                ?? throw new NotFoundException("Sala", proiezione.SalaId);
+            Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId)
+                ?? throw new NotFoundException("Utente", bigliettoCorrente.UtenteId);
+            TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+                ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
+            Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+            DtoBiglietto dto = new DtoBiglietto();
+            dto.Id = bigliettoCorrente.Id;
+            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
+            dto.UtenteId = bigliettoCorrente.UtenteId;
+            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
+            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
+            dto.NomeSala = sala.Nome;
+            dto.TitoloMovie = movie.Titolo;
+            dto.NomeTipologiaSala = tipologiaSala.Nome;
+            dto.OraInizio = turno.OraInizio;
+            dto.DataProiezione = proiezione.DataProiezione;
+            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+                tipologiaSala.MaggiorazionePrezzo,
+                bigliettoCorrente.NumeroBiglietti,
+                utente.Abbonamento,
+                utente.DataInizioAbbonamento
+            );
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<DtoBiglietto> OttieniBigliettoTramiteIdAsync(string id)
+    {
+        Biglietto? biglietto = await _contesto.Biglietti
+            .FirstOrDefaultAsync(b => b.Id == id) 
+            // Cerca nel database il primo Biglietto con Id uguale a quello passato.
+            // A differenza di FindAsync, questa query funziona anche se la chiave primaria
+            // dell'entità Biglietto NON è "Id" oppure se EF non riconosce "Id" come PK.
+            // Se non viene trovato alcun biglietto, viene lanciata una NotFoundException.
+            ?? throw new NotFoundException("Biglietto", id);
+        Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(biglietto.ProiezioneId)
+            ?? throw new NotFoundException("Proiezione", biglietto.ProiezioneId);
+        Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
+            ?? throw new NotFoundException("Movie", proiezione.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
+            ?? throw new NotFoundException("Sala", proiezione.SalaId);
+        Utente? utente = await _contesto.Users.FindAsync(biglietto.UtenteId)
+            ?? throw new NotFoundException("Utente", biglietto.UtenteId);
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
+            ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+            ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+        DtoBiglietto dto = new DtoBiglietto();
+        dto.Id = biglietto.Id;
+        dto.UtenteId = biglietto.UtenteId;
+        dto.ProiezioneId = biglietto.ProiezioneId;
+        dto.OrarioCreazione = biglietto.OrarioCreazione;
+        dto.NumeroBiglietti = biglietto.NumeroBiglietti;
+        dto.NomeSala = sala.Nome;
+        dto.TitoloMovie = movie.Titolo;
+        dto.NomeTipologiaSala = tipologiaSala.Nome;
+        dto.OraInizio = turno.OraInizio;
+        dto.DataProiezione = proiezione.DataProiezione;
+        dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
+            tipologiaSala.MaggiorazionePrezzo,
+            biglietto.NumeroBiglietti,
+            utente.Abbonamento,
+            utente.DataInizioAbbonamento
+        );
+
+        return dto;
+    }
+
+    public async Task<List<DtoUtente>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
+    {
+
+        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+
+        Abbonamento? abbonamentoTrovato = null;
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            Abbonamento abbonamentoCorrente = abbonamenti[i];
+
+            if (abbonamentoCorrente.Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamentoCorrente;
+                break;
+            }
+        }
+
+        if (abbonamentoTrovato == null)
+        {
+            return new List<DtoUtente>();
+        }
+
+        List<DtoUtente> risultato = new List<DtoUtente>();
+
+        for (int i = 0; i < utenti.Count; i++)
+        {
+            Utente utenteCorrente = utenti[i];
+            Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
+
+            if (utenteCorrente.Abbonamento == abbonamentoTrovato)
+            {
+                DtoUtente dto = new DtoUtente();
+                dto.Id = utenteCorrente.Id;
+                dto.NomeCompleto = utenteCorrente.NomeCompleto;
+                dto.Email = utenteCorrente.Email ?? string.Empty;
+                dto.Eta = utenteCorrente.Eta;
+                dto.SeAbbonato = utenteCorrente.SeAbbonato;
+                dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
+                dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
+                dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+
+                risultato.Add(dto);
+            }
+        }
+        return risultato;
+    }
+
+    public async Task<bool> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
+    {
+        if (dto.Importo <= 0)
+        {
+            throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
+        }
+
+        /* L'operatore crea la GiftCard "dal nulla", senza scalare un saldo, 
+        perché si presume che il pagamento sia stato gestito in cassa.*/
+        GiftCard nuovaGiftCard = new GiftCard()
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice()
+        };
+
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}
+```
 ## ProiezioneService.cs
 
 ```c#

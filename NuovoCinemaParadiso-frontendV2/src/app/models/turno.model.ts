@@ -1,5 +1,5 @@
 export interface Turno {
-    id: string | null;
+    id: string;
     oraInizio: string;
     oraFine: string;
     nome: string;
