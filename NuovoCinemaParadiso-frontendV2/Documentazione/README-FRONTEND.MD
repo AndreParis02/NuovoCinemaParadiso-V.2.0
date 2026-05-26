@@ -485,7 +485,10 @@ Nel nostro caso la navbar.
 
 ## PAGES
 ### abbonamento.page.ts
-**versione1.0**
+<details>
+
+<summary>versione1.0</summary>
+
 Francesco Lorenzi 26/05/2026
 ```ts
 import { Component, inject, signal } from '@angular/core';
@@ -640,8 +643,12 @@ export class AbbonamentoPage {
   }
 }
 ```
+</details>
+
 ### abbonamento.page.html
-**versione1.0**
+<details>
+<summary>versione1.0</summary>
+
 Francesco Lorenzi 26/05/2026
 
 ```html
@@ -722,7 +729,7 @@ Francesco Lorenzi 26/05/2026
 </section>
 
 ```
-
+</details>
 
 ### tipologia-sala-list.component.ts
 
@@ -1584,6 +1591,11 @@ semplice html per la pagine della gestione dei turni
 
 ### abbonamento
 
+<details>
+<summary>
+versione1.0
+</summary>
+
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -1601,7 +1613,11 @@ export interface AbbonamentoCreazione {
     sconto: number;
 } 
 ```
-**versione1.1**
+</details>
+<details>
+<summary>
+versione1.1
+</summary>
 
 Francesco Lorenzi 26/05/2026
 ```ts
@@ -1621,7 +1637,7 @@ export interface AbbonamentoCreazione {
     sconto: number;
 } 
 ```
-
+</details>
 
 
 ### auth
