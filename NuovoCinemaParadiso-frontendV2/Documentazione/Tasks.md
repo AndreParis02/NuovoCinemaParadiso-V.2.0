@@ -63,16 +63,21 @@ Simeone: operatore cambio ruolo.
 Greg: Sala.
 Marco: Generemovie(fatto).
 Simeone: LogAzioni.
-Francesco: Movie.
+Francesco: Movie.(fatto)
 Fabio: Navbar.
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
-Andrea Paris: Registrazione.
+Andrea Paris: Registrazione. (fatto)
 
 ### Tasks 2
 
-Marco: Turno.
+Francesco: Turno.(fatto)
 
+
+## 26/05/2026
+
+- Marco : biglietto.
+- Francesco: abbonamento. (fatto)
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )

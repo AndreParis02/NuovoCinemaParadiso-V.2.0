@@ -1,28 +1,45 @@
 <header class="navbar-shell">
   <div class="container navbar">
-    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso frontendv2</a>
+    @if(!isAutenticato()){
+    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Film</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
 
     @if (isAutenticato()) {
-      <nav class="links">
-        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-        <a routerLink="/tipologia-sala" routerLinkActive="active">Gestisci tipologie sala</a>
-        @if (isOperatore()) {
-          <a routerLink="/operatore/change-role" routerLinkActive="active">Cambio ruolo</a>
-        }
-      </nav>
-
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
       <div class="user-box">
-        <div>
-          <strong>{{ utente()?.nomeCompleto }}</strong>
-          <div class="muted small">{{ utente()?.email }} - {{ utente()?.ruolo }}</div>
-        </div>
         <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
       </div>
-    } @else {
-      <nav class="links">
-        <a routerLink="/login" routerLinkActive="active">Login</a>
-        <a routerLink="/register" routerLinkActive="active">Registrazione</a>
-      </nav>
-    }
+    </nav>
+
+  }
   </div>
 </header>
