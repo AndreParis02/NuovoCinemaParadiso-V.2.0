@@ -67,12 +67,16 @@ Francesco: Movie.(fatto)
 Fabio: Navbar.
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
-Andrea Paris: Registrazione.
+Andrea Paris: Registrazione. (fatto)
 
 ### Tasks 2
 
 Francesco: Turno.(fatto)
 
+
+## 26/05/2026
+
+- Marco : biglietto.
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )
