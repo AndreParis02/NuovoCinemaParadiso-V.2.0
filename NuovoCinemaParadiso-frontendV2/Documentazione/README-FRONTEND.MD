@@ -486,6 +486,7 @@ Nel nostro caso la navbar.
 ## PAGES
 ### abbonamento.page.ts
 **versione1.0**
+Francesco Lorenzi 26/05/2026
 ```ts
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
