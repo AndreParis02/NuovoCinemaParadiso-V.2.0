@@ -497,6 +497,252 @@ Contiene le schermate vere:
 Nel nostro caso la navbar.
 
 ## PAGES
+### abbonamento.page.ts
+<details>
+
+<summary>versione1.0</summary>
+
+Francesco Lorenzi 26/05/2026
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi
+import { AuthService } from '../../services/auth.service';
+import { AbbonamentoService } from '../../services/abbonamento.service';
+//modelli
+import { Abbonamento } from '../../models/abbonamento.model';
+
+
+@Component({
+  selector: 'abbonamento-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './abbonamento.page.html'
+})
+
+export class AbbonamentoPage {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly abbonamentoService = inject(AbbonamentoService);
+  //modelli
+  readonly abbonamenti = signal<Abbonamento[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+  //form
+  readonly form = this.formBuilder.nonNullable.group({
+    nome: ['', [Validators.required, Validators.maxLength(100)]],
+    durata: [1, [Validators.required, Validators.min(1)]],
+    prezzo: [1, [Validators.required, Validators.min(1), Validators.max(999999999)]],
+    sconto: [0, [Validators.required, Validators.min(0), Validators.max(100)]]
+  });
+  //costruttore, carica la lista degli abbonamenti che posso essere modificati o eliminati
+  constructor() {
+    this.caricaAbbonamenti();
+  }
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //carica la lista degli abbonamenti che posso essere modificati o eliminati
+  caricaAbbonamenti(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.abbonamentoService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.abbonamenti.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'abbonamenti non trovati'));
+      }
+    });
+  }
+  //funzione dei bottoni, modifica o crea
+  invia(): void {
+
+    if (this.form.invalid || !this.modificabileDa()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+
+    const request$ = this.modificaId()
+
+      ? this.abbonamentoService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.abbonamentoService.crea(this.form.getRawValue());
+
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set(this.modificaId() ? 'Abbonamento aggiornato.' : 'Abbonamento creato.');
+        this.ripristinaForm();
+        this.caricaAbbonamenti();
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+  //funzione di modifica
+  inizioModifica(item: Abbonamento): void {
+
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id);
+
+    this.form.patchValue({ nome: item.nome, durata: item.durata, prezzo: item.prezzo, sconto: item.sconto });
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+  //funzione di elimiazione
+  elimina(item: Abbonamento): void {
+    if (!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare l'abbonamento \" ${item.nome}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.abbonamentoService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaAbbonamenti();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+  //ripristino del form
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ nome: '', durata: 1, prezzo: 0.01, sconto: 0 });
+  }
+  //tracci gli abbonamenti er id
+  tracciaPerId(_: string, item: Abbonamento): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+</details>
+
+### abbonamento.page.html
+<details>
+<summary>versione1.0</summary>
+
+Francesco Lorenzi 26/05/2026
+
+```html
+<section>
+    <h1 class="page-title">Abbonamenti</h1>
+    <p class="page-subtitle">Gestisci gli abbonamenti disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Abbonamenti</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (abbonamenti().length === 0) {
+            <p class="muted">Nessun abbonamento presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of abbonamenti(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.durata }} mesi</p>
+                        <p>Prezzo: {{ item.prezzo }} €</p>
+                        <p>Sconto per biglietto: {{ item.sconto }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica abbonamento' : 'Aggiungi abbonamento' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare abbonamenti.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="durata">Durata (mesi)</label>
+                    <input id="durata" type="number" formControlName="durata" [disabled]="!modificabileDa()">
+                    <label for="prezzo">Prezzo (€)</label>
+                    <input id="prezzo" type="number" formControlName="prezzo" [disabled]="!modificabileDa()" step="1">
+                    <label for="sconto">Sconto per biglietto (€)</label>
+                    <input id="sconto" type="number" formControlName="sconto" [disabled]="!modificabileDa()" step="0">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+</details>
 
 ### tipologia-sala-list.component.ts
 
@@ -1264,6 +1510,10 @@ export class RegisterPage {
 ```
 ### register.page.html v1.0
 
+### turno.page.html
+**version1.0**
+
+Francesco Lorenzi 25/05/2026
 Utente: Andrea Paris;
 Data: 25-05-2026;
 Descrizione: Creazione pagina register
@@ -1362,6 +1612,11 @@ Descrizione: Creazione pagina register
 
 ### abbonamento
 
+<details>
+<summary>
+versione1.0
+</summary>
+
 ```ts
 // modello di ritorno che rappresenta un abbonamento
 export interface Abbonamento {
@@ -1379,6 +1634,32 @@ export interface AbbonamentoCreazione {
     sconto: number;
 } 
 ```
+</details>
+<details>
+<summary>
+versione1.1
+</summary>
+
+Francesco Lorenzi 26/05/2026
+```ts
+
+export interface Abbonamento {
+    id: string; //la chiave primaria non può essere null
+    nome: string;
+    durata: number;
+    prezzo: number;
+    sconto: number;
+}
+
+export interface AbbonamentoCreazione {
+    nome: string;
+    durata: number;
+    prezzo: number;
+    sconto: number;
+} 
+```
+</details>
+
 
 ### auth
 

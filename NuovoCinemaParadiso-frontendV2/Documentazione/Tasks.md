@@ -77,6 +77,7 @@ Francesco: Turno.(fatto)
 ## 26/05/2026
 
 - Marco : biglietto.
+- Francesco: abbonamento. (fatto)
 ## A fine frontend
 ### in corso
 Rivedere giftcard ( renderla gestibile dall'utente )

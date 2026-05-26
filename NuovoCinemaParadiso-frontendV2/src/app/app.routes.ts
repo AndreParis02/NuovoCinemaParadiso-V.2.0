@@ -31,6 +31,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage)
     },
+    {
+         path: 'abbonamento',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
+    },
+    /*
       {
         path: 'operatore/change-role',
         canActivate: [authGuard, roleGuard],
