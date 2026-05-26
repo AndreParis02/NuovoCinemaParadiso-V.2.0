@@ -526,6 +526,48 @@ export class TipologiaSalaListComponent implements OnInit {
   }
 }
 ```
+
+### genere-movie.page.html
+
+```html
+<section>
+    <h1 class="page-title">Generi di Film</h1>
+    <p class="page-subtitle"> il backend restituisce la lista generi di film</p>
+
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista generi di film</h2>
+
+            @if(isLoading()){
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(generiMovies().length === 0){
+                <p class="muted"> Nessun genere di film presente</p>
+            } @else{
+                <div class="list">
+                    @for(item of generiMovies(); track item.id) {
+                        <div class="list-item">
+                            <div>
+                                <strong>{{ item.genere }}</strong>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>
+
+```
+
+
 ### tipologia-sala-list.component.html
 componente html template della lista di tipologia-sala
 ```html
@@ -588,6 +630,721 @@ non vi è encora un css
 </div>
 ```
 
+### movie.page.ts
+**versione1.0**
+
+Francesco Lorenzi
+25/05/2026
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//importo servizi
+import { AuthService } from '../../services/auth.service';
+import { MovieService } from '../../services/movie.service';
+import { GenereMovieService } from '../../services/genere-movie.service';
+//importo modelli
+import { Movie } from '../../models/movie.model';
+import { GenereMovie } from '../../models/genere-movie.model';
+
+
+@Component({
+  selector: 'movie-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './movie.page.html'
+})
+
+export class MoviePage {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly movieService = inject(MovieService);
+  private readonly genereService = inject(GenereMovieService);
+  //modelli
+  readonly movies = signal<Movie[]>([]);
+  readonly generi = signal<GenereMovie[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+  //form per la creazione di un modello Movie
+  readonly form = this.formBuilder.nonNullable.group({
+    titolo: ['', [Validators.required, Validators.maxLength(100)]],
+    descrizione: ['', [Validators.required, Validators.maxLength(200)]],
+    durataMinuti: [1, [Validators.required, Validators.min(1)]],
+    prezzoMovie: [0.01, [Validators.required, Validators.min(0.01), Validators.max(999999999)]],
+    genereId: ['', [Validators.required]]
+  });
+//il costruttore carica anche i generi  
+//cosicché questi possano essere selezionati nel form
+  constructor() {
+    this.caricaMovies();
+    this.caricaGeneri();
+  }
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //metodo per caricare i movie
+  caricaMovies(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.movieService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.movies.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+      }
+    });
+  }
+  //metodo per caricare i generi
+  caricaGeneri(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.genereService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generi.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'generi non trovati'));
+      }
+    });
+  }
+
+  invia(): void {
+  // Controlla se il form è invalido 
+  // o se l'utente non ha i permessi per modificare
+    if (this.form.invalid || !this.modificabileDa()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Determina se eseguire una update (se modificandoId è presente) o una create
+    // costante con tipo di dato anonimo che rappresenta la richiesta da inviare al servizio
+    // le parentesi servono per restituirci il dato manipolato
+    const request$ = this.modificaId()
+      // operatore ternario che restituisce quello alla sinistra dei : 
+      // se modificandoId è valido, altrimenti restituisce quello alla destra dei :
+      ? this.movieService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.movieService.crea(this.form.getRawValue());
+
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set(this.modificaId() ? 'Film aggiornato.' : 'Film creato.');
+        this.ripristinaForm();
+        this.caricaMovies();//ricarica la lista dei movie per mostrare l'aggiornamento
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Movie): void {
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id);
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ titolo: item.titolo, descrizione: item.descrizione, durataMinuti: item.durataMinuti, prezzoMovie: item.prezzoMovie, genereId: item.genereId });
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  elimina(item: Movie): void {
+    if (!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.movieService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaMovies();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+  //svuota il form della pagina
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ titolo: '', descrizione: '', durataMinuti: 0, prezzoMovie: 0, genereId: '' });
+  }
+  //questo metodo traccia per id un oggetto, questo può essere un movie o un genere
+  tracciaPerId(_: string, item: Movie | GenereMovie): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+### movie.page.html
+Francesco Lorenzi 25/05/2026
+```html
+<section>
+    <h1 class="page-title">Film</h1>
+    <p class="page-subtitle">Gestisci i film disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare film.
+            </div>
+            }
+            <!-- form per lacreazione o la modifica -->
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="titolo">Titolo</label>
+                    <input id="titolo" type="text" formControlName="titolo" [disabled]="!modificabileDa()">
+                    <label for="descrizione">Descrizione</label>
+                    <input id="descrizione" type="text" formControlName="descrizione" [disabled]="!modificabileDa()">
+                    <label for="durataMinuti">Durata (minuti)</label>
+                    <input id="durataMinuti" type="number" formControlName="durataMinuti" [disabled]="!modificabileDa()">
+                    <label for="prezzoMovie">Prezzo (€)</label>
+                    <input id="prezzoMovie" type="number" formControlName="prezzoMovie" [disabled]="!modificabileDa()">
+                    <!-- qua ho inserito un menù a tendina per scegliere il genere -->
+                    <label for="genereId">Genere</label>
+                    <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                        <option value="">Seleziona un genere</option>
+                        @for (genere of generi(); track tracciaPerId($index.toString(), genere)) {
+                        <option [value]="genere.id">{{ genere.genere }}</option>
+                        }
+                    </select>
+                </div>
+                <!-- bottone per la modifica o la creazione -->
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+
+### turno.page.ts
+**versione1.0**
+
+Francesco Lorenzi 25/05/2026
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi
+import { AuthService } from '../../services/auth.service';
+import { TurnoService } from '../../services/turno.service';
+//modelli
+import { Turno } from '../../models/turno.model';
+
+
+
+@Component({
+  selector: 'turno-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './turno.page.html'
+})
+
+ export class TurnoPage 
+ {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly turnoService = inject(TurnoService);
+  //modelli
+  readonly turni = signal<Turno[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+  // form
+  readonly form = this.formBuilder.nonNullable.group({
+    oraInizio: ['', [Validators.required]],
+    oraFine: ['', [Validators.required]],
+    nome: ['', [Validators.required, Validators.maxLength(100)]]
+  });
+
+  constructor() {
+    this.caricaTurni();
+  }
+
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //carica tutti i turni nel DB
+  caricaTurni(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.turnoService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.turni.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'turni non trovati'));
+      }
+    });
+  }
+
+  invia(): void {
+    // Controlla se il form è invalido 
+    // o se l'utente non ha i permessi per modificare
+    if (this.form.invalid || !this.modificabileDa()) {
+    this.isLoading.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    const payload = this.form.getRawValue();
+
+    this.authService.registrazione(payload).subscribe({
+
+      next: (response) => {
+        this.isLoading.set(false);
+        this.successMessage.set(response.message);
+
+        setTimeout(() => {
+          void this.router.navigate(['/login']);
+        }, 900);
+      },
+
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.exctractErrorMessage(error));
+      }
+    });
+  }
+
+  private exctractErrorMessage(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      if (Array.isArray(error.error) && error.error.length > 0) {
+        return error.error
+          .map((item: { description?: string }) =>
+            item.description ?? 'Errore')
+          .join(' | ');
+      }
+
+      return error.error?.message ?? 'Registrazione non riuscita';
+    }
+
+    return 'Registrazione non riuscita';
+   }
+ }
+}
+```
+
+```
+## turno.page.html
+**version1.0**
+
+Francesco Lorenzi 25/05/2026
+
+semplice html per la pagine della gestione dei turni
+```html
+<section>
+    <h1 class="page-title">Turni</h1>
+    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Turni</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (turni().length === 0) {
+            <p class="muted">Nessun turno presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare turni.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="oraInizio">Ora di inizio</label>
+                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
+                    <label for="oraFine">Ora di fine</label>
+                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
+
+    
+### register.page.ts v1.0
+
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
+
+```c#
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'register-page',
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: './register.page.html'
+})
+export class RegisterPage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly isLoading = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly form = this.fb.group({
+    email: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.email
+    ]),
+
+    password: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.minLength(6)
+    ]),
+
+    nomeCompleto: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.maxLength(100)
+    ]),
+
+    eta: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(1)
+    ])
+  });
+
+  submit(): void {
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Determina se eseguire una update (se modificandoId è presente) o una create
+    // costante con tipo di dato anonimo che rappresenta la richiesta da inviare al servizio
+    // le parentesi servono per restituirci il dato manipolato
+    const request$ = this.modificaId()
+      // operatore ternario che restituisce quello alla sinistra dei : 
+      // se modificandoId è valido, altrimenti restituisce quello alla destra dei :
+      ? this.turnoService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.turnoService.crea(this.form.getRawValue());
+
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set(this.modificaId() ? 'Turno aggiornato.' : 'Turno creato.');
+        this.ripristinaForm();
+        this.caricaTurni();//ricarica la lista dei turni per mostrare l'aggiornamento
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Turno): void {
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id);
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ oraInizio: item.oraInizio, oraFine: item.oraFine, nome: item.nome });
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  elimina(item: Turno): void {
+    if (!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il turno \" ${item.nome}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.turnoService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaTurni();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+  //svuota il form della pagina
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ oraInizio: '', oraFine: '', nome: '' });
+  }
+  //questo metodo traccia per id un oggetto, in questo caso di un turno
+  tracciaPerId(_: string, item: Turno ): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+### register.page.html v1.0
+
+Utente: Andrea Paris;
+Data: 25-05-2026;
+Descrizione: Creazione pagina register
+
+```c#
+<section>
+    <h1 class="page-title">Registrazione</h1>
+
+    <p class="page-subtitle">
+        Il backend assegna automaticamente il ruolo
+        <strong>User</strong>
+        ai nuovi account
+    </p>
+
+    <div class="card">
+
+        @if(successMessage()){
+        <div class="alert alert-success">
+            {{ successMessage() }}
+        </div>
+        }
+
+        @if(errorMessage()){
+        <div class="alert alert-warning">
+            {{ errorMessage() }}
+        </div>
+        }
+
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="nomeCompleto">
+                        Nome completo
+                    </label>
+
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
+                </div>
+
+                <div>
+                    <label for="eta">
+                        Età
+                    </label>
+
+                    <input id="eta" type="number" formControlName="eta" />
+                </div>
+
+            </div>
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" />
+                </div>
+
+                <div>
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input id="password" type="password" formControlName="password" />
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+
+                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+
+                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
+
+                </button>
+
+                <a class="btn btn-secondary" routerLink="/login">
+
+                    Torna al login
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</section>
+```
+
+
+
 ## MODELS
 
 ### abbonamento
@@ -649,7 +1406,7 @@ export interface BigliettoCreazione {
 ```ts
 // modello di ritorno che rappresenta un Genere
 export interface GenereMovie {
-    id: string | null;
+    id: string;
     genere: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un modello Genere
@@ -657,6 +1414,25 @@ export interface GenereMovieCreazione {
     genere: string;
 }
 ```
+
+Utente: Marco Strazzeri(github: FabTam)
+Data: 25/05/2026
+Descrizione: Commentato GenereMovieCreazione perché non creiamo generi
+
+```ts
+// modello di ritorno che rappresenta un Genere
+export interface GenereMovie {
+    id: string | null;
+    genere: string;
+}
+
+/*
+export interface GenereMovieCreazione {
+    genere: string;
+}
+*/
+```
+
 
 ### giftCard
 
@@ -726,6 +1502,31 @@ export interface Movie {
     genere: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un Movie (film)
+export interface MovieCreazione {
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+}
+```
+**vesione1.1**
+
+Francesco Lorenzi
+25/05/2026
+ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
+```ts
+
+export interface Movie {
+    id: string; //la chiave primaria non può essere null
+    titolo: string;
+    descrizione: string;
+    durataMinuti: number;
+    prezzoMovie: number;
+    genereId: string;
+    genere: string;
+}
+
 export interface MovieCreazione {
     titolo: string;
     descrizione: string;
@@ -834,6 +1635,22 @@ export interface Turno {
     nome: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un Turno
+export interface TurnoCreazione {
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+```
+
+**version1.1**
+```ts
+
+export interface Turno {
+    id: string;// la chiave primario non può essere nullabile
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
 export interface TurnoCreazione {
     oraInizio: string;
     oraFine: string;
@@ -1375,6 +2192,76 @@ export class GenereMovieService {
   }
 }
 ```
+
+Utente: Marco Strazzeri(github: FabTam)
+Data: 25/05/2026
+Descrizione: Modificato per gestire il solo caricamento della lista dei generi
+
+```ts
+
+//controllare gli import. nomi classi e file sono differenti per "-"
+import { Component, inject, signal } from '@angular/core';
+//import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { GenereMovieService } from '../../services/genere-movie.service';
+import { GenereMovie } from '../../models/genere-movie.model';
+
+@Component({
+  selector: 'app-genere-movie',
+  imports: [],
+  templateUrl: './genere-movie.page.html',
+  styleUrl: './genere-movie.page.css',
+})
+
+export class GenereMoviePage {
+
+  private readonly authService = inject(AuthService);
+  private readonly genereMovieService = inject(GenereMovieService);
+
+  readonly generiMovies = signal<GenereMovie[]>([]);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+
+  constructor() {
+    this.loadGeneriMovies();
+  }
+
+  //carica la lista dei generi dal backend
+  loadGeneriMovies(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    //chiamata al servizio ottienitutto per ottenere la lista dei generi dei film
+    this.genereMovieService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generiMovies.set(items);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(
+          this.extractErrorMessage(error, 'Impossibile caricare i generi dei film')
+        );
+      }
+    });
+  }
+
+  trackById(_: string, item: GenereMovie): string | null {
+    return item.id
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error?.message ?? fallback;
+    }
+    return fallback
+  }
+}
+
+```
+
 
 
 ### auth.service.ts
