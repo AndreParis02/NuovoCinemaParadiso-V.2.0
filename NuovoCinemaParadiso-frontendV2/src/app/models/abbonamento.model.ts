@@ -1,5 +1,5 @@
 export interface Abbonamento {
-    id: string | null;
+    id: string;
     nome: string;
     durata: number;
     prezzo: number;

@@ -64,6 +64,24 @@ Francesco: Movie
 Fabio: Giftcard
 Lorenzo:
 
+Greg: Sala.
+Marco: Generemovie(fatto).
+Simeone: LogAzioni.
+Francesco: Movie.(fatto)
+Fabio: Navbar.
+Lorenzo: Giftcard.
+Andrea Bruno: Utente.
+Andrea Paris: Registrazione. (fatto)
+
+### Tasks 2
+
+Francesco: Turno.(fatto)
+
+
+## 26/05/2026
+
+- Marco : biglietto.
+- Francesco: abbonamento. (fatto)
 ## A fine frontend
 
 ### in corso

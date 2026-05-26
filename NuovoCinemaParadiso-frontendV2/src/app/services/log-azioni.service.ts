@@ -8,11 +8,8 @@ import { LogAzioni, LogAzioniCreazione } from '../models/logAzioni.model';
 export class LogAzioniService {
 
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/logazioni`;
+  private readonly baseUrl = `${environment.apiBaseUrl}/gestore/logs`;
 
-  salva(payload: LogAzioniCreazione): Observable<void> {
-    return this.http.post<void>(this.baseUrl, payload);
-  }
 
   ottieniTutti(): Observable<LogAzioni[]> {
     return this.http.get<LogAzioni[]>(this.baseUrl);
