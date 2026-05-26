@@ -903,6 +903,81 @@ Francesco Lorenzi 25/05/2026
 
 ```
 
+### turno.page.ts
+**versione1.0**
+
+Francesco Lorenzi 25/05/2026
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi
+import { AuthService } from '../../services/auth.service';
+import { TurnoService } from '../../services/turno.service';
+//modelli
+import { Turno } from '../../models/turno.model';
+
+
+
+@Component({
+  selector: 'turno-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './turno.page.html'
+})
+
+export class TurnoPage {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly turnoService = inject(TurnoService);
+  //modelli
+  readonly turni = signal<Turno[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+// form
+  readonly form = this.formBuilder.nonNullable.group({
+    oraInizio: ['', [Validators.required]],
+    oraFine: ['', [Validators.required]],
+    nome: ['', [Validators.required, Validators.maxLength(100)]]
+  });
+
+  constructor() {
+    this.caricaTurni();
+  }
+
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //carica tutti i turni nel DB
+  caricaTurni(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.turnoService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.turni.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'turni non trovati'));
+      }
+    });
+  }
+
+  invia(): void {
+    // Controlla se il form è invalido 
+  // o se l'utente non ha i permessi per modificare
+    if (this.form.invalid || !this.modificabileDa()) {
 ### register.page.html v1.0
 
 Utente: Andrea Paris;
@@ -1054,6 +1129,173 @@ export class RegisterPage {
       this.form.markAllAsTouched();
       return;
     }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Determina se eseguire una update (se modificandoId è presente) o una create
+    // costante con tipo di dato anonimo che rappresenta la richiesta da inviare al servizio
+    // le parentesi servono per restituirci il dato manipolato
+    const request$ = this.modificaId()
+      // operatore ternario che restituisce quello alla sinistra dei : 
+      // se modificandoId è valido, altrimenti restituisce quello alla destra dei :
+      ? this.turnoService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.turnoService.crea(this.form.getRawValue());
+
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set(this.modificaId() ? 'Turno aggiornato.' : 'Turno creato.');
+        this.ripristinaForm();
+        this.caricaTurni();//ricarica la lista dei turni per mostrare l'aggiornamento
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Turno): void {
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id);
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ oraInizio: item.oraInizio, oraFine: item.oraFine, nome: item.nome });
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  elimina(item: Turno): void {
+    if (!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il turno \" ${item.nome}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.turnoService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaTurni();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+  //svuota il form della pagina
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ oraInizio: '', oraFine: '', nome: '' });
+  }
+  //questo metodo traccia per id un oggetto, in questo caso di un turno
+  tracciaPerId(_: string, item: Turno ): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+
+## turno.page.html
+**version1.0**
+
+Francesco Lorenzi 25/05/2026
+
+semplice html per la pagine della gestione dei turni
+```html
+<section>
+    <h1 class="page-title">Turni</h1>
+    <p class="page-subtitle">Gestisci i turni disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Turni</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (turni().length === 0) {
+            <p class="muted">Nessun turno presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.oraInizio }} - {{ item.oraFine }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica turno' : 'Aggiungi turno' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare turni.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="oraInizio">Ora di inizio</label>
+                    <input id="oraInizio" type="time" formControlName="oraInizio" [disabled]="!modificabileDa()">
+                    <label for="oraFine">Ora di fine</label>
+                    <input id="oraFine" type="time" formControlName="oraFine" [disabled]="!modificabileDa()">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>
+
+```
 
     this.isLoading.set(true);
     this.successMessage.set('');
@@ -1389,6 +1631,22 @@ export interface Turno {
     nome: string;
 }
 // modello di inserimento necessario per la creazione o la modifica di un Turno
+export interface TurnoCreazione {
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
+```
+
+**version1.1**
+```ts
+
+export interface Turno {
+    id: string;// la chiave primario non può essere nullabile
+    oraInizio: string;
+    oraFine: string;
+    nome: string;
+}
 export interface TurnoCreazione {
     oraInizio: string;
     oraFine: string;
