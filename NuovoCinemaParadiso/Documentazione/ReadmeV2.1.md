@@ -12041,7 +12041,7 @@ public class SalaService
 Alessandro Gregorio
 26/05/2026 11:30
 
-
+Rimosso controllo del doppio nome
 
 ```c#
 
