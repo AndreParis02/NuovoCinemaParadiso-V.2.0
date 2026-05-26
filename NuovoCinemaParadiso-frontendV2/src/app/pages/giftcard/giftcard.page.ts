@@ -5,13 +5,12 @@ import { UtenteService } from '../../services/utente.service';
 import { GiftCard } from '../../models/giftCard.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { NgIf, NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'giftcard-page',
     standalone: true,
-    imports: [ReactiveFormsModule, NgIf, NgFor, FormsModule],
+    imports: [ReactiveFormsModule,FormsModule],
     templateUrl: './giftcard.page.html'
 })
 export class GiftCardPage {
@@ -54,7 +53,6 @@ export class GiftCardPage {
         });
     }
 
-    // ⭐ RISCATTO TRAMITE UTENTE SERVICE
     riscatta(): void {
         if (this.form.invalid) return;
 
@@ -78,7 +76,6 @@ export class GiftCardPage {
         });
     }
 
-    // ⭐ CREAZIONE GIFT CARD (usa GiftCardCreazione completo)
     crea(): void {
         if (this.valoreGiftCard <= 0) {
             this.messaggioErrore.set('Inserisci un valore valido.');

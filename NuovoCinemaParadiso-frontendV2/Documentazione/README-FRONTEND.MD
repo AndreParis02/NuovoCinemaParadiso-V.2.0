@@ -588,31 +588,40 @@ non vi è encora un css
 </div>
 ```
 
-### giftcard.component.ts
+### giftcard.page.ts
 
 ```ts
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { GiftCardService } from '../../services/giftcard.service';
 import { UtenteService } from '../../services/utente.service';
 import { GiftCard } from '../../models/giftCard.model';
 import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'giftcard-page',
     standalone: true,
-    imports: [ReactiveFormsModule],
+    imports: [ReactiveFormsModule,FormsModule],
     templateUrl: './giftcard.page.html'
 })
 export class GiftCardPage {
 
     private readonly fb = inject(FormBuilder);
+    private readonly giftCardService = inject(GiftCardService);
     private readonly utenteService = inject(UtenteService);
+    private readonly authService = inject(AuthService);
 
     readonly giftCards = signal<GiftCard[]>([]);
     readonly staCaricando = signal(false);
     readonly staInviando = signal(false);
     readonly messaggioErrore = signal('');
     readonly messaggioSuccesso = signal('');
+
+    readonly ruolo = this.authService.utenteCorrente()?.ruolo ?? '';
+
+    valoreGiftCard = 0;
 
     readonly form = this.fb.nonNullable.group({
         codiceRiscatto: ['', Validators.required]
@@ -625,7 +634,7 @@ export class GiftCardPage {
     caricaGiftCards(): void {
         this.staCaricando.set(true);
 
-        this.utenteService.ottieniGiftCardUtente().subscribe({
+        this.giftCardService.ottieniTutto().subscribe({
             next: (cards) => {
                 this.giftCards.set(cards);
                 this.staCaricando.set(false);
@@ -660,6 +669,48 @@ export class GiftCardPage {
         });
     }
 
+    crea(): void {
+        if (this.valoreGiftCard <= 0) {
+            this.messaggioErrore.set('Inserisci un valore valido.');
+            return;
+        }
+
+        this.staInviando.set(true);
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+
+        const payload = {
+            nome: "Gift Card",
+            valore: this.valoreGiftCard,
+            codiceRiscatto: crypto.randomUUID() // genera un codice univoco
+        };
+
+        this.giftCardService.crea(payload).subscribe({
+            next: () => {
+                this.staInviando.set(false);
+                this.messaggioSuccesso.set('Gift card creata con successo.');
+                this.valoreGiftCard = 0;
+                this.caricaGiftCards();
+            },
+            error: () => {
+                this.staInviando.set(false);
+                this.messaggioErrore.set('Errore nella creazione della gift card.');
+            }
+        });
+    }
+
+    elimina(id: string): void {
+        this.giftCardService.elimina(id).subscribe({
+            next: () => {
+                this.messaggioSuccesso.set('Gift card eliminata.');
+                this.caricaGiftCards();
+            },
+            error: () => {
+                this.messaggioErrore.set('Errore durante l\'eliminazione.');
+            }
+        });
+    }
+
     tracciaPerId(_: number, item: GiftCard): string {
         return item.id ?? '';
     }
@@ -671,61 +722,97 @@ export class GiftCardPage {
         return fallback;
     }
 }
+
 ```
 
-### giftcard.component.html
+### giftcard.page.html
 ```ts
-<section>
-    <h1 class="page-title">Gift Card</h1>
-    <p class="page-subtitle">Inserisci o riscatta una gift card.</p>
+<section class="page-section">
 
-    @if(messaggioErrore()){
-        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
-    }
+  <h1 class="page-title">Le tue Gift Card</h1>
+  <p class="page-subtitle">Gestisci, crea e riscatta le tue gift card personali.</p>
 
-    @if(messaggioSuccesso()){
-        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
-    }
+  <p class="muted" *ngIf="staCaricando()">Caricamento in corso...</p>
 
-    <article class="card">
-        <h2>Riscatta Gift Card</h2>
+  <p class="muted" *ngIf="!staCaricando() && giftCards().length === 0">
+    Nessuna gift card disponibile.
+  </p>
 
-        <form class="form-grid" [formGroup]="form" (ngSubmit)="riscatta()">
-            <div>
-                <label for="codice">Codice Gift Card</label>
-                <input id="codice" type="text" formControlName="codiceRiscatto"/>
-            </div>
+  <div class="grid grid-2" *ngIf="!staCaricando() && giftCards().length > 0">
+    <article
+      class="card"
+      *ngFor="let card of giftCards(); trackBy: tracciaPerId"
+    >
+      <h2>{{ card.nome }}</h2>
+      <p><strong>Valore:</strong> {{ card.valore }}€</p>
+      <p><strong>Codice:</strong> <code>{{ card.codiceRiscatto }}</code></p>
 
-            <div class="btn-row">
-                <button class="btn btn-primary" type="submit" [disabled]="staInviando()">
-                    {{ staInviando() ? "Riscatto..." : "Riscatta" }}
-                </button>
-            </div>
-        </form>
+      <div class="btn-row" *ngIf="ruolo.toLowerCase() === 'operatore'">
+        <button
+          class="btn btn-danger"
+          type="button"
+          (click)="elimina(card.id!)"
+        >
+          Elimina
+        </button>
+      </div>
     </article>
+  </div>
 
-    <article class="card">
-        <h2>Le tue Gift Card</h2>
+  <hr>
 
-        @if(staCaricando()){
-            <p class="muted">Caricamento...</p>
-        } @else if(giftCards().length === 0){
-            <p class="muted">Nessuna gift card trovata.</p>
-        } @else {
-            <div class="list">
-                @for(card of giftCards(); track tracciaPerId($index, card)){
-                    <div class="list-item">
-                        <div>
-                            <strong>{{ card.nome }}</strong>
-                            <div class="muted">Valore: {{ card.valore }} €</div>
-                            <div class="muted">Codice: {{ card.codiceRiscatto }}</div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    </article>
+  <h2>Riscatta Gift Card</h2>
+
+  <form [formGroup]="form" (ngSubmit)="riscatta()" class="form-inline">
+    <input
+      formControlName="codiceRiscatto"
+      placeholder="Codice gift card"
+      class="input"
+    />
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="staInviando()"
+    >
+      Riscatta
+    </button>
+  </form>
+
+  <div class="alert alert-success" *ngIf="messaggioSuccesso()">
+    {{ messaggioSuccesso() }}
+  </div>
+
+  <div class="alert alert-danger" *ngIf="messaggioErrore()">
+    {{ messaggioErrore() }}
+  </div>
+
+  <hr>
+
+  <div *ngIf="ruolo.toLowerCase() === 'utente'">
+    <h2>Crea nuova Gift Card</h2>
+
+    <div class="form-inline">
+      <input
+        type="number"
+        [(ngModel)]="valoreGiftCard"
+        placeholder="Valore (€)"
+        class="input"
+        name="valoreGiftCard"
+      />
+      <button
+        class="btn btn-success"
+        type="button"
+        (click)="crea()"
+      >
+        Crea
+      </button>
+    </div>
+  </div>
+
+  <p class="muted">Ruolo attuale: {{ ruolo }}</p>
+
 </section>
+
 ```
 
 ## MODELS
