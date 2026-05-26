@@ -569,7 +569,9 @@ export class TipologiaSalaListComponent implements OnInit {
 
 
 ### tipologia-sala-list.component.html
+
 componente html template della lista di tipologia-sala
+
 ```html
 <div class="container"><!-- contenitore della lista -->
     <ul>
@@ -582,7 +584,9 @@ componente html template della lista di tipologia-sala
 ```
 
 ### tipologia-sala-detail.componenr.ts
+
 ```ts
+
 /**
  * Componente Angular del modello tipologia-sala in dettaglio
  * questo componente angular sfrutta il servizio relativo per mostrare l'iterazione in dettaglio
@@ -628,6 +632,377 @@ non vi è encora un css
   <div><span>Nome: </span><span>{{ tipologiaSala?.nome }}</span></div>
   <div><span>Maggiorazione Prezzo: </span><span>{{ tipologiaSala?.maggiorazionePrezzo }}€</span></div>
 </div>
+```
+
+### sala.page.ts
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { SalaService } from '../../services/sala.service';
+import { Observable } from 'rxjs';
+import { Sala } from '../../models/sala.model';
+
+@Component({
+  // Tag HTML con cui questo componente viene dichiarato nel router o in altri template
+  selector: 'sala-page',
+  // Componente standalone: non appartiene a nessun NgModule, si autogestisce
+  standalone: true,
+  // ReactiveFormsModule abilita le direttive formGroup, formControlName ecc. nel template
+  imports: [ReactiveFormsModule],
+  templateUrl: './sala.page.html'
+})
+export class SalaPage {
+
+  // ===========================
+  // DIPENDENZE (Dependency Injection)
+  // ===========================
+
+  // FormBuilder: factory per creare FormGroup e FormControl in modo dichiarativo
+  private readonly formBuilder = inject(FormBuilder);
+  // AuthService: usato per verificare il ruolo dell'utente corrente
+  private readonly authService = inject(AuthService);
+  // SalaService: espone le chiamate HTTP per le operazioni CRUD sulle sale
+  private readonly salaService = inject(SalaService);
+
+  // ===========================
+  // STATO REATTIVO (Signals)
+  // Ogni signal, quando aggiornato con .set(), notifica Angular di rirenderizzare
+  // le parti del template che lo leggono, senza bisogno di Change Detection manuale
+  // ===========================
+
+  // Lista delle sale caricate dal backend
+  readonly Sala = signal<Sala[]>([]);
+  // true mentre è in corso la chiamata GET iniziale
+  readonly staCaricando = signal(false);
+  // true mentre è in corso una chiamata POST/PUT
+  readonly staInviando = signal(false);
+  // Messaggio di errore da mostrare all'utente (stringa vuota = nessun errore)
+  readonly messaggioErrore = signal('');
+  // Messaggio di successo da mostrare dopo un'operazione andata a buon fine
+  readonly messaggioSuccesso = signal('');
+  // ID della sala in fase di modifica; stringa vuota = siamo in modalità "crea"
+  readonly modificaId = signal<string>('');
+
+  // ===========================
+  // FORM REATTIVO
+  // nonNullable.group garantisce che reset() ripristini i valori iniziali
+  // e non null/undefined
+  // ===========================
+  readonly form = this.formBuilder.nonNullable.group({
+    // Nome obbligatorio, massimo 100 caratteri
+    nome: ['', [Validators.required, Validators.maxLength(100)]],
+    // Capienza obbligatoria, valore minimo 0
+    capienza: [0, [Validators.required, Validators.min(0)]],
+    // ID della tipologia sala associata, obbligatorio
+    tipologiaSalaId: ['', [Validators.required]]
+  });
+
+  // ===========================
+  // COSTRUTTORE
+  // ===========================
+  constructor() {
+    // Carica subito la lista delle sale all'avvio del componente
+    this.caricaSala();
+
+    // Se l'utente non ha i permessi, disabilita tutti i campi del form
+    // in modo da impedire qualsiasi interazione, anche aggirando i controlli UI
+    if (!this.modificabileDa()) {
+      this.form.disable();
+    }
+  }
+
+  // ===========================
+  // CONTROLLO PERMESSI
+  // Ritorna true solo se l'utente ha il ruolo "Operatore"
+  // Usato sia nel template (visibilità pulsanti) sia nella logica (guardie nei metodi)
+  // ===========================
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  // ===========================
+  // CARICAMENTO LISTA SALE
+  // ===========================
+  caricaSala(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    // ottieniTutto() restituisce un Observable<Sala[]>
+    // subscribe() si "mette in ascolto" della risposta asincrona del server
+    this.salaService.ottieniTutto().subscribe({
+      // next: chiamato quando il server risponde con successo
+      next: (items) => {
+        this.Sala.set(items);         // Aggiorna la lista con i dati ricevuti
+        this.staCaricando.set(false); // Nasconde lo spinner di caricamento
+      },
+      // error: chiamato se la richiesta HTTP fallisce
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Sale non trovate'));
+      }
+    });
+  }
+
+  // ===========================
+  // INVIO FORM (Crea o Modifica)
+  // ===========================
+  invia(): void {
+    // Doppia guardia: form non valido o utente senza permessi → abort
+    if (this.form.invalid || !this.modificabileDa()) {
+      // markAllAsTouched forza la visualizzazione degli errori di validazione nel template
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Scelta dinamica dell'operazione:
+    // - Se modificaId ha un valore → PUT (aggiornamento sala esistente)
+    // - Se modificaId è vuoto   → POST (creazione nuova sala)
+    const request$: Observable<string> = this.modificaId()
+      ? this.salaService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.salaService.crea(this.form.getRawValue());
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        // Messaggio contestuale in base all'operazione appena completata
+        this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
+        this.ripristinaForm(); // Torna in modalità "crea" e svuota i campi
+        this.caricaSala();    // Ricarica la lista per mostrare i dati aggiornati
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  // ===========================
+  // INIZIO MODIFICA
+  // Popola il form con i dati della sala selezionata e attiva la modalità modifica
+  // ===========================
+  inizioModifica(item: Sala): void {
+    // Guardia permessi: esce subito se l'utente non può modificare
+    if (!this.modificabileDa()) return;
+
+    // Salva l'ID della sala in modifica (attiva la modalità "modifica" nel template)
+    this.modificaId.set(item.id!);
+
+    // patchValue aggiorna solo i campi specificati, lasciando invariati gli altri
+    this.form.patchValue({
+      nome: item.nome,
+      capienza: item.capienza,
+      tipologiaSalaId: item.tipologiaSalaId
+    });
+
+    // Pulisce eventuali messaggi residui da operazioni precedenti
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  // ===========================
+  // ELIMINAZIONE SALA
+  // ===========================
+  elimina(item: Sala): void {
+    // Guardia permessi
+    if (!this.modificabileDa()) return;
+
+    // Richiede conferma esplicita all'utente prima di procedere
+    const confirmed = confirm(`Eliminare la sala "${item.nome}"?`);
+    if (!confirmed) return;
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.salaService.elimina(item.id!).subscribe({
+      next: () => {
+        // Se la sala eliminata era quella in modifica, resetta il form
+        // per evitare di lavorare su un'entità che non esiste più
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaSala(); // Aggiorna la lista rimuovendo la sala eliminata
+      },
+      error: (error: unknown) => {
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Eliminazione non riuscita.'));
+      }
+    });
+  }
+
+  // ===========================
+  // RIPRISTINO FORM
+  // Torna alla modalità "crea" svuotando modificaId e resettando i campi
+  // ===========================
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ nome: '', capienza: 0, tipologiaSalaId: '' });
+  }
+
+  // ===========================
+  // FUNZIONE DI TRACKING per @for
+  // Restituisce l'ID univoco di ogni sala così Angular può identificare
+  // quali elementi del DOM aggiornare senza ricreare l'intera lista
+  // Il parametro _ (indice) è ignorato per convenzione
+  // ===========================
+  tracciaPerId(_: string, item: Sala): string {
+    return item.id!;
+  }
+
+  // ===========================
+  // UTILITY: ESTRAZIONE MESSAGGIO DI ERRORE
+  // Controlla se l'errore è una risposta HTTP e tenta di estrarne il messaggio
+  // Se non disponibile, usa il messaggio di fallback fornito dal chiamante
+  // ===========================
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      // L'operatore ?. evita crash se error.error è null/undefined
+      // ?? usa il fallback se message non esiste
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+
+### sala.page.html
+
+```html
+<!-- ===========================
+     SEZIONE PRINCIPALE: SALE
+     Gestione CRUD delle sale (lista + form)
+     =========================== -->
+<section>
+
+  <!-- Titolo e sottotitolo della pagina -->
+  <h1 class="page-title">Sale</h1>
+  <p class="page-subtitle">Gestisci le tue sale</p>
+
+  <!-- Alert di errore: visibile solo se il segnale messaggioErrore() ha un valore -->
+  @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+  }
+
+  <!-- Alert di successo: visibile solo se il segnale messaggioSuccesso() ha un valore -->
+  @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+  }
+
+  <!-- Layout a due colonne: lista sale | form aggiunta/modifica -->
+  <div class="grid grid-2">
+
+    <!-- ===========================
+         CARD SINISTRA: Lista Sale
+         =========================== -->
+    <article class="card">
+      <h2>Lista Sale</h2>
+
+      <!-- Stato di caricamento: mostrato mentre i dati vengono recuperati dal server -->
+      @if (staCaricando()) {
+        <p class="muted">Caricamento in corso...</p>
+
+      <!-- Stato vuoto: nessuna sala presente nel sistema -->
+      } @else if (Sala().length === 0) {
+        <p class="muted">Nessuna Sala presente.</p>
+
+      <!-- Lista sale: iterazione con @for sul segnale Sala() -->
+      } @else {
+        <div class="list">
+
+          <!-- Ogni item rappresenta una singola sala; track per item.id per ottimizzare il rendering -->
+          @for (item of Sala(); track item.id) {
+            <div class="list-item">
+
+              <!-- Dettagli della sala -->
+              <div>
+                <strong>Nome: {{ item.nome }}</strong>
+                <p>Capienza: {{ item.capienza }}</p>
+                <p>Tipologia: {{ item.nomeTipologia }}</p>
+                <p>TipologiaID: {{ item.tipologiaSalaId }}</p>
+                <div class="muted">ID: {{ item.id }}</div>
+              </div>
+
+              <!-- Pulsanti azione: visibili solo se l'utente ha i permessi (modificabileDa()) -->
+              @if (modificabileDa()) {
+                <div class="btn-row">
+                  <!-- Popola il form con i dati della sala selezionata per la modifica -->
+                  <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                  <!-- Elimina la sala dopo conferma -->
+                  <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                </div>
+              }
+
+            </div>
+          }
+
+        </div>
+      }
+    </article>
+
+    <!-- ===========================
+         CARD DESTRA: Form Crea / Modifica
+         Il titolo cambia dinamicamente in base a modificaId()
+         =========================== -->
+    <article class="card">
+      <h2>{{ modificaId() ? 'Modifica Sala' : 'Aggiungi Sala' }}</h2>
+
+      <!-- Messaggio informativo per utenti senza permessi di modifica -->
+      @if (!modificabileDa()) {
+        <div>
+          Il tuo ruolo non ti permette di modificare o eliminare le Sale.
+        </div>
+      }
+
+      <!-- Form reattivo Angular; invia i dati tramite invia() all'ngSubmit -->
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+        <div>
+
+          <!-- Campo: nome della sala -->
+          <label for="nome">Nome Sala</label>
+          <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+
+          <!-- Campo: capienza massima della sala -->
+          <label for="capienza">capienza</label>
+          <input id="capienza" type="number" formControlName="capienza" [disabled]="!modificabileDa()">
+
+          <!-- Campo: ID della tipologia associata alla sala -->
+          <label for="tipologiaSalaId">tipologiaSalaId</label>
+          <input id="tipologiaSalaId" type="text" formControlName="tipologiaSalaId" [disabled]="!modificabileDa()">
+
+        </div>
+
+        <!-- Pulsanti form -->
+        <div class="btn-row">
+
+          <!--
+            Submit: disabilitato durante l'invio o senza permessi.
+            Il testo cambia dinamicamente:
+              - "Salvataggio..." durante l'invio
+              - "Aggiorna" in modalità modifica
+              - "Crea" in modalità creazione
+          -->
+          <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+          </button>
+
+          <!-- Annulla modifica: visibile solo in modalità modifica, ripristina il form allo stato iniziale -->
+          @if (modificaId()) {
+            <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+          }
+
+        </div>
+      </form>
+    </article>
+
+  </div>
+</section>
+
 ```
 
 ## MODELS
@@ -937,7 +1312,9 @@ export interface UtenteModificaRuolo {
 ## SERVICES
 
 ### sala.service.ts
+
 ```ts
+
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http'; // importo dell'http Client
 import { Observable } from 'rxjs';
@@ -981,6 +1358,94 @@ export class SalaService {
     // chiamata http per l'eliminazione di una sala
 
 ```
+
+## sala.service.ts V1.2
+
+Alessandro Gregorio
+
+26/05/2026
+
+Cambiato endpoint per eliminare una sala
+
+```ts
+
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Sala, SalaCreazione } from '../models/sala.model';
+
+// @Injectable({ providedIn: 'root' }) registra il servizio nel dependency injector
+// globale dell'applicazione: esiste una sola istanza condivisa da tutti i componenti
+// che lo iniettano (pattern Singleton)
+@Injectable({ providedIn: 'root' })
+export class SalaService {
+
+  // HttpClient: servizio Angular per effettuare chiamate HTTP
+  private readonly http = inject(HttpClient);
+
+  // URL base per tutti gli endpoint di questo servizio,
+  // costruito concatenando l'indirizzo API definito nell'environment
+  // (cambia automaticamente tra sviluppo e produzione) con il path "/sala"
+  private readonly baseUrl = `${environment.apiBaseUrl}/sala`;
+
+  // ===========================
+  // GET /sala
+  // Recupera la lista completa di tutte le sale
+  // ===========================
+  ottieniTutto(): Observable<Sala[]> {
+    return this.http.get<Sala[]>(this.baseUrl);
+  }
+
+  // ===========================
+  // GET /sala/tipologia/:tipologiaId
+  // Recupera solo le sale che appartengono a una specifica tipologia
+  // utile per filtrare la lista in base al tipo di sala
+  // ===========================
+  ottieniPerTipologia(tipologiaId: string): Observable<Sala[]> {
+    return this.http.get<Sala[]>(`${this.baseUrl}/tipologia/${tipologiaId}`);
+  }
+
+  // ===========================
+  // GET /sala/:id
+  // Recupera una singola sala tramite il suo ID univoco
+  // ===========================
+  ottieniTramiteId(id: string): Observable<Sala> {
+    return this.http.get<Sala>(`${this.baseUrl}/${id}`);
+  }
+
+  // ===========================
+  // POST /sala
+  // Crea una nuova sala inviando i dati nel body della richiesta
+  // responseType: 'text' indica che il backend risponde con una stringa
+  // (es. l'ID della risorsa appena creata) invece di un oggetto JSON
+  // ===========================
+  crea(payload: SalaCreazione): Observable<string> {
+    return this.http.post(`${this.baseUrl}`, payload, { responseType: 'text' });
+  }
+
+  // ===========================
+  // PUT /sala/:id
+  // Aggiorna una sala esistente identificata dall'ID
+  // Il payload contiene i nuovi valori da sovrascrivere
+  // responseType: 'text' come per crea(), il backend risponde con una stringa
+  // ===========================
+  modifica(id: string, payload: SalaCreazione): Observable<string> {
+    return this.http.put(`${this.baseUrl}/${id}`, payload, { responseType: 'text' });
+  }
+
+  // ===========================
+  // PUT /sala/elimina/:id
+  // Esegue un soft delete della sala: usa PUT invece di DELETE
+  // perché il backend marca il record come eliminato senza rimuoverlo fisicamente dal DB
+  // Il body è null perché non servono dati aggiuntivi oltre all'ID nell'URL
+  // ===========================
+  elimina(id: string): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/elimina/${id}`, null);
+  }
+}
+```
+
 ### TipologiaSalaService
 
 ```ts
