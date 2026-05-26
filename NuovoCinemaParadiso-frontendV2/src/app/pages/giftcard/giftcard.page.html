@@ -1,0 +1,85 @@
+<section class="page-section">
+
+  <h1 class="page-title">Le tue Gift Card</h1>
+  <p class="page-subtitle">Gestisci, crea e riscatta le tue gift card personali.</p>
+
+  <p class="muted" *ngIf="staCaricando()">Caricamento in corso...</p>
+
+  <p class="muted" *ngIf="!staCaricando() && giftCards().length === 0">
+    Nessuna gift card disponibile.
+  </p>
+
+  <div class="grid grid-2" *ngIf="!staCaricando() && giftCards().length > 0">
+    <article
+      class="card"
+      *ngFor="let card of giftCards(); trackBy: tracciaPerId"
+    >
+      <h2>{{ card.nome }}</h2>
+      <p><strong>Valore:</strong> {{ card.valore }}€</p>
+      <p><strong>Codice:</strong> <code>{{ card.codiceRiscatto }}</code></p>
+
+      <div class="btn-row" *ngIf="ruolo.toLowerCase() === 'operatore'">
+        <button
+          class="btn btn-danger"
+          type="button"
+          (click)="elimina(card.id!)"
+        >
+          Elimina
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <hr>
+
+  <h2>Riscatta Gift Card</h2>
+
+  <form [formGroup]="form" (ngSubmit)="riscatta()" class="form-inline">
+    <input
+      formControlName="codiceRiscatto"
+      placeholder="Codice gift card"
+      class="input"
+    />
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="staInviando()"
+    >
+      Riscatta
+    </button>
+  </form>
+
+  <div class="alert alert-success" *ngIf="messaggioSuccesso()">
+    {{ messaggioSuccesso() }}
+  </div>
+
+  <div class="alert alert-danger" *ngIf="messaggioErrore()">
+    {{ messaggioErrore() }}
+  </div>
+
+  <hr>
+
+  <div *ngIf="ruolo.toLowerCase() === 'utente'">
+    <h2>Crea nuova Gift Card</h2>
+
+    <div class="form-inline">
+      <input
+        type="number"
+        [(ngModel)]="valoreGiftCard"
+        placeholder="Valore (€)"
+        class="input"
+        name="valoreGiftCard"
+      />
+      <button
+        class="btn btn-success"
+        type="button"
+        (click)="crea()"
+      >
+        Crea
+      </button>
+    </div>
+  </div>
+
+  <p class="muted">Ruolo attuale: {{ ruolo }}</p>
+
+</section>

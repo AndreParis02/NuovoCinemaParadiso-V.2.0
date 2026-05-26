@@ -28,7 +28,7 @@ export class GiftCardService {
         return this.http.put<GiftCard>(`${this.baseUrl}/${id}`, payload);
     }
 
-    elimina(id: number): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/${id}`);
-    }
+    elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+}
 }

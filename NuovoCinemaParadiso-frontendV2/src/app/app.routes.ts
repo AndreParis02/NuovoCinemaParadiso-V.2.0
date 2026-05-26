@@ -67,11 +67,13 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/biglietto/biglietto.page').then((m) => m.BigliettoPage)
     },
+    */
     {
         path: 'giftcard',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/giftcard/giftcard.page').then((m) => m.GiftcardDetailPage)
+        loadComponent: () => import('./pages/giftcard/giftcard.page').then((m) => m.GiftCardPage)
     },
+    /*
     {
         path: 'giftcard',
         canActivate: [authGuard],
