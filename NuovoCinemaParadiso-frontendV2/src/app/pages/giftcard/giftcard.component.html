@@ -1,0 +1,51 @@
+<section>
+    <h1 class="page-title">Gift Card</h1>
+    <p class="page-subtitle">Inserisci o riscatta una gift card.</p>
+
+    @if(messaggioErrore()){
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if(messaggioSuccesso()){
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <article class="card">
+        <h2>Riscatta Gift Card</h2>
+
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="riscatta()">
+            <div>
+                <label for="codice">Codice Gift Card</label>
+                <input id="codice" type="text" formControlName="codiceRiscatto"/>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" type="submit" [disabled]="staInviando()">
+                    {{ staInviando() ? "Riscatto..." : "Riscatta" }}
+                </button>
+            </div>
+        </form>
+    </article>
+
+    <article class="card">
+        <h2>Le tue Gift Card</h2>
+
+        @if(staCaricando()){
+            <p class="muted">Caricamento...</p>
+        } @else if(giftCards().length === 0){
+            <p class="muted">Nessuna gift card trovata.</p>
+        } @else {
+            <div class="list">
+                @for(card of giftCards(); track tracciaPerId($index, card)){
+                    <div class="list-item">
+                        <div>
+                            <strong>{{ card.nome }}</strong>
+                            <div class="muted">Valore: {{ card.valore }} €</div>
+                            <div class="muted">Codice: {{ card.codiceRiscatto }}</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </article>
+</section>

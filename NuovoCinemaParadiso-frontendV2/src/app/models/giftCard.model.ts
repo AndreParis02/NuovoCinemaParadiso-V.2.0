@@ -1,14 +1,16 @@
 export interface GiftCard {
     id: string | null;
     nome: string;
-    durata: number;
-    prezzo: number;
-    numeroMovie: number;
+    valore: number;
+    codiceRiscatto: string;
 }
 
 export interface GiftCardCreazione {
     nome: string;
-    durata: number;
-    prezzo: number;
-    numeroMovie: number;
+    valore: number;
+    codiceRiscatto: string;
+}
+
+export interface RicaricaGiftCard {
+    importo: number;
 }

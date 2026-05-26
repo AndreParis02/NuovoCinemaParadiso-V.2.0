@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Utente, UtenteCreazione } from '../models/utente.model';
+import { GiftCard } from '../models/giftCard.model';
 
 @Injectable({
     providedIn: 'root'
@@ -34,5 +35,14 @@ export class UtenteService {
 
         return this.http.post<Utente>(`${this.baseUrl}/giftcard`,{giftcardId,utenteId});
     }
+
+    ottieniGiftCardUtente(): Observable<GiftCard[]> {
+        return this.http.get<GiftCard[]>(`${this.baseUrl}/giftcard/mie`);
+    }
+
+    riscattaGiftCard(codiceRiscatto: string): Observable<any> {
+    return this.http.post<Utente>(`${this.baseUrl}/giftcard/riscatta`, { codiceRiscatto });
+    }
+
 
 }
