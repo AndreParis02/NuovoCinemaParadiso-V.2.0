@@ -634,7 +634,9 @@ non vi è encora un css
 </div>
 ```
 
-### sala.page.ts (V1.0)
+<details>
+
+<summary> sala.page.ts (V1.0)</summary>
 
 Alessandro Gregorio
 
@@ -874,10 +876,13 @@ export class SalaPage {
     return fallback;
   }
 }
-
 ```
 
-### sala.page.html (V1.0)
+</details>
+
+<details>
+
+<summary> sala.page.html (V1.0)</summary>
 
 Alessandro Gregorio
 
@@ -1016,6 +1021,8 @@ Template della pagina Sale: mostra la lista delle sale e un form reattivo per cr
 </section>
 
 ```
+
+</details>
 
 ## MODELS
 
@@ -1323,7 +1330,9 @@ export interface UtenteModificaRuolo {
 
 ## SERVICES
 
-### sala.service.ts
+<details>
+
+<summary> sala.service.ts (V1.0)</summary>
 
 ```ts
 
@@ -1368,10 +1377,13 @@ export class SalaService {
 
   elimina(id: string): Observable<void> {
     // chiamata http per l'eliminazione di una sala
-
 ```
 
-## sala.service.ts V1.2
+</details>
+
+<details>
+
+<summary>sala.service.ts V1.2</summary>
 
 Alessandro Gregorio
 
@@ -1457,6 +1469,8 @@ export class SalaService {
   }
 }
 ```
+
+</details>
 
 ### TipologiaSalaService
 
