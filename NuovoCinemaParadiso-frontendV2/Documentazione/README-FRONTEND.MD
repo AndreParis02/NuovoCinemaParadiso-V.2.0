@@ -12,6 +12,19 @@
 - I nomi dei branch devono riportare la tipologia del file da modificare e il nome (Entità-Azione).
 - Da adesso in poi verranno accettate solo le pull requests con il readme relativo alle modifiche fatte.
 
+# IMPORTANTE
+- Per risolvere i conflitti nel merge della documentazione, stilarla usando i tag come nell'esempio.
+  Tra i tag summary avremo la versione
+
+### nome file
+Utente:
+Data:
+Descrizione: (rimando al nome del branch più descrizione aggiuntiva)
+<details>
+<summary>Versione 1.0</summary>
+ CODICE DEI FILE
+</details>
+
 
 # STABILIRE L'ORDINE DELLE COSE DA FARE!
 
@@ -1667,8 +1680,10 @@ export class ProiezioneService {
     }
 }
 ```
-
 ### proiezione.service.ts
+
+<details>
+<summary>Versione 1.0</summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -1785,6 +1800,8 @@ export class ProiezioneService {
     }
 }
 ```
+</details>
+
 
 ### GestoreService
 ```ts
@@ -1889,6 +1906,9 @@ Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruo
 
 ### navbar.component.ts
 
+<details>
+<summary>Versione 1.0</summary>
+
 ```typescript
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -1915,8 +1935,14 @@ export class NavbarComponent {
   }
 }
 ```
+</details>
+
+
 
 ### navbar.component.html 
+
+<details>
+<summary>Versione 1.0</summary>
 
 ```html
 
@@ -1968,9 +1994,13 @@ export class NavbarComponent {
   </div>
 </header>
 ```
+</details>
 
 
 ### navbar.component.css
+
+<details>
+<summary>Versione 1.0</summary>
 
 ```css
 /* Contenitore principale della navbar */
@@ -2037,6 +2067,7 @@ export class NavbarComponent {
   }
 }
 ```
+</details>
 ## ENVIRONMENT
 
 
