@@ -2127,7 +2127,7 @@ Francesco Lorenzi
 25/05/2026
 ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
 
-<details><summary>movie.model V1.0 <summary>
+<details><summary>movie.model V1.0 </summary>
 
 ```ts
 export interface Movie {
@@ -2151,7 +2151,7 @@ export interface MovieCreazione {
 </details>
 
 ### proiezione
-<details><summary> proiezione.model V1.0 <summary>
+<details><summary> proiezione.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Proiezione
@@ -2187,7 +2187,7 @@ export interface Registrazione {
 </details>
 
 ### sala
-<details><summary> sala.model V1.0 <summary>
+<details><summary> sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Sala
