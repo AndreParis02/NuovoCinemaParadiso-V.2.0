@@ -97,7 +97,7 @@ OperatorePage: - Andrea B: - lista film
 UtentePage: Greg  -
             Marco -
 
-Documentazione: Fabio.
+Documentazione: Fabio. (FATTO)
 
 ## A fine frontend
 
