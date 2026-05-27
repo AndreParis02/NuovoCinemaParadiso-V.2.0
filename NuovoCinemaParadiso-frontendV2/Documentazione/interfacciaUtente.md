@@ -14,7 +14,7 @@ proiezioni:  che porta ai crud dei proiezioni;
 abbonamenti: che porta ai crud dei abbonamenti;
 profilo: con modifica dati;
 
-- dashboard: Card con Nome opertore, saldo disponibile, visualizzazione del numero di film che se premi ti porta alla pagina film con i crud
+- dashboard: Card con Nome opertore, saldo disponibile, visualizzaizone del numero di film che se premi ti porta alla pagina film con i crud
 
 
 # GESTORE:
@@ -25,7 +25,7 @@ film : visualizzazione dei film con card che espone genere, titolo film, durata 
 proiezioni: visualizzazione Proiezioni;
 abbonamenti: Visaulizzazione Abbonamenti;
 
-- dashboard:visualizzaizone film in sala, numero proiezioni, film recenti? bottone gestione che rimanda ad una pagina di visualizzazione Biglietti venduti e di visualizzazione Log azioni e  visualizzazione dati conto cinema, 
+- dashboard: visualizzazione dati conto cinema, visualizzazione gift card create, visualizzazione Biglietti venduti e visualizzazione Log azioni
 
 # UTENTE:
 
