@@ -3449,7 +3449,7 @@ export class NavbarComponent {
 <header class="navbar-shell">
   <div class="container navbar">
     @if(!isAutenticato()){
-    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
     <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/film">Film</a>
       </div>
