@@ -434,8 +434,9 @@ npm install
 
 per avere la cartella in locale in modo tale che il progetto possa essere, successivamente, avviato.
 
-
 # app.routes
+<details>
+<summary>app.routes</summary>
 
 - Si può limitare una rotta ad un operatore usando la routeguard(diverso dal *@ng if che indica che un blocco
   di codice venga saltato in una determinata condizione).
@@ -584,6 +585,7 @@ Questo è il modo più versatile perchè permette di avere un comportamento fina
 - Utente loggato ma ruolo sbagliato => reindirizzato alla pagina nonAutorizzato.
 - Utente loggato correto => entra nella pagina.
 
+</details>
 ## Creazione dei componenti
 
 # models
@@ -1083,6 +1085,8 @@ Francesco Lorenzi 26/05/2026
 
 ### genere-movie.page.html
 
+<details><summary> genere-movie.page V1.0</summary>
+
 ```html
 <section>
   <h1 class="page-title">Generi di Film</h1>
@@ -1117,6 +1121,7 @@ Francesco Lorenzi 26/05/2026
   </div>
 </section>
 ```
+</details>
 
 ### log-azioni.page.html
 <details>
@@ -1335,16 +1340,16 @@ non vi è encora un css
 </div>
 ```
 
-<details>
 
-<summary> sala.page.ts (V1.0)</summary>
-
+### sala-page.ts
 Alessandro Gregorio
 
 26/05/2026
 
 Componente CRUD per la gestione delle sale: carica la lista dal backend, permette a utenti con ruolo Operatore di creare, modificare ed eliminare sale tramite un form reattivo
-### movie.page.ts
+<details>
+
+<summary> sala.page.ts (V1.0)</summary>
 
 **versione1.0**
 
@@ -1553,11 +1558,159 @@ export class SalaPage {
   }
 }
 ```
+</details>
+Alessandro Gregorio
 
-## movie.page.ts V1.0
+25/05/2026
+
+Template della pagina Sale: mostra la lista delle sale e un form reattivo per crearle o modificarle, con messaggi di feedback e controlli visibili solo agli utenti autorizzati.
+<details>
+
+<summary> sala.page.html (V1.0)</summary>
+
+
+
+```html
+<!-- ===========================
+     SEZIONE PRINCIPALE: SALE
+     Gestione CRUD delle sale (lista + form)
+     =========================== -->
+<section>
+
+  <!-- Titolo e sottotitolo della pagina -->
+  <h1 class="page-title">Sale</h1>
+  <p class="page-subtitle">Gestisci le tue sale</p>
+
+  <!-- Alert di errore: visibile solo se il segnale messaggioErrore() ha un valore -->
+  @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+  }
+
+  <!-- Alert di successo: visibile solo se il segnale messaggioSuccesso() ha un valore -->
+  @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+  }
+
+  <!-- Layout a due colonne: lista sale | form aggiunta/modifica -->
+  <div class="grid grid-2">
+
+    <!-- ===========================
+         CARD SINISTRA: Lista Sale
+         =========================== -->
+    <article class="card">
+      <h2>Lista Sale</h2>
+
+      <!-- Stato di caricamento: mostrato mentre i dati vengono recuperati dal server -->
+      @if (staCaricando()) {
+        <p class="muted">Caricamento in corso...</p>
+
+      <!-- Stato vuoto: nessuna sala presente nel sistema -->
+      } @else if (Sala().length === 0) {
+        <p class="muted">Nessuna Sala presente.</p>
+
+      <!-- Lista sale: iterazione con @for sul segnale Sala() -->
+      } @else {
+        <div class="list">
+
+          <!-- Ogni item rappresenta una singola sala; track per item.id per ottimizzare il rendering -->
+          @for (item of Sala(); track item.id) {
+            <div class="list-item">
+
+              <!-- Dettagli della sala -->
+              <div>
+                <strong>Nome: {{ item.nome }}</strong>
+                <p>Capienza: {{ item.capienza }}</p>
+                <p>Tipologia: {{ item.nomeTipologia }}</p>
+                <p>TipologiaID: {{ item.tipologiaSalaId }}</p>
+                <div class="muted">ID: {{ item.id }}</div>
+              </div>
+
+              <!-- Pulsanti azione: visibili solo se l'utente ha i permessi (modificabileDa()) -->
+              @if (modificabileDa()) {
+                <div class="btn-row">
+                  <!-- Popola il form con i dati della sala selezionata per la modifica -->
+                  <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                  <!-- Elimina la sala dopo conferma -->
+                  <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                </div>
+              }
+
+            </div>
+          }
+
+        </div>
+      }
+    </article>
+
+    <!-- ===========================
+         CARD DESTRA: Form Crea / Modifica
+         Il titolo cambia dinamicamente in base a modificaId()
+         =========================== -->
+    <article class="card">
+      <h2>{{ modificaId() ? 'Modifica Sala' : 'Aggiungi Sala' }}</h2>
+
+      <!-- Messaggio informativo per utenti senza permessi di modifica -->
+      @if (!modificabileDa()) {
+        <div>
+          Il tuo ruolo non ti permette di modificare o eliminare le Sale.
+        </div>
+      }
+
+      <!-- Form reattivo Angular; invia i dati tramite invia() all'ngSubmit -->
+      <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+        <div>
+
+          <!-- Campo: nome della sala -->
+          <label for="nome">Nome Sala</label>
+          <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+
+          <!-- Campo: capienza massima della sala -->
+          <label for="capienza">capienza</label>
+          <input id="capienza" type="number" formControlName="capienza" [disabled]="!modificabileDa()">
+
+          <!-- Campo: ID della tipologia associata alla sala -->
+          <label for="tipologiaSalaId">tipologiaSalaId</label>
+          <input id="tipologiaSalaId" type="text" formControlName="tipologiaSalaId" [disabled]="!modificabileDa()">
+
+        </div>
+
+        <!-- Pulsanti form -->
+        <div class="btn-row">
+
+          <!--
+            Submit: disabilitato durante l'invio o senza permessi.
+            Il testo cambia dinamicamente:
+              - "Salvataggio..." durante l'invio
+              - "Aggiorna" in modalità modifica
+              - "Crea" in modalità creazione
+          -->
+          <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+          </button>
+
+          <!-- Annulla modifica: visibile solo in modalità modifica, ripristina il form allo stato iniziale -->
+          @if (modificaId()) {
+            <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+          }
+
+        </div>
+      </form>
+    </article>
+
+  </div>
+</section>
+
+```
+
+</details>
+
+## movie.page.ts
 Francesco Lorenzi
 Data:25/05/2026
 
+<details>
+
+<summary> movie.page.ts (V1.0)</summary>
 
 ```typescript
 //importo servizi
@@ -1721,7 +1874,8 @@ export class MoviePage {
   // ===========================
   ripristinaForm(): void {
     this.modificaId.set('');
-    this.form.reset({ nome: '', capienza: 0, tipologiaSalaId: '' });
+    this.form.reset({ titolo: '', descrizione: '', durataMinuti: 0, prezzoMovie: 0, genereId: '' });
+
   }
 
   // ===========================
@@ -1752,149 +1906,7 @@ export class MoviePage {
 
 </details>
 
-<details>
 
-<summary> sala.page.html (V1.0)</summary>
-
-Alessandro Gregorio
-
-25/05/2026
-
-Template della pagina Sale: mostra la lista delle sale e un form reattivo per crearle o modificarle, con messaggi di feedback e controlli visibili solo agli utenti autorizzati.
-
-```html
-<!-- ===========================
-     SEZIONE PRINCIPALE: SALE
-     Gestione CRUD delle sale (lista + form)
-     =========================== -->
-<section>
-
-  <!-- Titolo e sottotitolo della pagina -->
-  <h1 class="page-title">Sale</h1>
-  <p class="page-subtitle">Gestisci le tue sale</p>
-
-  <!-- Alert di errore: visibile solo se il segnale messaggioErrore() ha un valore -->
-  @if (messaggioErrore()) {
-    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
-  }
-
-  <!-- Alert di successo: visibile solo se il segnale messaggioSuccesso() ha un valore -->
-  @if (messaggioSuccesso()) {
-    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
-  }
-
-  <!-- Layout a due colonne: lista sale | form aggiunta/modifica -->
-  <div class="grid grid-2">
-
-    <!-- ===========================
-         CARD SINISTRA: Lista Sale
-         =========================== -->
-    <article class="card">
-      <h2>Lista Sale</h2>
-
-      <!-- Stato di caricamento: mostrato mentre i dati vengono recuperati dal server -->
-      @if (staCaricando()) {
-        <p class="muted">Caricamento in corso...</p>
-
-      <!-- Stato vuoto: nessuna sala presente nel sistema -->
-      } @else if (Sala().length === 0) {
-        <p class="muted">Nessuna Sala presente.</p>
-
-      <!-- Lista sale: iterazione con @for sul segnale Sala() -->
-      } @else {
-        <div class="list">
-
-          <!-- Ogni item rappresenta una singola sala; track per item.id per ottimizzare il rendering -->
-          @for (item of Sala(); track item.id) {
-            <div class="list-item">
-
-              <!-- Dettagli della sala -->
-              <div>
-                <strong>Nome: {{ item.nome }}</strong>
-                <p>Capienza: {{ item.capienza }}</p>
-                <p>Tipologia: {{ item.nomeTipologia }}</p>
-                <p>TipologiaID: {{ item.tipologiaSalaId }}</p>
-                <div class="muted">ID: {{ item.id }}</div>
-              </div>
-
-              <!-- Pulsanti azione: visibili solo se l'utente ha i permessi (modificabileDa()) -->
-              @if (modificabileDa()) {
-                <div class="btn-row">
-                  <!-- Popola il form con i dati della sala selezionata per la modifica -->
-                  <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
-                  <!-- Elimina la sala dopo conferma -->
-                  <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
-                </div>
-              }
-
-            </div>
-          }
-
-        </div>
-      }
-    </article>
-
-    <!-- ===========================
-         CARD DESTRA: Form Crea / Modifica
-         Il titolo cambia dinamicamente in base a modificaId()
-         =========================== -->
-    <article class="card">
-      <h2>{{ modificaId() ? 'Modifica Sala' : 'Aggiungi Sala' }}</h2>
-
-      <!-- Messaggio informativo per utenti senza permessi di modifica -->
-      @if (!modificabileDa()) {
-        <div>
-          Il tuo ruolo non ti permette di modificare o eliminare le Sale.
-        </div>
-      }
-
-      <!-- Form reattivo Angular; invia i dati tramite invia() all'ngSubmit -->
-      <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
-        <div>
-
-          <!-- Campo: nome della sala -->
-          <label for="nome">Nome Sala</label>
-          <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
-
-          <!-- Campo: capienza massima della sala -->
-          <label for="capienza">capienza</label>
-          <input id="capienza" type="number" formControlName="capienza" [disabled]="!modificabileDa()">
-
-          <!-- Campo: ID della tipologia associata alla sala -->
-          <label for="tipologiaSalaId">tipologiaSalaId</label>
-          <input id="tipologiaSalaId" type="text" formControlName="tipologiaSalaId" [disabled]="!modificabileDa()">
-
-        </div>
-
-        <!-- Pulsanti form -->
-        <div class="btn-row">
-
-          <!--
-            Submit: disabilitato durante l'invio o senza permessi.
-            Il testo cambia dinamicamente:
-              - "Salvataggio..." durante l'invio
-              - "Aggiorna" in modalità modifica
-              - "Crea" in modalità creazione
-          -->
-          <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
-            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
-          </button>
-
-          <!-- Annulla modifica: visibile solo in modalità modifica, ripristina il form allo stato iniziale -->
-          @if (modificaId()) {
-            <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
-          }
-
-        </div>
-      </form>
-    </article>
-
-  </div>
-</section>
-
-```
-
-</details>
 
 ## MODELS
 
@@ -1950,6 +1962,7 @@ export interface AbbonamentoCreazione {
 
 
 ### auth
+<details><summary> auth.model.ts V1</summary>
 
 ```ts
 // modello per la creazione della sessione dell'utente
@@ -1961,8 +1974,11 @@ export interface Auth {
   ruolo: string;
 }
 ```
+</details>
 
 ### biglietto
+
+<details><summary> biglietto.model.ts V1 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Biglietto
@@ -1982,8 +1998,11 @@ export interface BigliettoCreazione {
   metodoPagamento: string;
 }
 ```
+</details>
 
 ### genere-movie
+
+<details><summary> genere-movie.model V1.0</summary>
 
 ```ts
 // modello di ritorno che rappresenta un Genere
@@ -1996,10 +2015,13 @@ export interface GenereMovieCreazione {
   genere: string;
 }
 ```
+</details>
 
-Utente: Marco Strazzeri(github: FabTam)
+Utente: Marco Strazzeri
 Data: 25/05/2026
-Descrizione: Commentato GenereMovieCreazione perché non creiamo generi
+Descrizione: Rimosso GenereMovieCreazione perché non creiamo generi
+
+<details><summary> genere-movie.model V1.1</summary>
 
 ```ts
 // modello di ritorno che rappresenta un Genere
@@ -2008,14 +2030,12 @@ export interface GenereMovie {
   genere: string;
 }
 
-/*
-export interface GenereMovieCreazione {
-    genere: string;
-}
-*/
 ```
+</details>
 
 ### giftCard
+
+<details><summary> giftcard.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una GiftCard
@@ -2035,8 +2055,11 @@ export interface GiftCardCreazione {
   numeroMovie: number;
 }
 ```
+</details >
 
 ### log azioni
+
+<details><summary> logAzioni.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Log di un'azione di un utente
@@ -2058,8 +2081,10 @@ export interface LogAzioniCreazione {
   timeStamp: string;
 }
 ```
+</details>
 
 ### Login
+<details><summary> login.model V1.0 </summary>
 
 ```ts
 //modello necessario per confermare i dati d'accesso dell'utente e ricevere il token
@@ -2068,8 +2093,10 @@ export interface Login {
   password: string;
 }
 ```
+</details>
 
 ### movie
+<details><summary> movie.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Movie (film)
@@ -2091,12 +2118,16 @@ export interface MovieCreazione {
   genereId: string;
 }
 ```
+</details >
 
-**vesione1.1**
+
+### movie.model V1.0
 
 Francesco Lorenzi
 25/05/2026
 ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
+
+<details><summary>movie.model V1.0 <summary>
 
 ```ts
 export interface Movie {
@@ -2117,8 +2148,10 @@ export interface MovieCreazione {
   genereId: string;
 }
 ```
+</details>
 
 ### proiezione
+<details><summary> proiezione.model V1.0 <summary>
 
 ```ts
 // modello di ritorno che rappresenta una Proiezione
@@ -2137,8 +2170,10 @@ export interface ProiezioneCreazione {
   dataProiezione: Date;
 }
 ```
+</details>
 
 ### registrazione
+<details><summary> registrazione.model V1.0 </summary>
 
 ```ts
 // modello di inserimento necessario per la creazione di un nuovo Utente
@@ -2149,8 +2184,10 @@ export interface Registrazione {
   eta: number;
 }
 ```
+</details>
 
 ### sala
+<details><summary> sala.model V1.0 <summary>
 
 ```ts
 // modello di ritorno che rappresenta una Sala
@@ -2168,8 +2205,10 @@ export interface Sala {
   nomeTipologia: string;
 }
 ```
+</details>
 
 ### sessione-utente
+<details><summary> sessione-utente.model V1.0 </summary>
 
 ```ts
 // modello per la gestione della sessione dell'utente
@@ -2186,8 +2225,10 @@ export interface SessioneUtente {
   possiedeGiftCard: boolean;
 }
 ```
+</details>
 
 ### tipologia-sala
+<details><summary> tipologia-sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Tipologia di una Sala
@@ -2203,8 +2244,10 @@ export interface TipologiaSalaCreazione {
   maggiorazionePrezzo: number;
 }
 ```
+</details>
 
 ### turno
+<details><summary> turno.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Turno
@@ -2221,8 +2264,12 @@ export interface TurnoCreazione {
   nome: string;
 }
 ```
+</details>
 
 **version1.1**
+
+<details><summary> turno.model V1.0 </summary>
+
 ```ts
 
 export interface Turno {
@@ -2237,8 +2284,10 @@ export interface TurnoCreazione {
     nome: string;
 }
 ```
+</details>
 
 ### utente
+<details><summary> utente.model V1.0 </summary>
 
 ```ts
 // Modello di ritrono che rappresenta un Utente
@@ -2269,6 +2318,7 @@ export interface UtenteModificaRuolo {
   nuovoRuolo: string;
 }
 ```
+</details>
 
 ## SERVICES
 
@@ -2415,6 +2465,7 @@ export class SalaService {
 </details>
 
 ### TipologiaSalaService
+<details><summary> tipologia.sala.service.ts V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2497,8 +2548,10 @@ export class TipologiaSalaService {
   }
 }
 ```
+</details>
 
 ### MovieService
+<details><summary> movie.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2539,8 +2592,10 @@ export class MovieService {
   }
 }
 ```
+</details>
 
 ### turno.service.ts
+<details><summary> turno.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2616,8 +2671,10 @@ export class TurnoService {
   }
 }
 ```
+</details>
 
 ### abbonamento.service.ts
+<details><summary> abbonamento.service V1.0 </summary>
 
 ```ts
 /**
@@ -2691,8 +2748,10 @@ export class AbbonamentoService {
   }
 }
 ```
+</details>
 
 ### giftcard.service.ts
+<details><summary> giftcard.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2771,8 +2830,10 @@ export class GiftCardService {
   }
 }
 ```
+</details>
 
 ### genere-movie.service.ts
+<details><summary> genere-movie.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2852,10 +2913,13 @@ export class GenereMovieService {
   }
 }
 ```
+</details>
 
-Utente: Marco Strazzeri(github: FabTam)
+Utente: Marco Strazzeri
 Data: 25/05/2026
 Descrizione: Modificato per gestire il solo caricamento della lista dei generi
+
+<details><summary> genere-movie.service.ts V1.1</summary>
 
 ```ts
 //controllare gli import. nomi classi e file sono differenti per "-"
@@ -2916,8 +2980,10 @@ export class GenereMoviePage {
   }
 }
 ```
+</details>
 
 ### auth.service.ts
+<details><summary> auth.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -3006,8 +3072,10 @@ export class AuthService {
   }
 }
 ```
+</details>
 
 ### log-azioni.service.ts
+<details><summary> log-azioni.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -3086,12 +3154,14 @@ export class LogAzioniService {
   }
 }
 ```
+</details>
 
 ### log-azioni.service.ts Versione 1.1
 
 - Utente: Simeone
 - Data: 26/05/2026
 - Ho eseguito la task di crearci la pagina dedicata
+<details><summary> log-azioni.service V1.1 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -3110,124 +3180,8 @@ export class LogAzioniService {
   }
 }
 ```
+</details>
 
-### proiezione.service.ts
-
-```ts
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
-/**
- * Service Angular dedicato alla gestione delle operazioni CRUD
- * relative all'entità proiezione.
- *
- * Il service comunica con il backend tramite HttpClient
- * utilizzando gli endpoint REST esposti dall'API.
- */
-@Injectable({ providedIn: 'root' })
-export class ProiezioneService {
-  /**
-   * URL base dell'endpoint REST per la gestione
-   * delle proiezioni.
-   */
-  private readonly http = inject(HttpClient);
-  /**
-   * URL base dell'endpoint REST per la gestione
-   *  della proiezione.
-   */
-  private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
-
-  /**
-   * Recupera tutte le proiezioni visibili presenti nel sistema.
-   *
-   * @returns Observable contenente un array di proiezioni.
-   */
-  ottieniTutto(): Observable<Proiezione[]> {
-    return this.http.get<Proiezione[]>(this.baseUrl);
-  }
-
-  /**
-   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
-   *
-   * @returns Observable contenente un array di proiezioni.
-   */
-  ottieniTuttoStorico(): Observable<Proiezione[]> {
-    return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo GUID.
-   *
-   * @param id Identificativo univoco della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo del movie(film) collegato GUID.
-   *
-   * @param id Identificativo univoco del movie.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteMovieId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo della sala collegata GUID.
-   *
-   * @param id Identificativo univoco della sala.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteSalaId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo del turno collegato GUID.
-   *
-   * @param id Identificativo univoco del turno.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteTurnoId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
-  }
-
-  /**
-   * crea una nuova proiezione utilizzando un payload.
-   *
-   * @param payload modello di richiesta per creazione della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  crea(payload: ProiezioneCreazione): Observable<Proiezione> {
-    return this.http.post<Proiezione>(this.baseUrl, payload);
-  }
-
-  /**
-   * Modifica una specifica proiezione tramite identificativo GUID con le informazioni all'interno di un payload.
-   *
-   * @param id Identificativo univoco della proiezione.
-   * @param payload modello di richiesta per la modifica della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
-    return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
-  }
-
-  /**
-   * Elimina una specifica proiezione tramite identificativo GUID.
-   *
-   * @param id Identificativo univoco della proiezione.
-   */
-  elimina(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
-  }
-}
-```
 ### proiezione.service.ts
 
 <details>
@@ -3352,6 +3306,7 @@ export class ProiezioneService {
 
 
 ### GestoreService
+<details><summary> gestore.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -3409,8 +3364,10 @@ export class GestoreService {
   }
 }
 ```
+</details>
 
 ### GestioneUtenteService
+<details><summary> gestione-utente.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -3431,6 +3388,7 @@ export class GestioneUtenteService {
   }
 }
 ```
+</details>
 
 ## GUARDS
 
