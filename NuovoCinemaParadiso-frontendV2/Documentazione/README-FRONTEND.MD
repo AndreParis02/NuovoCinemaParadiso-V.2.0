@@ -3410,7 +3410,11 @@ export class NavbarComponent {
     @if(!isAutenticato()){
     <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
     <div class="btn-row">
-      <a class="btn btn-secondary" routerLink="/film">Film</a>
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
     </div>
 
     <nav class="links">

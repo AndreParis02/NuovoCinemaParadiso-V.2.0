@@ -90,9 +90,12 @@ Divisione in gruppi per ruolo:
 
 GestorePage: Simeone 
 
-OperatorePage: Andrea P, Andra B, Lorenzo.
+OperatorePage: - Andrea B: - lista film
+               - Andrea P: - cambio ruolo
+               - Lorenzo:  - lista turni.
 
-UtentePage: Greg, Marco.
+UtentePage: Greg  -
+            Marco -
 
 Documentazione: Fabio.
 
