@@ -14,7 +14,7 @@ proiezioni:  che porta ai crud dei proiezioni;
 abbonamenti: che porta ai crud dei abbonamenti;
 profilo: con modifica dati;
 
-- dashboard: Card con Nome opertore, saldo disponibile, visualizzazione del numero di film che se premi ti porta alla pagina film con i crud
+- dashboard: Card con Nome opertore, saldo disponibile, visualizzaizone del numero di film che se premi ti porta alla pagina film con i crud
 
 
 # GESTORE:
