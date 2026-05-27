@@ -82,6 +82,20 @@ Francesco: Turno.(fatto)
 
 - Marco :
 - Francesco: abbonamento. (fatto)
+
+
+### Tasks 3
+
+Divisione in gruppi per ruolo:
+
+GestorePage: Simeone 
+
+OperatorePage: Andrea P, Andra B, Lorenzo.
+
+UtentePage: Greg, Marco.
+
+Documentazione: Fabio.
+
 ## A fine frontend
 
 ### in corso
