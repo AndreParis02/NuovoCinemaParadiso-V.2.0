@@ -12,15 +12,13 @@ export const routes: Routes = [
   {
     path: 'login',
     canActivate: [guestGuard],
-    loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage), // load component carica le pagine in lazyloagin nel modello standalone di angular
+    loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
   },
-  /*
-    {
+  {
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
-    },
-     */
+  },
   {
     path: 'movie',
     canActivate: [authGuard],
@@ -29,6 +27,9 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     canActivate: [authGuard],
+    data:{
+        roles:['Operatore']
+    },
     loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
   },
   {
@@ -36,7 +37,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
   },
-  /*
+  
     {
         path: 'movie',
         canActivate: [authGuard],
@@ -52,8 +53,8 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
     },
-    /*
-      {
+    
+    {
         path: 'operatore/change-role',
         canActivate: [authGuard, roleGuard],
         data: { roles: ['gestore'] },

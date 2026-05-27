@@ -26,7 +26,7 @@ export class UtenteService {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
     }
 
-    biglietti(utenteId: string)
+   /* biglietti(utenteId: string)*/
 
     abbonati(abbonamentoId: string, utenteId: string): Observable<Utente> {
 

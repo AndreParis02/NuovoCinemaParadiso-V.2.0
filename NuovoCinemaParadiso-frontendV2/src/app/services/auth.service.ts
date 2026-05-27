@@ -9,6 +9,7 @@ import { Auth } from '../models/auth.model';
 import { Login } from '../models/login.model';
 import { Registrazione } from '../models/registrazione.model';
 import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
 
 @Injectable({
   providedIn: 'root',
@@ -43,9 +44,9 @@ export class AuthService {
     return this.utenteCorrente() !== null;
   }
 
-  possiedeQualsiasiRuolo(ruoli: string[]): boolean {
-    const ruolo = this.utenteCorrente()?.ruolo ?? "";
-    return ruoli.includes(ruolo);
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
   }
 
   ruoloCorrispondente(ruolo: string): boolean {
@@ -57,6 +58,14 @@ export class AuthService {
     return this.utenteCorrente()?.token ?? null;
   }
 
+  ottieniRuoloUtente(): RuoliUtente | null{
+    const ruolo = localStorage.getItem('ruolo');
+    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+    {
+      return ruolo;
+    }
+    return null;
+  }  
   private setSession(risposta: SessioneUtente): void {
     const utenteInSessione: SessioneUtente = {
       id: risposta.id,

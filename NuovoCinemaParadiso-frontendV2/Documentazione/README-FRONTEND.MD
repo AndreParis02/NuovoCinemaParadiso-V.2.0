@@ -9,6 +9,17 @@
 - I nomi dei branch devono riportare la tipologia del file da modificare e il nome (Entità-Azione).
 - Da adesso in poi verranno accettate solo le pull requests con il readme relativo alle modifiche fatte.
 
+## Readme
+- Il readme manterrà la stessa impostazione del readme back-end con:
+Utente:
+Data:
+Descrizione:
+
+E in più sarà necessario utilizzare il folding in questo modo, onde evitare di avere problemi nella risoluzione dei
+conflitti nel merge.
+ESEMPIO:
+<DETAILS><SUMMARY>VERSIONE 1.0</SUMMARY> CODICE </DETAILS>
+
 # STABILIRE L'ORDINE DELLE COSE DA FARE!
 
 - Creare la cartella core, contenente guards, interceptors, services.
@@ -423,6 +434,156 @@ npm install
 
 per avere la cartella in locale in modo tale che il progetto possa essere, successivamente, avviato.
 
+
+# app.routes
+
+- Si può limitare una rotta ad un operatore usando la routeguard(diverso dal *@ng if che indica che un blocco
+  di codice venga saltato in una determinata condizione).
+- Per un autorizzazione semplice si usa CanActivate() oppure CanMatch() se vogliamo impostare il caricamento
+  condizionale della route (nella rubrica di esempio, abbiamo usato CanActivate() perchè l'admin aveva solo
+  una rotta da proteggere che era il change-role).
+
+In questo caso dobbiamo lavorare su AuthService, volendo possiamo comunque prendere il ruolo dal local_storage
+dove il ruolo viene autorizzato dal backend al login.
+
+
+```typescript
+ottieniRuoloUtente(): RuoliUtente | null{
+    const ruolo = localStorage.getItem('ruolo');
+    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+    {
+      return ruolo;
+    }
+    return null;
+  }  
+```
+
+Abbiamo bisogno comunque di un tipo di dato RuoliUtente che è una costante, definita in un nuovo file
+ruoliUtente.ts con l'export type.
+
+```typescript
+export type RuoliUtente = 'Gestore' | 'Operatore' | 'Utente';
+```
+Dopo aver creato il file lo importiamo su auth.service.ts in modo che nel return di ottieniRuoloUtente venga condizionato dall'utente attivo.
+
+```typescript
+import { RuoliUtente } from '../ruoliUtente';
+```
+Dopo di che nel service possiamo usare la costante RuoliUtente nel metodo ottieniRuoloUtente e nel metodo:
+
+```typescript
+possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+```
+
+Quindi nel role.guard.ts avremo l'import di RuoliUtente e definiremo la costante dei ruoli autorizzati.
+
+```typescript
+export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const ruoliAutorizzati = (route.data['role'] as RuoliUtente[] | undefined) ?? [];
+
+  if (ruoliAutorizzati.length === 0 || authService.possiedeQualsiasiRuolo(ruoliAutorizzati)) {
+      return true;
+  }
+  return router.createUrlTree(['/nonAutorizzato']);
+
+};
+```
+
+Dobbiamo creare la pagina nonAutorizzato.
+
+
+Adesso possiamo usare i ruoli autorizzati nelle routes(app.routes.ts).
+In app.routes.ts facciamo un nuovo path al di sotto del quale tutte le pagine sono protette.
+Quindi il codice da così:
+```typescript
+
+   {
+    path: 'operatore/change-role',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['gestore'] },
+    loadComponent: () => import('./pages/gestore-change-role/gestore-change-role.page').then((m) => m.GestoreChangeRolePage)
+    },
+```
+diventa così:
+
+```typescript
+
+   {
+    path: 'operatore',
+    component:OperatoreComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Operatore'] },
+    },
+```
+OperatoreComponent è un esempio, noi avremo nella route il componente reale dentro la cartella page.Così:
+
+```typescript
+
+   {
+    path: 'operatore',
+    component:OperatorePage,
+    canActivate: [roleGuard],
+    data: { roles: ['Operatore'] },
+    },
+```
+Angular usa i routeGuard per controllare l'accesso alla route prima dell'attivazione della pagina e CanActivate controlla
+se una route può essere aperta e CanMatch è utile per le rotte lazyloaded(già caricate in memoria).
+Dato che abbiamo deciso di usare Angular in modalità standalone, possiamo far diventare la sezione il contenitore delle
+pagine riferite ad un ruolo specifico ed app.component.ts diventa il contenitore principale.
+
+In questo modo la logica dei ruoli rimane nei guard.
+
+IN PRATICA NON DOBBIAMO CREARE RUOLOCOMPONENT, DOBBIAMO SOLO PROTEGGERE LE PAGINE CHE ABBIAMO GIà IN PAGES USANDO:
+
+```typescript
+canActivate:[roleGuard],
+data: {
+  roles: ['Ruolo']
+  },
+```
+
+## Creazione pagina nonAutorizzato
+
+Non è obbligatoria, nel senso che potremmo rimandare al login:
+
+```typescript
+return router.createUrlTree(['/login']);
+```
+E quindi il guard rimane così come è ora, indirizzando verso il login.
+
+Opzione 2: redirect nella dashboard.
+```typescript
+return router.createUrlTree(['/dashboard']);
+```
+La più sensata se l'utente è loggato ma non ha i permessi.
+
+Opzione 3: pagina nonAutorizzato.
+
+La più informativa per l'utente perchè possiamo mostrare un messaggio tipo "Non hai i permessi per visualizzare questa
+pagina".
+
+```typescript
+path: 'nonAutorizzato',
+loadComponent:() =>
+import('../pages/non-autorizzato/non-autorizzato.page').then(m => m.NonAutorizzatoPage ) 
+data: {
+  roles: ['Ruolo']
+  },
+```
+Ricordarsi di mettere la rotta in app.routes.ts.
+Nel role-guard.ts possiamo usare /'nonAutorizzato' quando l'utente è loggato ma non ha il ruolo.
+
+Questo è il modo più versatile perchè permette di avere un comportamento finale:
+
+- Utente non loggato => reindirizzato al login.
+- Utente loggato ma ruolo sbagliato => reindirizzato alla pagina nonAutorizzato.
+- Utente loggato correto => entra nella pagina.
+
 ## Creazione dei componenti
 
 # models
@@ -468,6 +629,8 @@ Contiene infrastruttura applicativa globale:
 Contiene componenti riusabili.
 
 Nel nostro caso la navbar.
+
+
 
 ## PAGES
 ### abbonamento.page.ts

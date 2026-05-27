@@ -68,7 +68,7 @@ Greg: Sala.
 Marco: Generemovie(fatto).
 Simeone: LogAzioni.
 Francesco: Movie.(fatto)
-Fabio: Navbar.
+Fabio: Navbar.(fatto)
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
 Andrea Paris: Registrazione. (fatto)
@@ -80,7 +80,7 @@ Francesco: Turno.(fatto)
 
 ## 26/05/2026
 
-- Marco : biglietto.
+- Marco :
 - Francesco: abbonamento. (fatto)
 ## A fine frontend
 
