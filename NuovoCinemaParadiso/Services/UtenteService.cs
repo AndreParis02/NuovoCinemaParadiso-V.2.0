@@ -93,64 +93,71 @@ public class UtenteService
         return (true, "Abbonamento attivato correttamente.");
     }
 
-    public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+{
+    Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+    if (utenteCorrente == null)
+        return (false, "Utente non trovato.");
+
+    if (dto.Importo <= 0)
+        return (false, "Importo non valido.");
+
+    if (utenteCorrente.Saldo < dto.Importo)
+        return (false, "Saldo insufficiente.");
+
+    utenteCorrente.Saldo -= dto.Importo;
+
+    GiftCard nuovaGiftCard = new GiftCard
     {
-        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        Nome = "GiftCard",
+        Valore = dto.Importo,
+        CodiceRiscatto = GiftCardHelper.GeneraCodice(),
+        Riscattata = false
+    };
 
-        if (utenteCorrente == null)
-            return (false, "Utente non trovato.");
+    await _contesto.GiftCards.AddAsync(nuovaGiftCard);
 
-        if (dto.Importo <= 0)
-            return (false, "Importo non valido.");
+    await _contesto.SaveChangesAsync();
 
-        if (utenteCorrente.Saldo < dto.Importo)
-            return (false, "Saldo insufficiente per ricaricare la gift card.");
+    return (true, "Gift card creata correttamente.");
+}
 
-        utenteCorrente.Saldo -= dto.Importo;
 
-        GiftCard nuovaGiftCard = new GiftCard
-        {
-            Nome = "GiftCard",
-            Valore = dto.Importo,
-            CodiceRiscatto = GiftCardHelper.GeneraCodice()
-        };
 
-        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
-        await _contesto.SaveChangesAsync();
 
-        return (true, "Gift card creata correttamente.");
-    }
+public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
+    RiscattaGiftCardAsync(DtoCodiceRiscatto dto)
+{
+    List<GiftCard> tutte = _contesto.GiftCards.ToList();
+    GiftCard? trovata = null;
 
-    public async Task<(bool Successo, string Messaggio)> RiscattaGiftCardAsync(DtoCodiceRiscatto dto, string utenteId)
+    // Cerco la gift card SENZA lambda
+    foreach (GiftCard g in tutte)
     {
-        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
-
-        if (utenteCorrente == null)
-            return (false, "Utente non trovato.");
-
-        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
-        GiftCard? giftCardTrovata = null;
-
-        for (int i = 0; i < giftCards.Count; i++)
+        if (g.CodiceRiscatto == dto.CodiceRiscatto)
         {
-            if (giftCards[i].CodiceRiscatto == dto.CodiceRiscatto)
-            {
-                giftCardTrovata = giftCards[i];
-                break;
-            }
+            trovata = g;
+            break;
         }
-
-        if (giftCardTrovata == null)
-            return (false, "Codice riscatto non valido.");
-
-        if (giftCardTrovata.Riscattata)
-            return (false, "Il codice riscatto è già stato utilizzato.");
-
-        utenteCorrente.Saldo += giftCardTrovata.Valore;
-        giftCardTrovata.Riscattata = true;
-
-        await _contesto.SaveChangesAsync();
-
-        return (true, "Gift card riscattata correttamente.");
     }
+
+    if (trovata == null)
+        return (false, "Codice non valido.", null);
+
+    if (trovata.Riscattata)
+        return (false, "Gift card già riscattata.", null);
+
+    trovata.Riscattata = true;
+    await _contesto.SaveChangesAsync();
+
+    DtoCreazioneGiftCard risposta = new DtoCreazioneGiftCard
+    {
+        Nome = trovata.Nome,
+        Valore = trovata.Valore,
+        CodiceRiscatto = trovata.CodiceRiscatto
+    };
+
+    return (true, "Gift card riscattata.", risposta);
+}
 }
