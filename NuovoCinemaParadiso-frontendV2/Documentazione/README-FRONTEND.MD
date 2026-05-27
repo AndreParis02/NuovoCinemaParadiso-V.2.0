@@ -1348,8 +1348,7 @@ Componente CRUD per la gestione delle sale: carica la lista dal backend, permett
 
 **versione1.0**
 
-Francesco Lorenzi
-25/05/2026
+
 
 ```ts
 import { Component, inject, signal } from '@angular/core';
@@ -1468,6 +1467,99 @@ export class SalaPage {
     // Doppia guardia: form non valido o utente senza permessi → abort
     if (this.form.invalid || !this.modificabileDa()) {
       // markAllAsTouched forza la visualizzazione degli errori di validazione nel template
+
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+    
+    const request$: Observable<string> = this.modificaId()
+  ? this.SalaService.modifica(this.modificaId(), this.form.getRawValue())
+  : this.SalaService.crea(this.form.getRawValue());
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        // Imposta il messaggio di successo in base all'operazione effettuata
+        this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
+        this.ripristinaForm();  
+        this.caricaSala(); // Rica  rica la lista per mostrare i dati aggiornati
+      },
+      error: (error: unknown) => {
+        console.log(error)
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Sala): void {
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
+    this.modificaId.set(item.id!);
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ nome: item.nome, capienza: item.capienza,tipologiaSalaId: item.tipologiaSalaId});
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+  
+  elimina(item: Sala) : void {
+    if(!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare la sala \" ${item.nome}\"?`);
+    if(!confirmed){
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.SalaService.elimina(item.id!).subscribe({
+      next : () => {
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaSala();
+      },
+      error: (error: unknown) => {
+    
+      this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });  
+  }
+
+  ripristinaForm() : void {
+    this.modificaId.set('');
+    this.form.reset({ nome: '', capienza: 0 ,tipologiaSalaId : ''});
+  }
+  // il _ indica che il primo parametro non viene utilizzato,
+  //  è una convenzione per indicare che è presente ma non serve
+  tracciaPerId(_: string, item: Sala) : string {
+    return item.id!;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+## movie.page.ts V1.0
+Francesco Lorenzi
+Data:25/05/2026
+
+
+```typescript
 //importo servizi
 import { AuthService } from '../../services/auth.service';
 import { MovieService } from '../../services/movie.service';
@@ -1569,9 +1661,9 @@ export class MoviePage {
       next: () => {
         this.staInviando.set(false);
         // Messaggio contestuale in base all'operazione appena completata
-        this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
+        this.messaggioSuccesso.set(this.modificaId() ? 'Film aggiornato.' : 'Film creato.');
         this.ripristinaForm(); // Torna in modalità "crea" e svuota i campi
-        this.caricaSala();    // Ricarica la lista per mostrare i dati aggiornati
+        this.caricaMovies();    // Ricarica la lista per mostrare i dati aggiornati
       },
       error: (error: unknown) => {
         this.staInviando.set(false);
@@ -1580,23 +1672,14 @@ export class MoviePage {
     });
   }
 
-  // ===========================
-  // INIZIO MODIFICA
-  // Popola il form con i dati della sala selezionata e attiva la modalità modifica
-  // ===========================
-  inizioModifica(item: Sala): void {
+  inizioModifica(item: Movie): void {
     // Guardia permessi: esce subito se l'utente non può modificare
     if (!this.modificabileDa()) return;
 
-    // Salva l'ID della sala in modifica (attiva la modalità "modifica" nel template)
     this.modificaId.set(item.id!);
 
     // patchValue aggiorna solo i campi specificati, lasciando invariati gli altri
-    this.form.patchValue({
-      nome: item.nome,
-      capienza: item.capienza,
-      tipologiaSalaId: item.tipologiaSalaId
-    });
+    this.form.patchValue({ titolo: item.titolo, descrizione: item.descrizione, durataMinuti: item.durataMinuti, prezzoMovie: item.prezzoMovie, genereId: item.genereId });
 
     // Pulisce eventuali messaggi residui da operazioni precedenti
     this.messaggioErrore.set('');
@@ -1604,27 +1687,27 @@ export class MoviePage {
   }
 
   // ===========================
-  // ELIMINAZIONE SALA
+  // ELIMINAZIONE FILM
   // ===========================
-  elimina(item: Sala): void {
+  elimina(item: Movie): void {
     // Guardia permessi
     if (!this.modificabileDa()) return;
 
     // Richiede conferma esplicita all'utente prima di procedere
-    const confirmed = confirm(`Eliminare la sala "${item.nome}"?`);
+    const confirmed = confirm(`Eliminare il film "${item.nome}"?`);
     if (!confirmed) return;
 
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
 
-    this.salaService.elimina(item.id!).subscribe({
+    this.movieService.elimina(item.id!).subscribe({
       next: () => {
-        // Se la sala eliminata era quella in modifica, resetta il form
+        // Se il film eliminato era quella in modifica, resetta il form
         // per evitare di lavorare su un'entità che non esiste più
         if (this.modificaId() === item.id) {
           this.ripristinaForm();
         }
-        this.caricaSala(); // Aggiorna la lista rimuovendo la sala eliminata
+        this.caricaMovies(); // Aggiorna la lista rimuovendo il film eliminato.
       },
       error: (error: unknown) => {
         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Eliminazione non riuscita.'));
