@@ -532,6 +532,47 @@ OperatoreComponent è un esempio, noi avremo nella route il componente reale den
     data: { roles: ['Operatore'] },
     },
 ```
+
+Il path operatore proteggerà altre rotte nel nostro caso e quindi dovremo creare un area operatore che avrà al suo interno
+dei children contenenti le rotte protette.
+Esempio
+```typescript
+
+  
+  {
+    path: 'operatore',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['Operatore']
+    },
+
+    children: [
+
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/operatore-dashboard/operatore-dashboard.page')
+            .then(m => m.DashboardPage)
+      },
+
+      {
+        path: 'movie',
+        loadComponent: () =>
+          import('./pages/movie/movie.page')
+            .then(m => m.OperatoreMoviePage)
+      },
+
+      {
+        path: 'profilo',
+        loadComponent: () =>
+          import('./pages/profilo/profilo.page')
+            .then(m => m.UtenteProfiloPage)
+      }
+
+    ]
+  }
+```
+
 Angular usa i routeGuard per controllare l'accesso alla route prima dell'attivazione della pagina e CanActivate controlla
 se una route può essere aperta e CanMatch è utile per le rotte lazyloaded(già caricate in memoria).
 Dato che abbiamo deciso di usare Angular in modalità standalone, possiamo far diventare la sezione il contenitore delle
