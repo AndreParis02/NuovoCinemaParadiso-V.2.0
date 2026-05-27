@@ -633,6 +633,207 @@ Nel nostro caso la navbar.
 
 
 ## PAGES
+
+### register.page.ts 
+
+<details>
+<summary>Versione 1.0</summary>
+Utente: Andrea Paris
+Data: 25/06/2026
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'register-page',
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: './register.page.html'
+})
+export class RegisterPage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly isLoading = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly form = this.fb.group({
+    email: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.email
+    ]),
+
+    password: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.minLength(6)
+    ]),
+
+    nomeCompleto: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.maxLength(100)
+    ]),
+
+    eta: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(1)
+    ])
+  });
+
+  submit(): void {
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    const payload = this.form.getRawValue();
+
+    this.authService.registrazione(payload).subscribe({
+
+      next: (response) => {
+        this.isLoading.set(false);
+        this.successMessage.set(response.message);
+
+        setTimeout(() => {
+          void this.router.navigate(['/login']);
+        }, 900);
+      },
+
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.exctractErrorMessage(error));
+      }
+    });
+  }
+
+  private exctractErrorMessage(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      if (Array.isArray(error.error) && error.error.length > 0) {
+        return error.error
+          .map((item: { description?: string }) =>
+            item.description ?? 'Errore')
+          .join(' | ');
+      }
+
+      return error.error?.message ?? 'Registrazione non riuscita';
+    }
+
+    return 'Registrazione non riuscita';
+  }
+}
+```
+</details>
+
+### register.page.html 
+
+<details>
+<summary>Versione 1.0</summary>
+Utente: Andrea Paris
+Data: 25/06/2026
+
+```html
+<section>
+    <h1 class="page-title">Registrazione</h1>
+
+    <p class="page-subtitle">
+        Il backend assegna automaticamente il ruolo
+        <strong>User</strong>
+        ai nuovi account
+    </p>
+
+    <div class="card">
+
+        @if(successMessage()){
+        <div class="alert alert-success">
+            {{ successMessage() }}
+        </div>
+        }
+
+        @if(errorMessage()){
+        <div class="alert alert-warning">
+            {{ errorMessage() }}
+        </div>
+        }
+
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="nomeCompleto">
+                        Nome completo
+                    </label>
+
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
+                </div>
+
+                <div>
+                    <label for="eta">
+                        Età
+                    </label>
+
+                    <input id="eta" type="number" formControlName="eta" />
+                </div>
+
+            </div>
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" />
+                </div>
+
+                <div>
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input id="password" type="password" formControlName="password" />
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+
+                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+
+                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
+
+                </button>
+
+                <a class="btn btn-secondary" routerLink="/login">
+
+                    Torna al login
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</section>
+```
+</details>
+
+
 ### abbonamento.page.ts
 <details>
 
