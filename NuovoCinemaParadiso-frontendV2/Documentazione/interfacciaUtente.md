@@ -25,7 +25,7 @@ film : visualizzazione dei film con card che espone genere, titolo film, durata 
 proiezioni: visualizzazione Proiezioni;
 abbonamenti: Visaulizzazione Abbonamenti;
 
-- dashboard: visualizzazione dati conto cinema, visualizzazione gift card create, visualizzazione Biglietti venduti e visualizzazione Log azioni
+- dashboard:visualizzaizone film in sala, numero proiezioni, film recenti? bottone gestione che rimanda ad una pagina di visualizzazione Biglietti venduti e di visualizzazione Log azioni e  visualizzazione dati conto cinema, 
 
 # UTENTE:
 
