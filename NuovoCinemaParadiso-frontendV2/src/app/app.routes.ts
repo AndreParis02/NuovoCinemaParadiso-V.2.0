@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { GestionePage } from './pages/gestione/gestione.page';
 
 export const routes: Routes = [
   {
@@ -15,9 +16,21 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
   },
   {
+<<<<<<< Updated upstream
         path: 'register',
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
+=======
+    path: 'register',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage),
+  },
+
+  {
+    path: 'profilo',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/utente/utente.page').then((m) => m.UtentePage),
+>>>>>>> Stashed changes
   },
   {
     path: 'movie',
@@ -27,16 +40,24 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     canActivate: [authGuard],
-    data:{
-        roles:['Operatore']
+    data: {
+      roles: ['Operatore'],
     },
     loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
   },
   {
-    path: 'gestore/logs',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
+    path: 'gestione',
+    component: GestionePage, // <-- Usiamo component invece di loadComponent
+    canActivate: [roleGuard], // <-- Solo roleGuard
+    data: { roles: ['Gestore'] }, // <-- Ruolo richiesto
   },
+
+  {
+    path: 'movie',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage),
+  },
+<<<<<<< Updated upstream
   
     {
         path: 'movie',
@@ -66,18 +87,51 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
     },
     /*
+=======
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+  },
+  {
+    path: 'abbonamento',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage),
+  },
+
+  {
+    path: 'operatore/change-role',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['gestore'] },
+    loadComponent: () =>
+      import('./pages/gestore-change-role/gestore-change-role.page').then(
+        (m) => m.GestoreChangeRolePage,
+      ),
+  },
+  {
+    path: 'abbonamenti',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage),
+  },
+  /*
+>>>>>>> Stashed changes
     {
         path: 'abbonamento-list',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/abbonamento/abbonamento-list.page').then((m) => m.AbbonamentoListPage)
     },
    */
-    {
-        path: 'listaUtenti',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/operatore/operatore-lista-utenti.page').then((m) => m.OperatoreListaUtentiPage)
-    },
-    /*
+  {
+    path: 'listaUtenti',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/operatore/operatore-lista-utenti.page').then(
+        (m) => m.OperatoreListaUtentiPage,
+      ),
+  },
+  /*
     {
         path: 'gestore/biglietto',
         canActivate: [authGuard],
@@ -100,6 +154,7 @@ export const routes: Routes = [
       ),
   },
   /*
+<<<<<<< Updated upstream
   */
     {
         path: 'proiezioni',
@@ -137,6 +192,52 @@ export const routes: Routes = [
         loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
     },
     /*
+=======
+   */
+  {
+    path: 'proiezioni',
+    canActivate: [authGuard, roleGuard],
+    loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezionePage),
+  },
+  {
+    path: 'film',
+    canActivate: [authGuard, roleGuard],
+    loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage),
+  },
+  {
+    path: 'biglietto',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/biglietto/biglietto.page').then((m) => m.BigliettoPage),
+  },
+  {
+    path: 'giftcard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/giftcard/giftcard.page').then((m) => m.GiftcardPage),
+  },
+  {
+    path: 'genere-movie',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage),
+  },
+  {
+    path: 'tipologia-sala',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then(
+        (m) => m.TipologiaSalaPage,
+      ),
+  },
+  {
+    path: 'genere-movie',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then(
+        (m) => m.GenereMoviePage,
+      ),
+  },
+  /*
+>>>>>>> Stashed changes
     {
         path: 'tipologia-sala',
         //canActivate: [authGuard],
@@ -148,9 +249,10 @@ export const routes: Routes = [
     },
 ]
 */
-{
+  {
     path: 'sala',
     canActivate: [authGuard],
+<<<<<<< Updated upstream
     loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
 },
 {
@@ -159,6 +261,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
 },
 /*
+=======
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage),
+  },
+  /*
+>>>>>>> Stashed changes
 {
     path: 'proiezione',
     canActivate: [authGuard],
@@ -170,12 +277,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneListPage)
 },
 */
-{
+  {
     path: 'turno',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage)
-},
-/*
+    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage),
+  },
+  /*
 {
     path: 'turno',
     canActivate: [authGuard],

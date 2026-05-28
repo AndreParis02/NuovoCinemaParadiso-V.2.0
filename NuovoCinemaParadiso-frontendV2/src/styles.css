@@ -193,6 +193,8 @@ select:focus {
 .list {
   display: grid;
   gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .list-item {
