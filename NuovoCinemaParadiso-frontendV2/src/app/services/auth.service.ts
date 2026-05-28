@@ -57,15 +57,43 @@ export class AuthService {
   ottieniToken(): string | null {
     return this.utenteCorrente()?.token ?? null;
   }
-
+/*
   ottieniRuoloUtente(): RuoliUtente | null{
     const ruolo = localStorage.getItem('ruolo');
+    console.log('Ruolo ottenuto dal localStorage:', ruolo); // Debug log
     if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
     {
       return ruolo;
     }
     return null;
-  }  
+  }  */
+
+
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+  const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const utente = JSON.parse(raw) as SessioneUtente;
+
+      if (
+        utente.ruolo === 'Operatore' ||
+        utente.ruolo === 'Gestore' ||
+        utente.ruolo === 'Utente'
+      ) {
+        return utente.ruolo;
+      }
+
+      return null;
+    } catch {
+      return null;
+  }
+}
+
   private setSession(risposta: SessioneUtente): void {
     const utenteInSessione: SessioneUtente = {
       id: risposta.id,
@@ -81,6 +109,7 @@ export class AuthService {
     }
 
     localStorage.setItem(this.storagekey, JSON.stringify(utenteInSessione));
+    console.log('Utente salvato in localStorage:', utenteInSessione.ruolo); // Debug log
     this.utenteCorrente.set(utenteInSessione);
   }
 
