@@ -1,0 +1,1 @@
+export type RuoliUtente = 'Gestore' | 'Operatore' | 'Utente';

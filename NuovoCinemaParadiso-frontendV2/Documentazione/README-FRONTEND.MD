@@ -9,6 +9,17 @@
 - I nomi dei branch devono riportare la tipologia del file da modificare e il nome (Entità-Azione).
 - Da adesso in poi verranno accettate solo le pull requests con il readme relativo alle modifiche fatte.
 
+## Readme
+- Il readme manterrà la stessa impostazione del readme back-end con:
+Utente:
+Data:
+Descrizione:
+
+E in più sarà necessario utilizzare il folding in questo modo, onde evitare di avere problemi nella risoluzione dei
+conflitti nel merge.
+ESEMPIO:
+<DETAILS><SUMMARY>VERSIONE 1.0</SUMMARY> CODICE </DETAILS>
+
 # STABILIRE L'ORDINE DELLE COSE DA FARE!
 
 - Creare la cartella core, contenente guards, interceptors, services.
@@ -423,6 +434,199 @@ npm install
 
 per avere la cartella in locale in modo tale che il progetto possa essere, successivamente, avviato.
 
+# app.routes
+<details>
+<summary>app.routes</summary>
+
+- Si può limitare una rotta ad un operatore usando la routeguard(diverso dal *@ng if che indica che un blocco
+  di codice venga saltato in una determinata condizione).
+- Per un autorizzazione semplice si usa CanActivate() oppure CanMatch() se vogliamo impostare il caricamento
+  condizionale della route (nella rubrica di esempio, abbiamo usato CanActivate() perchè l'admin aveva solo
+  una rotta da proteggere che era il change-role).
+
+In questo caso dobbiamo lavorare su AuthService, volendo possiamo comunque prendere il ruolo dal local_storage
+dove il ruolo viene autorizzato dal backend al login.
+
+
+```typescript
+ottieniRuoloUtente(): RuoliUtente | null{
+    const ruolo = localStorage.getItem('ruolo');
+    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+    {
+      return ruolo;
+    }
+    return null;
+  }  
+```
+
+Abbiamo bisogno comunque di un tipo di dato RuoliUtente che è una costante, definita in un nuovo file
+ruoliUtente.ts con l'export type.
+
+```typescript
+export type RuoliUtente = 'Gestore' | 'Operatore' | 'Utente';
+```
+Dopo aver creato il file lo importiamo su auth.service.ts in modo che nel return di ottieniRuoloUtente venga condizionato dall'utente attivo.
+
+```typescript
+import { RuoliUtente } from '../ruoliUtente';
+```
+Dopo di che nel service possiamo usare la costante RuoliUtente nel metodo ottieniRuoloUtente e nel metodo:
+
+```typescript
+possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+```
+
+Quindi nel role.guard.ts avremo l'import di RuoliUtente e definiremo la costante dei ruoli autorizzati.
+
+```typescript
+export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const ruoliAutorizzati = (route.data['role'] as RuoliUtente[] | undefined) ?? [];
+
+  if (ruoliAutorizzati.length === 0 || authService.possiedeQualsiasiRuolo(ruoliAutorizzati)) {
+      return true;
+  }
+  return router.createUrlTree(['/nonAutorizzato']);
+
+};
+```
+
+Dobbiamo creare la pagina nonAutorizzato.
+
+
+Adesso possiamo usare i ruoli autorizzati nelle routes(app.routes.ts).
+In app.routes.ts facciamo un nuovo path al di sotto del quale tutte le pagine sono protette.
+Quindi il codice da così:
+```typescript
+
+   {
+    path: 'operatore/change-role',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['gestore'] },
+    loadComponent: () => import('./pages/gestore-change-role/gestore-change-role.page').then((m) => m.GestoreChangeRolePage)
+    },
+```
+diventa così:
+
+```typescript
+
+   {
+    path: 'operatore',
+    component:OperatoreComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['Operatore'] },
+    },
+```
+OperatoreComponent è un esempio, noi avremo nella route il componente reale dentro la cartella page.Così:
+
+```typescript
+
+   {
+    path: 'operatore',
+    component:OperatorePage,
+    canActivate: [roleGuard],
+    data: { roles: ['Operatore'] },
+    },
+```
+
+Il path operatore proteggerà altre rotte nel nostro caso e quindi dovremo creare un area operatore che avrà al suo interno
+dei children contenenti le rotte protette.
+Esempio
+```typescript
+
+  
+  {
+    path: 'operatore',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['Operatore']
+    },
+
+    children: [
+
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/operatore-dashboard/operatore-dashboard.page')
+            .then(m => m.DashboardPage)
+      },
+
+      {
+        path: 'movie',
+        loadComponent: () =>
+          import('./pages/movie/movie.page')
+            .then(m => m.OperatoreMoviePage)
+      },
+
+      {
+        path: 'profilo',
+        loadComponent: () =>
+          import('./pages/profilo/profilo.page')
+            .then(m => m.OperatoreProfiloPage)
+      }
+
+    ]
+  }
+```
+
+Angular usa i routeGuard per controllare l'accesso alla route prima dell'attivazione della pagina e CanActivate controlla
+se una route può essere aperta e CanMatch è utile per le rotte lazyloaded(già caricate in memoria).
+Dato che abbiamo deciso di usare Angular in modalità standalone, possiamo far diventare la sezione il contenitore delle
+pagine riferite ad un ruolo specifico ed app.component.ts diventa il contenitore principale.
+
+In questo modo la logica dei ruoli rimane nei guard.
+
+IN PRATICA NON DOBBIAMO CREARE RUOLOCOMPONENT, DOBBIAMO SOLO PROTEGGERE LE PAGINE CHE ABBIAMO GIà IN PAGES USANDO:
+
+```typescript
+canActivate:[roleGuard],
+data: {
+  roles: ['Ruolo']
+  },
+```
+
+## Creazione pagina nonAutorizzato
+
+Non è obbligatoria, nel senso che potremmo rimandare al login:
+
+```typescript
+return router.createUrlTree(['/login']);
+```
+E quindi il guard rimane così come è ora, indirizzando verso il login.
+
+Opzione 2: redirect nella dashboard.
+```typescript
+return router.createUrlTree(['/dashboard']);
+```
+La più sensata se l'utente è loggato ma non ha i permessi.
+
+Opzione 3: pagina nonAutorizzato.
+
+La più informativa per l'utente perchè possiamo mostrare un messaggio tipo "Non hai i permessi per visualizzare questa
+pagina".
+
+```typescript
+path: 'nonAutorizzato',
+loadComponent:() =>
+import('../pages/non-autorizzato/non-autorizzato.page').then(m => m.NonAutorizzatoPage ) 
+data: {
+  roles: ['Ruolo']
+  },
+```
+Ricordarsi di mettere la rotta in app.routes.ts.
+Nel role-guard.ts possiamo usare /'nonAutorizzato' quando l'utente è loggato ma non ha il ruolo.
+
+Questo è il modo più versatile perchè permette di avere un comportamento finale:
+
+- Utente non loggato => reindirizzato al login.
+- Utente loggato ma ruolo sbagliato => reindirizzato alla pagina nonAutorizzato.
+- Utente loggato correto => entra nella pagina.
+
+</details>
 ## Creazione dei componenti
 
 # models
@@ -469,7 +673,455 @@ Contiene componenti riusabili.
 
 Nel nostro caso la navbar.
 
+
+
 ## PAGES
+
+### register.page.ts 
+
+<details>
+<summary>Versione 1.0</summary>
+Utente: Andrea Paris
+Data: 25/06/2026
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'register-page',
+  standalone: true,
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: './register.page.html'
+})
+export class RegisterPage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly isLoading = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly form = this.fb.group({
+    email: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.email
+    ]),
+
+    password: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.minLength(6)
+    ]),
+
+    nomeCompleto: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.maxLength(100)
+    ]),
+
+    eta: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(1)
+    ])
+  });
+
+  submit(): void {
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    const payload = this.form.getRawValue();
+
+    this.authService.registrazione(payload).subscribe({
+
+      next: (response) => {
+        this.isLoading.set(false);
+        this.successMessage.set(response.message);
+
+        setTimeout(() => {
+          void this.router.navigate(['/login']);
+        }, 900);
+      },
+
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.exctractErrorMessage(error));
+      }
+    });
+  }
+
+  private exctractErrorMessage(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      if (Array.isArray(error.error) && error.error.length > 0) {
+        return error.error
+          .map((item: { description?: string }) =>
+            item.description ?? 'Errore')
+          .join(' | ');
+      }
+
+      return error.error?.message ?? 'Registrazione non riuscita';
+    }
+
+    return 'Registrazione non riuscita';
+  }
+}
+```
+</details>
+
+### register.page.html 
+
+<details>
+<summary>Versione 1.0</summary>
+Utente: Andrea Paris
+Data: 25/06/2026
+
+```html
+<section>
+    <h1 class="page-title">Registrazione</h1>
+
+    <p class="page-subtitle">
+        Il backend assegna automaticamente il ruolo
+        <strong>User</strong>
+        ai nuovi account
+    </p>
+
+    <div class="card">
+
+        @if(successMessage()){
+        <div class="alert alert-success">
+            {{ successMessage() }}
+        </div>
+        }
+
+        @if(errorMessage()){
+        <div class="alert alert-warning">
+            {{ errorMessage() }}
+        </div>
+        }
+
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="submit()">
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="nomeCompleto">
+                        Nome completo
+                    </label>
+
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto" />
+                </div>
+
+                <div>
+                    <label for="eta">
+                        Età
+                    </label>
+
+                    <input id="eta" type="number" formControlName="eta" />
+                </div>
+
+            </div>
+
+            <div class="grid grid-2">
+
+                <div>
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input id="email" type="email" formControlName="email" />
+                </div>
+
+                <div>
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input id="password" type="password" formControlName="password" />
+                </div>
+
+            </div>
+
+            <div class="btn-row">
+
+                <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+
+                    {{ isLoading() ? "Registrazione..." : "Registrati" }}
+
+                </button>
+
+                <a class="btn btn-secondary" routerLink="/login">
+
+                    Torna al login
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+</section>
+```
+</details>
+
+### operatore.page.ts
+<details>
+<summary> v.1.0 </summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GestioneUtenteService } from '../../services/gestione-utente.service';
+
+@Component({
+  selector: 'operatore-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './operatore.page.html'
+})
+export class OperatorePage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly gestioneUtenteService = inject(GestioneUtenteService);
+
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly roles = ['Gestore', 'Operatore', 'Utente'];
+
+  readonly cambiaRuoloForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    nuovoRuolo: ['Utente', [Validators.required]]
+  });
+
+  cambiaRuolo(): void {
+
+    if (this.cambiaRuoloForm.invalid) {
+      this.cambiaRuoloForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    this.gestioneUtenteService
+      .modificaRuolo(this.cambiaRuoloForm.getRawValue())
+      .subscribe({
+
+        next: (response) => {
+
+          this.isSubmitting.set(false);
+
+          this.successMessage.set(
+            `${response.messaggio} Nuovo ruolo: ${response.ruolo}`
+          );
+        },
+
+        error: (error: unknown) => {
+
+          this.isSubmitting.set(false);
+
+          this.errorMessage.set(
+            this.estraiMessaggioErrore(error)
+          );
+        }
+      });
+  }
+
+  private estraiMessaggioErrore(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      return error.error?.messaggio
+        ?? 'Cambio ruolo non riuscito';
+    }
+
+    return 'Cambio ruolo non riuscito';
+  }
+
+}
+```
+</details>
+
+### operatore.page.html 
+
+<details>
+<summary>v.1.0</summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+<section>
+
+    <h1 class="page-title">
+        Cambio ruolo utente
+    </h1>
+
+    <p class="page-subtitle">
+        Pagina visibile solo al ruolo
+        <strong>Operatore</strong>
+    </p>
+
+    <div class="grid grid-2">
+
+        <!-- CARD FORM -->
+
+        <article class="card">
+
+            @if (successMessage()) {
+
+                <div class="alert alert-success">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            @if (errorMessage()) {
+
+                <div class="alert alert-warning">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <form
+                class="form-grid"
+                [formGroup]="cambiaRuoloForm"
+                (ngSubmit)="cambiaRuolo()"
+            >
+
+                <!-- EMAIL -->
+
+                <div>
+
+                    <label for="email">
+                        Email utente
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                    />
+
+                    @if (cambiaRuoloForm.controls.email.touched && cambiaRuoloForm.controls.email.invalid) {
+
+                        <div class="field-error">
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['required']) {
+
+                                <small>
+                                    L'email è obbligatoria
+                                </small>
+                            }
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['email']) {
+
+                                <small>
+                                    Inserisci un'email valida
+                                </small>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- RUOLO -->
+
+                <div>
+
+                    <label for="nuovoRuolo">
+                        Nuovo ruolo
+                    </label>
+
+                    <select
+                        id="nuovoRuolo"
+                        formControlName="nuovoRuolo"
+                    >
+
+                        @for (role of roles; track role) {
+
+                            <option [value]="role">
+                                {{ role }}
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- BOTTONE -->
+
+                <div class="btn-row">
+
+                    <button class="btn btn-primary" type="submit"[disabled]="isSubmitting()">
+
+                        {{ isSubmitting() ? 'Aggiornamento...' : 'Aggiorna ruolo' }}
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </article>
+
+        <!-- CARD INFO -->
+
+        <article class="card">
+
+            <h2>
+                Ruoli disponibili
+            </h2>
+
+            <div class="list">
+
+                @for (role of roles; track role) {
+
+                    <div class="list-item">
+
+                        <span>
+                            Ruolo
+                        </span>
+
+                        <strong>
+                            {{ role }}
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+```
+</details>
+
+
 ### abbonamento.page.ts
 <details>
 
@@ -719,6 +1371,8 @@ Francesco Lorenzi 26/05/2026
 
 ### genere-movie.page.html
 
+<details><summary> genere-movie.page V1.0</summary>
+
 ```html
 <section>
   <h1 class="page-title">Generi di Film</h1>
@@ -753,6 +1407,7 @@ Francesco Lorenzi 26/05/2026
   </div>
 </section>
 ```
+</details>
 
 ### log-azioni.page.html
 <details>
@@ -971,21 +1626,20 @@ non vi è encora un css
 </div>
 ```
 
-<details>
 
-<summary> sala.page.ts (V1.0)</summary>
-
+### sala-page.ts
 Alessandro Gregorio
 
 26/05/2026
 
 Componente CRUD per la gestione delle sale: carica la lista dal backend, permette a utenti con ruolo Operatore di creare, modificare ed eliminare sale tramite un form reattivo
-### movie.page.ts
+<details>
+
+<summary> sala.page.ts (V1.0)</summary>
 
 **versione1.0**
 
-Francesco Lorenzi
-25/05/2026
+
 
 ```ts
 import { Component, inject, signal } from '@angular/core';
@@ -1104,88 +1758,7 @@ export class SalaPage {
     // Doppia guardia: form non valido o utente senza permessi → abort
     if (this.form.invalid || !this.modificabileDa()) {
       // markAllAsTouched forza la visualizzazione degli errori di validazione nel template
-//importo servizi
-import { AuthService } from '../../services/auth.service';
-import { MovieService } from '../../services/movie.service';
-import { GenereMovieService } from '../../services/genere-movie.service';
-//importo modelli
-import { Movie } from '../../models/movie.model';
-import { GenereMovie } from '../../models/genere-movie.model';
 
-@Component({
-  selector: 'movie-page',
-  standalone: true,
-  imports: [ReactiveFormsModule],
-  templateUrl: './movie.page.html',
-})
-export class MoviePage {
-  //servizi
-  private readonly formBuilder = inject(FormBuilder);
-  private readonly authService = inject(AuthService);
-  private readonly movieService = inject(MovieService);
-  private readonly genereService = inject(GenereMovieService);
-  //modelli
-  readonly movies = signal<Movie[]>([]);
-  readonly generi = signal<GenereMovie[]>([]);
-
-  readonly staCaricando = signal(false);
-  readonly staInviando = signal(false);
-  readonly messaggioErrore = signal('');
-  readonly messaggioSuccesso = signal('');
-  readonly modificaId = signal<string>('');
-
-  //form per la creazione di un modello Movie
-  readonly form = this.formBuilder.nonNullable.group({
-    titolo: ['', [Validators.required, Validators.maxLength(100)]],
-    descrizione: ['', [Validators.required, Validators.maxLength(200)]],
-    durataMinuti: [1, [Validators.required, Validators.min(1)]],
-    prezzoMovie: [0.01, [Validators.required, Validators.min(0.01), Validators.max(999999999)]],
-    genereId: ['', [Validators.required]],
-  });
-  //il costruttore carica anche i generi
-  //cosicché questi possano essere selezionati nel form
-  constructor() {
-    this.caricaMovies();
-    this.caricaGeneri();
-  }
-  modificabileDa(): boolean {
-    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
-  }
-  //metodo per caricare i movie
-  caricaMovies(): void {
-    this.staCaricando.set(true);
-    this.messaggioErrore.set('');
-    this.movieService.ottieniTutto().subscribe({
-      next: (items) => {
-        this.movies.set(items);
-        this.staCaricando.set(false);
-      },
-      error: (error: unknown) => {
-        this.staCaricando.set(false);
-        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
-      },
-    });
-  }
-  //metodo per caricare i generi
-  caricaGeneri(): void {
-    this.staCaricando.set(true);
-    this.messaggioErrore.set('');
-    this.genereService.ottieniTutto().subscribe({
-      next: (items) => {
-        this.generi.set(items);
-        this.staCaricando.set(false);
-      },
-      error: (error: unknown) => {
-        this.staCaricando.set(false);
-        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'generi non trovati'));
-      },
-    });
-  }
-
-  invia(): void {
-    // Controlla se il form è invalido
-    // o se l'utente non ha i permessi per modificare
-    if (this.form.invalid || !this.modificabileDa()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -1193,127 +1766,95 @@ export class MoviePage {
     this.staInviando.set(true);
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
-
-    // Scelta dinamica dell'operazione:
-    // - Se modificaId ha un valore → PUT (aggiornamento sala esistente)
-    // - Se modificaId è vuoto   → POST (creazione nuova sala)
+    
     const request$: Observable<string> = this.modificaId()
-      ? this.salaService.modifica(this.modificaId(), this.form.getRawValue())
-      : this.salaService.crea(this.form.getRawValue());
+  ? this.SalaService.modifica(this.modificaId(), this.form.getRawValue())
+  : this.SalaService.crea(this.form.getRawValue());
 
     request$.subscribe({
       next: () => {
         this.staInviando.set(false);
-        // Messaggio contestuale in base all'operazione appena completata
+        // Imposta il messaggio di successo in base all'operazione effettuata
         this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
-        this.ripristinaForm(); // Torna in modalità "crea" e svuota i campi
-        this.caricaSala();    // Ricarica la lista per mostrare i dati aggiornati
+        this.ripristinaForm();  
+        this.caricaSala(); // Rica  rica la lista per mostrare i dati aggiornati
       },
       error: (error: unknown) => {
+        console.log(error)
         this.staInviando.set(false);
         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
       }
     });
   }
 
-  // ===========================
-  // INIZIO MODIFICA
-  // Popola il form con i dati della sala selezionata e attiva la modalità modifica
-  // ===========================
   inizioModifica(item: Sala): void {
-    // Guardia permessi: esce subito se l'utente non può modificare
-    if (!this.modificabileDa()) return;
-
-    // Salva l'ID della sala in modifica (attiva la modalità "modifica" nel template)
+    // Verifica i permessi prima di permettere l'inizio della modifica
+    if (!this.modificabileDa()) {
+      return;
+    }
     this.modificaId.set(item.id!);
-
-    // patchValue aggiorna solo i campi specificati, lasciando invariati gli altri
-    this.form.patchValue({
-      nome: item.nome,
-      capienza: item.capienza,
-      tipologiaSalaId: item.tipologiaSalaId
-    });
-
-    // Pulisce eventuali messaggi residui da operazioni precedenti
+    // dizionario che rappresenta la mappa del modulo
+    this.form.patchValue({ nome: item.nome, capienza: item.capienza,tipologiaSalaId: item.tipologiaSalaId});
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
   }
-
-  // ===========================
-  // ELIMINAZIONE SALA
-  // ===========================
-  elimina(item: Sala): void {
-    // Guardia permessi
-    if (!this.modificabileDa()) return;
-
-    // Richiede conferma esplicita all'utente prima di procedere
-    const confirmed = confirm(`Eliminare la sala "${item.nome}"?`);
-    if (!confirmed) return;
+  
+  elimina(item: Sala) : void {
+    if(!this.modificabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare la sala \" ${item.nome}\"?`);
+    if(!confirmed){
+      return;
+    }
 
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
 
-    this.salaService.elimina(item.id!).subscribe({
-      next: () => {
-        // Se la sala eliminata era quella in modifica, resetta il form
-        // per evitare di lavorare su un'entità che non esiste più
+    this.SalaService.elimina(item.id!).subscribe({
+      next : () => {
         if (this.modificaId() === item.id) {
           this.ripristinaForm();
         }
-        this.caricaSala(); // Aggiorna la lista rimuovendo la sala eliminata
+        this.caricaSala();
       },
       error: (error: unknown) => {
-        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Eliminazione non riuscita.'));
+    
+      this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
       }
-    });
+    });  
   }
 
-  // ===========================
-  // RIPRISTINO FORM
-  // Torna alla modalità "crea" svuotando modificaId e resettando i campi
-  // ===========================
-  ripristinaForm(): void {
+  ripristinaForm() : void {
     this.modificaId.set('');
-    this.form.reset({ nome: '', capienza: 0, tipologiaSalaId: '' });
+    this.form.reset({ nome: '', capienza: 0 ,tipologiaSalaId : ''});
   }
-
-  // ===========================
-  // FUNZIONE DI TRACKING per @for
-  // Restituisce l'ID univoco di ogni sala così Angular può identificare
-  // quali elementi del DOM aggiornare senza ricreare l'intera lista
-  // Il parametro _ (indice) è ignorato per convenzione
-  // ===========================
-  tracciaPerId(_: string, item: Sala): string {
+  // il _ indica che il primo parametro non viene utilizzato,
+  //  è una convenzione per indicare che è presente ma non serve
+  tracciaPerId(_: string, item: Sala) : string {
     return item.id!;
   }
 
-  // ===========================
-  // UTILITY: ESTRAZIONE MESSAGGIO DI ERRORE
-  // Controlla se l'errore è una risposta HTTP e tenta di estrarne il messaggio
-  // Se non disponibile, usa il messaggio di fallback fornito dal chiamante
-  // ===========================
   private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    
     if (error instanceof HttpErrorResponse) {
-      // L'operatore ?. evita crash se error.error è null/undefined
-      // ?? usa il fallback se message non esiste
       return error.error?.message ?? fallback;
     }
     return fallback;
   }
 }
 ```
-
 </details>
-
-<details>
-
-<summary> sala.page.html (V1.0)</summary>
-
 Alessandro Gregorio
 
 25/05/2026
 
 Template della pagina Sale: mostra la lista delle sale e un form reattivo per crearle o modificarle, con messaggi di feedback e controlli visibili solo agli utenti autorizzati.
+<details>
+
+<summary> sala.page.html (V1.0)</summary>
+
+
 
 ```html
 <!-- ===========================
@@ -1449,6 +1990,210 @@ Template della pagina Sale: mostra la lista delle sale e un form reattivo per cr
 
 </details>
 
+## movie.page.ts
+Francesco Lorenzi
+Data:25/05/2026
+
+<details>
+
+<summary> movie.page.ts (V1.0)</summary>
+
+```typescript
+//importo servizi
+import { AuthService } from '../../services/auth.service';
+import { MovieService } from '../../services/movie.service';
+import { GenereMovieService } from '../../services/genere-movie.service';
+//importo modelli
+import { Movie } from '../../models/movie.model';
+import { GenereMovie } from '../../models/genere-movie.model';
+
+@Component({
+  selector: 'movie-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './movie.page.html',
+})
+export class MoviePage {
+  //servizi
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly movieService = inject(MovieService);
+  private readonly genereService = inject(GenereMovieService);
+  //modelli
+  readonly movies = signal<Movie[]>([]);
+  readonly generi = signal<GenereMovie[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  readonly modificaId = signal<string>('');
+
+  //form per la creazione di un modello Movie
+  readonly form = this.formBuilder.nonNullable.group({
+    titolo: ['', [Validators.required, Validators.maxLength(100)]],
+    descrizione: ['', [Validators.required, Validators.maxLength(200)]],
+    durataMinuti: [1, [Validators.required, Validators.min(1)]],
+    prezzoMovie: [0.01, [Validators.required, Validators.min(0.01), Validators.max(999999999)]],
+    genereId: ['', [Validators.required]],
+  });
+  //il costruttore carica anche i generi
+  //cosicché questi possano essere selezionati nel form
+  constructor() {
+    this.caricaMovies();
+    this.caricaGeneri();
+  }
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  //metodo per caricare i movie
+  caricaMovies(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.movieService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.movies.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+      },
+    });
+  }
+  //metodo per caricare i generi
+  caricaGeneri(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.genereService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generi.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'generi non trovati'));
+      },
+    });
+  }
+
+  invia(): void {
+    // Controlla se il form è invalido
+    // o se l'utente non ha i permessi per modificare
+    if (this.form.invalid || !this.modificabileDa()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // Scelta dinamica dell'operazione:
+    // - Se modificaId ha un valore → PUT (aggiornamento sala esistente)
+    // - Se modificaId è vuoto   → POST (creazione nuova sala)
+    const request$: Observable<string> = this.modificaId()
+      ? this.salaService.modifica(this.modificaId(), this.form.getRawValue())
+      : this.salaService.crea(this.form.getRawValue());
+
+    request$.subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        // Messaggio contestuale in base all'operazione appena completata
+        this.messaggioSuccesso.set(this.modificaId() ? 'Film aggiornato.' : 'Film creato.');
+        this.ripristinaForm(); // Torna in modalità "crea" e svuota i campi
+        this.caricaMovies();    // Ricarica la lista per mostrare i dati aggiornati
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+      }
+    });
+  }
+
+  inizioModifica(item: Movie): void {
+    // Guardia permessi: esce subito se l'utente non può modificare
+    if (!this.modificabileDa()) return;
+
+    this.modificaId.set(item.id!);
+
+    // patchValue aggiorna solo i campi specificati, lasciando invariati gli altri
+    this.form.patchValue({ titolo: item.titolo, descrizione: item.descrizione, durataMinuti: item.durataMinuti, prezzoMovie: item.prezzoMovie, genereId: item.genereId });
+
+    // Pulisce eventuali messaggi residui da operazioni precedenti
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+  }
+
+  // ===========================
+  // ELIMINAZIONE FILM
+  // ===========================
+  elimina(item: Movie): void {
+    // Guardia permessi
+    if (!this.modificabileDa()) return;
+
+    // Richiede conferma esplicita all'utente prima di procedere
+    const confirmed = confirm(`Eliminare il film "${item.nome}"?`);
+    if (!confirmed) return;
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.movieService.elimina(item.id!).subscribe({
+      next: () => {
+        // Se il film eliminato era quella in modifica, resetta il form
+        // per evitare di lavorare su un'entità che non esiste più
+        if (this.modificaId() === item.id) {
+          this.ripristinaForm();
+        }
+        this.caricaMovies(); // Aggiorna la lista rimuovendo il film eliminato.
+      },
+      error: (error: unknown) => {
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Eliminazione non riuscita.'));
+      }
+    });
+  }
+
+  // ===========================
+  // RIPRISTINO FORM
+  // Torna alla modalità "crea" svuotando modificaId e resettando i campi
+  // ===========================
+  ripristinaForm(): void {
+    this.modificaId.set('');
+    this.form.reset({ titolo: '', descrizione: '', durataMinuti: 0, prezzoMovie: 0, genereId: '' });
+
+  }
+
+  // ===========================
+  // FUNZIONE DI TRACKING per @for
+  // Restituisce l'ID univoco di ogni sala così Angular può identificare
+  // quali elementi del DOM aggiornare senza ricreare l'intera lista
+  // Il parametro _ (indice) è ignorato per convenzione
+  // ===========================
+  tracciaPerId(_: string, item: Sala): string {
+    return item.id!;
+  }
+
+  // ===========================
+  // UTILITY: ESTRAZIONE MESSAGGIO DI ERRORE
+  // Controlla se l'errore è una risposta HTTP e tenta di estrarne il messaggio
+  // Se non disponibile, usa il messaggio di fallback fornito dal chiamante
+  // ===========================
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      // L'operatore ?. evita crash se error.error è null/undefined
+      // ?? usa il fallback se message non esiste
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+</details>
+
+
+
 ## MODELS
 
 ### abbonamento
@@ -1503,6 +2248,7 @@ export interface AbbonamentoCreazione {
 
 
 ### auth
+<details><summary> auth.model.ts V1</summary>
 
 ```ts
 // modello per la creazione della sessione dell'utente
@@ -1514,8 +2260,11 @@ export interface Auth {
   ruolo: string;
 }
 ```
+</details>
 
 ### biglietto
+
+<details><summary> biglietto.model.ts V1 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Biglietto
@@ -1535,8 +2284,11 @@ export interface BigliettoCreazione {
   metodoPagamento: string;
 }
 ```
+</details>
 
 ### genere-movie
+
+<details><summary> genere-movie.model V1.0</summary>
 
 ```ts
 // modello di ritorno che rappresenta un Genere
@@ -1549,10 +2301,13 @@ export interface GenereMovieCreazione {
   genere: string;
 }
 ```
+</details>
 
-Utente: Marco Strazzeri(github: FabTam)
+Utente: Marco Strazzeri
 Data: 25/05/2026
-Descrizione: Commentato GenereMovieCreazione perché non creiamo generi
+Descrizione: Rimosso GenereMovieCreazione perché non creiamo generi
+
+<details><summary> genere-movie.model V1.1</summary>
 
 ```ts
 // modello di ritorno che rappresenta un Genere
@@ -1561,14 +2316,12 @@ export interface GenereMovie {
   genere: string;
 }
 
-/*
-export interface GenereMovieCreazione {
-    genere: string;
-}
-*/
 ```
+</details>
 
 ### giftCard
+
+<details><summary> giftcard.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una GiftCard
@@ -1588,8 +2341,11 @@ export interface GiftCardCreazione {
   numeroMovie: number;
 }
 ```
+</details >
 
 ### log azioni
+
+<details><summary> logAzioni.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Log di un'azione di un utente
@@ -1611,8 +2367,10 @@ export interface LogAzioniCreazione {
   timeStamp: string;
 }
 ```
+</details>
 
 ### Login
+<details><summary> login.model V1.0 </summary>
 
 ```ts
 //modello necessario per confermare i dati d'accesso dell'utente e ricevere il token
@@ -1621,8 +2379,10 @@ export interface Login {
   password: string;
 }
 ```
+</details>
 
 ### movie
+<details><summary> movie.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Movie (film)
@@ -1644,12 +2404,16 @@ export interface MovieCreazione {
   genereId: string;
 }
 ```
+</details >
 
-**vesione1.1**
+
+### movie.model V1.0
 
 Francesco Lorenzi
 25/05/2026
 ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
+
+<details><summary>movie.model V1.0 </summary>
 
 ```ts
 export interface Movie {
@@ -1670,8 +2434,10 @@ export interface MovieCreazione {
   genereId: string;
 }
 ```
+</details>
 
 ### proiezione
+<details><summary> proiezione.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Proiezione
@@ -1690,8 +2456,10 @@ export interface ProiezioneCreazione {
   dataProiezione: Date;
 }
 ```
+</details>
 
 ### registrazione
+<details><summary> registrazione.model V1.0 </summary>
 
 ```ts
 // modello di inserimento necessario per la creazione di un nuovo Utente
@@ -1702,8 +2470,10 @@ export interface Registrazione {
   eta: number;
 }
 ```
+</details>
 
 ### sala
+<details><summary> sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Sala
@@ -1721,8 +2491,10 @@ export interface Sala {
   nomeTipologia: string;
 }
 ```
+</details>
 
 ### sessione-utente
+<details><summary> sessione-utente.model V1.0 </summary>
 
 ```ts
 // modello per la gestione della sessione dell'utente
@@ -1739,8 +2511,10 @@ export interface SessioneUtente {
   possiedeGiftCard: boolean;
 }
 ```
+</details>
 
 ### tipologia-sala
+<details><summary> tipologia-sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Tipologia di una Sala
@@ -1756,8 +2530,10 @@ export interface TipologiaSalaCreazione {
   maggiorazionePrezzo: number;
 }
 ```
+</details>
 
 ### turno
+<details><summary> turno.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Turno
@@ -1774,8 +2550,12 @@ export interface TurnoCreazione {
   nome: string;
 }
 ```
+</details>
 
 **version1.1**
+
+<details><summary> turno.model V1.0 </summary>
+
 ```ts
 
 export interface Turno {
@@ -1790,8 +2570,10 @@ export interface TurnoCreazione {
     nome: string;
 }
 ```
+</details>
 
 ### utente
+<details><summary> utente.model V1.1 </summary>
 
 ```ts
 // Modello di ritrono che rappresenta un Utente
@@ -1822,6 +2604,40 @@ export interface UtenteModificaRuolo {
   nuovoRuolo: string;
 }
 ```
+</details>
+
+<details><summary> utente.model V1.0 </summary>
+
+```ts
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    seAbbonato: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    tipoAbbonamento: string;
+    Saldo: number;
+}
+
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+
+export interface UtenteModificaRuoloRichiesta {
+    email: string;
+    nuovoRuolo: string;
+}
+// aggiunta UtenteModificaRuoloRisposta
+export interface UtenteModificaRuoloRisposta {
+    messaggio: string;
+    email: string;
+    ruolo: string;
+}
+```
+</details>
 
 ## SERVICES
 
@@ -1968,6 +2784,7 @@ export class SalaService {
 </details>
 
 ### TipologiaSalaService
+<details><summary> tipologia.sala.service.ts V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2050,8 +2867,10 @@ export class TipologiaSalaService {
   }
 }
 ```
+</details>
 
 ### MovieService
+<details><summary> movie.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2092,8 +2911,10 @@ export class MovieService {
   }
 }
 ```
+</details>
 
 ### turno.service.ts
+<details><summary> turno.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2169,8 +2990,10 @@ export class TurnoService {
   }
 }
 ```
+</details>
 
 ### abbonamento.service.ts
+<details><summary> abbonamento.service V1.0 </summary>
 
 ```ts
 /**
@@ -2244,8 +3067,10 @@ export class AbbonamentoService {
   }
 }
 ```
+</details>
 
 ### giftcard.service.ts
+<details><summary> giftcard.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2324,8 +3149,10 @@ export class GiftCardService {
   }
 }
 ```
+</details>
 
 ### genere-movie.service.ts
+<details><summary> genere-movie.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2405,10 +3232,13 @@ export class GenereMovieService {
   }
 }
 ```
+</details>
 
-Utente: Marco Strazzeri(github: FabTam)
+Utente: Marco Strazzeri
 Data: 25/05/2026
 Descrizione: Modificato per gestire il solo caricamento della lista dei generi
+
+<details><summary> genere-movie.service.ts V1.1</summary>
 
 ```ts
 //controllare gli import. nomi classi e file sono differenti per "-"
@@ -2469,8 +3299,10 @@ export class GenereMoviePage {
   }
 }
 ```
+</details>
 
 ### auth.service.ts
+<details><summary> auth.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -2559,8 +3391,10 @@ export class AuthService {
   }
 }
 ```
+</details>
 
 ### log-azioni.service.ts
+<details><summary> log-azioni.service V1.0 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2639,12 +3473,14 @@ export class LogAzioniService {
   }
 }
 ```
+</details>
 
 ### log-azioni.service.ts Versione 1.1
 
 - Utente: Simeone
 - Data: 26/05/2026
 - Ho eseguito la task di crearci la pagina dedicata
+<details><summary> log-azioni.service V1.1 </summary>
 
 ```ts
 import { Injectable, inject } from '@angular/core';
@@ -2663,124 +3499,8 @@ export class LogAzioniService {
   }
 }
 ```
+</details>
 
-### proiezione.service.ts
-
-```ts
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
-/**
- * Service Angular dedicato alla gestione delle operazioni CRUD
- * relative all'entità proiezione.
- *
- * Il service comunica con il backend tramite HttpClient
- * utilizzando gli endpoint REST esposti dall'API.
- */
-@Injectable({ providedIn: 'root' })
-export class ProiezioneService {
-  /**
-   * URL base dell'endpoint REST per la gestione
-   * delle proiezioni.
-   */
-  private readonly http = inject(HttpClient);
-  /**
-   * URL base dell'endpoint REST per la gestione
-   *  della proiezione.
-   */
-  private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
-
-  /**
-   * Recupera tutte le proiezioni visibili presenti nel sistema.
-   *
-   * @returns Observable contenente un array di proiezioni.
-   */
-  ottieniTutto(): Observable<Proiezione[]> {
-    return this.http.get<Proiezione[]>(this.baseUrl);
-  }
-
-  /**
-   * Recupera tutte le proiezioni presenti nel sistema anche quelle nascoste.
-   *
-   * @returns Observable contenente un array di proiezioni.
-   */
-  ottieniTuttoStorico(): Observable<Proiezione[]> {
-    return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo GUID.
-   *
-   * @param id Identificativo univoco della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo del movie(film) collegato GUID.
-   *
-   * @param id Identificativo univoco del movie.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteMovieId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo della sala collegata GUID.
-   *
-   * @param id Identificativo univoco della sala.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteSalaId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
-  }
-
-  /**
-   * Recupera una specifica proiezione tramite identificativo del turno collegato GUID.
-   *
-   * @param id Identificativo univoco del turno.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  ottieniTramiteTurnoId(id: string): Observable<Proiezione> {
-    return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
-  }
-
-  /**
-   * crea una nuova proiezione utilizzando un payload.
-   *
-   * @param payload modello di richiesta per creazione della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  crea(payload: ProiezioneCreazione): Observable<Proiezione> {
-    return this.http.post<Proiezione>(this.baseUrl, payload);
-  }
-
-  /**
-   * Modifica una specifica proiezione tramite identificativo GUID con le informazioni all'interno di un payload.
-   *
-   * @param id Identificativo univoco della proiezione.
-   * @param payload modello di richiesta per la modifica della proiezione.
-   * @returns Observable contenente la proiezione di risposta.
-   */
-  modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
-    return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
-  }
-
-  /**
-   * Elimina una specifica proiezione tramite identificativo GUID.
-   *
-   * @param id Identificativo univoco della proiezione.
-   */
-  elimina(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
-  }
-}
-```
 ### proiezione.service.ts
 
 <details>
@@ -2905,6 +3625,7 @@ export class ProiezioneService {
 
 
 ### GestoreService
+<details><summary> gestore.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -2962,8 +3683,10 @@ export class GestoreService {
   }
 }
 ```
+</details>
 
 ### GestioneUtenteService
+<details><summary> gestione-utente.service V1.0 </summary>
 
 ```ts
 import { environment } from '../../environments/environment';
@@ -2984,6 +3707,388 @@ export class GestioneUtenteService {
   }
 }
 ```
+</details>
+
+### GestioneUtenteService
+<details>
+<details><summary> V1.1 </summary>
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizione: apportati cambiamenti al metodo modificaRuolo
+
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {UtenteModificaRuoloRichiesta, UtenteModificaRuoloRisposta } from '../models/utente.model';
+
+
+@Injectable({
+    providedIn: 'root'
+})
+export class GestioneUtenteService {
+    private readonly http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiBaseUrl}/RuoloUtenti/cambia-ruolo`;
+
+
+    modificaRuolo(payload: UtenteModificaRuoloRichiesta): Observable<UtenteModificaRuoloRisposta> {
+        return this.http.put<UtenteModificaRuoloRisposta>(`${this.baseUrl}`, payload);
+    }
+}
+
+```
+</details>
+
+
+### AuthService V1.0
+
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Aggiunto il metodo isGestore per discriminare le azioni che tale ruolo permette.
+<details><summary> auth-service.ts V1.0</summary>
+
+``` typescript
+import { environment } from '../../environments/environment';
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+  providedIn: 'root', 
+})
+export class AuthService {
+
+  // inject() è il nuovo approccio Angular moderno alla dependency injection
+  private readonly http = inject(HttpClient);
+
+  // Router serve per effettuare redirect programmatici
+  private readonly router = inject(Router);
+
+  // chiave usata nel localStorage
+  private readonly storagekey = 'nuovo_cinema_paradiso_auth';
+
+  // url base del controller backend
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  /*
+    signal() crea uno stato reattivo Angular.
+
+    utenteCorrente() contiene:
+    - null se nessuno è loggato
+    - SessioneUtente se autenticato
+
+    readStoredUser() prova a recuperare l'utente salvato nel localStorage
+    quando l'app viene ricaricata.
+  */
+  readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
+
+  /*
+    login():
+    - invia email/password al backend
+    - riceve il DTO SessioneUtente
+    - salva la sessione tramite setSession()
+  */
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
+
+      /*
+        tap() esegue effetti collaterali SENZA modificare la response.
+        Qui viene usato per salvare la sessione dopo il login.
+      */
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  registrazione(payload: Registrazione): Observable<{ message: string }> {
+
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/registrazione`,
+      payload
+    );
+  }
+
+  /*
+    logout():
+    - rimuove sessione dal localStorage
+    - resetta il signal
+    - redirect al login
+  */
+  logout(): void {
+
+    localStorage.removeItem(this.storagekey);
+
+    // aggiorna immediatamente tutta la UI reattiva
+    this.utenteCorrente.set(null);
+
+    void this.router.navigate(['/login']);
+  }
+
+  
+  isAutenticato(): boolean {
+    return this.utenteCorrente() !== null;
+  }
+
+  isGestore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Gestore';
+  }
+
+  /*
+    verifica se il ruolo dell'utente è incluso
+    nell'array di ruoli consentiti
+  */
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+
+    const ruolo = this.ottieniRuoloUtente();
+
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+
+  /*
+    verifica un ruolo specifico
+  */
+  ruoloCorrispondente(ruolo: string): boolean {
+
+    return this.utenteCorrente()?.ruolo === ruolo;
+  }
+
+  ottieniToken(): string | null {
+
+    return this.utenteCorrente()?.token ?? null;
+  }
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+
+    return this.utenteCorrente()?.ruolo ?? null;
+  }
+
+  /*
+    setSession():
+    salva i dati utente dopo login.
+  */
+  private setSession(risposta: SessioneUtente): void {
+
+    const utenteInSessione: SessioneUtente = {
+
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
+    }
+
+    /*
+      salvataggio persistente browser
+
+      JSON.stringify() converte oggetto -> stringa JSON
+    */
+    localStorage.setItem(
+      this.storagekey,
+      JSON.stringify(utenteInSessione)
+    );
+
+    /*
+      aggiorna signal reattivo Angular
+
+      tutti i componenti che usano utenteCorrente()
+      si aggiornano automaticamente.
+    */
+    this.utenteCorrente.set(utenteInSessione);
+  }
+
+  /*
+    readStoredUser():
+    recupera utente dal localStorage all'avvio app.
+  */
+  private readStoredUser(): SessioneUtente | null {
+
+    const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+
+      /*
+        JSON.parse():
+        converte stringa JSON -> oggetto JS
+      */
+      return JSON.parse(raw) as SessioneUtente;
+
+    } catch {
+
+      /*
+        se JSON è corrotto:
+        - rimuove dati invalidi
+        - evita crash applicazione
+      */
+      localStorage.removeItem(this.storagekey);
+
+      return null;
+    }
+  }
+}
+```
+
+### AuthService V1.1
+
+Utente: Marco Strazzeri
+Data: 28/05/2026
+Descrizione: Fixata la funzione ottieniRuoloUtente, prima dava problemi con la lettura del ruolo
+
+<details><summary> auth-service.ts V1.1</summary>
+
+```ts
+
+import { environment } from '../../environments/environment';
+import { inject, Injectable,signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly storagekey = 'nuovo_cinema_paradiso_auth';
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
+
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  registrazione(payload: Registrazione): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/registrazione`, payload);
+
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.storagekey);
+    this.utenteCorrente.set(null);
+    void this.router.navigate(['/login']);
+  }
+
+  isAutenticato(): boolean {
+    return this.utenteCorrente() !== null;
+  }
+
+ isGestore(): boolean {
+  return this.utenteCorrente()?.ruolo === 'Gestore';
+ }
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+
+  ruoloCorrispondente(ruolo: string): boolean {
+    return this.utenteCorrente()?.ruolo === ruolo;
+
+  }
+
+  ottieniToken(): string | null {
+    return this.utenteCorrente()?.token ?? null;
+  }
+  
+/*
+  ottieniRuoloUtente(): RuoliUtente | null{
+    const ruolo = localStorage.getItem('ruolo');
+    console.log('Ruolo ottenuto dal localStorage:', ruolo); // Debug log
+    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+    {
+      return ruolo;
+    }
+    return null;
+  }  */
+
+
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+  const raw = localStorage.getItem(this.storagekey);  //legge i dati dal localstorage
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const utente = JSON.parse(raw) as SessioneUtente; //lettura del json
+
+      if (
+        utente.ruolo === 'Operatore' ||
+        utente.ruolo === 'Gestore' ||
+        utente.ruolo === 'Utente'
+      ) {
+        return utente.ruolo;  //ritorno del ruolo se valido
+      }
+
+      return null;
+    } catch {
+      return null;
+  }
+}
+
+  private setSession(risposta: SessioneUtente): void {
+    const utenteInSessione: SessioneUtente = {
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
+    }
+
+    localStorage.setItem(this.storagekey, JSON.stringify(utenteInSessione));
+    console.log('Utente salvato in localStorage:', utenteInSessione.ruolo); // Debug log
+    this.utenteCorrente.set(utenteInSessione);
+  }
+
+  private readStoredUser(): SessioneUtente | null {
+    const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+    
+    try{
+      return JSON.parse(raw) as SessioneUtente;
+      
+    } catch{
+      localStorage.removeItem(this.storagekey);
+      return null
+    }
+  }
+}
+
+```
+
 
 ## GUARDS
 
@@ -3044,9 +4149,13 @@ export class NavbarComponent {
 <header class="navbar-shell">
   <div class="container navbar">
     @if(!isAutenticato()){
-    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
     <div class="btn-row">
-      <a class="btn btn-secondary" routerLink="/film">Film</a>
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
     </div>
 
     <nav class="links">
@@ -3090,6 +4199,113 @@ export class NavbarComponent {
 ```
 </details>
 
+### Navbar V2.0
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruolo e all'autenticazione, aggiunto il pulsante gestione.
+
+### navbar.component.ts
+
+<details>
+<summary>Versione 1.0</summary>
+
+```typescript
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+  private readonly authService = inject(AuthService);
+
+  readonly utente          = this.authService.utenteCorrente;
+  // quando authService cambia il valore delle variabili sottostanti viene ricalcolato
+  // e si aggiorna di conseguenza.
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
+  readonly isUtente        = computed(()=> this.authService.ruoloCorrispondente('Utente'));
+  readonly isGestore       = computed(() => this.authService.isGestore ());
+
+
+  logout(): void {
+    this.authService.logout();
+  }
+}
+```
+</details>
+
+
+
+### navbar.component.html 
+
+<details>
+<summary>Versione 1.0</summary>
+
+```html
+
+<!-- Header ereditato dal css -->
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if(!isAutenticato()){
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
+
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestore/logs">Gestione</a>
+      </div>
+       }
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>
+```
+</details>
 
 ### navbar.component.css
 

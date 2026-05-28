@@ -1,9 +1,12 @@
 <header class="navbar-shell">
   <div class="container navbar">
     @if(!isAutenticato()){
-    <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
     <div class="btn-row">
       <a class="btn btn-secondary" routerLink="/film">Film</a>
+    </div>
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
     </div>
 
     <nav class="links">
@@ -28,6 +31,11 @@
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
       </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestore/logs">Gestione</a>
+      </div>
+       }
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
       </div>

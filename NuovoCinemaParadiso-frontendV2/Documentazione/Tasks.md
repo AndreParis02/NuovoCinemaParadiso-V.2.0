@@ -68,7 +68,7 @@ Greg: Sala.
 Marco: Generemovie(fatto).
 Simeone: LogAzioni.
 Francesco: Movie.(fatto)
-Fabio: Navbar.
+Fabio: Navbar.(fatto)
 Lorenzo: Giftcard.
 Andrea Bruno: Utente.
 Andrea Paris: Registrazione. (fatto)
@@ -80,8 +80,32 @@ Francesco: Turno.(fatto)
 
 ## 26/05/2026
 
-- Marco : biglietto.
+- Marco :
 - Francesco: abbonamento. (fatto)
+
+
+### Tasks 3
+
+Divisione in gruppi per ruolo:
+
+GestorePage: Simeone 
+
+OperatorePage: - Andrea B: 
+               - Andrea P: - cambio ruolo
+               - Lorenzo:  - lista turni.
+
+UtentePage: Greg  -
+            Marco -
+            Francesco - Lista film
+
+Documentazione: Fabio. (FATTO)
+
+
+### Tasks 4:
+
+UtentePage: Francesco - lista film
+
+Navbar: Fabio (fatto).
 ## A fine frontend
 
 ### in corso
