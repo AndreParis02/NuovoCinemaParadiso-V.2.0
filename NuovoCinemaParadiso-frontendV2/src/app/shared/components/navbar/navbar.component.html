@@ -31,6 +31,11 @@
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
       </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestore/logs">Gestione</a>
+      </div>
+       }
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
       </div>

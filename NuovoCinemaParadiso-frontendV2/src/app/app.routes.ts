@@ -19,6 +19,30 @@ export const routes: Routes = [
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
     },
+  {
+    path: 'movie',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage),
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    data:{
+        roles:['Operatore']
+    },
+    loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+  },
+  {
+    path: 'gestore/logs',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
+  },
+  {
+    path: 'gestore/logs',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
+  },
+  
     {
         path: 'movie',
         canActivate: [authGuard],

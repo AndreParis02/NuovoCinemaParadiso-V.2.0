@@ -532,6 +532,47 @@ OperatoreComponent è un esempio, noi avremo nella route il componente reale den
     data: { roles: ['Operatore'] },
     },
 ```
+
+Il path operatore proteggerà altre rotte nel nostro caso e quindi dovremo creare un area operatore che avrà al suo interno
+dei children contenenti le rotte protette.
+Esempio
+```typescript
+
+  
+  {
+    path: 'operatore',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['Operatore']
+    },
+
+    children: [
+
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/operatore-dashboard/operatore-dashboard.page')
+            .then(m => m.DashboardPage)
+      },
+
+      {
+        path: 'movie',
+        loadComponent: () =>
+          import('./pages/movie/movie.page')
+            .then(m => m.OperatoreMoviePage)
+      },
+
+      {
+        path: 'profilo',
+        loadComponent: () =>
+          import('./pages/profilo/profilo.page')
+            .then(m => m.OperatoreProfiloPage)
+      }
+
+    ]
+  }
+```
+
 Angular usa i routeGuard per controllare l'accesso alla route prima dell'attivazione della pagina e CanActivate controlla
 se una route può essere aperta e CanMatch è utile per le rotte lazyloaded(già caricate in memoria).
 Dato che abbiamo deciso di usare Angular in modalità standalone, possiamo far diventare la sezione il contenitore delle
@@ -3699,6 +3740,210 @@ export class GestioneUtenteService {
 ```
 </details>
 
+
+### AuthService V1.0
+
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Aggiunto il metodo isGestore per discriminare le azioni che tale ruolo permette.
+<details><summary> auth-service.ts V1.0</summary>
+
+``` typescript
+import { environment } from '../../environments/environment';
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+  providedIn: 'root', 
+})
+export class AuthService {
+
+  // inject() è il nuovo approccio Angular moderno alla dependency injection
+  private readonly http = inject(HttpClient);
+
+  // Router serve per effettuare redirect programmatici
+  private readonly router = inject(Router);
+
+  // chiave usata nel localStorage
+  private readonly storagekey = 'nuovo_cinema_paradiso_auth';
+
+  // url base del controller backend
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  /*
+    signal() crea uno stato reattivo Angular.
+
+    utenteCorrente() contiene:
+    - null se nessuno è loggato
+    - SessioneUtente se autenticato
+
+    readStoredUser() prova a recuperare l'utente salvato nel localStorage
+    quando l'app viene ricaricata.
+  */
+  readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
+
+  /*
+    login():
+    - invia email/password al backend
+    - riceve il DTO SessioneUtente
+    - salva la sessione tramite setSession()
+  */
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
+
+      /*
+        tap() esegue effetti collaterali SENZA modificare la response.
+        Qui viene usato per salvare la sessione dopo il login.
+      */
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  registrazione(payload: Registrazione): Observable<{ message: string }> {
+
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/registrazione`,
+      payload
+    );
+  }
+
+  /*
+    logout():
+    - rimuove sessione dal localStorage
+    - resetta il signal
+    - redirect al login
+  */
+  logout(): void {
+
+    localStorage.removeItem(this.storagekey);
+
+    // aggiorna immediatamente tutta la UI reattiva
+    this.utenteCorrente.set(null);
+
+    void this.router.navigate(['/login']);
+  }
+
+  
+  isAutenticato(): boolean {
+    return this.utenteCorrente() !== null;
+  }
+
+  isGestore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Gestore';
+  }
+
+  /*
+    verifica se il ruolo dell'utente è incluso
+    nell'array di ruoli consentiti
+  */
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+
+    const ruolo = this.ottieniRuoloUtente();
+
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+
+  /*
+    verifica un ruolo specifico
+  */
+  ruoloCorrispondente(ruolo: string): boolean {
+
+    return this.utenteCorrente()?.ruolo === ruolo;
+  }
+
+  ottieniToken(): string | null {
+
+    return this.utenteCorrente()?.token ?? null;
+  }
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+
+    return this.utenteCorrente()?.ruolo ?? null;
+  }
+
+  /*
+    setSession():
+    salva i dati utente dopo login.
+  */
+  private setSession(risposta: SessioneUtente): void {
+
+    const utenteInSessione: SessioneUtente = {
+
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
+    }
+
+    /*
+      salvataggio persistente browser
+
+      JSON.stringify() converte oggetto -> stringa JSON
+    */
+    localStorage.setItem(
+      this.storagekey,
+      JSON.stringify(utenteInSessione)
+    );
+
+    /*
+      aggiorna signal reattivo Angular
+
+      tutti i componenti che usano utenteCorrente()
+      si aggiornano automaticamente.
+    */
+    this.utenteCorrente.set(utenteInSessione);
+  }
+
+  /*
+    readStoredUser():
+    recupera utente dal localStorage all'avvio app.
+  */
+  private readStoredUser(): SessioneUtente | null {
+
+    const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+
+      /*
+        JSON.parse():
+        converte stringa JSON -> oggetto JS
+      */
+      return JSON.parse(raw) as SessioneUtente;
+
+    } catch {
+
+      /*
+        se JSON è corrotto:
+        - rimuove dati invalidi
+        - evita crash applicazione
+      */
+      localStorage.removeItem(this.storagekey);
+
+      return null;
+    }
+  }
+}
+```
+
+
 ## GUARDS
 
 ## INTERCEPTORS
@@ -3808,6 +4053,113 @@ export class NavbarComponent {
 ```
 </details>
 
+### Navbar V2.0
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruolo e all'autenticazione, aggiunto il pulsante gestione.
+
+### navbar.component.ts
+
+<details>
+<summary>Versione 1.0</summary>
+
+```typescript
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+  private readonly authService = inject(AuthService);
+
+  readonly utente          = this.authService.utenteCorrente;
+  // quando authService cambia il valore delle variabili sottostanti viene ricalcolato
+  // e si aggiorna di conseguenza.
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
+  readonly isUtente        = computed(()=> this.authService.ruoloCorrispondente('Utente'));
+  readonly isGestore       = computed(() => this.authService.isGestore ());
+
+
+  logout(): void {
+    this.authService.logout();
+  }
+}
+```
+</details>
+
+
+
+### navbar.component.html 
+
+<details>
+<summary>Versione 1.0</summary>
+
+```html
+
+<!-- Header ereditato dal css -->
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if(!isAutenticato()){
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
+
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestore/logs">Gestione</a>
+      </div>
+       }
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>
+```
+</details>
 
 ### navbar.component.css
 
