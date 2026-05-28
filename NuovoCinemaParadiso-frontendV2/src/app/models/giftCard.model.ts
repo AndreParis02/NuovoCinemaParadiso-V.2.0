@@ -14,3 +14,7 @@ export interface GiftCardCreazione {
 export interface RicaricaGiftCard {
     importo: number;
 }
+
+export interface CodiceRiscatto {
+    CodiceRiscatto: string;
+}

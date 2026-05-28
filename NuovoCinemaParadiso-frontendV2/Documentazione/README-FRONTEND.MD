@@ -532,6 +532,47 @@ OperatoreComponent è un esempio, noi avremo nella route il componente reale den
     data: { roles: ['Operatore'] },
     },
 ```
+
+Il path operatore proteggerà altre rotte nel nostro caso e quindi dovremo creare un area operatore che avrà al suo interno
+dei children contenenti le rotte protette.
+Esempio
+```typescript
+
+  
+  {
+    path: 'operatore',
+    canActivate: [authGuard, roleGuard],
+    data: {
+      roles: ['Operatore']
+    },
+
+    children: [
+
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./pages/operatore-dashboard/operatore-dashboard.page')
+            .then(m => m.DashboardPage)
+      },
+
+      {
+        path: 'movie',
+        loadComponent: () =>
+          import('./pages/movie/movie.page')
+            .then(m => m.OperatoreMoviePage)
+      },
+
+      {
+        path: 'profilo',
+        loadComponent: () =>
+          import('./pages/profilo/profilo.page')
+            .then(m => m.OperatoreProfiloPage)
+      }
+
+    ]
+  }
+```
+
 Angular usa i routeGuard per controllare l'accesso alla route prima dell'attivazione della pagina e CanActivate controlla
 se una route può essere aperta e CanMatch è utile per le rotte lazyloaded(già caricate in memoria).
 Dato che abbiamo deciso di usare Angular in modalità standalone, possiamo far diventare la sezione il contenitore delle
@@ -635,6 +676,291 @@ Nel nostro caso la navbar.
 
 
 ## PAGES
+
+### utente.page.ts V1.0 
+
+Andrea Bruno 28-05-2026
+Creazione della pagina dell'area riservata dell'utente
+
+```c#
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
+import { UtenteService } from '../../services/utente.service';
+import { AuthService } from '../../services/auth.service';
+import { Utente } from '../../models/utente.model';
+
+@Component({
+  selector: 'utente-page',
+  standalone: true, // Componente standalone (senza modulo)
+  imports: [
+    ReactiveFormsModule, // Necessario per i form reattivi
+    DatePipe             // Per formattare date nel template
+  ],
+  templateUrl: './utente.page.html',
+})
+export class UtentePage implements OnInit {
+
+  // Iniezione dei servizi tramite inject() (stile Angular moderno)
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly utenteService = inject(UtenteService);
+  private readonly authService = inject(AuthService);
+
+  // Signals: stato reattivo del componente
+  readonly utente = signal<Utente | null>(null); // Dati dell’utente
+  readonly staCaricando = signal(false);         // Stato caricamento profilo
+  readonly staInviando = signal(false);          // Stato invio form
+  readonly messaggioErrore = signal('');         // Messaggi di errore
+  readonly messaggioSuccesso = signal('');       // Messaggi di successo
+
+  // Form reattivo con validazioni
+  readonly form = this.formBuilder.nonNullable.group({
+    nomeCompleto: ['', [Validators.required, Validators.maxLength(100)]],
+    eta: [0, [Validators.required, Validators.min(14), Validators.max(100)]]
+  });
+
+  // Angular chiama questo metodo quando il componente viene inizializzato
+  ngOnInit(): void {
+    this.caricaUtente(); // Carica i dati del profilo all’avvio
+  }
+  
+  // Controlla se l’utente ha un ruolo che permette modifiche limitate
+  modificabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  // Recupera i dati del profilo dal backend
+  caricaUtente(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.utenteService.profilo().subscribe({
+      next: (item) => {
+        this.utente.set(item); // Salva i dati nel signal
+
+        // Precompila il form con i dati ricevuti
+        this.form.patchValue({
+          nomeCompleto: item.nomeCompleto,
+          eta: item.eta
+        });
+
+        this.staCaricando.set(false);
+      },
+      error: (error) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 'Accedi per vedere il profilo')
+        );
+      }
+    });
+  }
+
+  // Invia al backend le modifiche del profilo
+  invia(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched(); // Mostra errori di validazione
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.utenteService.modifica(this.form.getRawValue()).subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set('Profilo aggiornato');
+
+        // Ricarica i dati aggiornati
+        this.caricaUtente();
+      },
+      error: (error) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 'Modifica non riuscita.')
+        );
+      }
+    });
+  }
+
+  // Elimina definitivamente l’account dell’utente
+  elimina(): void {
+    const confirmed = confirm('Vuoi davvero eliminare il tuo account?');
+    if (!confirmed) return;
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.utenteService.eliminaProfilo().subscribe({
+      next: () => {
+        this.authService.logout(); // Rimuove token e sessione
+        this.messaggioSuccesso.set('Account eliminato');
+
+        // Redirect manuale alla pagina di login
+        window.location.href = '/login';
+      },
+      error: (error) => {
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 'Eliminazione non riuscita.')
+        );
+      }
+    });
+  }
+
+  // Estrae un messaggio leggibile dagli errori HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+### utente.page.html V1.0
+
+Andrea Bruno 28-05-2026
+Creazione pagina html dell'area riservata dell'utente
+Se l'utente non è abbonato non viene visualizzata la card e 
+ovviamento vale anche per operatore e gestore  
+
+```c#
+<section>
+
+    <!-- HEADER: mostrato solo se l'utente è stato caricato -->
+    @if (utente()) {
+        <!-- Titolo principale con il nome dell'utente -->
+        <h1 class="page-title">Ciao, {{ utente()?.nomeCompleto }}</h1>
+
+        <!-- Sottotitolo descrittivo -->
+        <p class="page-subtitle">Gestisci le informazioni del tuo account.</p>
+    }
+
+    <!-- MESSAGGI DI ERRORE E SUCCESSO -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <!-- STATO DI CARICAMENTO -->
+    @if (staCaricando()) {
+        <p class="muted">Caricamento profilo...</p>
+
+    <!-- NESSUN UTENTE TROVATO -->
+    } @else if (!utente()) {
+        <p class="muted">Nessun profilo trovato.</p>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    } @else {
+
+    <!-- GRID CON DUE CARD AFFIANCATE -->
+    <div class="grid grid-2" style="margin-top: 1.5rem;">
+
+        <!-- CARD SINISTRA: INFORMAZIONI UTENTE -->
+        <article class="card">
+            <h2>Informazioni Utente</h2>
+
+            <div class="list">
+
+                <!-- Email -->
+                <div class="list-item">
+                    <strong>Email</strong>
+                    <p>{{ utente()?.email }}</p>
+                </div>
+
+                <!-- Età -->
+                <div class="list-item">
+                    <strong>Età</strong>
+                    <p>{{ utente()?.eta }}</p>
+                </div>
+
+                <!-- Saldo: mostrato solo ai clienti (non operatori) -->
+                @if (!modificabileDa()) {
+                    <div class="list-item">
+                        <strong>Saldo</strong>
+                        <p>{{ utente()?.saldo }} €</p>
+                    </div>
+                }
+            </div>
+        </article>
+
+        <!-- CARD DESTRA: MODIFICA + ELIMINAZIONE -->
+        <article class="card">
+            <h2>Modifica Profilo</h2>
+
+            <!-- Form reattivo Angular -->
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+
+                <!-- Campi del form -->
+                <div>
+                    <label for="nomeCompleto">Nome completo</label>
+                    <input id="nomeCompleto" type="text" formControlName="nomeCompleto">
+
+                    <label for="eta">Età</label>
+                    <input id="eta" type="number" formControlName="eta">
+                </div>
+
+                <!-- Pulsanti: aggiorna + elimina -->
+                <div class="btn-row">
+
+                    <!-- Pulsante AGGIORNA -->
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando()">
+                        {{ staInviando() ? 'Salvataggio...' : 'Aggiorna' }}
+                    </button>
+
+                    <!-- Pulsante ELIMINA ACCOUNT (rosso pieno) -->
+                    <button class="btn btn-danger-solid" type="button" (click)="elimina()">
+                        Elimina account
+                    </button>
+                </div>
+
+            </form>
+        </article>
+
+    </div>
+
+    <!-- CARD ABBONAMENTO (solo per clienti e solo se abbonati) -->
+    @if (!modificabileDa()) {
+        @if (utente()?.seAbbonato) {
+
+            <article class="card" style="margin-top: 2rem;">
+                <h2>Abbonamento</h2>
+
+                <!-- Riga orizzontale con i dati dell'abbonamento -->
+                <div class="abbonamento-row">
+
+                    <!-- Stato -->
+                    <div>
+                        <strong>Stato:</strong>
+                        {{ utente()?.seAbbonato ? 'Attivo' : 'Non attivo' }}
+                    </div>
+
+                    <!-- Data inizio abbonamento -->
+                    <div>
+                        <strong>Inizio:</strong>
+                        {{ utente()?.dataInizioAbbonamento | date }}
+                    </div>
+
+                    <!-- Tipo abbonamento -->
+                    <div>
+                        <strong>Tipo:</strong>
+                        {{ utente()?.tipoAbbonamento }}
+                    </div>
+
+                </div>
+            </article>
+
+        }
+    }
+
+    } <!-- Fine else principale -->
+
+</section>
+```
 
 ### register.page.ts 
 
@@ -831,6 +1157,251 @@ Data: 25/06/2026
         </form>
 
     </div>
+</section>
+```
+</details>
+
+### operatore.page.ts
+<details>
+<summary> v.1.0 </summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GestioneUtenteService } from '../../services/gestione-utente.service';
+
+@Component({
+  selector: 'operatore-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './operatore.page.html'
+})
+export class OperatorePage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly gestioneUtenteService = inject(GestioneUtenteService);
+
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly roles = ['Gestore', 'Operatore', 'Utente'];
+
+  readonly cambiaRuoloForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    nuovoRuolo: ['Utente', [Validators.required]]
+  });
+
+  cambiaRuolo(): void {
+
+    if (this.cambiaRuoloForm.invalid) {
+      this.cambiaRuoloForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    this.gestioneUtenteService
+      .modificaRuolo(this.cambiaRuoloForm.getRawValue())
+      .subscribe({
+
+        next: (response) => {
+
+          this.isSubmitting.set(false);
+
+          this.successMessage.set(
+            `${response.messaggio} Nuovo ruolo: ${response.ruolo}`
+          );
+        },
+
+        error: (error: unknown) => {
+
+          this.isSubmitting.set(false);
+
+          this.errorMessage.set(
+            this.estraiMessaggioErrore(error)
+          );
+        }
+      });
+  }
+
+  private estraiMessaggioErrore(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      return error.error?.messaggio
+        ?? 'Cambio ruolo non riuscito';
+    }
+
+    return 'Cambio ruolo non riuscito';
+  }
+
+}
+```
+</details>
+
+### operatore.page.html 
+
+<details>
+<summary>v.1.0</summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+<section>
+
+    <h1 class="page-title">
+        Cambio ruolo utente
+    </h1>
+
+    <p class="page-subtitle">
+        Pagina visibile solo al ruolo
+        <strong>Operatore</strong>
+    </p>
+
+    <div class="grid grid-2">
+
+        <!-- CARD FORM -->
+
+        <article class="card">
+
+            @if (successMessage()) {
+
+                <div class="alert alert-success">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            @if (errorMessage()) {
+
+                <div class="alert alert-warning">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <form
+                class="form-grid"
+                [formGroup]="cambiaRuoloForm"
+                (ngSubmit)="cambiaRuolo()"
+            >
+
+                <!-- EMAIL -->
+
+                <div>
+
+                    <label for="email">
+                        Email utente
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                    />
+
+                    @if (cambiaRuoloForm.controls.email.touched && cambiaRuoloForm.controls.email.invalid) {
+
+                        <div class="field-error">
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['required']) {
+
+                                <small>
+                                    L'email è obbligatoria
+                                </small>
+                            }
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['email']) {
+
+                                <small>
+                                    Inserisci un'email valida
+                                </small>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- RUOLO -->
+
+                <div>
+
+                    <label for="nuovoRuolo">
+                        Nuovo ruolo
+                    </label>
+
+                    <select
+                        id="nuovoRuolo"
+                        formControlName="nuovoRuolo"
+                    >
+
+                        @for (role of roles; track role) {
+
+                            <option [value]="role">
+                                {{ role }}
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- BOTTONE -->
+
+                <div class="btn-row">
+
+                    <button class="btn btn-primary" type="submit"[disabled]="isSubmitting()">
+
+                        {{ isSubmitting() ? 'Aggiornamento...' : 'Aggiorna ruolo' }}
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </article>
+
+        <!-- CARD INFO -->
+
+        <article class="card">
+
+            <h2>
+                Ruoli disponibili
+            </h2>
+
+            <div class="list">
+
+                @for (role of roles; track role) {
+
+                    <div class="list-item">
+
+                        <span>
+                            Ruolo
+                        </span>
+
+                        <strong>
+                            {{ role }}
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+        </article>
+
+    </div>
+
 </section>
 ```
 </details>
@@ -1910,12 +2481,7 @@ export class MoviePage {
 
 ## MODELS
 
-### abbonamento
-
-<details>
-<summary>
-versione1.0
-</summary>
+### abbonamento.model.ts V1.0
 
 ```ts
 // modello di ritorno che rappresenta un abbonamento
@@ -1961,8 +2527,8 @@ export interface AbbonamentoCreazione {
 </details>
 
 
-### auth
-<details><summary> auth.model.ts V1</summary>
+### auth.model.ts V1.0
+<details><summary> auth.model.ts V1.0</summary>
 
 ```ts
 // modello per la creazione della sessione dell'utente
@@ -2032,7 +2598,7 @@ export interface GiftCard {
 ```
 </details>
 
-### biglietto
+### biglietto.model.ts V1.0
 
 <details><summary> biglietto.model.ts V1 </summary>
 
@@ -2056,7 +2622,7 @@ export interface BigliettoCreazione {
 ```
 </details>
 
-### genere-movie
+### genere-movie.model.ts V1.0
 
 <details><summary> genere-movie.model V1.0</summary>
 
@@ -2089,7 +2655,7 @@ export interface GenereMovie {
 ```
 </details>
 
-### giftCard
+### giftcard.model.ts V1.0
 
 <details><summary> giftcard.model V1.0 </summary>
 
@@ -2113,7 +2679,37 @@ export interface GiftCardCreazione {
 ```
 </details >
 
-### log azioni
+### giftCard.model.ts V1.1
+
+Andrea Bruno 28-05-2026
+Aggiunta modello CodiceRiscatto
+
+<details><summary> giftcard.model V1.1 </summary>
+
+```c#
+export interface GiftCard {
+    id: string | null;
+    nome: string;
+    valore: number;
+    codiceRiscatto: string;
+}
+
+export interface GiftCardCreazione {
+    nome: string;
+    valore: number;
+    codiceRiscatto: string;
+}
+
+export interface RicaricaGiftCard {
+    importo: number;
+}
+
+export interface CodiceRiscatto {    // <-- AGGIUNTA
+    CodiceRiscatto: string;
+}
+```
+
+### logAzioni.model.ts V1.0
 
 <details><summary> logAzioni.model V1.0 </summary>
 
@@ -2139,7 +2735,7 @@ export interface LogAzioniCreazione {
 ```
 </details>
 
-### Login
+### login.model.ts V1.0
 <details><summary> login.model V1.0 </summary>
 
 ```ts
@@ -2151,7 +2747,7 @@ export interface Login {
 ```
 </details>
 
-### movie
+### movie.model.ts V1.0 
 <details><summary> movie.model V1.0 </summary>
 
 ```ts
@@ -2177,13 +2773,13 @@ export interface MovieCreazione {
 </details >
 
 
-### movie.model V1.0
+### movie.model.ts V1.1
 
 Francesco Lorenzi
 25/05/2026
 ho dovuto modificare il campo id perchè giustamente questo non dovrebbe essere nullabile
 
-<details><summary>movie.model V1.0 </summary>
+<details><summary>movie.model V1.1 </summary>
 
 ```ts
 export interface Movie {
@@ -2206,7 +2802,7 @@ export interface MovieCreazione {
 ```
 </details>
 
-### proiezione
+### proiezione.model.ts V1.0
 <details><summary> proiezione.model V1.0 </summary>
 
 ```ts
@@ -2228,7 +2824,7 @@ export interface ProiezioneCreazione {
 ```
 </details>
 
-### registrazione
+### registrazione.model.ts V1.0
 <details><summary> registrazione.model V1.0 </summary>
 
 ```ts
@@ -2242,7 +2838,7 @@ export interface Registrazione {
 ```
 </details>
 
-### sala
+### sala.model.ts V1.0
 <details><summary> sala.model V1.0 </summary>
 
 ```ts
@@ -2263,7 +2859,7 @@ export interface Sala {
 ```
 </details>
 
-### sessione-utente
+### sessione-utente.model.ts V1.0
 <details><summary> sessione-utente.model V1.0 </summary>
 
 ```ts
@@ -2283,7 +2879,7 @@ export interface SessioneUtente {
 ```
 </details>
 
-### tipologia-sala
+### tipologia-sala.model.ts V1.0
 <details><summary> tipologia-sala.model V1.0 </summary>
 
 ```ts
@@ -2302,7 +2898,7 @@ export interface TipologiaSalaCreazione {
 ```
 </details>
 
-### turno
+### turno.model.ts V1.0
 <details><summary> turno.model V1.0 </summary>
 
 ```ts
@@ -2342,8 +2938,8 @@ export interface TurnoCreazione {
 ```
 </details>
 
-### utente
-<details><summary> utente.model V1.0 </summary>
+### utente.model.ts V1.0 
+<details><summary> utente.model V1.1 </summary>
 
 ```ts
 // Modello di ritrono che rappresenta un Utente
@@ -2376,11 +2972,42 @@ export interface UtenteModificaRuolo {
 ```
 </details>
 
+<details><summary> utente.model V1.0 </summary>
+
+```ts
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    seAbbonato: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    tipoAbbonamento: string;
+    Saldo: number;
+}
+
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+
+export interface UtenteModificaRuoloRichiesta {
+    email: string;
+    nuovoRuolo: string;
+}
+// aggiunta UtenteModificaRuoloRisposta
+export interface UtenteModificaRuoloRisposta {
+    messaggio: string;
+    email: string;
+    ruolo: string;
+}
+```
+</details>
+
 ## SERVICES
 
-<details>
-
-<summary> sala.service.ts (V1.0)</summary>
+### sala.service.ts V1.0
 
 ```ts
 
@@ -2562,7 +3189,8 @@ export class GestioneService {
 
 ```
 
-### TipologiaSalaService
+### TipologiaSalaService.ts V1.0
+
 <details><summary> tipologia.sala.service.ts V1.0 </summary>
 
 ```ts
@@ -3488,6 +4116,431 @@ export class GestioneUtenteService {
 ```
 </details>
 
+### GestioneUtenteService
+<details>
+<details><summary> V1.1 </summary>
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizione: apportati cambiamenti al metodo modificaRuolo
+
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {UtenteModificaRuoloRichiesta, UtenteModificaRuoloRisposta } from '../models/utente.model';
+
+
+@Injectable({
+    providedIn: 'root'
+})
+export class GestioneUtenteService {
+    private readonly http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiBaseUrl}/RuoloUtenti/cambia-ruolo`;
+
+
+    modificaRuolo(payload: UtenteModificaRuoloRichiesta): Observable<UtenteModificaRuoloRisposta> {
+        return this.http.put<UtenteModificaRuoloRisposta>(`${this.baseUrl}`, payload);
+    }
+}
+
+```
+</details>
+
+
+### AuthService V1.0
+
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Aggiunto il metodo isGestore per discriminare le azioni che tale ruolo permette.
+<details><summary> auth-service.ts V1.0</summary>
+
+``` typescript
+import { environment } from '../../environments/environment';
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+  providedIn: 'root', 
+})
+export class AuthService {
+
+  // inject() è il nuovo approccio Angular moderno alla dependency injection
+  private readonly http = inject(HttpClient);
+
+  // Router serve per effettuare redirect programmatici
+  private readonly router = inject(Router);
+
+  // chiave usata nel localStorage
+  private readonly storagekey = 'nuovo_cinema_paradiso_auth';
+
+  // url base del controller backend
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  /*
+    signal() crea uno stato reattivo Angular.
+
+    utenteCorrente() contiene:
+    - null se nessuno è loggato
+    - SessioneUtente se autenticato
+
+    readStoredUser() prova a recuperare l'utente salvato nel localStorage
+    quando l'app viene ricaricata.
+  */
+  readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
+
+  /*
+    login():
+    - invia email/password al backend
+    - riceve il DTO SessioneUtente
+    - salva la sessione tramite setSession()
+  */
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
+
+      /*
+        tap() esegue effetti collaterali SENZA modificare la response.
+        Qui viene usato per salvare la sessione dopo il login.
+      */
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  registrazione(payload: Registrazione): Observable<{ message: string }> {
+
+    return this.http.post<{ message: string }>(
+      `${this.baseUrl}/registrazione`,
+      payload
+    );
+  }
+
+  /*
+    logout():
+    - rimuove sessione dal localStorage
+    - resetta il signal
+    - redirect al login
+  */
+  logout(): void {
+
+    localStorage.removeItem(this.storagekey);
+
+    // aggiorna immediatamente tutta la UI reattiva
+    this.utenteCorrente.set(null);
+
+    void this.router.navigate(['/login']);
+  }
+
+  
+  isAutenticato(): boolean {
+    return this.utenteCorrente() !== null;
+  }
+
+  isGestore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Gestore';
+  }
+
+  /*
+    verifica se il ruolo dell'utente è incluso
+    nell'array di ruoli consentiti
+  */
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+
+    const ruolo = this.ottieniRuoloUtente();
+
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+
+  /*
+    verifica un ruolo specifico
+  */
+  ruoloCorrispondente(ruolo: string): boolean {
+
+    return this.utenteCorrente()?.ruolo === ruolo;
+  }
+
+  ottieniToken(): string | null {
+
+    return this.utenteCorrente()?.token ?? null;
+  }
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+
+    return this.utenteCorrente()?.ruolo ?? null;
+  }
+
+  /*
+    setSession():
+    salva i dati utente dopo login.
+  */
+  private setSession(risposta: SessioneUtente): void {
+
+    const utenteInSessione: SessioneUtente = {
+
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
+    }
+
+    /*
+      salvataggio persistente browser
+
+      JSON.stringify() converte oggetto -> stringa JSON
+    */
+    localStorage.setItem(
+      this.storagekey,
+      JSON.stringify(utenteInSessione)
+    );
+
+    /*
+      aggiorna signal reattivo Angular
+
+      tutti i componenti che usano utenteCorrente()
+      si aggiornano automaticamente.
+    */
+    this.utenteCorrente.set(utenteInSessione);
+  }
+
+  /*
+    readStoredUser():
+    recupera utente dal localStorage all'avvio app.
+  */
+  private readStoredUser(): SessioneUtente | null {
+
+    const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+
+      /*
+        JSON.parse():
+        converte stringa JSON -> oggetto JS
+      */
+      return JSON.parse(raw) as SessioneUtente;
+
+    } catch {
+
+      /*
+        se JSON è corrotto:
+        - rimuove dati invalidi
+        - evita crash applicazione
+      */
+      localStorage.removeItem(this.storagekey);
+
+      return null;
+    }
+  }
+}
+```
+
+### authService V1.1
+
+Utente: Marco Strazzeri
+Data: 28/05/2026
+Descrizione: Fixata la funzione ottieniRuoloUtente, prima dava problemi con la lettura del ruolo
+
+<details><summary> auth-service.ts V1.1</summary>
+
+```ts
+
+import { environment } from '../../environments/environment';
+import { inject, Injectable,signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly storagekey = 'nuovo_cinema_paradiso_auth';
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  readonly utenteCorrente = signal<SessioneUtente | null>(this.readStoredUser());
+
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http
+      .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
+      .pipe(tap((response) => this.setSession(response)));
+  }
+
+  registrazione(payload: Registrazione): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/registrazione`, payload);
+
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.storagekey);
+    this.utenteCorrente.set(null);
+    void this.router.navigate(['/login']);
+  }
+
+  isAutenticato(): boolean {
+    return this.utenteCorrente() !== null;
+  }
+
+ isGestore(): boolean {
+  return this.utenteCorrente()?.ruolo === 'Gestore';
+ }
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
+  }
+
+  ruoloCorrispondente(ruolo: string): boolean {
+    return this.utenteCorrente()?.ruolo === ruolo;
+
+  }
+
+  ottieniToken(): string | null {
+    return this.utenteCorrente()?.token ?? null;
+  }
+  
+/*
+  ottieniRuoloUtente(): RuoliUtente | null{
+    const ruolo = localStorage.getItem('ruolo');
+    console.log('Ruolo ottenuto dal localStorage:', ruolo); // Debug log
+    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+    {
+      return ruolo;
+    }
+    return null;
+  }  */
+
+
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+  const raw = localStorage.getItem(this.storagekey);  //legge i dati dal localstorage
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const utente = JSON.parse(raw) as SessioneUtente; //lettura del json
+
+      if (
+        utente.ruolo === 'Operatore' ||
+        utente.ruolo === 'Gestore' ||
+        utente.ruolo === 'Utente'
+      ) {
+        return utente.ruolo;  //ritorno del ruolo se valido
+      }
+
+      return null;
+    } catch {
+      return null;
+  }
+}
+
+  private setSession(risposta: SessioneUtente): void {
+    const utenteInSessione: SessioneUtente = {
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      dataInizioGiftCard: risposta.dataInizioGiftCard,
+      seAbbonato: risposta.seAbbonato,
+      possiedeGiftCard: risposta.possiedeGiftCard
+    }
+
+    localStorage.setItem(this.storagekey, JSON.stringify(utenteInSessione));
+    console.log('Utente salvato in localStorage:', utenteInSessione.ruolo); // Debug log
+    this.utenteCorrente.set(utenteInSessione);
+  }
+
+  private readStoredUser(): SessioneUtente | null {
+    const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+    
+    try{
+      return JSON.parse(raw) as SessioneUtente;
+      
+    } catch{
+      localStorage.removeItem(this.storagekey);
+      return null
+    }
+  }
+}
+
+```
+
+### utente.service.ts V1.0
+
+Andrea Bruno 28-05-2026
+Cambio di rotta da Utente a Auth 
+Modifiche nel richiamo dei servizi 
+
+```c#
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Utente, UtenteCreazione } from '../models/utente.model';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class UtenteService {
+
+    // HttpClient viene iniettato tramite inject() (metodo moderno Angular)
+    private readonly http = inject(HttpClient);
+
+    // Base URL dell'API: punta al controller Auth del backend
+    // /Auth è corretto perché il controller è AuthController
+    private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+    // Recupera il profilo dell'utente loggato
+    // Ritorna un Observable<Utente> che il componente sottoscrive
+    profilo(): Observable<Utente> {
+        return this.http.get<Utente>(`${this.baseUrl}/profilo`);
+    }
+
+    // Modifica i dati dell'utente (nome + età)
+    // Usa PUT perché aggiorna risorse esistenti
+    modifica(payload: UtenteCreazione): Observable<any> {
+        return this.http.put<any>(`${this.baseUrl}/modifica`, payload);
+    }
+
+    // Elimina definitivamente l'account dell'utente
+    // Il backend gestisce la rimozione e la logout viene fatta nel componente
+    eliminaProfilo(): Observable<any> {
+        return this.http.delete<any>(`${this.baseUrl}/elimina`);
+    }
+}
+```
+
 ## GUARDS
 
 ## INTERCEPTORS
@@ -3495,6 +4548,150 @@ export class GestioneUtenteService {
 ## SHARED
 
 ### COMPONENTS
+
+**lista-movie.component.ts**
+<details>
+
+<summary>Versione 1.0</summary>
+
+Francesco Lorenzi 28/05/2026
+
+componente TypeScript per creare una lista di film, questa lista di film comprende solo quelli dove ci sono delle proiezioni attive con essi, giustamente se ho delle proiezioni con lo stesso film, non voglio che esso sia ripetuto
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi, non abbiamo bisogno di autenticazione, la lista dei film deve essere visibile da chiunque
+import { MovieService } from '../../services/movie.service';
+import { ProiezioneService } from '../../services/proiezione.service';
+//modelli
+import { Movie } from '../../models/movie.model';
+import { GenereMovie } from '../../models/genere-movie.model';
+import { Proiezione } from '../../models/proiezione.model'; 
+
+
+@Component({
+  selector: 'lista-movie',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './lista-movie.component.html'
+})
+
+export class ListaMovieComponent {
+  //servizi
+  private readonly movieService = inject(MovieService);
+  private readonly proiezioneService = inject(ProiezioneService);
+  //modelli
+  readonly movies = signal<Movie[]>([]);
+  readonly proiezioni = signal<Proiezione[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  constructor() {
+    this.caricaMovies();
+  }
+  //carica tutti i movie presenti nelle proiezioni attive
+  caricaMovies(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.proiezioneService.ottieniTutto().subscribe({//ottengo tutte le proiezioni attive
+      next: (items) => {
+        this.proiezioni.set([]);
+        for (let i = 0; i < items.length; i++) {
+            if(new Date(items[i].dataProiezione) >= new Date()) {
+                this.proiezioni.update(proiezioni => [...proiezioni, items[i]]);//le inserisco nell'array(lista)
+            }
+        }
+        this.movies.set([]);
+        //per ogni singola proiezione, prendo il suo film e lo inserisco in una array senza avere doppioni
+        for (let i = 0; i < this.proiezioni().length; i++) {
+            this.movieService.ottieniTramiteId(this.proiezioni()[i].movieId).subscribe({
+                next: (movie) => {
+                  //questo controllo serve per evitare di inserire più volte lo stesso film se è presente in più proiezioni
+                    if(!this.movies().some(m => m.id === movie.id)) { 
+                        this.movies.update(movies => [...movies, movie]);
+                    }
+                },
+                error: (error: unknown) => {
+                    this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+                }
+            });
+        }
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'proiezioni non trovate'));
+      }
+    });
+  }
+
+  tracciaPerId(_: string, item: Movie): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+</details>
+
+**lista-movie.component.html**
+<details>
+
+<summary>Versione 1.0</summary>
+
+Francesco Lorenzi 28/05/2026
+
+semplice componente html della lista dei film
+```html
+<section>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <p>{{item.durataMinuti}} min</p>
+                        <p>{{item.genere }}</p>
+                        <p>{{item.descrizione}}</p>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </article>
+    </div>
+</section>
+```
+</details>
 
 ### Navbar V1.0
 Utente: Fabio Tammaro
@@ -3599,6 +4796,113 @@ export class NavbarComponent {
 ```
 </details>
 
+### Navbar V2.0
+Utente: Fabio Tammaro
+Data: 28/05/2026
+Descrizione: Modificata la navbar nel suo file ts e nel file hmtl in base al ruolo e all'autenticazione, aggiunto il pulsante gestione.
+
+### navbar.component.ts
+
+<details>
+<summary>Versione 1.0</summary>
+
+```typescript
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+
+@Component({
+  selector: 'app-navbar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+  private readonly authService = inject(AuthService);
+
+  readonly utente          = this.authService.utenteCorrente;
+  // quando authService cambia il valore delle variabili sottostanti viene ricalcolato
+  // e si aggiorna di conseguenza.
+  readonly isAutenticato   = computed(() => this.authService.isAutenticato ());
+  readonly isUtente        = computed(()=> this.authService.ruoloCorrispondente('Utente'));
+  readonly isGestore       = computed(() => this.authService.isGestore ());
+
+
+  logout(): void {
+    this.authService.logout();
+  }
+}
+```
+</details>
+
+
+
+### navbar.component.html 
+
+<details>
+<summary>Versione 1.0</summary>
+
+```html
+
+<!-- Header ereditato dal css -->
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if(!isAutenticato()){
+    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+    <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+    <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
+    </div>
+
+    <nav class="links">
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/login">Login</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+      </div>
+    </nav>
+    }
+
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/film">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestore/logs">Gestione</a>
+      </div>
+       }
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+      </div>
+      <div>
+        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>
+```
+</details>
 
 ### navbar.component.css
 
