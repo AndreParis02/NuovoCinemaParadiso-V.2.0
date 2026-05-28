@@ -19,6 +19,12 @@ export const routes: Routes = [
         canActivate: [guestGuard],
         loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage)
     },
+  */
+  {
+    path: 'profilo',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/utente/utente.page').then((m) => m.UtentePage), 
+  },
   {
     path: 'movie',
     canActivate: [authGuard],
@@ -166,34 +172,34 @@ export const routes: Routes = [
     },
 ]
 */
-    {
-        path: 'sala',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
-    },
-    /*
-    {
-        path: 'proiezione',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneDetailPage)
-    },
-    {
-        path: 'proiezione',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneListPage)
-    },
-    */
-    {
-        path: 'turno',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage)
-    },
-    /*
-    {
-        path: 'turno',
-        canActivate: [authGuard],
-        loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoListPage)
-    },
-    
-    */
+{
+    path: 'sala',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
+},
+/*
+{
+    path: 'proiezione',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneDetailPage)
+},
+{
+    path: 'proiezione',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezioneListPage)
+},
+*/
+{
+    path: 'turno',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage)
+},
+/*
+{
+    path: 'turno',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoListPage)
+},
+
+*/
 ];

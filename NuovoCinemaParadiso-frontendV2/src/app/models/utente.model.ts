@@ -7,7 +7,7 @@ export interface Utente {
     eta: number;
     abbonamentoId: string;
     tipoAbbonamento: string;
-    Saldo: number;
+    saldo: number;
 }
 
 export interface UtenteCreazione {

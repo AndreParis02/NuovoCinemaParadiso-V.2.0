@@ -89,7 +89,7 @@ export class TipologiaSalaPage {
 
     // Determina se eseguire una update (se modificandoId è presente) o una create
     // costante con tipo di dato anonimo che rappresenta la richiesta da inviare al servizio
-    // ler parentesi servono per restituirci il dato manipolato
+    // le parentesi servono per restituirci il dato manipolato
     const request$ = this.modificaId()
     // operatore ternario che restituisce quello alla sinistra dei : 
     // se modificandoId è valido, altrimenti restituisce quello alla destra dei :

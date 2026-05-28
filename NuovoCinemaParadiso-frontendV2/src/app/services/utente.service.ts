@@ -2,9 +2,7 @@ import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { Utente, UtenteCreazione } from '../models/utente.model';
-import { Biglietto } from '../models/biglietto.model';
 
 @Injectable({
     providedIn: 'root'
@@ -12,24 +10,17 @@ import { Biglietto } from '../models/biglietto.model';
 export class UtenteService {
 
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = `${environment.apiBaseUrl}/utente`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
 
-    profilo(id: string): Observable<Utente> {
-        return this.http.get<Utente>(`${this.baseUrl}/${id}`);
+    profilo(): Observable<Utente> {
+        return this.http.get<Utente>(`${this.baseUrl}/profilo`);
     }
 
-    modifica(payload: UtenteCreazione): Observable<Utente> {
-        return this.http.put<Utente>(this.baseUrl, payload);
+    modifica(payload: UtenteCreazione): Observable<any> {
+        return this.http.put<any>(`${this.baseUrl}/modifica`, payload);
     }
 
-    elimina(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.baseUrl}/${id}`);
-    }
-
-   /* biglietti(utenteId: string)*/
-
-    abbonati(abbonamentoId: string, utenteId: string): Observable<Utente> {
-
-        return this.http.post<Utente>(`${this.baseUrl}/abbonati`,{abbonamentoId,utenteId});
+    eliminaProfilo(): Observable<any> {
+        return this.http.delete<any>(`${this.baseUrl}/elimina`);
     }
 }
