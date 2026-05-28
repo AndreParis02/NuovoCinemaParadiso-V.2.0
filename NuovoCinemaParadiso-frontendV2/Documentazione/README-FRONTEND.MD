@@ -3391,6 +3391,40 @@ export class AuthService {
   }
 }
 ```
+
+Utente: Marco Strazzeri
+Data: 28/05/2026
+Descrizione: Fixata la funzione ottieniRuoloUtente, prima dava problemi con la lettura del ruolo
+
+```ts
+
+  ottieniRuoloUtente(): RuoliUtente | null {
+  const raw = localStorage.getItem(this.storagekey);
+
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      const utente = JSON.parse(raw) as SessioneUtente;
+
+
+
+      if (
+        utente.ruolo === 'Operatore' ||
+        utente.ruolo === 'Gestore' ||
+        utente.ruolo === 'Utente'
+      ) {
+        return utente.ruolo;
+      }
+
+      return null;
+    } catch {
+      return null;
+  }
+
+```
+
 </details>
 
 ### log-azioni.service.ts
