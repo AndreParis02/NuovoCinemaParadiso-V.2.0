@@ -59,6 +59,7 @@ export class AuthService {
   ottieniToken(): string | null {
     return this.utenteCorrente()?.token ?? null;
   }
+  
 /*
   ottieniRuoloUtente(): RuoliUtente | null{
     const ruolo = localStorage.getItem('ruolo');
