@@ -835,6 +835,251 @@ Data: 25/06/2026
 ```
 </details>
 
+### operatore.page.ts
+<details>
+<summary> v.1.0 </summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GestioneUtenteService } from '../../services/gestione-utente.service';
+
+@Component({
+  selector: 'operatore-page',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './operatore.page.html'
+})
+export class OperatorePage {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly gestioneUtenteService = inject(GestioneUtenteService);
+
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  readonly roles = ['Gestore', 'Operatore', 'Utente'];
+
+  readonly cambiaRuoloForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+    nuovoRuolo: ['Utente', [Validators.required]]
+  });
+
+  cambiaRuolo(): void {
+
+    if (this.cambiaRuoloForm.invalid) {
+      this.cambiaRuoloForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    this.gestioneUtenteService
+      .modificaRuolo(this.cambiaRuoloForm.getRawValue())
+      .subscribe({
+
+        next: (response) => {
+
+          this.isSubmitting.set(false);
+
+          this.successMessage.set(
+            `${response.messaggio} Nuovo ruolo: ${response.ruolo}`
+          );
+        },
+
+        error: (error: unknown) => {
+
+          this.isSubmitting.set(false);
+
+          this.errorMessage.set(
+            this.estraiMessaggioErrore(error)
+          );
+        }
+      });
+  }
+
+  private estraiMessaggioErrore(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+
+      return error.error?.messaggio
+        ?? 'Cambio ruolo non riuscito';
+    }
+
+    return 'Cambio ruolo non riuscito';
+  }
+
+}
+```
+</details>
+
+### operatore.page.html 
+
+<details>
+<summary>v.1.0</summary>
+
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizone: Creazione Pagina Operatore con solo il cambio ruolo (per ora)
+
+```ts
+<section>
+
+    <h1 class="page-title">
+        Cambio ruolo utente
+    </h1>
+
+    <p class="page-subtitle">
+        Pagina visibile solo al ruolo
+        <strong>Operatore</strong>
+    </p>
+
+    <div class="grid grid-2">
+
+        <!-- CARD FORM -->
+
+        <article class="card">
+
+            @if (successMessage()) {
+
+                <div class="alert alert-success">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            @if (errorMessage()) {
+
+                <div class="alert alert-warning">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <form
+                class="form-grid"
+                [formGroup]="cambiaRuoloForm"
+                (ngSubmit)="cambiaRuolo()"
+            >
+
+                <!-- EMAIL -->
+
+                <div>
+
+                    <label for="email">
+                        Email utente
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                    />
+
+                    @if (cambiaRuoloForm.controls.email.touched && cambiaRuoloForm.controls.email.invalid) {
+
+                        <div class="field-error">
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['required']) {
+
+                                <small>
+                                    L'email è obbligatoria
+                                </small>
+                            }
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['email']) {
+
+                                <small>
+                                    Inserisci un'email valida
+                                </small>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- RUOLO -->
+
+                <div>
+
+                    <label for="nuovoRuolo">
+                        Nuovo ruolo
+                    </label>
+
+                    <select
+                        id="nuovoRuolo"
+                        formControlName="nuovoRuolo"
+                    >
+
+                        @for (role of roles; track role) {
+
+                            <option [value]="role">
+                                {{ role }}
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- BOTTONE -->
+
+                <div class="btn-row">
+
+                    <button class="btn btn-primary" type="submit"[disabled]="isSubmitting()">
+
+                        {{ isSubmitting() ? 'Aggiornamento...' : 'Aggiorna ruolo' }}
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </article>
+
+        <!-- CARD INFO -->
+
+        <article class="card">
+
+            <h2>
+                Ruoli disponibili
+            </h2>
+
+            <div class="list">
+
+                @for (role of roles; track role) {
+
+                    <div class="list-item">
+
+                        <span>
+                            Ruolo
+                        </span>
+
+                        <strong>
+                            {{ role }}
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+```
+</details>
+
 
 ### abbonamento.page.ts
 <details>
@@ -2287,7 +2532,7 @@ export interface TurnoCreazione {
 </details>
 
 ### utente
-<details><summary> utente.model V1.0 </summary>
+<details><summary> utente.model V1.1 </summary>
 
 ```ts
 // Modello di ritrono che rappresenta un Utente
@@ -2316,6 +2561,39 @@ export interface UtenteCreazione {
 export interface UtenteModificaRuolo {
   email: string;
   nuovoRuolo: string;
+}
+```
+</details>
+
+<details><summary> utente.model V1.0 </summary>
+
+```ts
+export interface Utente {
+    id: string;
+    nomeCompleto: string;
+    dataInizioAbbonamento: string;
+    seAbbonato: boolean;
+    email: string;
+    eta: number;
+    abbonamentoId: string;
+    tipoAbbonamento: string;
+    Saldo: number;
+}
+
+export interface UtenteCreazione {
+    nomeCompleto: string;
+    eta: number;
+}
+
+export interface UtenteModificaRuoloRichiesta {
+    email: string;
+    nuovoRuolo: string;
+}
+// aggiunta UtenteModificaRuoloRisposta
+export interface UtenteModificaRuoloRisposta {
+    messaggio: string;
+    email: string;
+    ruolo: string;
 }
 ```
 </details>
@@ -3387,6 +3665,37 @@ export class GestioneUtenteService {
     return this.http.put<string>(`${this.baseUrl}/${id}`, payload);
   }
 }
+```
+</details>
+
+### GestioneUtenteService
+<details>
+<details><summary> V1.1 </summary>
+Utente: Andrea Paris
+Data: 28/05/2026
+Descrizione: apportati cambiamenti al metodo modificaRuolo
+
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {UtenteModificaRuoloRichiesta, UtenteModificaRuoloRisposta } from '../models/utente.model';
+
+
+@Injectable({
+    providedIn: 'root'
+})
+export class GestioneUtenteService {
+    private readonly http = inject(HttpClient);
+    private readonly baseUrl = `${environment.apiBaseUrl}/RuoloUtenti/cambia-ruolo`;
+
+
+    modificaRuolo(payload: UtenteModificaRuoloRichiesta): Observable<UtenteModificaRuoloRisposta> {
+        return this.http.put<UtenteModificaRuoloRisposta>(`${this.baseUrl}`, payload);
+    }
+}
+
 ```
 </details>
 

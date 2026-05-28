@@ -2,7 +2,7 @@ import { environment } from '../../environments/environment';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {UtenteModificaRuolo } from '../models/utente.model';
+import {UtenteModificaRuoloRichiesta, UtenteModificaRuoloRisposta } from '../models/utente.model';
 
 
 @Injectable({
@@ -10,10 +10,10 @@ import {UtenteModificaRuolo } from '../models/utente.model';
 })
 export class GestioneUtenteService {
     private readonly http = inject(HttpClient);
-    private readonly baseUrl = `${environment.apiBaseUrl}/gestone-utente`;
+    private readonly baseUrl = `${environment.apiBaseUrl}/RuoloUtenti/cambia-ruolo`;
 
 
-    modificaRuolo(id: string, payload: UtenteModificaRuolo): Observable<string> {
-        return this.http.put<string>(`${this.baseUrl}/${id}`, payload);
+    modificaRuolo(payload: UtenteModificaRuoloRichiesta): Observable<UtenteModificaRuoloRisposta> {
+        return this.http.put<UtenteModificaRuoloRisposta>(`${this.baseUrl}`, payload);
     }
 }

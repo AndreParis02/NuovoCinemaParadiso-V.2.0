@@ -15,7 +15,13 @@ export interface UtenteCreazione {
     eta: number;
 }
 
-export interface UtenteModificaRuolo {
+export interface UtenteModificaRuoloRichiesta {
     email: string;
     nuovoRuolo: string;
+}
+
+export interface UtenteModificaRuoloRisposta {
+    messaggio: string;
+    email: string;
+    ruolo: string;
 }
