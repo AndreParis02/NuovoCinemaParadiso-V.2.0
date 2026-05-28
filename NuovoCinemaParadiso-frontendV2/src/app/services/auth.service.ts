@@ -5,7 +5,6 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { Auth } from '../models/auth.model';
 import { Login } from '../models/login.model';
 import { Registrazione } from '../models/registrazione.model';
 import { SessioneUtente } from '../models/sessione-utente.model';
@@ -44,6 +43,9 @@ export class AuthService {
     return this.utenteCorrente() !== null;
   }
 
+ isGestore(): boolean {
+  return this.utenteCorrente()?.ruolo === 'Gestore';
+ }
   possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
     const ruolo = this.ottieniRuoloUtente();
     return !!ruolo && ruoli.includes(ruolo);
