@@ -3439,14 +3439,12 @@ export class GestioneUtenteService {
 
 ### COMPONENTS
 
-**lista-movie.component**
+**lista-movie.component.ts**
 <details>
 
 <summary>Versione 1.0</summary>
 
 Francesco Lorenzi 28/05/2026
-
-## lista-movie.component.ts
 
 componente TypeScript per creare una lista di film, questa lista di film comprende solo quelli dove ci sono delle proiezioni attive con essi, giustamente se ho delle proiezioni con lo stesso film, non voglio che esso sia ripetuto
 ```ts
@@ -3535,7 +3533,15 @@ export class ListaMovieComponent {
 }
 
 ```
-## lista-movie.component.html
+</details>
+
+**lista-movie.component.html**
+<details>
+
+<summary>Versione 1.0</summary>
+
+Francesco Lorenzi 28/05/2026
+
 semplice componente html della lista dei film
 ```html
 <section>
