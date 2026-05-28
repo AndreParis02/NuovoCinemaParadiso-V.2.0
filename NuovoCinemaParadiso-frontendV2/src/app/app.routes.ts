@@ -37,6 +37,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
   },
+  {
+    path: 'gestore/logs',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/log-azioni/log-azioni.page').then((m) => m.LogAzioniPage),
+  },
   
     {
         path: 'movie',

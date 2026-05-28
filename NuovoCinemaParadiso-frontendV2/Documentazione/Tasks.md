@@ -90,15 +90,22 @@ Divisione in gruppi per ruolo:
 
 GestorePage: Simeone 
 
-OperatorePage: - Andrea B: - lista film
+OperatorePage: - Andrea B: 
                - Andrea P: - cambio ruolo
                - Lorenzo:  - lista turni.
 
 UtentePage: Greg  -
             Marco -
+            Francesco - Lista film
 
 Documentazione: Fabio. (FATTO)
 
+
+### Tasks 4:
+
+UtentePage: Francesco - lista film
+
+Navbar: Fabio (fatto).
 ## A fine frontend
 
 ### in corso
