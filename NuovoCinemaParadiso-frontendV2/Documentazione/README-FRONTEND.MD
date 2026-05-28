@@ -2542,6 +2542,62 @@ export interface Auth {
 ```
 </details>
 
+### gestione.model.ts
+
+<details><summary> gestione.model.ts V1 </summary>
+- Utente: Simeone
+- Data: 28/05/2026
+- Descrizione: creazione modello per pagina di gestione dedita al ruolo gestore
+
+```ts
+export interface LogAzioni {
+  id: string | null;
+  idUtente: string | null;
+  nomeAzione: string;
+  effettuato: boolean;
+  messaggio: string;
+  timeStamp: string;
+}
+
+export interface LogAzioniCreazione {
+    id: string | null;
+    idUtente: string;
+    nomeAzione: string;
+    effettuato: boolean;
+    messaggio: string;
+    timeStamp: string;
+}
+
+export interface ContoCinema {
+  id: string;
+  iban: string;
+  titolareConto: string;
+  saldo: number;
+}
+
+export interface Biglietto {
+  id: string | null;
+  utenteId: string;
+  prezzoFinale: number;
+  orarioCreazione: string;
+  proiezioneId: string;
+  numeroBiglietti: number;
+  nomeSala: string;
+  titoloMovie: string;
+  nomeTipologiaSala: string;
+  oraInizio: string; 
+  dataProiezione: string; 
+}
+
+export interface GiftCard {
+  id: string | null;
+  nome: string;
+  valore: number;
+  codiceRiscatto: string;
+}
+```
+</details>
+
 ### biglietto.model.ts V1.0
 
 <details><summary> biglietto.model.ts V1 </summary>
@@ -3090,6 +3146,48 @@ export class SalaService {
 ```
 
 </details>
+
+
+### gestione.service.ts
+<details><summary>gestioneservice.ts V1.0 </summary>
+
+- Utente: Simeone
+- Data: 28/05/2026
+- Descrizione: service per le funzionalità della pagina gestione per il ruolo gestore con i collegamenti ponti al backend
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { LogAzioni, ContoCinema, Biglietto, GiftCard } from '../models/gestione.model'; // Adatta il percorso
+
+@Injectable({ providedIn: 'root' })
+export class GestioneService { 
+
+  private readonly http = inject(HttpClient);
+  private readonly gestoreUrl = `${environment.apiBaseUrl}/Gestore`;// Il gestoreUrl punta alla radice del controller Gestor
+  private readonly giftCardUrl = `${environment.apiBaseUrl}/GiftCard`;
+
+
+  ottieniLog(): Observable<LogAzioni[]> {
+    return this.http.get<LogAzioni[]>(`${this.gestoreUrl}/logs`);
+  }
+ // da qua sotto TUTTE MODIFICHE ED AGGIUNTE
+  ottieniConto(): Observable<ContoCinema> {
+    return this.http.get<ContoCinema>(`${this.gestoreUrl}/conto`);
+  }
+
+  ottieniBiglietti(): Observable<Biglietto[]> {
+    return this.http.get<Biglietto[]>(`${this.gestoreUrl}/biglietti`);
+  }
+
+  ottieniGiftCards(): Observable<GiftCard[]> {
+    return this.http.get<GiftCard[]>(this.giftCardUrl); //è un get nudo e crudio 
+  }
+}
+
+```
 
 ### TipologiaSalaService.ts V1.0
 
@@ -4642,17 +4740,15 @@ export class NavbarComponent {
 
 ```html
 
-<!-- Header ereditato dal css -->
 <header class="navbar-shell">
   <div class="container navbar">
     @if(!isAutenticato()){
     <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
     <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/film">Film</a>
-      </div>
-      <div class="btn-row">
+      <a class="btn btn-secondary" routerLink="/film">Film</a>
+    </div>
     <div class="btn-row">
-      <a class="btn btn-secondary" routerLink="/film">Proiezioni</a>
+      <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
     </div>
 
     <nav class="links">
@@ -4677,11 +4773,15 @@ export class NavbarComponent {
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
       </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestione">Gestione</a>
+      </div>
+       }
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
       </div>
       <div>
-        <!-- Strong rappresenta un contenuto di forte importanza semantica per il browser che lo mostrerà in grassetto.-->
         <strong>{{ utente()?.ruolo }}</strong>
         <div class="muted small">{{ utente()?.email }}</div>
       </div>
