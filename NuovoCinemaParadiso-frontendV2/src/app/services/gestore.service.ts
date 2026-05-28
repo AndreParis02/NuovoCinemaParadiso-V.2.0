@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Biglietto } from '../models/biglietto.model';
-import { Utente, UtenteModificaRuolo } from '../models/utente.model';
+import { Utente } from '../models/utente.model';
 import { LogAzioni } from '../models/logAzioni.model';
 
 @Injectable({
