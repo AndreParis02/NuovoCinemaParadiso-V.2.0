@@ -135,6 +135,7 @@ public class AuthService
         dto.AbbonamentoId = utente?.AbbonamentoId ?? string.Empty;
         dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.Saldo = utente.Saldo;
 
         return dto;
     }

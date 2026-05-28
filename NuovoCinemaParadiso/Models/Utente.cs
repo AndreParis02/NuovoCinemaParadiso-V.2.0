@@ -21,6 +21,7 @@ public class Utente : IdentityUser
     public string? AbbonamentoId { get; set; }
     [ForeignKey("AbbonamentoId")]
     public Abbonamento? Abbonamento { get; set; }
+    public string TipologiaAbbonamento { get; set; } = string.Empty;
 
     [Range(0,10000)]
     public int Saldo {get;set;}

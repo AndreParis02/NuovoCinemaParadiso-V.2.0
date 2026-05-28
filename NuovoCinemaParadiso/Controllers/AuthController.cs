@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Exceptions;
@@ -68,8 +68,7 @@ public class AuthController : ControllerBase
         }
     }
 
-
-    [HttpGet("profilo")]
+    [HttpGet("profilo")]    
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

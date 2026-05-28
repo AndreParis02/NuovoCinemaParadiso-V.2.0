@@ -45,7 +45,7 @@ public static class DataSeeder
             "123456",
             "Utente Uno",
             15,
-            true,
+            false,
             1000);
 
         ContoCinema contoCinema = await AssicuraEsistenzaContoCinema ( contestoDb, "IT60X0542811101000000123456", "Gestore", 200);
