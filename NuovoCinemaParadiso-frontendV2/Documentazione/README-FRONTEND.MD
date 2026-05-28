@@ -566,7 +566,7 @@ Esempio
         path: 'profilo',
         loadComponent: () =>
           import('./pages/profilo/profilo.page')
-            .then(m => m.UtenteProfiloPage)
+            .then(m => m.OperatoreProfiloPage)
       }
 
     ]
