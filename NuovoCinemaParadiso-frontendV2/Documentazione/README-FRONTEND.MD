@@ -3439,6 +3439,144 @@ export class GestioneUtenteService {
 
 ### COMPONENTS
 
+**lista-movie.component**
+<details>
+
+<summary>Versione 1.0</summary>
+
+Francesco Lorenzi 28/05/2026
+
+## lista-movie.component.ts
+
+componente TypeScript per creare una lista di film, questa lista di film comprende solo quelli dove ci sono delle proiezioni attive con essi, giustamente se ho delle proiezioni con lo stesso film, non voglio che esso sia ripetuto
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi, non abbiamo bisogno di autenticazione, la lista dei film deve essere visibile da chiunque
+import { MovieService } from '../../services/movie.service';
+import { ProiezioneService } from '../../services/proiezione.service';
+//modelli
+import { Movie } from '../../models/movie.model';
+import { GenereMovie } from '../../models/genere-movie.model';
+import { Proiezione } from '../../models/proiezione.model'; 
+
+
+@Component({
+  selector: 'lista-movie',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './lista-movie.component.html'
+})
+
+export class ListaMovieComponent {
+  //servizi
+  private readonly movieService = inject(MovieService);
+  private readonly proiezioneService = inject(ProiezioneService);
+  //modelli
+  readonly movies = signal<Movie[]>([]);
+  readonly proiezioni = signal<Proiezione[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  constructor() {
+    this.caricaMovies();
+  }
+  //carica tutti i movie presenti nelle proiezioni attive
+  caricaMovies(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.proiezioneService.ottieniTutto().subscribe({//ottengo tutte le proiezioni attive
+      next: (items) => {
+        this.proiezioni.set([]);
+        for (let i = 0; i < items.length; i++) {
+            if(new Date(items[i].dataProiezione) >= new Date()) {
+                this.proiezioni.update(proiezioni => [...proiezioni, items[i]]);//le inserisco nell'array(lista)
+            }
+        }
+        this.movies.set([]);
+        //per ogni singola proiezione, prendo il suo film e lo inserisco in una array senza avere doppioni
+        for (let i = 0; i < this.proiezioni().length; i++) {
+            this.movieService.ottieniTramiteId(this.proiezioni()[i].movieId).subscribe({
+                next: (movie) => {
+                  //questo controllo serve per evitare di inserire più volte lo stesso film se è presente in più proiezioni
+                    if(!this.movies().some(m => m.id === movie.id)) { 
+                        this.movies.update(movies => [...movies, movie]);
+                    }
+                },
+                error: (error: unknown) => {
+                    this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+                }
+            });
+        }
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'proiezioni non trovate'));
+      }
+    });
+  }
+
+  tracciaPerId(_: string, item: Movie): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+## lista-movie.component.html
+semplice componente html della lista dei film
+```html
+<section>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <p>{{item.durataMinuti}} min</p>
+                        <p>{{item.genere }}</p>
+                        <p>{{item.descrizione}}</p>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </article>
+    </div>
+</section>
+```
+</details>
+
 ### Navbar V1.0
 Utente: Fabio Tammaro
 Data: 26/05/2026
