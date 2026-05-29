@@ -4976,3 +4976,55 @@ export class NavbarComponent {
 ```
 </details>
 ## ENVIRONMENT
+
+
+# 29/05/2026
+## Obiettivo: refactoring
+Organizzare al meglio la struttura del frontend in modo che ci sia meno codice duplicato possibile e che ogni modulo possa essere facilmente riutilizzabile in altre webapi, come se fosse una libreria.  
+
+Ogni area dev'essere divisa in componenti ma non per forza ogni ruolo deve avere una cartella separata, la regola migliore e che permette meno duplicazione di codice è la divisione per features, quindi:
+- features -> funzionalità
+- pages -> schermate (per l'utente)
+- components -> pezzi riutilizzabili che andiamo a richiamare nelle pages (blocchetti per lo sviluppatore)
+- roles -> sono i permessi dei ruoli sulle routes
+
+La page, in quanto collettore di più components, avrà in:
+```ts
+@Component({
+  imports:[RouterOutlet, RouterLink]
+  template:`<nav>
+              <a routerLink="proiezioni">Proiezioni</a>
+            </nav>`
+            <router-outlet />
+})
+```
+
+un esempio di struttura delle folder nell'applicazione potrebbe essere:
+features/
+  abbonamenti/
+    pages/
+      abbonamenti.page.ts
+    components/
+      abbonamenti-list.component.ts
+
+E nelle route decidi:
+```ts
+data:{
+  roles: ['Operatore', 'Gestore']
+}
+```
+
+Usiamo la convenzione pages quando un component è collegato ad una route
+
+e potrebbe essere per esempio:
+- area-operatore.ts 
+- area-gestore.ts
+
+
+invece, usiamo components per pezzetti riutilizzabili all'interno della pagina area operatore, esempio:
+- operatore-card.ts
+- operatore-form.ts
+- operatore-table.ts
+- operatore-list.ts
+
+La settimana prossima implementiamo anche dei contenitori di funzioni che noi percepiamo utili in un contesto di ruolo ma non saranno cose che hanno un corrispettivo tra i file dell'applicazione, sarà semplicemente una vera e propria route (es: /Operatore) che collezionerà le varie features relative ad un ruolo specifico, però per farlo dobbiamo implementare nella core/guard/ le funzionalità riguardanti il CanActivateChild.
