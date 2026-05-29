@@ -1,29 +1,10 @@
 <header class="navbar-shell">
   <div class="container navbar">
-    @if(!isAutenticato()){
-    <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
-    <div class="btn-row">
-      <a class="btn btn-secondary" routerLink="/film">Film</a>
-    </div>
-    <div class="btn-row">
-      <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
-    </div>
-
-    <nav class="links">
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/login">Login</a>
-      </div>
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/register">Registrati</a>
-      </div>
-    </nav>
-    }
-
     @if (isAutenticato()) {
     <nav class="links">
       <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
       <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/film">Film</a>
+        <a class="btn btn-secondary" routerLink="/movies">Film</a>
       </div>
       <div class="btn-row">
         <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
@@ -37,7 +18,7 @@
       </div>
        }
       <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/Profilo">Profilo</a>
+        <a class="btn btn-secondary" routerLink="/profilo">Profilo</a>
       </div>
       <div>
         <strong>{{ utente()?.ruolo }}</strong>
