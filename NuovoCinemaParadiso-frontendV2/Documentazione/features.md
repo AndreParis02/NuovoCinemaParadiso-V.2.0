@@ -47,6 +47,140 @@
 - crea-codice.component.ts
 - giftcard-list.component.ts [gestore,utente] Simeone
 
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```ts
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { DatePipe, CurrencyPipe } from '@angular/common';
+import { GestioneService } from '../../../services/gestione.service';
+import { GiftCard } from '../../../models/gestione.model';
+import { AuthService } from '../../../services/auth.service';
+
+@Component({
+  selector: 'giftcard-list',
+  standalone: true,
+  imports: [DatePipe, CurrencyPipe], 
+  templateUrl: './giftcard-list.component.html',
+})
+export class GiftCardListComponent implements OnInit {
+
+  private readonly gestioneService = inject(GestioneService);
+  private readonly authService = inject(AuthService);
+
+  readonly giftCards = signal<GiftCard[]>([]);
+
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+
+  ngOnInit(): void {
+    this.caricaGiftCard();
+  }
+
+  caricaGiftCard(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    if (this.authService.isGestore()) {
+      
+      this.gestioneService.ottieniGiftCards().subscribe({
+        next: (data) => this.gestisciSuccesso(data),
+        error: (error) => this.gestisciErrore(error)
+      });
+
+    } else {
+
+      const utenteId = this.authService.utenteCorrente()?.id;
+
+      if (!utenteId) {
+        this.errorMessage.set('Errore: Impossibile identificare l\'utente.');
+        this.isLoading.set(false);
+        return;
+      }
+
+      this.gestioneService.ottieniMieGiftCards().subscribe({
+        next: (data) => this.gestisciSuccesso(data),
+        error: (error) => this.gestisciErrore(error)
+      });
+
+    }
+  }
+
+
+  private gestisciSuccesso(data: GiftCard[]): void {
+    this.giftCards.set(data);
+    this.isLoading.set(false); 
+  }
+
+  private gestisciErrore(error: unknown): void {
+    console.error('ERRORE GiftCard:', error);
+    this.isLoading.set(false);
+    this.errorMessage.set('Si è verificato un errore nel caricamento dei dati delle giftcard.');
+  }
+
+  trackById(_: number, item: any): string | null {
+    return item.id;
+  }
+}
+```
+
+</details>
+
+- giftcard-list.component.html [gestore,utente] Simeone
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```html
+<section class="page">
+    <h1 class="page-title">Gestione Gift Card</h1>
+    <p class="page-subtitle">Elenco di tutte le Gift Card attive nel sistema.</p>
+
+    @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage() }}</div>
+    }
+
+    @if(isLoading()){
+        <p class="muted">Recupero Gift Card dal server in corso...</p>
+    } @else {
+        
+        <article class="card">
+            <h2 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                Totale Card Emesse: <span style="color: var(--primary);">{{ giftCards().length }}</span>
+            </h2>
+
+            <div class="list">
+                @for(gc of giftCards(); track trackById($index, gc)){
+                    <div class="list-item">
+                        
+                        <div class="user-info">
+                            <strong>{{ gc.nome }}</strong> 
+                            <br>
+                            <span class="muted" style="font-size: 0.85rem;">Codice: {{ gc.codiceRiscatto }}</span>
+                        </div>
+
+                        <div>
+                            <span class="badge">{{ gc.valore | currency:'EUR' }}</span>
+                        </div>
+
+                    </div>
+                } @empty {
+                    <div class="list-item">
+                        <span class="muted">Nessuna Gift Card emessa al momento.</span>
+                    </div>
+                }
+            </div>
+        </article>
+
+    }
+</section>
+```
+
+</details>
+
+
 ## auth 
 ### page
 ### components
@@ -317,6 +451,112 @@ export class SalaListComponent {
 ## log
 ### components
 - log-list.component.ts [gestore] Simeone
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```ts
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { DatePipe, CurrencyPipe } from '@angular/common';
+import { GestioneService } from '../../../services/gestione.service';
+import { LogAzioni } from '../../../models/gestione.model';
+
+@Component({
+  selector: 'log-list',
+  standalone: true,
+  imports: [DatePipe, CurrencyPipe],
+  templateUrl: './log-list.component.html',
+  
+})
+export class LogListComponent implements OnInit {
+  private readonly gestioneService = inject(GestioneService);
+
+  readonly logs = signal<LogAzioni[]>([]);
+
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+
+  ngOnInit(): void {
+    this.caricaLogs();
+  }
+
+  caricaLogs(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    this.gestioneService.ottieniLog().subscribe({
+      next: (data) => {
+        this.logs.set(data);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        console.error('ERRORE LOG AZIONI:', error);
+
+        this.isLoading.set(false);
+        this.errorMessage.set('Si è verificato un errore nel caricamento dei dati.');
+      },
+    });
+  }
+
+  trackById(_: number, item: any): string | null {
+    return item.id;
+  }
+}
+
+```
+
+</details>
+
+- log-list.component.html [gestore] Simeone
+
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```html
+<section>
+    <h1 class="page-title">Cronologia Operazioni di Sistema</h1>
+    <p class="page-subtitle">Registro delle azioni effettuate all'interno del Nuovo Cinema Paradiso.</p>
+
+    @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage() }}</div>
+    }
+
+    @if(isLoading()){
+        <p class="muted">Recupero log dal server in corso...</p>
+    } @else {
+        
+        <article class="card">
+            <div class="list">
+                @for(item of logs(); track trackById($index, item)){
+                    <div class="list-item">
+                        <div>
+                            <p>
+                                <strong>{{ item.nomeAzione }}</strong>
+                                {{ item.messaggio }} (Esito: {{ item.effettuato ? 'Successo' : 'Fallito' }})
+                            </p>
+                            <div class="muted"> 
+                                Utente ID: {{ item.idUtente || 'Sistema' }} | 
+                                Data: {{ item.timeStamp | date:'dd/MM/yyyy HH:mm:ss' }}
+                            </div>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="list-item">
+                        <p class="muted">Nessuna operazione registrata nel sistema al momento.</p>
+                    </div>
+                }
+            </div>
+        </article>
+
+    }
+</section>
+```
+
+</details>
+
 
 ## conto-cinema
 ### components
