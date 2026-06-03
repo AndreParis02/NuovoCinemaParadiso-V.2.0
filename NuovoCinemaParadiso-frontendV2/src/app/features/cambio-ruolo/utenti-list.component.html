@@ -1,0 +1,68 @@
+<section>
+
+    <h1 class="page-title">Lista utenti</h1>
+    <p class="page-subtitle">Visualizza tutti gli utenti registrati.</p>
+
+    @if (messaggioErrore) {
+    <div class="alert alert-warning">{{ messaggioErrore }}</div>
+    }
+
+    @if (!messaggioErrore && utenti.length === 0) {
+    <p class="muted">Nessun utente trovato.</p>
+    }
+
+    @if (utenti.length > 0) {
+
+    <div class="grid grid-2" style="margin-top: 1.5rem;">
+
+        @for (u of utenti; track u.id) {
+
+        <article class="card">
+            <h2>Utente #{{ u.id }}</h2>
+
+            <div class="list">
+
+                <div class="list-item">
+                    <strong>Nome completo</strong>
+                    <p>{{ u.nomeCompleto }}</p>
+                </div>
+
+                <div class="list-item">
+                    <strong>Email</strong>
+                    <p>{{ u.email }}</p>
+                </div>
+
+                <div class="list-item">
+                    <strong>Età</strong>
+                    <p>{{ u.eta }}</p>
+                </div>
+
+                <div class="list-item">
+                    <strong>Saldo</strong>
+                    <p>{{ u.saldo }}</p>
+                </div>
+
+                @if(u.seAbbonato)
+                {
+                <div class="list-item">
+                    <strong>Tipo di abbonamento</strong>
+                    <p>{{ u.tipoAbbonamento }}</p>
+                </div>
+
+                <div class="list-item">
+                    <strong>Data inizio abbonamento</strong>
+                    <p>{{ u.dataInizioAbbonamento }}</p>
+                </div>
+                }
+
+            </div>
+
+        </article>
+
+        }
+
+    </div>
+
+    }
+
+</section>
