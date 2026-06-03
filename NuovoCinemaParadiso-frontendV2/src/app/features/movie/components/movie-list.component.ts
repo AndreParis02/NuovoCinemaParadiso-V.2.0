@@ -58,8 +58,8 @@ export class MovieListComponent {
     if (!this.visualizzabileDa()) {
       return;
     }
-    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
-    if (!confirmed) {
+    
+    if (!confirm(`Sei sicuro di voler eliminare il film "${item.titolo}"?`)) {
       return;
     }
 
