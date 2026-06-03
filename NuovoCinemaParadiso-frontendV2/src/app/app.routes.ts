@@ -11,10 +11,17 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'dashboard',
   },
+  /*
   {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
+  },
+  */
+  {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/component/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'register',

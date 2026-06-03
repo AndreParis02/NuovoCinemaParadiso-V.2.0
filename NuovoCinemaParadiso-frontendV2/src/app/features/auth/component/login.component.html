@@ -1,0 +1,70 @@
+<section class="login-section">
+
+  <h1 class="page-title">Accedi</h1>
+  <p class="page-subtitle">Inserisci le tue credenziali per accedere all'applicazione.</p>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger soft-alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="grid grid-2 login-grid">
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()" class="card login-card">
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="esempio@email.com">
+
+        @if (submitted() && loginForm.controls.email.invalid) {
+          <p class="error-text">Inserisci un'email valida.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••">
+
+        @if (submitted() && loginForm.controls.password.invalid) {
+          <p class="error-text">La password è obbligatoria.</p>
+        }
+      </div>
+
+      <div class="button-row">
+        <button type="submit" class="btn-primary" [disabled]="isLoading()">
+          {{ isLoading() ? 'Accesso in corso...' : 'Login' }}
+        </button>
+
+        <a [routerLink]="['/register']" class="btn-secondary">
+          Registrati
+        </a>
+      </div>
+
+    </form>
+
+    <div class="card login-card">
+      <h2>Utenti demo</h2>
+
+      <div class="demo-list">
+        <div class="demo-item">
+          <strong>Gestore</strong>
+          <p>gestore@gmail.com / 123456</p>
+        </div>
+
+        <div class="demo-item">
+          <strong>Operatore</strong>
+          <p>operatore@gmail.com / 123456</p>
+        </div>
+
+        <div class="demo-item">
+          <strong>Utente</strong>
+          <p>utente1@gmail.com / 123456</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
