@@ -8,7 +8,7 @@ import { GenereMovie } from '../../models/genere-movie.model';
 @Component({
   selector: 'app-genere-movie',
   imports: [],
-  templateUrl: './genere-movie.list.component.html',
+  templateUrl: './genere-movie-list.component.html',
 })
 
 export class GenereMoviePage {
