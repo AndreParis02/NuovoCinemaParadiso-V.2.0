@@ -170,7 +170,7 @@ export class MovieListComponent {
         </article>
 ```
 
-</deatils>
+</details>
 
 - movie-form.component.ts [operatore]
 
