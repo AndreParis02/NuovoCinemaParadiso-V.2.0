@@ -4,11 +4,11 @@ import { TipologiaSala } from '../../models/tipologia-sala.model';
 import { TipologiaSalaService } from '../../services/tipologia-sala.service';
 
 @Component({
-  selector: 'app-tipologia-sala-list',
+  selector: 'tipologia-sala-list',
   templateUrl: './tipologia-sala-list.component.html',
 })
 
-export class GenereMoviePage {
+export class TipologiaSalaMoviePage {
 
   private readonly authService = inject(AuthService);
   private readonly tipologiaSalaService = inject(TipologiaSalaService);

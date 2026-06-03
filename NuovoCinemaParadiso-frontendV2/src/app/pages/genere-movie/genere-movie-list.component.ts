@@ -6,7 +6,7 @@ import { GenereMovieService } from '../../services/genere-movie.service';
 import { GenereMovie } from '../../models/genere-movie.model';
 
 @Component({
-  selector: 'app-genere-movie',
+  selector: 'genere-movie-list',
   imports: [],
   templateUrl: './genere-movie-list.component.html',
 })
