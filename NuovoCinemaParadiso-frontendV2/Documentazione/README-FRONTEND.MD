@@ -3501,6 +3501,51 @@ export class GestioneService {
 
 ```
 
+<details><summary>gestioneservice.ts V1.1 </summary>
+
+- Utente: Simeone
+- Data: 28/05/2026
+- Descrizione: ora le giftcard sono ottenibili anche dall'utente, ma ovviamente solo quelle create da lui
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { LogAzioni, ContoCinema, Biglietto, GiftCard } from '../models/gestione.model'; 
+
+@Injectable({ providedIn: 'root' })
+export class GestioneService { 
+
+  private readonly http = inject(HttpClient);
+  private readonly gestoreUrl = `${environment.apiBaseUrl}/Gestore`;
+  private readonly giftCardUrl = `${environment.apiBaseUrl}/GiftCard`;
+
+
+  ottieniLog(): Observable<LogAzioni[]> {
+    return this.http.get<LogAzioni[]>(`${this.gestoreUrl}/logs`);
+  }
+
+  ottieniConto(): Observable<ContoCinema> {
+    return this.http.get<ContoCinema>(`${this.gestoreUrl}/conto`);
+  }
+
+  ottieniBiglietti(): Observable<Biglietto[]> {
+    return this.http.get<Biglietto[]>(`${this.gestoreUrl}/biglietti`);
+  }
+
+  ottieniGiftCards(): Observable<GiftCard[]> {
+    return this.http.get<GiftCard[]>(this.giftCardUrl);
+  }
+
+  ottieniMieGiftCards(): Observable<GiftCard[]> {
+    return this.http.get<GiftCard[]>(`${this.giftCardUrl}/mie`);
+  }
+}
+
+```
+
+</details>
+
 ### TipologiaSalaService.ts V1.0
 
 <details><summary> tipologia.sala.service.ts V1.0 </summary>

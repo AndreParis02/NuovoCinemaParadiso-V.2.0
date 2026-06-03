@@ -27,4 +27,8 @@ export class GestioneService {
   ottieniGiftCards(): Observable<GiftCard[]> {
     return this.http.get<GiftCard[]>(this.giftCardUrl);
   }
+
+  ottieniMieGiftCards(): Observable<GiftCard[]> {
+    return this.http.get<GiftCard[]>(`${this.giftCardUrl}/mie`);
+  }
 }
