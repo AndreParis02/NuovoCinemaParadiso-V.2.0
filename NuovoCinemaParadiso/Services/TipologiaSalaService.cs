@@ -25,6 +25,7 @@ public class TipologiaSalaService
             dto.Id = tipologiaSala.Id;
             dto.Nome = tipologiaSala.Nome;
             dto.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
+            dto.IsDeleted = tipologiaSala.isDeleted;
 
             risultati.Add(dto);
         }
@@ -82,12 +83,12 @@ public class TipologiaSalaService
     {
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
 
-        if (tipologiaSala == null)
+        if (tipologiaSala == null || tipologiaSala.isDeleted)
         {
             return false;
         }
 
-        _contesto.TipologieSala.Remove(tipologiaSala);
+        tipologiaSala.isDeleted = true;
         await _contesto.SaveChangesAsync();
 
         return true;

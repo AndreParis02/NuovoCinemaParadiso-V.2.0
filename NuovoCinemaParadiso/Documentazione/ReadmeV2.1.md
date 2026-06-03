@@ -752,6 +752,9 @@ public class TipologiaSala
     // Rappresenta una relazione uno-a-molti tra TipologiaSala e Sala
     // La lista viene inizializzata vuota per evitare errori null reference
     public List<Sala> Sale { get; set; } = new List<Sala>();
+
+    // Proprietà che indica se l'oggetto è stato eliminato
+    public bool isDeleted { get; set; } = false;
 }
 ```
 
@@ -1595,6 +1598,8 @@ public class DtoTipologiaSala
     public string Nome { get; set; } = string.Empty;    // Nome della tipologia (es. Standard, IMAX, VIP)
 
     public int MaggiorazionePrezzo { get; set; }        // Maggiorazione applicata al prezzo base
+
+    public bool IsDeleted {get; set;} = false;          // Booleano che ne indica la eliminazione
 }
 ```
 
@@ -5676,21 +5681,43 @@ public class TipologiaSalaController : ControllerBase
     }
 
     [HttpGet]
+    // Restituisce tutte le tipologie di sala non eliminate e salva il log dell'operazione
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-
-        // Recupera l'ID dell'utente autenticato dal token JWT
+        List<DtoTipologiaSala> tipologieSaleTrovate = new List<DtoTipologiaSala>();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        // Log dell’operazione riuscita
+        foreach (DtoTipologiaSala temp in tipologieSala)
+        {
+            if (!temp.IsDeleted)
+            {
+                tipologieSaleTrovate.Add(temp);
+            }
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
+        
+
+        return Ok(tipologieSaleTrovate);
+    }
+
+    [HttpGet("storico")]
+    // Restituisce tutte le tipologie di sala, compresi gli elementi eliminati (storico)
+    public async Task<IActionResult> OttieniTuttiStorico()
+    {
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
 
         return Ok(tipologieSala);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
@@ -12360,6 +12387,8 @@ public class TipologiaSalaService
                 Id = tipologiaSala.Id,
                 Nome = tipologiaSala.Nome,
                 MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo
+                IsDeleted = tipologiaSala.isDeleted;
+                
             });
         }
 
@@ -12441,18 +12470,19 @@ public class TipologiaSalaService
     /// </summary>
     /// <param name="id">ID della tipologia da eliminare.</param>
     /// <returns>True se eliminata, false se non trovata.</returns>
-    public async Task<bool> EliminaAsync(string id)
+public async Task<bool> EliminaAsync(string id)
     {
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
 
-        if (tipologiaSala == null)
+        if (tipologiaSala == null || tipologiaSala.isDeleted)
+        {
             return false;
+        }
 
-        _contesto.TipologieSala.Remove(tipologiaSala);
+        tipologiaSala.isDeleted = true;
         await _contesto.SaveChangesAsync();
 
         return true;
-    }
 }
 ```
 
