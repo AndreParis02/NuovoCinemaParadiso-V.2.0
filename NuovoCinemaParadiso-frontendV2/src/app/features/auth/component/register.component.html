@@ -1,0 +1,65 @@
+<section class="register-section">
+
+  <h1 class="page-title">Registrazione</h1>
+  <p class="page-subtitle">Crea un nuovo account per accedere all'applicazione.</p>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger soft-alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <form [formGroup]="registerForm" (ngSubmit)="submit()" class="card register-card">
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Nome completo</label>
+        <input type="text" formControlName="nomeCompleto" placeholder="Mario Rossi">
+
+        @if (submitted() && registerForm.controls.nomeCompleto.invalid) {
+          <p class="error-text">Il nome è obbligatorio.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Età</label>
+        <input type="number" formControlName="eta" placeholder="18">
+
+        @if (submitted() && registerForm.controls.eta.invalid) {
+          <p class="error-text">Inserisci un'età valida.</p>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="email@example.com">
+
+        @if (submitted() && registerForm.controls.email.invalid) {
+          <p class="error-text">Inserisci un'email valida.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••">
+
+        @if (submitted() && registerForm.controls.password.invalid) {
+          <p class="error-text">La password deve contenere almeno 6 caratteri.</p>
+        }
+      </div>
+    </div>
+    <div class="btn-row">
+        <button class="btn btn-primary" type="button" (click)="submit()">
+          Registrati
+        </button>
+
+      <a [routerLink]="['/login']" class="btn btn-secondary">
+        Torna al login
+      </a>
+    </div>
+
+  </form>
+
+</section>
