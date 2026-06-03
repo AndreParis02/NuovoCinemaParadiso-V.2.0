@@ -169,6 +169,7 @@ export class SalaListComponent {
                 <div class="list-item">
                     <div>
                         <strong>{{ item.nome }}</strong>
+                        <p>Tipologia: {{ item.nomeTipologia }}</p>
                         <p>Capienza: {{ item.capienza }}</p>
                         <div class="muted">ID: {{ item.id }}</div>
                     </div>    
