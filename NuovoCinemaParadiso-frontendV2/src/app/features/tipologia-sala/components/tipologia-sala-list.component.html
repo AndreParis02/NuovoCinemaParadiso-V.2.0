@@ -1,36 +1,44 @@
 <section>
-    <h1 class="page-title">Tipologia Sala</h1>
-    <p class="page-subtitle"> il backend restituisce le varie tipologia delle sale</p>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
 
-     @if(errorMessage()){
-        <div class="alert alert-warning">{{ errorMessage()}}</div>
-     }
-
-     @if(successMessage()){
-        <div class="alert alert-success">{{ successMessage() }}</div>
-     }
-
-     <div class="grid grid-2">
+    <div class="grid grid-2">
         <article class="card">
-            <h2>Lista delle sale del cinema</h2>
+            <h2>Lista Tipologie Sala</h2>
 
-            @if(isLoading()){
-                <p class="muted"> Caricamento in corso...</p>
-            } @else if(tipologiaSala().length === 0){
-                <p class="muted"> Nessuna tipologia sala presente</p>
-            } @else{
-                <div class="list">
-                    @for(item of tipologiaSala(); track item.id) {
-                        <div class="list-item">
-                            <div>
-                                <strong>{{ item.nome }}</strong>
-                                <p> {{item.maggiorazionePrezzo}} €</p>
-                                <div class="muted"> {{ item.id }}</div>
-                            </div>
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (tipologie().length === 0) {
+            <p class="muted">Nessuna tipologia presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of tipologie(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>Maggiorazione: {{ item.maggiorazionePrezzo }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="tipologiaScelta.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
                         </div>
-}
+                        }
+                    </div>
                 </div>
+                }
+            </div>
             }
         </article>
-     </div>
+
+        @if (visualizzabileDa()) {
+        <article class="card">
+            <tipologia-sala-form [movieSelezionato]="tipologiaScelta()" (modificaCompletata)="caricaTipologie()"></tipologia-sala-form>
+        </article>
+        }
+    </div>
 </section>

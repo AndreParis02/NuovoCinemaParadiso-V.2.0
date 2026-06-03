@@ -1311,7 +1311,7 @@ export class SalaFormComponent {
 ## tipologia-sala
 ### components
 - tipologia-sala-list.component.ts [operatore] Greg
-- tipologia-sala-form.component.ts [operatore]
+- tipologia-sala-form.component.ts [operatore] 
 
 ## turno
 ### components

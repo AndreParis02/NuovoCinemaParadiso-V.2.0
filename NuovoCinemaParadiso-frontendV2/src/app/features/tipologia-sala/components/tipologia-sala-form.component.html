@@ -1,0 +1,20 @@
+<h2>{{ modificaId() ? 'Modifica tipologia' : 'Aggiungi tipologia' }}</h2>
+
+<form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+    <div>
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+        
+        <label for="maggiorazionePrezzo">Maggiorazione Prezzo (€)</label>
+        <input id="maggiorazionePrezzo" type="number" formControlName="maggiorazionePrezzo" [disabled]="!modificabileDa()">
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+        </button>
+        @if (modificaId()) {
+        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+        }
+    </div>
+</form>
