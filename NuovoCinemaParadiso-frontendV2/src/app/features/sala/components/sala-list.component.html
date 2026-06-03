@@ -1,0 +1,31 @@
+<section>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Sale</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (sale().length === 0) {
+            <p class="muted">Nessuna sala presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of sale(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div> 
+                        <strong>{{ item.nome }}</strong>
+                        <p>Tipologia: {{ item.nomeTipologia }}</p>
+                        <p>Capienza: {{ item.capienza }} </p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>    
+                </div>
+                }
+            </div>
+            }
+        </article>
