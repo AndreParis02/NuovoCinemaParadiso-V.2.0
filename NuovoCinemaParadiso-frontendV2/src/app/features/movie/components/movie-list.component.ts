@@ -12,7 +12,6 @@ import { Movie } from '../../../models/movie.model';
 @Component({
   selector: 'movie-list',
   standalone: true,
-  imports: [ReactiveFormsModule],
   templateUrl: './movie-list.component.html'
 })
 
