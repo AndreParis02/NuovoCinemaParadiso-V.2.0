@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
-import { TipologiaSala } from '../../models/tipologia-sala.model'; 
-import { TipologiaSalaService } from '../../services/tipologia-sala.service';
+import { AuthService } from '../../../services/auth.service';
+import { TipologiaSala } from '../../../models/tipologia-sala.model'; 
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
 
 @Component({
   selector: 'tipologia-sala-list',

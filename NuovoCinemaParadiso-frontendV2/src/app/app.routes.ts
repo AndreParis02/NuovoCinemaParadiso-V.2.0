@@ -87,12 +87,12 @@ export const routes: Routes = [
   {
     path: 'tipologia-sala',
     canActivate: [authGuard],
-    loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
+    loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
   },
   {
     path: 'genere-movie',
     canActivate: [authGuard],
-    loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
   },
   {
     path: 'sala',

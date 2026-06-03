@@ -1711,9 +1711,9 @@ Descrizione: Creato il componente list genere movie
 // Import dei simboli principali di Angular e del supporto per i segnali reattivi.
 import { Component, inject, signal } from '@angular/core';
 //import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
-import { GenereMovieService } from '../../services/genere-movie.service';
-import { GenereMovie } from '../../models/genere-movie.model';
+import { AuthService } from '../../../services/auth.service';
+import { GenereMovieService } from '../../../services/genere-movie.service';
+import { GenereMovie } from '../../../models/genere-movie.model';
 
 @Component({
   selector: 'app-genere-movie',
@@ -1996,12 +1996,12 @@ export class TipologiaSalaListComponent implements OnInit {
  * con ottieniTutto(), questo ottiene tutti le iterazione del db di tipologia-sala
  */
 import { Component, inject, signal } from '@angular/core';
-import { AuthService } from '../../services/auth.service';
-import { TipologiaSala } from '../../models/tipologia-sala.model'; 
-import { TipologiaSalaService } from '../../services/tipologia-sala.service';
+import { AuthService } from '../../../services/auth.service';
+import { TipologiaSala } from '../../../models/tipologia-sala.model'; 
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
 
 @Component({
-  selector: 'app-tipologia-sala-list',
+  selector: 'tipologia-sala-list',
   /*è il nome html dello Slug con cui usi 
                                         un componente angular dentro un template
                                         ,nel nostro caso possiamo usare quel componente cosi:
@@ -2016,7 +2016,7 @@ import { TipologiaSalaService } from '../../services/tipologia-sala.service';
   templateUrl: './tipologia-sala-list.component.html', //URL del template
 })
 
-export class GenereMoviePage {
+export class TipologiaSalaMoviePage{
 
   // Iniezione del servizio di autenticazione
   private readonly authService = inject(AuthService);
