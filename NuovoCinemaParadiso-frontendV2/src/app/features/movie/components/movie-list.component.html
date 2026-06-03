@@ -1,0 +1,30 @@
+<section>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>    
+                </div>
+                }
+            </div>
+            }
+        </article>

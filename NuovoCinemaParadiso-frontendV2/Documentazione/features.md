@@ -56,6 +56,122 @@
 ## movie
 ### components
 - movie-list.component.ts [operatore] Francesco
+<details>
+<summary>versione1.0</summary>
+
+Francesco Lorenzi
+03/06/2026
+
+creazione del componente lista movie
+
+## movie-list.component.ts
+
+```ts
+
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+//servizi
+import { AuthService } from '../../../services/auth.service';
+import { MovieService } from '../../../services/movie.service';
+
+//modelli
+import { Movie } from '../../../models/movie.model';
+
+@Component({
+  selector: 'movie-list',
+  standalone: true,
+  templateUrl: './movie-list.component.html'
+})
+
+export class MovieListComponent {
+// servizi
+  private readonly authService = inject(AuthService);
+  private readonly movieService = inject(MovieService);
+
+// componenti
+  readonly movies = signal<Movie[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+  constructor() {
+    this.caricaMovies();
+  }
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  // carica tii i movie in una lista
+  caricaMovies(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.movieService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.movies.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+      }
+    });
+  }
+// traccia la lista dei movie per i loro ID
+  tracciaPerId(_: string, item: Movie): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+
+## movie-list.component.html
+
+```html
+<section>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Film</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (movies().length === 0) {
+            <p class="muted">Nessun film presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of movies(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div><!-- ho lasciato la descrizione fuori dai campi dalla lista perché irrilevante -->
+                        <strong>{{ item.titolo }}</strong>
+                        <p>{{ item.prezzoMovie }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>    
+                </div>
+                }
+            </div>
+            }
+        </article>
+```
+
+</details>
+
 - movie-form.component.ts [operatore]
 
 ## proiezione
