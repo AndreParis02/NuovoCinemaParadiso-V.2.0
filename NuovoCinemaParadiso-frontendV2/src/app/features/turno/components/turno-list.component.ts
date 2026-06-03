@@ -1,50 +1,49 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { AbbonamentoService } from '../../../services/abbonamento.service';
-import { Abbonamento } from '../../../models/abbonamento.model';
+import { TurnoService } from '../../../services/turno.service';
+import { Turno } from '../../../models/turno.model';
 
 @Component({
-    selector: 'abbonamento-list',
+    selector: 'turno-list',
     standalone: true,
-    templateUrl: './abbonamento-list.component.html',
-    styleUrls: ['./abbonamento-list.component.css']
+    templateUrl: './turno-list.component.html'
 })
-export class AbbonamentoListComponent {
+export class TurnoListComponent {
 
-    private readonly abbonamentoService = inject(AbbonamentoService);
+    private readonly turnoService = inject(TurnoService);
 
 
 
-    readonly abbonamenti = signal<Abbonamento[]>([]);
+    readonly turni = signal<Turno[]>([]);
     readonly staCaricando = signal(false);
     readonly messaggioErrore = signal('');
     readonly messaggioSuccesso = signal('');
 
     constructor() {
-        this.caricaAbbonamenti();
+        this.caricaTurni();
     }
 
-    caricaAbbonamenti(): void {
+    caricaTurni(): void {
 
         this.staCaricando.set(true);
         this.messaggioErrore.set('');
 
-        this.abbonamentoService.ottieniTutto().subscribe({
+        this.turnoService.ottieniTutto().subscribe({
             next: (items) => {
-                this.abbonamenti.set(items);
+                this.turni.set(items);
                 this.staCaricando.set(false);
             },
             error: (error: unknown) => {
                 this.staCaricando.set(false);
                 this.messaggioErrore.set(
-                    this.estraiMessaggioErrore(error, 'Abbonamenti non trovati')
+                    this.estraiMessaggioErrore(error, 'Turni non trovati')
                 );
             }
         });
     }
 
-    tracciaPerId(_: number, item: Abbonamento): string {
+    tracciaPerId(_: number, item: Turno): string {
         return item.id;
     }
 

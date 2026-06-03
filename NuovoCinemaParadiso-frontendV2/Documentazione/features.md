@@ -18,7 +18,7 @@
 ### page
 - abbonamento.page.ts
 ### components
-- abbonamento-list.component.ts [tutti] - Andrea Paris
+- abbonamento-list.component.ts [tutti] - Andrea Paris (fatto)
 - abbonamento-detail.component.ts [utente](abbonato)
 - abbonamento-form.component.ts [operatore]
 
@@ -193,7 +193,7 @@ export class MovieListComponent {
 
 ## turno
 ### components
-- turno-list.component.ts [operatore] Andrea paris
+- turno-list.component.ts [operatore] Andrea paris (fatto)
 - turno-form.component.ts [operatore]
 
 ## cambio-ruolo
