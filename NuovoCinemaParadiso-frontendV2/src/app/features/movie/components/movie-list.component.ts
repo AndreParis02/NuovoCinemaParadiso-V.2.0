@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../services/auth.service';
@@ -7,12 +6,14 @@ import { MovieService } from '../../../services/movie.service';
 
 
 import { Movie } from '../../../models/movie.model';
+import { MovieFormComponent } from "./movie-form.component";
 
 
 @Component({
   selector: 'movie-list',
   standalone: true,
-  templateUrl: './movie-list.component.html'
+  templateUrl: './movie-list.component.html',
+  imports: [MovieFormComponent]
 })
 
 export class MovieListComponent {
@@ -22,6 +23,7 @@ export class MovieListComponent {
 
 
   readonly movies = signal<Movie[]>([]);
+  readonly filmScelto = signal<Movie | null>(null);
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -48,6 +50,32 @@ export class MovieListComponent {
       error: (error: unknown) => {
         this.staCaricando.set(false);
         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
+      }
+    });
+  }
+
+  elimina(item: Movie): void {
+    if (!this.visualizzabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.movieService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.filmScelto()?.id === item.id) {
+          this.filmScelto.set(null);
+        }
+        this.caricaMovies();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
       }
     });
   }

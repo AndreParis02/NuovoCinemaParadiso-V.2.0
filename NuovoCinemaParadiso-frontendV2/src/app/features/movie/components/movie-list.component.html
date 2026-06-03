@@ -22,9 +22,21 @@
                         <strong>{{ item.titolo }}</strong>
                         <p>{{ item.prezzoMovie }} €</p>
                         <div class="muted">ID: {{ item.id }}</div>
-                    </div>    
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="filmScelto.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                        </div>
+                        }
+                    </div>
                 </div>
                 }
             </div>
             }
         </article>
+        @if (visualizzabileDa()) {
+        <article class="card">
+            <movie-form [movieSelezionato]="filmScelto()" (modificaCompletata)="caricaMovies()"></movie-form>
+        </article>
+        }
+    </div>
