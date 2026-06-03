@@ -25,6 +25,7 @@
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
                             <button (click)="filmScelto.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
                         </div>
                         }
                     </div>

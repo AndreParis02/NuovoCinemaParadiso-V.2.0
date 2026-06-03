@@ -54,6 +54,32 @@ export class MovieListComponent {
     });
   }
 
+  elimina(item: Movie): void {
+    if (!this.visualizzabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.movieService.elimina(item.id).subscribe({
+      next: () => {
+        if (this.filmScelto()?.id === item.id) {
+          this.filmScelto.set(null);
+        }
+        this.caricaMovies();
+      },
+      error: (error: unknown) => {
+
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+
   tracciaPerId(_: string, item: Movie): string {
     return item.id;
   }

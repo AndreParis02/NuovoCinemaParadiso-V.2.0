@@ -26,7 +26,6 @@ export class MovieFormComponent {
 
 
     readonly generi = signal<GenereMovie[]>([]);
-    readonly movies = signal<Movie[]>([]);
     readonly movieSelezionato = input<Movie | null>(null);
     readonly staCaricando = signal(false);
     readonly staInviando = signal(false);
@@ -45,7 +44,6 @@ export class MovieFormComponent {
 
     constructor() {
         this.caricaGeneri();
-        this.caricaMovies();
 
         effect(() => {
             const movie = this.movieSelezionato();
@@ -60,23 +58,6 @@ export class MovieFormComponent {
         return this.authService.possiedeQualsiasiRuolo(['Operatore']);
     }
 
-    caricaMovies(): void {
-
-        this.staCaricando.set(true);
-        this.messaggioErrore.set('');
-        this.movieService.ottieniTutto().subscribe({
-
-            next: (items) => {
-                this.movies.set(items);
-                this.staCaricando.set(false);
-
-            },
-            error: (error: unknown) => {
-                this.staCaricando.set(false);
-                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'film non trovati'));
-            }
-        });
-    }
     caricaGeneri(): void {
 
         this.staCaricando.set(true);
@@ -124,10 +105,6 @@ export class MovieFormComponent {
         });
     }
 
-    trovaMoviePerId(id: string): Movie | undefined {
-        return this.movies().find(movie => movie.id === id);
-    }
-
     inizioModifica(item: Movie): void {
 
         if (!this.modificabileDa()) {
@@ -142,7 +119,7 @@ export class MovieFormComponent {
 
     ripristinaForm(): void {
         this.modificaId.set('');
-        this.form.reset({ titolo: '', descrizione: '', durataMinuti: 1, prezzoMovie: 0.01, genereId: '' });
+        this.form.reset({ titolo: '', descrizione: '', durataMinuti: 1, prezzoMovie: 0, genereId: '' });
     }
     tracciaPerId(_: string, item: Movie | GenereMovie): string {
         return item.id;
