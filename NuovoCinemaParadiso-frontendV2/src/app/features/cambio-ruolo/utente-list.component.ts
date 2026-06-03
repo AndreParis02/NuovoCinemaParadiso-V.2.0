@@ -1,13 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { OperatoreService } from '../../services/operatore.service';
 import { Utente } from '../../models/utente.model';
 
 @Component({
   selector: 'utenti-list',
   standalone: true,
-  templateUrl: './utenti-list.component.html'
+  templateUrl: './utente-list.component.html'
 })
-export class UtentiListComponent implements OnInit {
+export class UtenteListComponent implements OnInit {
 
   utenti: Utente[] = [];
   messaggioErrore: string | null = null;

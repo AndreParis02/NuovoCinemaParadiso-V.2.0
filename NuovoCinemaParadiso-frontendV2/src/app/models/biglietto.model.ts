@@ -1,5 +1,5 @@
 export interface Biglietto {
-    id: string | null;
+    id: string;
     proiezioneId: string;
     utenteId: string;
     prezzoFinale: number;
