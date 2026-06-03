@@ -679,6 +679,8 @@ Nel nostro caso la navbar.
 
 ### utente.page.ts V1.0 
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Creazione della pagina dell'area riservata dell'utente
 
@@ -818,8 +820,10 @@ export class UtentePage implements OnInit {
 }
 ```
 
-### utente.page.html V1.0
+### utente.page.html
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Creazione pagina html dell'area riservata dell'utente
 Se l'utente non è abbonato non viene visualizzata la card e 
@@ -2679,7 +2683,7 @@ export interface GiftCardCreazione {
 ```
 </details >
 
-### giftCard.model.ts V1.1
+### giftCard.model.ts
 
 Andrea Bruno 28-05-2026
 Aggiunta modello CodiceRiscatto
@@ -4496,8 +4500,10 @@ export class AuthService {
 
 ```
 
-### utente.service.ts V1.0
+### utente.service.ts
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Cambio di rotta da Utente a Auth 
 Modifiche nel richiamo dei servizi 

@@ -97,14 +97,15 @@
 
 
 # biglietto
-## biglietto-list.component.ts V1.0
+## biglietto-list.component.ts
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 03-06-2026
 Creazione del file (funzionante ma problemi con il refresh della pagina)
 
 ```ts
 import { Component, OnInit, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { Biglietto } from '../../models/biglietto.model';
 import { BigliettoService } from '../../services/biglietto.service';
 import { AuthService } from '../../services/auth.service';
@@ -112,7 +113,6 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'biglietto-list',
   standalone: true,
-  imports: [DatePipe],
   templateUrl: './biglietto-list.component.html',
 })
 export class BigliettoListComponent implements OnInit {
@@ -143,8 +143,10 @@ export class BigliettoListComponent implements OnInit {
 }
 ```
 
-## biglietto-list.component.html V1.0
+## biglietto-list.component.html
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 03-06-2026
 Creazione del file minimale esteticamente da modificare 
 
@@ -229,8 +231,10 @@ Creazione del file minimale esteticamente da modificare
 ```
 
 # cambio-ruolo
-## utenti-list.component.ts V1.0
+## utenti-list.component.ts
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 03-06-2026
 Creazione del file (funzionante ma problemi con il refresh della pagina)
 
@@ -268,8 +272,10 @@ export class UtentiListComponent implements OnInit {
 }
 ```
 
-## utenti-list.component.ts V1.0
+## utenti-list.component.ts
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 03-06-2026
 Creazione del file minimale esteticamente da modificare
 

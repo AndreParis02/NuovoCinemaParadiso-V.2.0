@@ -1,5 +1,4 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { Biglietto } from '../../models/biglietto.model'; 
 import { BigliettoService } from '../../services/biglietto.service';
 import { AuthService } from '../../services/auth.service';
@@ -7,7 +6,6 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'biglietto-list',
   standalone: true,
-  imports: [ DatePipe ],
   templateUrl: './biglietto-list.component.html',
 })
 export class BigliettoListComponent implements OnInit {
