@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../services/auth.service';
@@ -7,12 +6,14 @@ import { MovieService } from '../../../services/movie.service';
 
 
 import { Movie } from '../../../models/movie.model';
+import { MovieFormComponent } from "./movie-form.component";
 
 
 @Component({
   selector: 'movie-list',
   standalone: true,
-  templateUrl: './movie-list.component.html'
+  templateUrl: './movie-list.component.html',
+  imports: [MovieFormComponent]
 })
 
 export class MovieListComponent {
@@ -22,6 +23,7 @@ export class MovieListComponent {
 
 
   readonly movies = signal<Movie[]>([]);
+  readonly filmScelto = signal<Movie | null>(null);
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
