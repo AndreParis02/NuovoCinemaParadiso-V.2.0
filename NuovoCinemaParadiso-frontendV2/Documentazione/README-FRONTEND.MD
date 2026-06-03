@@ -826,6 +826,13 @@ Se l'utente non è abbonato non viene visualizzata la card e
 ovviamento vale anche per operatore e gestore  
 
 ```c#
+<!--
+  Commento: Questo blocco è il template HTML per la lista delle tipologie di sala.
+  Usa una sintassi simile a quella dei template (condizioni con @if, ciclo @for).
+  Le funzioni invocate: errorMessage(), successMessage(), isLoading(), tipologiaSala().
+  Ogni elemento 'item' ha campi: id, nome, maggiorazionePrezzo.
+-->
+
 <section>
 
     <!-- HEADER: mostrato solo se l'utente è stato caricato -->
@@ -1691,8 +1698,143 @@ Francesco Lorenzi 26/05/2026
     </article>
   </div>
 </section>
-```
 </details>
+```
+
+### genere-movie-list.component.ts V 1.0
+Utente: Greg
+Data: 03/06/2026
+Descrizione: Creato il componente list genere movie
+
+```ts
+
+// Import dei simboli principali di Angular e del supporto per i segnali reattivi.
+import { Component, inject, signal } from '@angular/core';
+//import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AuthService } from '../../../services/auth.service';
+import { GenereMovieService } from '../../../services/genere-movie.service';
+import { GenereMovie } from '../../../models/genere-movie.model';
+
+@Component({
+  selector: 'app-genere-movie',
+  imports: [],
+  templateUrl: './genere-movie.list.component.html',
+})
+
+export class GenereMoviePage {
+
+  // Iniezione dei servizi necessari per autenticazione e gestione dei generi film.
+  private readonly authService = inject(AuthService);
+  private readonly genereMovieService = inject(GenereMovieService);
+
+  // Stato reattivo del componente: lista generi, caricamento e messaggi.
+  readonly generiMovies = signal<GenereMovie[]>([]);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+  constructor() {
+    // Al caricamento del componente, viene eseguita la richiesta dei generi.
+    this.loadGeneriMovies();
+  }
+
+  // Recupera la lista dei generi dei film dal backend.
+  loadGeneriMovies(): void {
+    this.isLoading.set(true); // Mostra lo stato di caricamento.
+    this.errorMessage.set(''); // Resetta eventuali messaggi di errore precedenti.
+
+    // Chiamata al servizio che restituisce un Observable contenente i generi.
+    this.genereMovieService.ottieniTutto().subscribe({
+      next: (items) => {
+        // Aggiorna la lista quando i dati sono disponibili.
+        this.generiMovies.set(items);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        // Gestione dell'errore e aggiornamento dello stato.
+        this.isLoading.set(false);
+        this.errorMessage.set(
+          this.extractErrorMessage(error, 'Impossibile caricare i generi dei film')
+        );
+      }
+    });
+  }
+
+  // Funzione di trackBy usata per ottimizzare il rendering delle liste in Angular.
+  trackById(_: string, item: GenereMovie): string | null {
+    return item.id;
+  }
+
+  // Estrae un messaggio di errore leggibile dall'oggetto ricevuto.
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+
+```
+
+### genere-movie-list.component.html V 1.0
+
+Utente: Greg
+Data: 03/06/2026
+Descrizione: Creato file html per mostrare la list genere movie
+
+```html
+<!-- Contenitore principale della sezione -->
+<section>
+    <!-- Titolo principale della pagina -->
+    <h1 class="page-title">Generi di Film</h1>
+    <!-- Sottotitolo descrittivo -->
+    <p class="page-subtitle"> il backend restituisce la lista generi di film</p>
+
+     <!-- Mostra messaggio di errore se presente nel segnale errorMessage -->
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     <!-- Mostra messaggio di successo se presente nel segnale successMessage -->
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <!-- Contenitore griglia a 2 colonne -->
+     <div class="grid grid-2">
+        <!-- Card principale per la lista generi -->
+        <article class="card">
+            <h2>Lista generi di film</h2>
+
+            <!-- Verifica lo stato di caricamento -->
+            @if(isLoading()){
+                <!-- Mostra messaggio di caricamento mentre i dati vengono recuperati -->
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(generiMovies().length === 0){
+                <!-- Mostra messaggio quando non ci sono generi disponibili -->
+                <p class="muted"> Nessun genere di film presente</p>
+            } @else{
+                <!-- Contenitore della lista generi -->
+                <div class="list">
+                    <!-- Loop di iterazione sulla lista generiMovies usando trackBy per l'ID -->
+                    @for(item of generiMovies(); track item.id) {
+                        <!-- Elemento singolo della lista -->
+                        <div class="list-item">
+                            <div>
+                                <!-- Nome del genere in grassetto -->
+                                <strong>{{ item.genere }}</strong>
+                                <!-- ID del genere in testo attenuato -->
+                                <div class="muted">ID: {{ item.id }}</div>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>
+
+```
 
 ### log-azioni.page.html
 <details>
@@ -1841,6 +1983,107 @@ export class TipologiaSalaListComponent implements OnInit {
 }
 ```
 
+### tipologia-sala-list.component.ts V 1.1
+
+- Utente: Greg
+- Data: 03/06/2026
+- Descrizione: Aggiunto componente lista
+
+```ts
+/**
+ * Componente Angular della lista di modelli tipologia-sala
+ * questo componente angular sfrutta il servizio relativo per creare una lista
+ * con ottieniTutto(), questo ottiene tutti le iterazione del db di tipologia-sala
+ */
+import { Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../../services/auth.service';
+import { TipologiaSala } from '../../../models/tipologia-sala.model'; 
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
+
+@Component({
+  selector: 'tipologia-sala-list',
+  /*è il nome html dello Slug con cui usi 
+                                        un componente angular dentro un template
+                                        ,nel nostro caso possiamo usare quel componente cosi:
+                                        <app-tipologia-sala-list> </app-tipologia-sala-list>
+                                        in pratica, quando angular trova questo tag html,
+                                        mostra questo componente utilizzando il suo template,
+                                        la rotta angular diventerebbe questa: 
+                                        {
+                                        path: 'tipologia-sala-list', 
+                                        component: TipologiaSalaListComponent
+                                        }*/,
+  templateUrl: './tipologia-sala-list.component.html', //URL del template
+})
+
+export class TipologiaSalaPage{
+
+  // Iniezione del servizio di autenticazione
+  private readonly authService = inject(AuthService);
+  // Iniezione del servizio per gestire le tipologie di sala
+  private readonly tipologiaSalaService = inject(TipologiaSalaService);
+
+  // Signal per memorizzare l'array delle tipologie di sala
+  readonly tipologiaSala = signal<TipologiaSala[]>([]);
+  // Signal per tracciare lo stato di caricamento
+  readonly isLoading = signal(false);
+  // Signal per memorizzare i messaggi di errore
+  readonly errorMessage = signal('');
+  // Signal per memorizzare i messaggi di successo
+  readonly successMessage = signal('');
+
+
+  // Costruttore che carica le tipologie di sala al momento dell'inizializzazione
+  constructor() {
+    this.loadTipologiaSala();
+  }
+
+  // Metodo che carica tutte le tipologie di sala dal servizio
+  loadTipologiaSala(): void {
+    // Imposta lo stato di caricamento a true
+    this.isLoading.set(true);
+    // Pulisce il messaggio di errore precedente
+    this.errorMessage.set('');
+
+    // Effettua la chiamata HTTP per ottenere tutte le tipologie
+    this.tipologiaSalaService.ottieniTutto().subscribe({
+      // Nel caso di successo
+      next: (items) => {
+        // Aggiorna il signal con gli elementi ricevuti
+        this.tipologiaSala.set(items);
+        // Disattiva lo stato di caricamento
+        this.isLoading.set(false);
+      },
+      // Nel caso di errore
+      error: (error: unknown) => {
+        // Disattiva lo stato di caricamento
+        this.isLoading.set(false);
+        // Imposta il messaggio di errore estratto dall'eccezione
+        this.errorMessage.set(
+          this.extractErrorMessage(error, 'Impossibile caricare la tipologia sala')
+        );
+      }
+    });
+  }
+
+  // Metodo trackBy per ottimizzare il rendering di *ngFor
+  trackById(_: string, item: TipologiaSala): string | null {
+    return item.id
+  }
+
+  // Metodo privato che estrae il messaggio di errore da un'eccezione
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    // Controlla se l'errore è un'istanza di Error
+    if (error instanceof Error) {
+      // Ritorna il messaggio dell'errore o il fallback se non disponibile
+      return error?.message ?? fallback;
+    }
+    // Ritorna il messaggio di fallback se l'errore non è un Error
+    return fallback
+  }
+}
+```
+
 ### tipologia-sala-list.component.html
 
 componente html template della lista di tipologia-sala
@@ -1892,6 +2135,56 @@ export class TipologiaSalaDetailComponent implements OnInit {
     });
   }
 }
+```
+
+### tipologia-sala-list.component.html V 1.1
+
+- Utente: Greg
+- Data: 03/06/2026
+- Descrizione: Aggiunto componente lista
+
+```html
+<section>
+    <h1 class="page-title">Tipologia Sala</h1>
+    <p class="page-subtitle"> il backend restituisce le varie tipologia delle sale</p>
+
+      <!-- Mostra un messaggio di errore se presente -->
+      @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+      }
+
+      <!-- Mostra un messaggio di successo se presente -->
+      @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+      }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista delle sale del cinema</h2>
+
+            <!-- Stato di caricamento / nessun dato / lista popolata -->
+            @if(isLoading()){
+              <p class="muted"> Caricamento in corso...</p>
+            } @else if(tipologiaSala().length === 0){
+              <p class="muted"> Nessuna tipologia sala presente</p>
+            } @else{
+                <div class="list">
+                    <!-- Ciclo sui risultati: per ogni tipologia mostra nome, maggiorazione e id -->
+                    @for(item of tipologiaSala(); track item.id) {
+                      <div class="list-item">
+                        <div>
+                          <strong>{{ item.nome }}</strong>
+                          <p> {{item.maggiorazionePrezzo}} €</p>
+                          <div class="muted"> {{ item.id }}</div>
+                        </div>
+                      </div>
+                    }
+                </div>
+            }
+        </article>
+     </div>
+</section>
+
 ```
 
 ### tipologia-sala-detail.component.html
@@ -2275,7 +2568,7 @@ Template della pagina Sale: mostra la lista delle sale e un form reattivo per cr
 
 </details>
 
-## movie.page.ts
+### movie.page.ts
 Francesco Lorenzi
 Data:25/05/2026
 
