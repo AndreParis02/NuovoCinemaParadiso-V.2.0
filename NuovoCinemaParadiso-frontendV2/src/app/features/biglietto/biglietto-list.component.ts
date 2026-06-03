@@ -34,10 +34,6 @@ export class BigliettoListComponent {
     this.caricaBiglietti();
   }
 
-  visualizzabileDa(): boolean {
-    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
-  }
-
   caricaBiglietti(): void {
     if (!this.utenteId) return;
 
@@ -52,7 +48,8 @@ export class BigliettoListComponent {
       error: (error: unknown) => {
         this.staCaricando.set(false);
         this.messaggioErrore.set(
-          this.estraiMessaggioErrore(error, 'Errore durante il caricamento dei biglietti')
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento dei biglietti')
         );
       }
     });

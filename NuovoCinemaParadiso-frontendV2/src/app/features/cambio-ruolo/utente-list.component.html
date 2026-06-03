@@ -1,68 +1,55 @@
 <section>
 
-    <h1 class="page-title">Lista utenti</h1>
-    <p class="page-subtitle">Visualizza tutti gli utenti registrati.</p>
-
-    @if (messaggioErrore) {
-    <div class="alert alert-warning">{{ messaggioErrore }}</div>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
 
-    @if (!messaggioErrore && utenti.length === 0) {
-    <p class="muted">Nessun utente trovato.</p>
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
-    @if (utenti.length > 0) {
-
-    <div class="grid grid-2" style="margin-top: 1.5rem;">
-
-        @for (u of utenti; track u.id) {
+    <div class="grid grid-2">
 
         <article class="card">
-            <h2>Utente #{{ u.id }}</h2>
+            <h2>Lista utenti</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (utenti().length === 0) {
+            <p class="muted">Non ci sono utenti.</p>
+            } @else {
 
             <div class="list">
 
-                <div class="list-item">
-                    <strong>Nome completo</strong>
-                    <p>{{ u.nomeCompleto }}</p>
-                </div>
+                @for (u of utenti(); track u.id) {
 
                 <div class="list-item">
-                    <strong>Email</strong>
-                    <p>{{ u.email }}</p>
+                    <div>
+                        <strong>Utente #{{ u.id }}</strong>
+
+                        <p>Nome completo: {{ u.nomeCompleto }}</p>
+                        <p>Email: {{ u.email }}</p>
+                        <p>Età: {{ u.eta }}</p>
+                        <p>Saldo: {{ u.saldo }}</p>
+
+                        @if(u.seAbbonato)
+                        {
+                        <p>Tipo di abbonamento: {{ u.tipoAbbonamento }}</p>
+                        <p>Data inizio abbonamento: {{ u.dataInizioAbbonamento }}</p>
+                        }
+                        <div class="muted">ID: {{ u.id }}</div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" (click)="modifica(u.id)">Modifica</button>
+                            <button class="btn btn-danger" (click)="elimina(u.id)"
+                                [disabled]="staInviando()">Elimina</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="list-item">
-                    <strong>Età</strong>
-                    <p>{{ u.eta }}</p>
-                </div>
-
-                <div class="list-item">
-                    <strong>Saldo</strong>
-                    <p>{{ u.saldo }}</p>
-                </div>
-
-                @if(u.seAbbonato)
-                {
-                <div class="list-item">
-                    <strong>Tipo di abbonamento</strong>
-                    <p>{{ u.tipoAbbonamento }}</p>
-                </div>
-
-                <div class="list-item">
-                    <strong>Data inizio abbonamento</strong>
-                    <p>{{ u.dataInizioAbbonamento }}</p>
-                </div>
                 }
-
             </div>
 
+            }
         </article>
-
-        }
-
     </div>
-
-    }
-
 </section>

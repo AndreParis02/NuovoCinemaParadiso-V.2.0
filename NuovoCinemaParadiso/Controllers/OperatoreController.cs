@@ -37,7 +37,7 @@ public class OperatoreController : ControllerBase
         return Ok("Ricarica effettuata con successo.");
     }
 
-        [HttpGet("listaUtenti")]
+    [HttpGet("listaUtenti")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> OttieniTuttiIProfili()
     {

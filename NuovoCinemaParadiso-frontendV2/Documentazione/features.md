@@ -93,19 +93,19 @@
 ### components
 - conto-cinema-detail.component.ts [gestore]
 
-
-
-
-# biglietto
-## biglietto-list.component.ts
+## biglietto
+### biglietto-list.component.ts
 
 <details>
-<summary>Versione 1.0</summary>
+<summary>## biglietto-list.component.ts V1.0</summary>
+
 Andrea Bruno 03-06-2026
-Creazione del file (funzionante ma problemi con il refresh della pagina)
+Creazione del file
 
 ```ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { Biglietto } from '../../models/biglietto.model';
 import { BigliettoService } from '../../services/biglietto.service';
 import { AuthService } from '../../services/auth.service';
@@ -115,246 +115,384 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   templateUrl: './biglietto-list.component.html',
 })
-export class BigliettoListComponent implements OnInit {
+export class BigliettoListComponent {
 
-  biglietto: Biglietto[] = [];          // lista dei biglietti caricati
-  messaggio: string | null = null;      // messaggio di errore o info
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly bigliettoService = inject(BigliettoService);
 
-  private authService = inject(AuthService); // servizio per ottenere l’utente loggato
+  // Stato reattivo del componente
+  readonly biglietti = signal<Biglietto[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
 
-  constructor(private bigliettoService: BigliettoService) {} // servizio API biglietti
+  // ID dell'utente loggato
+  readonly utenteId;
 
-  ngOnInit(): void {
+  constructor() {
+    // Recupera l'utente corrente
+    const utente = this.authService.utenteCorrente();
 
-    const utente = this.authService.utenteCorrente(); // recupero utente loggato
-
-    if (!utente?.id) {                 // se non è loggato → messaggio
-      this.messaggio = "Utente non loggato";
+    // Se non loggato, mostra errore
+    if (!utente?.id) {
+      this.messaggioErrore.set("Utente non loggato");
       return;
     }
 
-    const utenteId = utente.id;        // id dell’utente loggato
+    this.utenteId = utente.id;
 
-    this.bigliettoService.ottieniTutto(utenteId).subscribe({
-      next: data => this.biglietto = data,                 // biglietti caricati
-      error: () => this.messaggio = "Errore durante il caricamento dei biglietti."
+    // Carica i biglietti all'avvio
+    this.caricaBiglietti();
+  }
+
+  // Recupera i biglietti dell'utente
+  caricaBiglietti(): void {
+    if (!this.utenteId) return;
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.bigliettoService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.biglietti.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento dei biglietti')
+        );
+      }
     });
+  }
+
+  // Funzione di tracking per *ngFor
+  tracciaPerId(_: string, item: Biglietto): string {
+    return item.id;
+  }
+
+  // Elimina un biglietto
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo biglietto?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.bigliettoService.elimina(id).subscribe({
+      next: () => {
+        // Rimuove il biglietto dalla lista locale
+        this.biglietti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Biglietto eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, "Errore durante l'eliminazione del biglietto")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
   }
 }
 ```
 
-## biglietto-list.component.html
+### biglietto-list.component.html
 
 <details>
-<summary>Versione 1.0</summary>
+<summary>biglietto-list.component.html V1.0</summary>
+
 Andrea Bruno 03-06-2026
 Creazione del file minimale esteticamente da modificare 
 
 ```html
 <section>
 
-    <!-- Titolo pagina -->
-    <h1 class="page-title">I tuoi biglietti</h1>
-    <p class="page-subtitle">Visualizza gli acquisti effettuati.</p>
-
-    <!-- Messaggio di errore o info (es. utente non loggato) -->
-    @if (messaggio) {
-        <div class="alert alert-warning">{{ messaggio }}</div>
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
 
-    <!-- Caso: nessun biglietto presente -->
-    @if (!messaggio && biglietto.length === 0) {
-        <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
-    <!-- Caso: ci sono biglietti -->
-    @if (biglietto.length > 0) {
+    <div class="grid grid-2">
 
-        <!-- Griglia delle card -->
-        <div class="grid grid-2" style="margin-top: 1.5rem;">
+        <article class="card">
+            <h2>I tuoi biglietti</h2>
 
-            <!-- Ciclo dei biglietti -->
-            @for (b of biglietto; track b.id) {
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
 
-                <article class="card">
-                    <h2>Biglietto #{{ b.id }}</h2>
+            <!-- Nessun biglietto -->
+            } @else if (biglietti().length === 0) {
+                <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
 
-                    <!-- Lista dettagli biglietto -->
-                    <div class="list">
+            <!-- Lista biglietti -->
+            } @else {
 
-                        <div class="list-item">
-                            <strong>Film</strong>
-                            <p>{{ b.titoloMovie }}</p>
-                        </div>
+                <div class="list">
 
-                        <div class="list-item">
-                            <strong>Sala</strong>
-                            <p>{{ b.nomeSala }}</p>
-                        </div>
+                    <!-- Ciclo dei biglietti -->
+                    @for (b of biglietti(); track b.id){
 
                         <div class="list-item">
-                            <strong>Tipologia sala</strong>
-                            <p>{{ b.nomeTipologiaSala }}</p>
+                            <div>
+
+                                <!-- Intestazione biglietto -->
+                                <strong>Biglietto #{{ b.id }}</strong>
+
+                                <!-- Informazioni principali -->
+                                <p>Film: {{ b.titoloMovie }}</p>
+                                <p>Sala: {{ b.nomeSala }}</p>
+                                <p>Tipologia sala: {{ b.nomeTipologiaSala }}</p>
+                                <p>Numero biglietti: {{ b.numeroBiglietti }}</p>
+                                <p>Data: {{ b.dataProiezione }}</p>
+                                <p>Ora inizio: {{ b.oraInizio }}</p>
+                                <p>Prezzo totale: {{ b.prezzoFinale }} €</p>
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ b.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(b.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(b.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
+                            </div>
                         </div>
 
-                        <div class="list-item">
-                            <strong>Numero biglietti</strong>
-                            <p>{{ b.numeroBiglietti }}</p>
-                        </div>
-
-                        <div class="list-item">
-                            <strong>Data di proiezione</strong>
-                            <p>{{ b.dataProiezione }}</p>
-                        </div>
-
-                        <div class="list-item">
-                            <strong>Orario di inizio film</strong>
-                            <p>{{ b.oraInizio }}</p>
-                        </div>
-
-                        <div class="list-item">
-                            <strong>Prezzo totale</strong>
-                            <p>{{ b.prezzoFinale }} €</p>
-                        </div>
-
-                    </div>
-
-                </article>
+                    }
+                </div>
 
             }
-
-        </div>
-
-    }
-
+        </article>
+    </div>
 </section>
 ```
 
-# cambio-ruolo
-## utenti-list.component.ts
+## cambio-ruolo
+### utenti-list.component.ts
 
 <details>
-<summary>Versione 1.0</summary>
+<summary>utenti-list.component.ts V1.0</summary>
+
 Andrea Bruno 03-06-2026
-Creazione del file (funzionante ma problemi con il refresh della pagina)
+Creazione del file
 
 ```ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { OperatoreService } from '../../services/operatore.service';
+import { UtenteService } from '../../services/utente.service';
+import { AuthService } from '../../services/auth.service';
 import { Utente } from '../../models/utente.model';
 
 @Component({
-  selector: 'utenti-list',                     // nome del componente usato nel template
-  standalone: true,                            // componente standalone
-  templateUrl: './utenti-list.component.html'  // file HTML associato
+  selector: 'utenti-list',
+  standalone: true,
+  templateUrl: './utente-list.component.html'
 })
-export class UtentiListComponent implements OnInit {
+export class UtenteListComponent {
 
-  utenti: Utente[] = [];                       // lista utenti caricati dal backend
-  messaggioErrore: string | null = null;       // messaggio di errore da mostrare
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly operatoreService = inject(OperatoreService);
+  private readonly utenteService = inject(UtenteService);
 
-  private operatoreService = inject(OperatoreService); // servizio per ottenere gli utenti
+  // Stato reattivo del componente
+  readonly utenti = signal<Utente[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
 
-  ngOnInit(): void {
+  constructor() {
+    // Carica gli utenti all'avvio
+    this.caricaUtenti();
+  }
 
-    this.messaggioErrore = null;               // reset messaggio errore
+  // Controlla se l'utente corrente può vedere questa pagina
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
 
-    // chiamata API per ottenere tutti gli utenti
+  // Recupera la lista degli utenti
+  caricaUtenti(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
     this.operatoreService.OttieniUtenti().subscribe({
       next: (items) => {
-        this.utenti = items;                   // utenti caricati correttamente
+        this.utenti.set(items);
+        this.staCaricando.set(false);
       },
-      error: () => {
-        this.messaggioErrore = 'Errore nel caricamento utenti'; // errore API
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento degli utenti')
+        );
       }
     });
+  }
+
+  // Tracking per *ngFor
+  tracciaPerId(_: string, item: Utente): string {
+    return item.id;
+  }
+
+  // Elimina un utente
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo utente?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // ⚠️ Nota: eliminaProfilo() elimina l'utente loggato, non quello passato come id
+    this.utenteService.eliminaProfilo().subscribe({
+      next: () => {
+        // Rimuove l'utente dalla lista locale
+        this.utenti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Utente eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            "Errore durante l'eliminazione dell'utente")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
   }
 }
 ```
 
-## utenti-list.component.ts
+### utenti-list.component.html
 
 <details>
-<summary>Versione 1.0</summary>
+<summary>utenti-list.component.html V1.0</summary>
+
 Andrea Bruno 03-06-2026
 Creazione del file minimale esteticamente da modificare
 
 ```html
 <section>
 
-    <!-- Titolo della pagina -->
-    <h1 class="page-title">Lista utenti</h1>
-    <p class="page-subtitle">Visualizza tutti gli utenti registrati.</p>
-
-    <!-- Messaggio di errore (es. problemi nel caricamento) -->
-    @if (messaggioErrore) {
-        <div class="alert alert-warning">{{ messaggioErrore }}</div>
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
 
-    <!-- Caso: nessun utente trovato -->
-    @if (!messaggioErrore && utenti.length === 0) {
-        <p class="muted">Nessun utente trovato.</p>
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
-    <!-- Caso: ci sono utenti -->
-    @if (utenti.length > 0) {
+    <div class="grid grid-2">
 
-        <!-- Griglia delle card utenti -->
-        <div class="grid grid-2" style="margin-top: 1.5rem;">
+        <article class="card">
+            <h2>Lista utenti</h2>
 
-            <!-- Ciclo degli utenti -->
-            @for (u of utenti; track u.id) {
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
 
-                <article class="card">
-                    <h2>Utente #{{ u.id }}</h2>
+            <!-- Nessun utente -->
+            } @else if (utenti().length === 0) {
+                <p class="muted">Non ci sono utenti.</p>
 
-                    <!-- Lista dei dettagli dell'utente -->
-                    <div class="list">
+            <!-- Lista utenti -->
+            } @else {
 
-                        <div class="list-item">
-                            <strong>Nome completo</strong>
-                            <p>{{ u.nomeCompleto }}</p>
-                        </div>
+                <div class="list">
 
-                        <div class="list-item">
-                            <strong>Email</strong>
-                            <p>{{ u.email }}</p>
-                        </div>
+                    <!-- Ciclo degli utenti -->
+                    @for (u of utenti(); track u.id) {
 
                         <div class="list-item">
-                            <strong>Età</strong>
-                            <p>{{ u.eta }}</p>
-                        </div>
+                            <div>
 
-                        <div class="list-item">
-                            <strong>Saldo</strong>
-                            <p>{{ u.saldo }}</p>
-                        </div>
+                                <!-- Intestazione -->
+                                <strong>Utente #{{ u.id }}</strong>
 
-                        <!-- Se l’utente è abbonato, mostra i dettagli dell’abbonamento -->
-                        @if (u.seAbbonato) {
+                                <!-- Informazioni principali -->
+                                <p>Nome completo: {{ u.nomeCompleto }}</p>
+                                <p>Email: {{ u.email }}</p>
+                                <p>Età: {{ u.eta }}</p>
+                                <p>Saldo: {{ u.saldo }}</p>
 
-                            <div class="list-item">
-                                <strong>Tipo di abbonamento</strong>
-                                <p>{{ u.tipoAbbonamento }}</p>
+                                <!-- Dati abbonamento se presenti -->
+                                @if(u.seAbbonato) {
+                                    <p>Tipo di abbonamento: {{ u.tipoAbbonamento }}</p>
+                                    <p>Data inizio abbonamento: {{ u.dataInizioAbbonamento }}</p>
+                                }
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ u.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(u.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(u.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
                             </div>
+                        </div>
 
-                            <div class="list-item">
-                                <strong>Data inizio abbonamento</strong>
-                                <p>{{ u.dataInizioAbbonamento }}</p>
-                            </div>
-
-                        }
-
-                    </div>
-
-                </article>
+                    }
+                </div>
 
             }
-
-        </div>
-
-    }
-
+        </article>
+    </div>
 </section>
 ```
