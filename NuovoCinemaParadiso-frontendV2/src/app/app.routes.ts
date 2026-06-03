@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
+import { BigliettoListComponent } from './features/biglietto/components/biglietto-list.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,13 @@ export const routes: Routes = [
       roles: ['Operatore'],
     },
     loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+  },
+
+  // Aggiunto per test del componente biglietto-list
+  {
+    path: 'lista-biglietti',
+    component: BigliettoListComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'gestione',
@@ -68,11 +76,6 @@ export const routes: Routes = [
     path: 'proiezioni',
     canActivate: [authGuard, roleGuard],
     loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezionePage)
-  },
-  {
-    path: 'biglietto',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/biglietto/biglietto.page').then((m) => m.BigliettoPage)
   },
   {
     path: 'giftcard',
