@@ -29,6 +29,17 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage),
   },
   {
+    path: 'giftcard-list',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/giftcard-list.component').then(m => m.GiftCardListComponent)
+  },
+  {
+    path: 'log-list',
+    canActivate: [authGuard, roleGuard], 
+    //data: { roles: ['Gestore'] }, <- non più necessario dopo il isGestore del log-list.component.ts
+    loadComponent: () => import('./features/log/components/log-list.component').then(m => m.LogListComponent)
+  },
+  {
     path: 'profilo',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/utente/utente.page').then((m) => m.UtentePage),

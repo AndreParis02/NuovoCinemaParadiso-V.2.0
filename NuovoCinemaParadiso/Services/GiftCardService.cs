@@ -29,6 +29,7 @@ public class GiftCardService
             dto.Nome = giftCardCorrente.Nome;
             dto.Valore = giftCardCorrente.Valore;
             dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
 
             risultato.Add(dto);
         }
@@ -51,6 +52,7 @@ public class GiftCardService
             dto.Nome = giftCardCorrente.Nome;
             dto.Valore = giftCardCorrente.Valore;
             dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
 
             risultato.Add(dto);
         }
@@ -72,6 +74,7 @@ public class GiftCardService
         risultato.Nome = giftCard.Nome;
         risultato.Valore = giftCard.Valore;
         risultato.CodiceRiscatto = giftCard.CodiceRiscatto;
+        risultato.UtenteId = giftCard.UtenteId;
 
         return risultato;
     }

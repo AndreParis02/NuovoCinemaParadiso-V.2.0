@@ -87,19 +87,21 @@ public class UtenteController : ControllerBase
     }
 
 
-
     [HttpPost("giftCard/riscatta")]
     public async Task<IActionResult> RiscattaGiftCard([FromBody] DtoCodiceRiscatto dto)
     {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         if (dto == null || string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
             return BadRequest("Codice non valido.");
 
-        var risultato = await _utenteService.RiscattaGiftCardAsync(dto);
+        var risultato = await _utenteService.RiscattaGiftCardAsync(utenteId, dto);
 
         if (!risultato.Successo)
             return BadRequest(new { errore = risultato.Messaggio });
 
-        return Ok(risultato.Dto);
+        return Ok(new { messaggio = risultato.Messaggio });
     }
-
 }
