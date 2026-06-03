@@ -2858,6 +2858,25 @@ export interface Sala {
 }
 ```
 </details>
+<details><summary> sala.model V1.1 </summary>
+
+```ts
+
+export interface SalaCreazione {
+  nome: string;
+  capienza: number;
+  tipologiaSalaId: string;
+}
+
+export interface Sala {
+  id: string; //la chiave primaria non può essere nullabile
+  nome: string;
+  capienza: number;
+  tipologiaSalaId: string;
+  nomeTipologia: string;
+}
+```
+</details>
 
 ### sessione-utente.model.ts V1.0
 <details><summary> sessione-utente.model V1.0 </summary>
