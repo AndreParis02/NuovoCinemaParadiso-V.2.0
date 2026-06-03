@@ -1,5 +1,4 @@
 export interface SessioneUtente {
-
     id: string;
     nomeCompleto: string;
     token: string;
@@ -7,7 +6,5 @@ export interface SessioneUtente {
     email: string;
     ruolo: string;
     dataInizioAbbonamento: string;
-    dataInizioGiftCard: string;
     seAbbonato: boolean;
-    possiedeGiftCard: boolean;
 }

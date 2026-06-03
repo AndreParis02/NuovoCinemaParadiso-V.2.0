@@ -1,0 +1,69 @@
+<section>
+
+    <h1 class="page-title">I tuoi biglietti</h1>
+    <p class="page-subtitle">Visualizza gli acquisti effettuati.</p>
+
+    @if (messaggio) {
+        <div class="alert alert-warning">{{ messaggio }}</div>
+    }
+
+    @if (!messaggio && biglietto.length === 0) {
+        <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
+    }
+
+    @if (biglietto.length > 0) {
+
+        <div class="grid grid-2" style="margin-top: 1.5rem;">
+
+            @for (b of biglietto; track b.id) {
+
+                <article class="card">
+                    <h2>Biglietto #{{ b.id }}</h2>
+
+                    <div class="list">
+                        <div class="list-item">
+                            <strong>Film</strong>
+                            <p>{{ b.titoloMovie }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Sala</strong>
+                            <p>{{ b.nomeSala }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Tipologia sala</strong>
+                            <p>{{ b.nomeTipologiaSala }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Numero biglietti</strong>
+                            <p>{{ b.numeroBiglietti }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Giorno della proiezione</strong>
+                            <p>{{ b.dataProiezione }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Ora inizio movie</strong>
+                            <p>{{ b.oraInizio }}</p>
+                        </div>
+
+                        <div class="list-item">
+                            <strong>Prezzo totale</strong>
+                            <p>{{ b.prezzoFinale }} €</p>
+                        </div>
+
+                    </div>
+
+                </article>
+
+            }
+
+        </div>
+
+    }
+
+</section>
