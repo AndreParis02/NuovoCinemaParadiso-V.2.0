@@ -18,13 +18,13 @@
 ### page
 - abbonamento.page.ts
 ### components
-- abbonamento-list.component.ts [tutti]
+- abbonamento-list.component.ts [tutti] - Andrea Paris
 - abbonamento-detail.component.ts [utente](abbonato)
 - abbonamento-form.component.ts [operatore]
 
 ## biglietto
 ### components
-- biglietto-list.component.ts [utente,operatore,gestore]
+- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno
 - biglietto-form.component.ts [operatore]
 
 ## dashboard
@@ -39,13 +39,13 @@
 
 ## genere-movie
 ### components
-- genere-movie-list.component.ts [tutti]
+- genere-movie-list.component.ts [tutti] Greg
 
-## codice riscatto(giftcard)
+## giftcard
 ### components
 - riscatta-codice.component.ts
 - crea-codice.component.ts
-- giftcared-lista.component.ts [gestore,utente]
+- giftcard-list.component.ts [gestore,utente] Simeone
 
 ## auth 
 ### page
@@ -55,39 +55,39 @@
 
 ## movie
 ### components
-- movie-lista.component.ts [operatore]
+- movie-list.component.ts [operatore] Francesco
 - movie-form.component.ts [operatore]
 
 ## proiezione
 ### page
 ### components
-- proiezione-lista.component.ts [tutti]
+- proiezione-list.component.ts [tutti] Fabio
 - proiezione-form.component.ts [operatore]
 - proiezione-detail.component.ts [tutti]
 
 ## sala
 ### components
-- sala-lista.component.ts [operatore]
+- sala-list.component.ts [operatore] Francesco
 - sala-form.component.ts [operatore]
 
 ## tipologia-sala
 ### components
-- tipologia-sala-lista.component.ts [operatore]
+- tipologia-sala-list.component.ts [operatore] Greg
 - tipologia-sala-form.component.ts [operatore]
 
 ## turno
 ### components
-- turno-lista.component.ts [operatore]
+- turno-list.component.ts [operatore] Andrea paris
 - turno-form.component.ts [operatore]
 
 ## cambio-ruolo
 ### components
 - cambio-ruolo-form.component.ts [gestore]
-- utenti-lista.component.ts [gestore]
+- utenti-list.component.ts [gestore] Andrea Bruno
 
 ## log
 ### components
-- log-lista.component.ts [gestore]
+- log-list.component.ts [gestore] Simeone
 
 ## conto-cinema
 ### components

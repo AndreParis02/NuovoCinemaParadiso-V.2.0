@@ -106,6 +106,7 @@ Documentazione: Fabio. (FATTO)
 UtentePage: Francesco - lista film
 
 Navbar: Fabio (fatto).
+
 ## A fine frontend
 
 ### in corso
