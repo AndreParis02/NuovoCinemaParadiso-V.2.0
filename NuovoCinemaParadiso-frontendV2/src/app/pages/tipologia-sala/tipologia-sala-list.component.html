@@ -1,9 +1,36 @@
-<!--<div class="container">
-    <ul>
-    
-    <li *ngFor="let tipologia of tipologiaSala">
-        {{ tipologia.id }} - {{ tipologia.nome }} - {{tipologia.maggiorazionePrezzo}}€
-    </li>
-    </ul>
-</div>
--->
+<section>
+    <h1 class="page-title">Tipologia Sala</h1>
+    <p class="page-subtitle"> il backend restituisce le varie tipologia delle sale</p>
+
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista delle sale del cinema</h2>
+
+            @if(isLoading()){
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(tipologiaSala().length === 0){
+                <p class="muted"> Nessuna tipologia sala presente</p>
+            } @else{
+                <div class="list">
+                    @for(item of tipologiaSala(); track item.id) {
+                        <div class="list-item">
+                            <div>
+                                <strong>{{ item.nome }}</strong>
+                                <p> {{item.maggiorazionePrezzo}} €</p>
+                                <div class="muted"> {{ item.id }}</div>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>
