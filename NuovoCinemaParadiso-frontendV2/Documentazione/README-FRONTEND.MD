@@ -2016,7 +2016,7 @@ import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
   templateUrl: './tipologia-sala-list.component.html', //URL del template
 })
 
-export class TipologiaSalaMoviePage{
+export class TipologiaSalaPage{
 
   // Iniezione del servizio di autenticazione
   private readonly authService = inject(AuthService);

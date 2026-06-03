@@ -8,7 +8,7 @@ import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
   templateUrl: './tipologia-sala-list.component.html',
 })
 
-export class TipologiaSalaMoviePage {
+export class TipologiaSalaPage {
 
   private readonly authService = inject(AuthService);
   private readonly tipologiaSalaService = inject(TipologiaSalaService);

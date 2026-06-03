@@ -82,17 +82,12 @@ export const routes: Routes = [
   {
     path: 'genere-movie',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMoviePage)
   },
   {
     path: 'tipologia-sala',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
-  },
-  {
-    path: 'genere-movie',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaPage)
   },
   {
     path: 'sala',
