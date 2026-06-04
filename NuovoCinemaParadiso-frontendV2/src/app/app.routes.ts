@@ -77,7 +77,7 @@ export const routes: Routes = [
   {
     path: 'abbonamento',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
+    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent)
   },
 
   {
