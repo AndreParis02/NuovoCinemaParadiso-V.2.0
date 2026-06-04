@@ -10,5 +10,4 @@ export interface Biglietto {
 export interface BigliettoCreazione {
     proiezioneId: string;
     numeroBiglietti: number;
-    metodoPagamento: string;
 }

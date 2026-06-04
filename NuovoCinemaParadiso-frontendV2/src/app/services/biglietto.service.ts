@@ -19,8 +19,8 @@ export class BigliettoService {
     return this.http.get<Biglietto>(`${this.baseUrl}/${id}/utente/${utenteId}`);
   }
 
-  crea(payload: BigliettoCreazione, utenteId: string): Observable<Biglietto> {
-    return this.http.post<Biglietto>(`${this.baseUrl}/utente/${utenteId}`, payload);
+  crea(payload: BigliettoCreazione): Observable<any> {
+    return this.http.post<any>(this.baseUrl, payload);  
   }
 
   modifica(id: string, payload: BigliettoCreazione): Observable<Biglietto> {

@@ -67,7 +67,7 @@ export const routes: Routes = [
   {
     path: 'proiezioni',
     canActivate: [authGuard, roleGuard],
-    loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezionePage)
+    loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
   },
   {
     path: 'biglietto',

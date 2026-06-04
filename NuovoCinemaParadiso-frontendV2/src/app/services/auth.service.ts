@@ -1,6 +1,6 @@
 
 import { environment } from '../../environments/environment';
-import { inject, Injectable,signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
@@ -43,9 +43,13 @@ export class AuthService {
     return this.utenteCorrente() !== null;
   }
 
- isGestore(): boolean {
-  return this.utenteCorrente()?.ruolo === 'Gestore';
- }
+  isOperatore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Operatore'
+  }
+
+  isGestore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Gestore';
+  }
   possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
     const ruolo = this.ottieniRuoloUtente();
     return !!ruolo && ruoli.includes(ruolo);
@@ -59,22 +63,22 @@ export class AuthService {
   ottieniToken(): string | null {
     return this.utenteCorrente()?.token ?? null;
   }
-  
-/*
-  ottieniRuoloUtente(): RuoliUtente | null{
-    const ruolo = localStorage.getItem('ruolo');
-    console.log('Ruolo ottenuto dal localStorage:', ruolo); // Debug log
-    if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
-    {
-      return ruolo;
-    }
-    return null;
-  }  */
+
+  /*
+    ottieniRuoloUtente(): RuoliUtente | null{
+      const ruolo = localStorage.getItem('ruolo');
+      console.log('Ruolo ottenuto dal localStorage:', ruolo); // Debug log
+      if(ruolo === 'Operatore' || ruolo === 'Gestore' || ruolo === 'Utente')
+      {
+        return ruolo;
+      }
+      return null;
+    }  */
 
 
 
   ottieniRuoloUtente(): RuoliUtente | null {
-  const raw = localStorage.getItem(this.storagekey);
+    const raw = localStorage.getItem(this.storagekey);
 
     if (!raw) {
       return null;
@@ -94,8 +98,8 @@ export class AuthService {
       return null;
     } catch {
       return null;
+    }
   }
-}
 
   private setSession(risposta: SessioneUtente): void {
     const utenteInSessione: SessioneUtente = {
@@ -122,11 +126,11 @@ export class AuthService {
     if (!raw) {
       return null;
     }
-    
-    try{
+
+    try {
       return JSON.parse(raw) as SessioneUtente;
-      
-    } catch{
+
+    } catch {
       localStorage.removeItem(this.storagekey);
       return null
     }
