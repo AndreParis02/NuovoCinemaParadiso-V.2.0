@@ -1,0 +1,53 @@
+<section>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>I tuoi biglietti</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (biglietti().length === 0) {
+            <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
+            } @else {
+
+            <div class="list">
+
+                @for (b of biglietti(); track b.id){
+
+                <div class="list-item">
+                    <div>
+                        <strong>Biglietto #{{ b.id }}</strong>
+
+                        <p>Film: {{ b.titoloMovie }}</p>
+                        <p>Sala: {{ b.nomeSala }}</p>
+                        <p>Tipologia sala: {{ b.nomeTipologiaSala }}</p>
+                        <p>Numero biglietti: {{ b.numeroBiglietti }}</p>
+                        <p>Data: {{ b.dataProiezione }}</p>
+                        <p>Ora inizio: {{ b.oraInizio }}</p>
+                        <p>Prezzo totale: {{ b.prezzoFinale }} €</p>
+
+                        <div class="muted">ID: {{ b.id }}</div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" (click)="modifica(b.id)">Modifica</button>
+                            <button class="btn btn-danger" (click)="elimina(b.id)"
+                                [disabled]="staInviando()">Elimina</button>
+                        </div>
+                    </div>
+                </div>
+
+                }
+            </div>
+
+            }
+        </article>
+    </div>
+</section>

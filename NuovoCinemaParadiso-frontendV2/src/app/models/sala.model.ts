@@ -1,5 +1,5 @@
 export interface Sala {
-    id: string | null;
+    id: string;
     nome: string;
     capienza: number;
     tipologiaSalaId: string;

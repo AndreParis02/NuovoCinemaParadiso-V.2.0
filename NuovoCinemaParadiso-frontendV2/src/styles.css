@@ -16,7 +16,9 @@
   /*--warning-text: #fdba74;*/
   --warning-text: #facc15;
   /*--warning-bg: #422006;*/
-  --warning-bg: #332b00 --danger: #f87171;
+  --warning-bg: #332b00;
+  --danger: #f50606;
+  --background: #111111;
 
   --success-bg: #052e2b;
   --success-text: #6ee7b7;
@@ -95,6 +97,7 @@ select {
 
 .grid-2 {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 1.5rem;
 }
 
 .form-grid {
@@ -109,8 +112,8 @@ select {
   margin-top: 1rem;
 }
 
-.btn-danger-solid {
-  background: var(--danger);
+.btn-danger {
+  background: var(--card);
   color: white;
   border: 0;
   border-radius: 10px;
@@ -120,7 +123,7 @@ select {
   transition: background 0.2s ease;
 }
 
-.btn-danger-solid:hover:not(:disabled) {
+.btn-danger:hover:not(:disabled) {
   background: rgba(var(--rgb-danger), 0.85);
   color: white;
 }
@@ -189,10 +192,7 @@ select:focus {
   background: #334155;
 }
 
-.btn-danger {
-  background: var(--danger);
-  color: #190a0a;
-}
+
 
 .alert {
   border-radius: 12px;

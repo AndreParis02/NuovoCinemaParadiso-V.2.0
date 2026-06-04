@@ -5,4 +5,6 @@ public class DtoGiftCard
     public string Nome {get; set;} = string.Empty;
     public int Valore {get; set;}
     public string CodiceRiscatto {get; set;} = string.Empty;
+
+    public string? UtenteId { get; set; }
 }

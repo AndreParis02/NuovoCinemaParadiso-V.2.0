@@ -1,15 +1,14 @@
 //controllare gli import. nomi classi e file sono differenti per "-"
 import { Component, inject, signal } from '@angular/core';
 //import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
-import { GenereMovieService } from '../../services/genere-movie.service';
-import { GenereMovie } from '../../models/genere-movie.model';
+import { AuthService } from '../../../services/auth.service';
+import { GenereMovieService } from '../../../services/genere-movie.service';
+import { GenereMovie } from '../../../models/genere-movie.model';
 
 @Component({
-  selector: 'app-genere-movie',
+  selector: 'genere-movie-list',
   imports: [],
-  templateUrl: './genere-movie.page.html',
-  styleUrl: './genere-movie.page.css',
+  templateUrl: './genere-movie-list.component.html',
 })
 
 export class GenereMoviePage {

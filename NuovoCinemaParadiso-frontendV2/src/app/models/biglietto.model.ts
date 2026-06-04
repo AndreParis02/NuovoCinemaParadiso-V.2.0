@@ -1,11 +1,15 @@
 export interface Biglietto {
-    id: string | null;
+    id: string;
     proiezioneId: string;
     utenteId: string;
     prezzoFinale: number;
     orarioCreazione: string;
     numeroBiglietti: number;
-    metodoPagamento: string;
+    nomeSala: string;
+    titoloMovie : string;
+    nomeTipologiaSala: string;
+    dataProiezione: string;
+    oraInizio: string;
 }
 export interface BigliettoCreazione {
     proiezioneId: string;

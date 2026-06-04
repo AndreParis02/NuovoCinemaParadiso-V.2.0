@@ -1,0 +1,37 @@
+<section>
+    <h1 class="page-title">Cronologia Operazioni di Sistema</h1>
+    <p class="page-subtitle">Registro delle azioni effettuate all'interno del Nuovo Cinema Paradiso.</p>
+
+    @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage() }}</div>
+    }
+
+    @if(isLoading()){
+        <p class="muted">Recupero log dal server in corso...</p>
+    } @else {
+        
+        <article class="card">
+            <div class="list">
+                @for(item of logs(); track trackById($index, item)){
+                    <div class="list-item">
+                        <div>
+                            <p>
+                                <strong>{{ item.nomeAzione }}</strong>
+                                {{ item.messaggio }} (Esito: {{ item.effettuato ? 'Successo' : 'Fallito' }})
+                            </p>
+                            <div class="muted"> 
+                                Utente ID: {{ item.idUtente || 'Sistema' }} | 
+                                Data: {{ item.timeStamp | date:'dd/MM/yyyy HH:mm:ss' }}
+                            </div>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="list-item">
+                        <p class="muted">Nessuna operazione registrata nel sistema al momento.</p>
+                    </div>
+                }
+            </div>
+        </article>
+
+    }
+</section>

@@ -1,5 +1,4 @@
 <section>
-    <!-- HEADER -->
     @if (utente()) {
     <h1 class="page-title">Ciao, {{ utente()?.nomeCompleto }}</h1>
     <p class="page-subtitle">Gestisci le informazioni del tuo account.</p>
@@ -19,10 +18,8 @@
     <p class="muted">Nessun profilo trovato.</p>
     } @else {
 
-    <!-- DUE CARD AFFIANCATE -->
     <div class="grid grid-2" style="margin-top: 1.5rem;">
 
-        <!-- CARD SINISTRA: INFORMAZIONI UTENTE -->
         <article class="card">
             <h2>Informazioni Utente</h2>
 
@@ -48,7 +45,6 @@
             </div>
         </article>
 
-        <!-- CARD DESTRA: MODIFICA + ELIMINA -->
         <article class="card">
             <h2>Modifica Profilo</h2>
 
@@ -67,7 +63,6 @@
                         {{ staInviando() ? 'Salvataggio...' : 'Aggiorna' }}
                     </button>
 
-                    <!-- PULSANTE ELIMINAZIONE -->
                     <button class="btn btn-danger-solid" type="button" (click)="elimina()">
                         Elimina account
                     </button>
@@ -78,7 +73,6 @@
 
     </div>
 
-    <!-- CARD ABBONAMENTO SOTTO LE DUE CARD -->
     @if (!modificabileDa()) {
     @if (utente()?.seAbbonato)
     {

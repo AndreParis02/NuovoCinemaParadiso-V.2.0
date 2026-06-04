@@ -11,8 +11,8 @@ export class BigliettoService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/biglietto`;
 
-  ottieniTutto(utenteId: string): Observable<Biglietto[]> {
-    return this.http.get<Biglietto[]>(`${this.baseUrl}/utente/${utenteId}`);
+  ottieniTutto(): Observable<Biglietto[]> {
+    return this.http.get<Biglietto[]>(`${environment.apiBaseUrl}/utente/biglietti`);
   }
 
   ottieniTramiteId(id: string, utenteId: string): Observable<Biglietto> {
