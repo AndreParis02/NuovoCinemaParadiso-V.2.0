@@ -1,0 +1,55 @@
+<section>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>Lista utenti</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (utenti().length === 0) {
+            <p class="muted">Non ci sono utenti.</p>
+            } @else {
+
+            <div class="list">
+
+                @for (u of utenti(); track u.id) {
+
+                <div class="list-item">
+                    <div>
+                        <strong>Utente #{{ u.id }}</strong>
+
+                        <p>Nome completo: {{ u.nomeCompleto }}</p>
+                        <p>Email: {{ u.email }}</p>
+                        <p>Età: {{ u.eta }}</p>
+                        <p>Saldo: {{ u.saldo }}</p>
+
+                        @if(u.seAbbonato)
+                        {
+                        <p>Tipo di abbonamento: {{ u.tipoAbbonamento }}</p>
+                        <p>Data inizio abbonamento: {{ u.dataInizioAbbonamento }}</p>
+                        }
+                        <div class="muted">ID: {{ u.id }}</div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" (click)="modifica(u.id)">Modifica</button>
+                            <button class="btn btn-danger" (click)="elimina(u.id)"
+                                [disabled]="staInviando()">Elimina</button>
+                        </div>
+                    </div>
+                </div>
+
+                }
+            </div>
+
+            }
+        </article>
+    </div>
+</section>
