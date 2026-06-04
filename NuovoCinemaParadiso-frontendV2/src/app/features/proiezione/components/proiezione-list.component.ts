@@ -7,11 +7,12 @@
   import { RouterLink } from '@angular/router';
   import { CommonModule } from '@angular/common';
   import { FormsModule } from '@angular/forms';
+import { MovieFormComponent } from "./proiezione-form.component";
 
   @Component({
     selector: 'proiezione-list',
     standalone: true,
-    imports: [RouterLink, CommonModule, FormsModule],
+    imports: [RouterLink, CommonModule, FormsModule, MovieFormComponent],
     templateUrl: './proiezione-list.html',
   })
   export class ProiezioneList {
@@ -22,6 +23,7 @@
 
     
     readonly listaProiezioni = signal<Proiezione[]>([]);
+    readonly proiezioneScelta = signal<Proiezione | null>(null);
     readonly staCaricando = signal(false);
     readonly staInviando = signal(false);
     readonly messaggioErrore = signal('');

@@ -1,6 +1,6 @@
 export interface Proiezione {
     id: string;
-    dataProiezione: Date;
+    dataProiezione: string;
     movieId: string;
     titoloMovie: string;
     salaId: string;

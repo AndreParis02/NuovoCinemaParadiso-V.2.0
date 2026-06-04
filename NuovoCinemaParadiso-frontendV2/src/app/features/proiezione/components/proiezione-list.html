@@ -64,20 +64,20 @@
                     }
                     @if(isOperatore()){
                                 <div class="btn-row">
-                                    <button class="btn btn-secondary" type="button"> Crea</button>
-                                    <button class="btn btn-secondary" type="button"> Modifica</button>
                                     <button class="btn btn-secondary" type="button" (click)="elimina(item)"> Elimina</button>
                                 </div>
                             }
                 </div>
-
                 }
-
             </div>
-
             }
 
         </article>
+         @if (isOperatore()) {
+        <article class="card">
+            <proiezione-form [proiezioneSelezionata]="proiezioneScelta()" (modificaCompletata)="ottieniTutto()"></proiezione-form>
+        </article>
+        }
 
     </div>
 

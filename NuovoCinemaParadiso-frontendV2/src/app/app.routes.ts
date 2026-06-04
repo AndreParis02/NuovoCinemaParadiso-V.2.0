@@ -75,21 +75,10 @@ export const routes: Routes = [
     data: { roles: ['Gestore'] }, // <-- Ruolo richiesto
   },
   {
-    path: 'abbonamento',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
-  },
-
-  {
     path: 'operatore/cambio-ruolo',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['operatore'] },
     loadComponent: () => import('./pages/operatore/operatore.page').then((m) => m.OperatorePage)
-  },
-  {
-    path: 'abbonamenti',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
   },
   {
     path: 'listaUtenti',
@@ -120,18 +109,23 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaPage)
   },
   {
-    path: 'sala',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/sala/sala.page').then((m) => m.SalaPage)
-  },
-  {
     path: 'movies',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/movie/movie.page').then((m) => m.MoviePage),
+    loadComponent: () => import('./features/movie/components/movie-list.component').then((m) => m.MovieListComponent)
   },
   {
-    path: 'turno',
+    path: 'sale',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/turno/turno.page').then((m) => m.TurnoPage),
+    loadComponent: () => import('./features/sala/components/sala-list.component').then((m) => m.SalaListComponent),
+  },
+  {
+    path: 'abbonamenti',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent),
+  },
+  {
+    path: 'turni',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/turno/components/turno-list.component').then((m) => m.TurnoListComponent),
   },
 ];

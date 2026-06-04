@@ -11,7 +11,8 @@
         <div class="grid grid-2">
             <article class="card">
                 <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
-
+                <h3>{{movieSelezionato()?.titolo}} - {{movieSelezionato()?.genere}} - {{movieSelezionato()?.durataMinuti }}min</h3>
+                 
                 <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
                     <div>
                         <label for="titolo">Titolo</label>
