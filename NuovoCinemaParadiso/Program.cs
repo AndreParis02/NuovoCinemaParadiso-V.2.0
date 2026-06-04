@@ -74,13 +74,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GenereMovieService>();
 builder.Services.AddScoped<TipologiaSalaService>();
-builder.Services.AddScoped<FasciaOrariaService>();
+builder.Services.AddScoped<TurnoService>();
 builder.Services.AddScoped<SalaService>();
 builder.Services.AddScoped<MovieService>();
-builder.Services.AddScoped<AcquistoService>();
+builder.Services.AddScoped<BigliettoService>();
 builder.Services.AddScoped<RuoloUtenteService>(); // <-- nuovo servizio per gestire i ruoli degli utenti
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<LogAzioniService>();
+builder.Services.AddScoped<UtenteService>();
+builder.Services.AddScoped<GestoreService>();
+builder.Services.AddScoped<AbbonamentoService>();
+builder.Services.AddScoped<ProiezioneService>();
+builder.Services.AddScoped<GiftCardService>();
+builder.Services.AddScoped<OperatoreService>();
 
 var app = builder.Build();
 

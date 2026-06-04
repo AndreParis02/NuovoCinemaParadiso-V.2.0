@@ -1,0 +1,30 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+namespace NuovoCinemaParadiso.Models;
+
+[Table("Biglietti")]
+public class Biglietto
+{
+    [Key]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    [Required]
+    public string ProiezioneId { get; set; } = string.Empty;
+
+    [ForeignKey("ProiezioneId")]
+    public Proiezione? Proiezione { get; set; }
+
+    [Required]
+    public string UtenteId { get; set; } = string.Empty;
+
+    [ForeignKey("UtenteId")]
+    public Utente? Utente { get; set; }
+
+    [Required]
+    [Range(1, 100, ErrorMessage = "Il numero di biglietti deve essere maggiore di zero e massimo 100.")]
+    public int NumeroBiglietti {get;set;}
+    public DateTimeOffset OrarioCreazione { get; set; } = DateTimeOffset.UtcNow;
+
+    [Required]
+    public int PrezzoFinale {get; set;}
+}

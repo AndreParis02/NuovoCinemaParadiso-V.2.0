@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoCreazioneSala
 {
     [Required]
@@ -9,5 +8,4 @@ public class DtoCreazioneSala
     public string Nome {get; set;} = string.Empty;
     public int Capienza {get; set;}
     public string TipologiaSalaId {get; set;} = string.Empty;
-    public string FasciaOrariaId { get; set; } = string.Empty;
 }

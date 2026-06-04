@@ -1,0 +1,34 @@
+<section>
+    <h1 class="page-title">Generi di Film</h1>
+    <p class="page-subtitle"> il backend restituisce la lista generi di film</p>
+
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista generi di film</h2>
+
+            @if(isLoading()){
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(generiMovies().length === 0){
+                <p class="muted"> Nessun genere di film presente</p>
+            } @else{
+                <div class="list">
+                    @for(item of generiMovies(); track item.id) {
+                        <div class="list-item">
+                            <div>
+                                <strong>{{ item.genere }}</strong>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>

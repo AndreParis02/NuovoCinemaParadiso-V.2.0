@@ -16,7 +16,7 @@ public class TipologiaSalaService
     public async Task<List<DtoTipologiaSala>> OttieniTuttoAsync()
     {
         List<TipologiaSala> tipologieSala = await _contesto.TipologieSala.ToListAsync();
-
+        
         List<DtoTipologiaSala> risultati = new List<DtoTipologiaSala>();
 
         foreach (var tipologiaSala in tipologieSala)
@@ -25,10 +25,10 @@ public class TipologiaSalaService
             dto.Id = tipologiaSala.Id;
             dto.Nome = tipologiaSala.Nome;
             dto.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
+            dto.IsDeleted = tipologiaSala.isDeleted;
 
             risultati.Add(dto);
         }
-
         return risultati;
     }
 
@@ -48,7 +48,8 @@ public class TipologiaSalaService
 
         return risultato;
     }
-    public async Task<DtoTipologiaSala> CreazioneAsync(DtoCreazioneTipologiaSala dto)
+
+    public async Task<bool> CreazioneAsync(DtoCreazioneTipologiaSala dto)
     {
 
         TipologiaSala tipologiaSala = new TipologiaSala();
@@ -58,37 +59,10 @@ public class TipologiaSalaService
         _contesto.TipologieSala.Add(tipologiaSala);
         await _contesto.SaveChangesAsync();
 
-        DtoTipologiaSala risultato = new DtoTipologiaSala();
-        risultato.Id = tipologiaSala.Id;
-        risultato.Nome = tipologiaSala.Nome;
-        risultato.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
-
-        return risultato;
+        return true;
     }
 
-    public async Task<DtoTipologiaSala?> ModificaAsync(string id, DtoCreazioneTipologiaSala dto)
-    {
-        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
-
-        if (tipologiaSala == null)
-        {
-            return null;
-        }
-
-        tipologiaSala.Nome = dto.Nome;
-        tipologiaSala.MaggiorazionePrezzo = dto.MaggiorazionePrezzo;
-
-        await _contesto.SaveChangesAsync();
-
-        DtoTipologiaSala risultato = new DtoTipologiaSala();
-        risultato.Id = tipologiaSala.Id;
-        risultato.Nome = tipologiaSala.Nome;
-        risultato.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
-
-        return risultato;
-    }
-
-    public async Task<bool> EliminaAsync(string id)
+    public async Task<bool> ModificaAsync(string id, DtoCreazioneTipologiaSala dto)
     {
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
 
@@ -97,7 +71,24 @@ public class TipologiaSalaService
             return false;
         }
 
-        _contesto.TipologieSala.Remove(tipologiaSala);
+        tipologiaSala.Nome = dto.Nome;
+        tipologiaSala.MaggiorazionePrezzo = dto.MaggiorazionePrezzo;
+
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> EliminaAsync(string id)
+    {
+        TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
+
+        if (tipologiaSala == null || tipologiaSala.isDeleted)
+        {
+            return false;
+        }
+
+        tipologiaSala.isDeleted = true;
         await _contesto.SaveChangesAsync();
 
         return true;

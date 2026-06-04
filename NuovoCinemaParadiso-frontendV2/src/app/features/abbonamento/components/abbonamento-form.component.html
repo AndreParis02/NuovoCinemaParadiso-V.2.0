@@ -1,0 +1,41 @@
+
+<section>
+        @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+        }
+
+        @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+        }
+
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>{{ modificaId() ? 'Modifica abbonamento' : 'Aggiungi abbonamento' }}</h2>
+
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="nome">Nome</label>
+                        <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                        <label for="durata">Durata</label>
+                        <input id="durata" type="number" formControlName="durata"
+                            [disabled]="!modificabileDa()">
+                        <label for="prezzo">Prezzo (€)</label>
+                        <input id="prezzo" type="number" formControlName="prezzo"
+                            [disabled]="!modificabileDa()">
+                        <label for="sconto">Sconto (€)</label>
+                        <input id="sconto" type="number" formControlName="sconto"
+                            [disabled]="!modificabileDa()">
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                        </button>
+                        @if (modificaId()) {
+                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                        }
+                    </div>
+                </form>
+            </article>
+        </div> 
+</section>

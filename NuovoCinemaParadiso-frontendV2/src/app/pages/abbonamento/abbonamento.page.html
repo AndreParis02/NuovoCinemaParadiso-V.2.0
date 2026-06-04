@@ -1,0 +1,75 @@
+<section>
+    <h1 class="page-title">Abbonamenti</h1>
+    <p class="page-subtitle">Gestisci gli abbonamenti disponibili nel cinema.</p>
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Abbonamenti</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (abbonamenti().length === 0) {
+            <p class="muted">Nessun abbonamento presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of abbonamenti(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.durata }} mesi</p>
+                        <p>Prezzo: {{ item.prezzo }} €</p>
+                        <p>Sconto per biglietto: {{ item.sconto }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                    </div>
+
+                    @if (modificabileDa()) {
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="inizioModifica(item)">Modifica</button>
+                        <button class="btn btn-danger" type="button" (click)="elimina(item)">Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica abbonamento' : 'Aggiungi abbonamento' }}</h2>
+
+            @if (!modificabileDa()) {
+            <div>
+                Il tuo ruolo non ti permette di modificare o eliminare abbonamenti.
+            </div>
+            }
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                    <label for="durata">Durata (mesi)</label>
+                    <input id="durata" type="number" formControlName="durata" [disabled]="!modificabileDa()">
+                    <label for="prezzo">Prezzo (€)</label>
+                    <input id="prezzo" type="number" formControlName="prezzo" [disabled]="!modificabileDa()" step="1">
+                    <label for="sconto">Sconto per biglietto (€)</label>
+                    <input id="sconto" type="number" formControlName="sconto" [disabled]="!modificabileDa()" step="0">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div>
+</section>

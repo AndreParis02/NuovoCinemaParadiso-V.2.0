@@ -3,7 +3,7 @@ using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Helpers;
 using NuovoCinemaParadiso.Data;
-using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -22,7 +22,7 @@ public class AuthService
         _contesto = contesto;
     }
 
-    public async Task<IdentityResult> RegistrazioneAsync(DtoRegistrazione dto)
+    public async Task<(bool successo, string? Errore)> RegistrazioneAsync(DtoRegistrazione dto)
     {
         Utente? esisteUtente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
 
@@ -34,7 +34,12 @@ public class AuthService
             List<IdentityError> errori = new List<IdentityError>();
             errori.Add(errore);
 
-            return IdentityResult.Failed(errori.ToArray());
+            return (false, "Utente già registrato.");
+        }
+
+        if (!dto.Email.Contains('.'))
+        {
+            throw new InvalidEmail(dto.Email);
         }
 
         Utente utente = new Utente();
@@ -42,19 +47,17 @@ public class AuthService
         utente.Email = dto.Email;
         utente.NomeCompleto = dto.NomeCompleto;
         utente.Eta = dto.Eta;
+        utente.Saldo = 1000;
 
         IdentityResult risultato = await _gestioneUtenti.CreateAsync(utente, dto.Password);
 
         if (!risultato.Succeeded)
-        { 
-            return risultato;
+        {
+            return (false, "Errore durante la registrazione.");
         }
-        IdentityResult aggiuntaRisultatoRuolo = await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
-
-        if (!aggiuntaRisultatoRuolo.Succeeded)
-            return aggiuntaRisultatoRuolo;
-
-        return risultato;
+        await _gestioneUtenti.AddToRoleAsync(utente, Ruoli.Utente);
+        //ritorna true perché la registrazione ha avuto successo
+        return (true,null);
     }
 
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
@@ -63,15 +66,33 @@ public class AuthService
 
         if (utente == null)
         {
-            return null;
+            throw new NotFoundException("Utente", dto.Email);
+        }
+
+        Abbonamento? abbonamento = null;
+        if (!string.IsNullOrEmpty(utente.AbbonamentoId))
+        {
+            abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        }
+
+        if (utente.SeAbbonato == true && abbonamento != null)
+        {
+            DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
+            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
+
+            if (giorniMancanti <= 0)
+            {
+                utente.SeAbbonato = false;
+            }
         }
 
         SignInResult result = await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
 
         if (!result.Succeeded)
         {
-            return null;
+            throw new ConflictException("Password errata");
         }
+
         IList<string> ruoli = await _gestioneUtenti.GetRolesAsync(utente);
 
         string token = _jwtHelper.GenerateToken(utente, ruoli);
@@ -81,6 +102,10 @@ public class AuthService
         response.Id = utente.Id;
         response.NomeCompleto = utente.NomeCompleto;
         response.Email = utente.Email ?? string.Empty;
+        response.Eta = utente.Eta;
+        response.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        response.SeAbbonato = utente.SeAbbonato;
+        response.Saldo = utente.Saldo;
 
         if (ruoli.Count > 0)
         {
@@ -94,41 +119,23 @@ public class AuthService
         return response;
     }
 
-    public async Task<List<DtoUtente>> OttieniTuttoAsync()
-    {
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-
-        List<DtoUtente> risultato = new List<DtoUtente>();
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            Utente utenteCorrente = utenti[i];
-
-            DtoUtente dto = new DtoUtente();
-            dto.Id = utenteCorrente.Id;
-            dto.Email = utenteCorrente.Email ?? string.Empty;
-            dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
-            dto.Eta = utenteCorrente.Eta;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
-    }
     public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
     {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
+        Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
+            ?? throw new NotFoundException("Utente", id);
 
-        if (utente == null)
-        {
-            return null;
-        }
+        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
 
         DtoUtente dto = new DtoUtente();
         dto.Id = utente.Id;
         dto.Email = utente.Email ?? string.Empty;
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
+        dto.SeAbbonato = utente.SeAbbonato;
+        dto.AbbonamentoId = utente?.AbbonamentoId ?? string.Empty;
+        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.Saldo = utente.Saldo;
 
         return dto;
     }
@@ -161,20 +168,6 @@ public class AuthService
         }
 
         IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
-
-        return risultato;
-    }
-
-    public async Task<IdentityResult> EliminaPerIdAsync(string id)
-    {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id);
-        if (utente == null)
-        {
-            IdentityError errore = new IdentityError();  //
-            return IdentityResult.Failed(errore);  //
-        }
-        IdentityResult risultato = await _gestioneUtenti.DeleteAsync(utente);
-
         return risultato;
     }
 }

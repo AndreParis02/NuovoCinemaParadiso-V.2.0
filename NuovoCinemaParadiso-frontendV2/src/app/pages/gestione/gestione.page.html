@@ -1,0 +1,81 @@
+<section>
+    <h1 class="page-title">Pannello di Gestione</h1>
+    <p class="page-subtitle">Amministrazione globale del Nuovo Cinema Paradiso.</p>
+
+    @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage() }}</div>
+    }
+
+    @if(isLoading()){
+        <p class="muted">Recupero dati dal server in corso...</p>
+    } @else {
+        
+        <div class="grid grid-2" style="margin-bottom: 2rem;">
+            <article class="card">
+                <h2>Conto Cinema</h2>
+                @if(conto()){
+                    <div class="list">
+                        <div class="list-item"><span>Titolare</span><strong>{{ conto()?.titolareConto }}</strong></div>
+                        <div class="list-item"><span>IBAN</span><strong>{{ conto()?.iban }}</strong></div>
+                        <div class="list-item"><span>Saldo Attuale</span><strong style="color: green; font-size: 1.2rem;">{{ conto()?.saldo | currency:'EUR' }}</strong></div>
+                    </div>
+                } @else {
+                    <p class="muted">Dati conto non disponibili.</p>
+                }
+            </article>
+
+            <article class="card">
+                <h2>Gift Card Attive</h2>
+                <div class="list">
+                    <div class="list-item"><span>Totale Card Emesse</span><strong>{{ giftCards().length }}</strong></div>
+                    </div>
+                <div style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
+                    @for(gc of giftCards(); track trackById($index, gc)){
+                        <div style="font-size: 0.9rem; border-bottom: 1px solid #eee; padding: 5px 0;">
+                            <strong>{{ gc.nome }}</strong> - Valore: {{ gc.valore | currency:'EUR' }} <br>
+                            <span class="muted">Codice: {{ gc.codiceRiscatto }}</span>
+                        </div>
+                    }
+                </div>
+            </article>
+        </div>
+
+        <article class="card" style="margin-bottom: 2rem;">
+            <h2>Ultimi Biglietti Venduti (Totale: {{ biglietti().length }})</h2>
+            <div class="list" style="max-height: 300px; overflow-y: auto;">
+                @for(ticket of biglietti(); track trackById($index, ticket)){
+                    <div class="list-item">
+                        <div>
+                            <strong>{{ ticket.titoloMovie }}</strong> - {{ ticket.nomeSala }} ({{ ticket.nomeTipologiaSala }})<br>
+                            Data: {{ ticket.dataProiezione | date:'dd/MM/yyyy' }} alle {{ ticket.oraInizio }} <br>
+                            <span class="muted">Acquirente ID: {{ ticket.utenteId }} | Emesso il: {{ ticket.orarioCreazione | date:'dd/MM/yyyy HH:mm' }}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Q.tà: {{ ticket.numeroBiglietti }}</strong><br>
+                            <span style="color: green;">{{ ticket.prezzoFinale | currency:'EUR' }}</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </article>
+
+        <article class="card">
+            <h2>Cronologia Operazioni di Sistema</h2>
+            <div class="list">
+                @for(item of logs(); track trackById($index, item)){
+                    <div class="list-item">
+                        <div>
+                            <p><strong>{{ item.nomeAzione }}</strong>
+                            {{ item.messaggio }} (Esito: {{ item.effettuato ? 'Successo' : 'Fallito' }})</p>
+                            <div class="muted"> 
+                                Utente ID: {{ item.idUtente || 'Sistema' }} | 
+                                Data: {{ item.timeStamp | date:'dd/MM/yyyy HH:mm:ss' }}
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </article>
+
+    }
+</section>

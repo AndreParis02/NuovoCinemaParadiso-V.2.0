@@ -1,7 +1,5 @@
 using NuovoCinemaParadiso.Data;
-using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Models;
-
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -13,31 +11,22 @@ public class LogAzioniService
     _contesto = contesto; 
   }
 
-  
-   public async Task<DtoLogAzioni> SalvataggioLogAzioneAsync(DtoCreazioneLogAzioni dto)
+    public async Task SalvataggioLogAzioneAsync(string? idUtente, string azione, bool effettuato)
     {
-        LogAzioni log = new LogAzioni();
+      string messaggio = "operazione fallita";
+      if(effettuato) messaggio = "operazione eseguita";
 
-        log.IdUtente = dto.IdUtente;
-        log.NomeAzione = dto.NomeAzione;
-        log.Effettuato = dto.Effettuato;
-        log.Messaggio = dto.Messaggio;
-        log.TimeStamp = DateTime.UtcNow;
+      LogAzioni log = new LogAzioni();
 
-       
+      log.IdUtente = idUtente;
+      log.NomeAzione = azione;
+      log.Effettuato = effettuato;
+      log.Messaggio = messaggio;
+      log.TimeStamp = DateTimeOffset.UtcNow;
 
         _contesto.LogAzioni.Add(log);
-        await _contesto.SaveChangesAsync();
-
-        DtoLogAzioni risultato = new DtoLogAzioni();
-        risultato.IdUtente = log.IdUtente;
-        risultato.NomeAzione = log.NomeAzione;
-        risultato.Effettuato = log.Effettuato;
-        risultato.Messaggio = log.Messaggio;
-        risultato.TimeStamp = log.TimeStamp.ToLocalTime();
-
-
-        return risultato;
+      await _contesto.SaveChangesAsync();
     }
 
+    
 }

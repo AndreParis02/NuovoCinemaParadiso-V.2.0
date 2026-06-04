@@ -1,12 +1,10 @@
 namespace NuovoCinemaParadiso.Dtos;
 public class DtoCreazioneLogAzioni
 {
-    public string Id { get; set; }
+    public string? Id { get; set; }
     public string IdUtente { get; set; } = string.Empty;
     public string NomeAzione { get; set; } = string.Empty;
     public bool Effettuato { get; set; }
     public string Messaggio { get; set; } = string.Empty;
-
-    public DateTime TimeStamp { get; set; }
-
+    public DateTimeOffset TimeStamp { get; set; }
 }

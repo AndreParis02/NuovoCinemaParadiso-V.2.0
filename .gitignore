@@ -3,3 +3,11 @@
 bin
 obj
 .DS_Store
+Migrations/
+
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.mdf
+*.ldf

@@ -1,0 +1,34 @@
+<header class="navbar-shell">
+  <div class="container navbar">
+    @if (isAutenticato()) {
+    <nav class="links">
+      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/movies">Film</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+      </div>
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+      </div>
+       @if(isGestore()){
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/gestione">Gestione</a>
+      </div>
+       }
+      <div class="btn-row">
+        <a class="btn btn-secondary" routerLink="/profilo">Profilo</a>
+      </div>
+      <div>
+        <strong>{{ utente()?.ruolo }}</strong>
+        <div class="muted small">{{ utente()?.email }}</div>
+      </div>
+      <div class="user-box">
+        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+      </div>
+    </nav>
+
+  }
+  </div>
+</header>

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuovoCinemaParadiso.Models;
 
-[Table("Movie")]
+[Table("Movies")]
 public class Movie
 {
     [Key]
@@ -14,11 +14,14 @@ public class Movie
     [Required]
     [StringLength(2000)]
     public string Descrizione {get;set;} = string.Empty;
+    [Range(1, int.MaxValue)]
     public int DurataMinuti {get;set;} 
-    public decimal PrezzoMovie {get;set;}
-    public List<Acquisto> Acquisti {get;set;} = new List<Acquisto>();
+    [Range(typeof(decimal), "0.01", "999999999")]
+    public int PrezzoMovie {get;set;}
+    public List<Proiezione> Proiezioni {get;set;} = new List<Proiezione>();
     public string GenereId {get;set;} = string.Empty;
     
     [ForeignKey("GenereId")]
     public GenereMovie? Genere {get;set;}
+    public bool IsDeleted {get;set;} = false;
 }

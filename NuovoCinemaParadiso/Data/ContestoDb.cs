@@ -16,9 +16,27 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<GenereMovie> GeneriMovies { get; set; }
         public DbSet<Sala> Sale { get; set; }
         public DbSet<TipologiaSala> TipologieSala { get; set; }
-        public DbSet<FasciaOraria> FasceOrarie { get; set; }
-        public DbSet<Acquisto> Acquisti { get; set; }
+        public DbSet<Turno> Turni { get; set; }
+        public DbSet<Biglietto> Biglietti { get; set; }
         public DbSet<Utente> Utenti { get; set; }
+        public DbSet<Abbonamento> Abbonamenti {get;set;}
         public DbSet<LogAzioni> LogAzioni {get;set;}
+        public DbSet<Proiezione> Proiezioni {get;set;}
+        public DbSet<GiftCard> GiftCards {get;set;}
+        public DbSet<ContoCinema> ContoCinema {get;set;}
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Supponendo che la tua classe si chiami 'Biglietto' o 'Scontrino'
+            // e che abbia una proprietà 'ProiezioneId'
+            modelBuilder.Entity<Biglietto>()
+                .HasOne(a => a.Proiezione)
+                .WithMany(p => p.Biglietti) // o il nome della collezione in Proiezione
+                .HasForeignKey(a => a.ProiezioneId)
+                .OnDelete(DeleteBehavior.Restrict); 
+                // 'Restrict' impedisce la cancellazione della proiezione se esistono scontrini
+        }
     }
 }
