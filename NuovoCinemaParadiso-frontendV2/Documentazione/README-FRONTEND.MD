@@ -3103,9 +3103,34 @@ export interface ProiezioneCreazione {
 ```
 </details>
 
-### registrazione.model.ts
-<details>
-<summary> registrazione.model V1.0 </summary>
+Utente: Fabio Tammaro
+Data: 03/06/2026
+Descrizione: aggiunte proprietà necessarie alla visualizzazione nella lista delle proiezioni.
+<details><summary> proiezione.model V1.1 </summary>
+
+```ts
+export interface Proiezione {
+    id: string;
+    dataProiezione: Date;
+    movieId: string;
+    titoloMovie: string;
+    salaId: string;
+    nomeSala: string;
+    turnoId: string;
+    nomeTurno: string;
+}
+
+export interface ProiezioneCreazione {
+    movieId: string;
+    salaId: string;
+    turnoId: string;
+    dataProiezione: string;
+}
+```
+</details>
+
+### registrazione.model.ts V1.0
+<details><summary> registrazione.model V1.0 </summary>
 
 ```ts
 // modello di inserimento necessario per la creazione di un nuovo Utente
@@ -4449,7 +4474,113 @@ export class ProiezioneService {
 </details>
 
 
-### gestore.service.ts
+Utente: Fabio Tammaro
+Data: 03/06/2026
+Descrizione: modificata la eliminazione in "put".
+<details>
+<summary>Versione 1.1</summary>
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Proiezione, ProiezioneCreazione } from '../models/proiezione.model';
+
+@Injectable({ providedIn: 'root' })
+export class ProiezioneService {
+  
+  private readonly http = inject(HttpClient);
+ 
+  private readonly baseUrl = `${environment.apiBaseUrl}/proiezione`;
+
+  ottieniTutto(): Observable<Proiezione[]> {
+    return this.http.get<Proiezione[]>(this.baseUrl);
+  }
+
+  ottieniTuttoStorico(): Observable<Proiezione[]> {
+    return this.http.get<Proiezione[]>(`${this.baseUrl}/storico`);
+  }
+
+  ottieniTramiteId(id: string): Observable<Proiezione> {
+    return this.http.get<Proiezione>(`${this.baseUrl}/${id}`);
+  }
+
+  ottieniTramiteMovieId(id: string): Observable<Proiezione> {
+    return this.http.get<Proiezione>(`${this.baseUrl}/movie/${id}`);
+  }
+
+  
+  ottieniTramiteSalaId(id: string): Observable<Proiezione> {
+    return this.http.get<Proiezione>(`${this.baseUrl}/sala/${id}`);
+  }
+
+  ottieniTramiteTurnoId(id: string): Observable<Proiezione> {
+    return this.http.get<Proiezione>(`${this.baseUrl}/turno/${id}`);
+  }
+
+ 
+  crea(payload: ProiezioneCreazione): Observable<Proiezione> {
+    return this.http.post<Proiezione>(this.baseUrl, payload);
+  }
+
+
+  modifica(id: string, payload: ProiezioneCreazione): Observable<Proiezione> {
+    return this.http.put<Proiezione>(`${this.baseUrl}/${id}`, payload);
+  }
+
+// è una put perchè non può eliminare la proiezione direttamente.
+  elimina(id: string) {
+        return this.http.put<{ messaggio: string }>(`${this.baseUrl}/elimina/${id}`,
+            {}
+        );
+}
+```
+</details>
+
+### biglietto.service
+<details><summary> biglietto.service V1.0 </summary>
+
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Biglietto, BigliettoCreazione } from '../models/biglietto.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class BigliettoService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiBaseUrl}/biglietto`;
+
+  ottieniTutto(utenteId: string): Observable<Biglietto[]> {
+    return this.http.get<Biglietto[]>(`${this.baseUrl}/utente/${utenteId}`);
+  }
+
+  ottieniTramiteId(id: string, utenteId: string): Observable<Biglietto> {
+    return this.http.get<Biglietto>(`${this.baseUrl}/${id}/utente/${utenteId}`);
+  }
+  
+  // la creazione, corrispondente all'acquisto deve corrispondere al backend che ha come risposta una stringa di conferma o di insuccesso.
+  crea(payload: BigliettoCreazione): Observable<any> {
+    return this.http.post<any>(this.baseUrl, payload);  
+  }
+
+  modifica(id: string, payload: BigliettoCreazione): Observable<Biglietto> {
+    return this.http.put<Biglietto>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+
+```
+</details>
+
+### GestoreService
 <details><summary> gestore.service V1.0 </summary>
 
 ```ts
