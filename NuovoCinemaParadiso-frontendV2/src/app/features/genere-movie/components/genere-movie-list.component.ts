@@ -11,7 +11,7 @@ import { GenereMovie } from '../../../models/genere-movie.model';
   templateUrl: './genere-movie-list.component.html',
 })
 
-export class GenereMovieComponentList {
+export class GenereMovieListComponent {
 
   private readonly authService = inject(AuthService);
   private readonly genereMovieService = inject(GenereMovieService);

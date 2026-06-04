@@ -12,7 +12,7 @@ import { TipologiaSalaFormComponent } from "./tipologia-sala-form.component";
   templateUrl: './tipologia-sala-list.component.html',
   imports: [TipologiaSalaFormComponent]
 })
-export class TipologiaSalaList {
+export class TipologiaSalaListComponent {
   private readonly authService = inject(AuthService);
   private readonly tipologiaSalaService = inject(TipologiaSalaService);
 

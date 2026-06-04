@@ -37,7 +37,7 @@
 
         @if (visualizzabileDa()) {
         <article class="card">
-            <tipologia-sala-form [movieSelezionato]="tipologiaScelta()" (modificaCompletata)="caricaTipologie()"></tipologia-sala-form>
+            <tipologia-sala-form [selezione]="tipologiaScelta()" (modificaCompletata)="caricaTipologie()"></tipologia-sala-form>
         </article>
         }
     </div>

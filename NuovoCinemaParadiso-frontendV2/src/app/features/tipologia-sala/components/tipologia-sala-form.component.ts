@@ -17,7 +17,7 @@ export class TipologiaSalaFormComponent {
     private readonly authService = inject(AuthService);
     private readonly tipologiaSalaService = inject(TipologiaSalaService);
 
-    readonly tipologiaSelezionata = input<TipologiaSala | null>(null, { alias: 'movieSelezionato' });
+    readonly tipologiaSelezionata = input<TipologiaSala | null>(null, { alias: 'selezione' });
     readonly modificaCompletata = output<void>();
 
     readonly staCaricando = signal(false);
