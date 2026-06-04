@@ -38,8 +38,119 @@
 
 
 ## genere-movie
+
 ### components
+
 - genere-movie-list.component.ts [tutti] Greg
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```ts
+//controllare gli import. nomi classi e file sono differenti per "-"
+import { Component, inject, signal } from '@angular/core';
+//import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AuthService } from '../../../services/auth.service';
+import { GenereMovieService } from '../../../services/genere-movie.service';
+import { GenereMovie } from '../../../models/genere-movie.model';
+
+@Component({
+  selector: 'genere-movie-list',
+  imports: [],
+  templateUrl: './genere-movie-list.component.html',
+})
+
+export class GenereMovieComponentList {
+
+  private readonly authService = inject(AuthService);
+  private readonly genereMovieService = inject(GenereMovieService);
+
+  readonly generiMovies = signal<GenereMovie[]>([]);
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+
+
+  constructor() {
+    this.loadGeneriMovies();
+  }
+
+  //carica la lista dei generi dal backend
+  loadGeneriMovies(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    //chiamata al servizio ottienitutto per ottenere la lista dei generi dei film
+    this.genereMovieService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.generiMovies.set(items);
+        this.isLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(
+          this.extractErrorMessage(error, 'Impossibile caricare i generi dei film')
+        );
+      }
+    });
+  }
+
+  trackById(_: string, item: GenereMovie): string | null {
+    return item.id
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error?.message ?? fallback;
+    }
+    return fallback
+  }
+}
+```
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```html
+<section>
+    <h1 class="page-title">Generi di Film</h1>
+    <p class="page-subtitle"> il backend restituisce la lista generi di film</p>
+
+     @if(errorMessage()){
+        <div class="alert alert-warning">{{ errorMessage()}}</div>
+     }
+
+     @if(successMessage()){
+        <div class="alert alert-success">{{ successMessage() }}</div>
+     }
+
+     <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista generi di film</h2>
+
+            @if(isLoading()){
+                <p class="muted"> Caricamento in corso...</p>
+            } @else if(generiMovies().length === 0){
+                <p class="muted"> Nessun genere di film presente</p>
+            } @else{
+                <div class="list">
+                    @for(item of generiMovies(); track item.id) {
+                        <div class="list-item">
+                            <div>
+                                <strong>{{ item.genere }}</strong>
+                                <div class="muted">ID: {{ item.id }}</div>
+                            </div>
+                        </div>
+}
+                </div>
+            }
+        </article>
+     </div>
+</section>
+```
+
 
 ## giftcard
 ### components
@@ -1309,9 +1420,290 @@ export class SalaFormComponent {
 </details>
 
 ## tipologia-sala
+
 ### components
+
 - tipologia-sala-list.component.ts [operatore] Greg
-- tipologia-sala-form.component.ts [operatore] 
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { AuthService } from '../../../services/auth.service';
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
+import { TipologiaSala } from '../../../models/tipologia-sala.model';
+import { TipologiaSalaFormComponent } from "./tipologia-sala-form.component";
+
+@Component({
+  selector: 'tipologia-sala-list',
+  standalone: true,
+  templateUrl: './tipologia-sala-list.component.html',
+  imports: [TipologiaSalaFormComponent]
+})
+export class TipologiaSalaList {
+  private readonly authService = inject(AuthService);
+  private readonly tipologiaSalaService = inject(TipologiaSalaService);
+
+  readonly tipologie = signal<TipologiaSala[]>([]);
+  readonly tipologiaScelta = signal<TipologiaSala | null>(null);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  constructor() {
+    this.caricaTipologie();
+  }
+
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  caricaTipologie(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.tipologiaSalaService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.tipologie.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'tipologie sala non trovate'));
+      }
+    });
+  }
+
+  elimina(item: TipologiaSala): void {
+    if (!this.visualizzabileDa()) {
+      return;
+    }
+    const confirmed = confirm(`Eliminare la tipologia sala \"${item.nome}\"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.tipologiaSalaService.elimina(item.id, item).subscribe({
+      next: () => {
+        if (this.tipologiaScelta()?.id === item.id) {
+          this.tipologiaScelta.set(null);
+        } 
+        this.caricaTipologie();
+      },
+      error: (error: unknown) => {
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
+      }
+    });
+  }
+
+  tracciaPerId(_: string, item: TipologiaSala): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```html
+<section>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Tipologie Sala</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (tipologie().length === 0) {
+            <p class="muted">Nessuna tipologia presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of tipologie(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>Maggiorazione: {{ item.maggiorazionePrezzo }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="tipologiaScelta.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </article>
+
+        @if (visualizzabileDa()) {
+        <article class="card">
+            <tipologia-sala-form [movieSelezionato]="tipologiaScelta()" (modificaCompletata)="caricaTipologie()"></tipologia-sala-form>
+        </article>
+        }
+    </div>
+</section>
+```
+
+- tipologia-sala-form.component.ts [operatore] Greg
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```ts
+import { Component, inject, signal, input, output, effect } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { AuthService } from '../../../services/auth.service';
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
+import { TipologiaSala } from '../../../models/tipologia-sala.model';
+
+@Component({
+    selector: 'tipologia-sala-form',
+    standalone: true,
+    imports: [ReactiveFormsModule],
+    templateUrl: './tipologia-sala-form.component.html'
+})
+export class TipologiaSalaFormComponent {
+    private readonly formBuilder = inject(FormBuilder);
+    private readonly authService = inject(AuthService);
+    private readonly tipologiaSalaService = inject(TipologiaSalaService);
+
+    readonly tipologiaSelezionata = input<TipologiaSala | null>(null, { alias: 'movieSelezionato' });
+    readonly modificaCompletata = output<void>();
+
+    readonly staCaricando = signal(false);
+    readonly staInviando = signal(false);
+    readonly messaggioErrore = signal('');
+    readonly messaggioSuccesso = signal('');
+    readonly modificaId = signal<string>('');
+
+    readonly form = this.formBuilder.nonNullable.group({
+        nome: ['', [Validators.required, Validators.maxLength(100)]],
+        maggiorazionePrezzo: [1, [Validators.required, Validators.min(1)]],
+    });
+
+    constructor() {
+        effect(() => {
+            const tipologia = this.tipologiaSelezionata();
+            if (tipologia) {
+                this.inizioModifica(tipologia);
+            } else {
+                this.ripristinaForm();
+            }
+        });
+    }
+
+    modificabileDa(): boolean {
+        return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+    }
+
+    invia(): void {
+        if (this.form.invalid || !this.modificabileDa()) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        this.staInviando.set(true);
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+
+        const request$ = this.modificaId()
+            ? this.tipologiaSalaService.modifica(this.modificaId(), this.form.getRawValue())
+            : this.tipologiaSalaService.crea(this.form.getRawValue());
+
+        request$.subscribe({
+            next: () => {
+                this.staInviando.set(false);
+                this.messaggioSuccesso.set(this.modificaId() ? 'Tipologia sala aggiornata.' : 'Tipologia sala creata.');
+                this.modificaCompletata.emit();
+                this.ripristinaForm();
+            },
+            error: (error: unknown) => {
+                this.staInviando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+            }
+        });
+    }
+
+    inizioModifica(item: TipologiaSala): void {
+        if (!this.modificabileDa()) {
+            return;
+        }
+        this.modificaId.set(item.id);
+        this.form.patchValue({ nome: item.nome, maggiorazionePrezzo: item.maggiorazionePrezzo });
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+    }
+
+    ripristinaForm(): void {
+        this.modificaId.set('');
+        this.form.reset({ nome: '', maggiorazionePrezzo: 1 });
+    }
+
+    tracciaPerId(_: string, item: TipologiaSala): string {
+        return item.id;
+    }
+
+    private estraiMessaggioErrore(error: unknown, fallback: string): string {
+        if (error instanceof HttpErrorResponse) {
+            return error.error?.message ?? fallback;
+        }
+        return fallback;
+    }
+}
+```
+
+Utente: Greg
+
+Data: 04/06/2026
+
+```html
+<h2>{{ modificaId() ? 'Modifica tipologia' : 'Aggiungi tipologia' }}</h2>
+
+<form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+    <div>
+        <label for="nome">Nome</label>
+        <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+        
+        <label for="maggiorazionePrezzo">Maggiorazione Prezzo (€)</label>
+        <input id="maggiorazionePrezzo" type="number" formControlName="maggiorazionePrezzo" [disabled]="!modificabileDa()">
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+        </button>
+        @if (modificaId()) {
+        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+        }
+    </div>
+</form>
+```
 
 ## turno
 ### components
