@@ -75,6 +75,12 @@ export const routes: Routes = [
     data: { roles: ['Gestore'] }, // <-- Ruolo richiesto
   },
   {
+    path: 'abbonamento',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent)
+  },
+
+  {
     path: 'operatore/cambio-ruolo',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['operatore'] },
@@ -101,12 +107,12 @@ export const routes: Routes = [
   {
     path: 'genere-movie',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMovieListComponent)
   },
   {
     path: 'tipologia-sala',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaPage)
+    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaListComponent)
   },
   {
     path: 'movies',

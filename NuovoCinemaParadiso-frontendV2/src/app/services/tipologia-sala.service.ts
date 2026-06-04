@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TipologiaSala, TipologiaSalaCreazione } from '../models/tipologia-sala.model';
+import pa from '@angular/common/locales/pa';
 
 
 @Injectable({
@@ -32,8 +33,8 @@ export class TipologiaSalaService {
     return this.http.put<TipologiaSala>(`${this.baseUrl}/${id}`, payload);
   }
 
-  elimina(id:string): Observable<void>
+  elimina(id:string, payload: TipologiaSalaCreazione): Observable<TipologiaSala>
   {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.put<TipologiaSala>(`${this.baseUrl}/elimina/${id}`, payload);
   }
 }
