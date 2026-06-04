@@ -24,7 +24,7 @@
 
 ## biglietto
 ### components
-- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno
+- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto)
 - biglietto-form.component.ts [operatore]
 
 ## dashboard
@@ -701,8 +701,8 @@ export class MovieListComponent {
     if (!this.visualizzabileDa()) {
       return;
     }
-    const confirmed = confirm(`Eliminare il film \" ${item.titolo}\"?`);
-    if (!confirmed) {
+    // popup di conferma
+    if (!confirm(`Sei sicuro di voler eliminare il film "${item.titolo}"?`)) {
       return;
     }
 
@@ -1123,7 +1123,349 @@ export class SalaListComponent {
 ```
 </details>
 
-- sala-form.component.ts [operatore]
+
+
+<details>
+<summary>versione1.1</summary>
+
+Francesco Lorenzi 03/06/2026
+
+ho dovuto modificare la lista per poter integrare il form in essa, la lista è parente del form, che è quindi suo figlio. 
+
+## sala-list.component.ts
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+// servizi
+import { AuthService } from '../../../services/auth.service';
+import { SalaService } from '../../../services/sala.service';
+
+// modelli
+import { Sala } from '../../../models/sala.model';
+// importo del componente form
+import { SalaFormComponent } from './sala-form.component';
+
+
+@Component({
+  selector: 'sala-list',
+  standalone: true,
+  templateUrl: './sala-list.component.html',
+  imports: [SalaFormComponent]//importo del componente form
+})
+
+export class SalaListComponent {
+// servizi
+  private readonly authService = inject(AuthService);
+  private readonly salaService = inject(SalaService);
+// modelli
+  readonly sale = signal<Sala[]>([]);
+
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+
+  constructor() {
+    this.caricaSale();
+  }
+  // la lista delle sale è visualizzabile solo dall'operatore
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+  // carica le sale sulla lista
+  caricaSale(): void {
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+    this.salaService.ottieniTutto().subscribe({
+
+      next: (items) => {
+        this.sale.set(items);
+        this.staCaricando.set(false);
+
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'sale non trovate'));
+      }
+    });
+  }
+  // aggiunta funzione di eliminazione 
+  elimina(item: Sala): void {
+    if (!this.visualizzabileDa()) {
+      return;
+    }
+    // manda un popup di conferma dell'azione
+    if (!confirm(`Sei sicuro di voler eliminare la sala "${item.nome}"?`)) {
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.salaService.elimina(item.id).subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set('Sala eliminata con successo');
+        this.caricaSale();
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Errore durante l\'eliminazione della sala'));
+      }
+    });
+  }
+// traccia la lista per ID
+  tracciaPerId(_: string, item: Sala): string {
+    return item.id;
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+## sala-list.component.html
+```html
+<section>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Sale</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (sale().length === 0) {
+            <p class="muted">Nessuna sala presente.</p>
+            } @else {
+            <div class="list">
+                @for (item of sale(); track tracciaPerId($index.toString(), item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>Tipologia: {{ item.nomeTipologia }}</p>
+                        <p>Capienza: {{ item.capienza }}</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                        <!-- aggiunta dei bottoni di elimina e di modifica visibili solo dall'operatore -->
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="salaScelta.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                        </div>
+                    }
+                    </div>    
+                </div>
+                }
+            </div>
+            }
+        </article>
+        <!-- aggiunta del form visibile solo dall'operatore -->
+         @if (visualizzabileDa()){
+        <article class="card">
+            <sala-form [salaSelezionata]="salaScelta()" (modificaCompletata)="caricaSale()"></sala-form>
+        </article>
+        }
+```
+</details>
+
+- sala-form.component.ts [operatore] Francesco
+<details>
+<summary>versione1.0</summary>
+Francesco Lorenzi 03/06/2026
+
+## sala-form.component.ts
+```ts
+//alla chiamata possimao ignettare imput ed effect 
+import { Component, inject, signal, input, effect } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { AuthService } from '../../../services/auth.service';
+import { SalaService } from '../../../services/sala.service';
+import { TipologiaSalaService } from '../../../services/tipologia-sala.service';
+
+
+import { Sala } from '../../../models/sala.model';
+import { TipologiaSala } from '../../../models/tipologia-sala.model';
+
+
+@Component({
+    selector: 'sala-form',
+    standalone: true,
+    imports: [ReactiveFormsModule],
+    templateUrl: './sala-form.component.html'
+})
+
+export class SalaFormComponent {
+
+    private readonly formBuilder = inject(FormBuilder);
+    private readonly authService = inject(AuthService);
+    private readonly salaService = inject(SalaService);
+    private readonly tipologiaSalaService = inject(TipologiaSalaService);
+
+    readonly salaSelezionata = input<Sala | null>(null);// la sala selezionata che ci passiamo dalla lista padre
+    readonly tipologie = signal<TipologiaSala[]>([]);
+    readonly staCaricando = signal(false);
+    readonly staInviando = signal(false);
+    readonly messaggioErrore = signal('');
+    readonly messaggioSuccesso = signal('');
+    readonly modificaId = signal<string>('');
+
+
+    readonly form = this.formBuilder.nonNullable.group({
+        nome: ['', [Validators.required, Validators.maxLength(100)]],
+        capienza: [1, [Validators.required, Validators.min(1)]],
+        tipologiaSalaId: ['', [Validators.required]]
+    });
+
+    constructor() {
+        this.caricaTipologie();
+        // la funzione effect prende l'input, che è la sala che si selezionata, e riempe il form dinamicamente
+        effect(() => {
+            const sala = this.salaSelezionata();
+            if (sala) {
+                this.inizioModifica(sala);
+            } else {
+                this.ripristinaForm();
+            }
+        });
+    }
+    modificabileDa(): boolean {
+        return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+    }
+    // carico tutte le tipologie così da poterle scegliere nel menù a tendina
+    caricaTipologie(): void {
+
+        this.staCaricando.set(true);
+        this.messaggioErrore.set('');
+        this.tipologiaSalaService.ottieniTutto().subscribe({
+            next: (tipologie) => {
+                this.tipologie.set(tipologie);
+                this.staCaricando.set(false);
+            },
+            error: (error) => {
+                this.staCaricando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Errore nel caricamento delle tipologie.'));
+            }
+        });
+    }
+    // funzione del bottone di modifica o di creazione 
+    invia(): void {
+
+        if (this.form.invalid || !this.modificabileDa()) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        this.staInviando.set(true);
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+
+
+        const request$ = this.modificaId()
+
+            ? this.salaService.modifica(this.modificaId(), this.form.getRawValue())
+            : this.salaService.crea(this.form.getRawValue());
+
+
+        request$.subscribe({
+            next: () => {
+                this.staInviando.set(false);
+                this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
+                this.ripristinaForm();
+            },
+            error: (error: unknown) => {
+                this.staInviando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+            }
+        });
+    }
+    // prende la sala selezionata e riempe il form 
+    inizioModifica(item: Sala): void {
+
+        if (!this.modificabileDa()) {
+            return;
+        }
+        this.modificaId.set(item.id);
+
+        this.form.patchValue({ nome: item.nome, capienza: item.capienza, tipologiaSalaId: item.tipologiaSalaId });
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+    }
+    // svuota il form
+    ripristinaForm(): void {
+        this.modificaId.set('');
+        this.form.reset({ nome: '', capienza: 0, tipologiaSalaId: 'scegli una tipologia' });
+    }
+    // traccia per id per la lista del menù a tendina
+    tracciaPerId(_: string, item: Sala | TipologiaSala): string {
+        return item.id;
+    }
+
+    private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+        if (error instanceof HttpErrorResponse) {
+            return error.error?.message ?? fallback;
+        }
+        return fallback;
+    }
+}
+
+```
+## sala-form.component.html
+```html
+
+<section>
+        @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+        }
+
+        @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+        }
+
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>{{ modificaId() ? 'Modifica sala' : 'Aggiungi sala' }}</h2>
+
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="nome">Nome</label>
+                        <input id="nome" type="text" formControlName="nome" [disabled]="!modificabileDa()">
+                        <label for="capienza">Capienza</label>
+                        <input id="capienza" type="number" formControlName="capienza" [disabled]="!modificabileDa()">
+                        <label for="tipologiaSalaId">Tipologia</label>
+                        <select id="tipologiaSalaId" formControlName="tipologiaSalaId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona una tipologia</option>
+                            @for (tipologia of tipologie(); track tracciaPerId($index.toString(), tipologia)) {
+                            <option [value]="tipologia.id">{{ tipologia.nome }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                        </button>
+                        @if (modificaId()) {
+                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                        }
+                    </div>
+                </form>
+            </article>
+        </div> 
+</section>
+```
+</details>
 
 ## tipologia-sala
 ### components
@@ -1138,7 +1480,7 @@ export class SalaListComponent {
 ## cambio-ruolo
 ### components
 - cambio-ruolo-form.component.ts [gestore]
-- utenti-list.component.ts [gestore] Andrea Bruno
+- utenti-list.component.ts [gestore] Andrea Bruno (fatto)
 
 ## log
 ### components
@@ -1254,4 +1596,406 @@ export class LogListComponent implements OnInit {
 ### components
 - conto-cinema-detail.component.ts [gestore]
 
+## biglietto
+### biglietto-list.component.ts
 
+<details>
+<summary>## biglietto-list.component.ts V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { Biglietto } from '../../models/biglietto.model';
+import { BigliettoService } from '../../services/biglietto.service';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'biglietto-list',
+  standalone: true,
+  templateUrl: './biglietto-list.component.html',
+})
+export class BigliettoListComponent {
+
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly bigliettoService = inject(BigliettoService);
+
+  // Stato reattivo del componente
+  readonly biglietti = signal<Biglietto[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  // ID dell'utente loggato
+  readonly utenteId;
+
+  constructor() {
+    // Recupera l'utente corrente
+    const utente = this.authService.utenteCorrente();
+
+    // Se non loggato, mostra errore
+    if (!utente?.id) {
+      this.messaggioErrore.set("Utente non loggato");
+      return;
+    }
+
+    this.utenteId = utente.id;
+
+    // Carica i biglietti all'avvio
+    this.caricaBiglietti();
+  }
+
+  // Recupera i biglietti dell'utente
+  caricaBiglietti(): void {
+    if (!this.utenteId) return;
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.bigliettoService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.biglietti.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento dei biglietti')
+        );
+      }
+    });
+  }
+
+  // Funzione di tracking per *ngFor
+  tracciaPerId(_: string, item: Biglietto): string {
+    return item.id;
+  }
+
+  // Elimina un biglietto
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo biglietto?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.bigliettoService.elimina(id).subscribe({
+      next: () => {
+        // Rimuove il biglietto dalla lista locale
+        this.biglietti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Biglietto eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, "Errore durante l'eliminazione del biglietto")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+### biglietto-list.component.html
+
+<details>
+<summary>biglietto-list.component.html V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file minimale esteticamente da modificare 
+
+```html
+<section>
+
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>I tuoi biglietti</h2>
+
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
+
+            <!-- Nessun biglietto -->
+            } @else if (biglietti().length === 0) {
+                <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
+
+            <!-- Lista biglietti -->
+            } @else {
+
+                <div class="list">
+
+                    <!-- Ciclo dei biglietti -->
+                    @for (b of biglietti(); track b.id){
+
+                        <div class="list-item">
+                            <div>
+
+                                <!-- Intestazione biglietto -->
+                                <strong>Biglietto #{{ b.id }}</strong>
+
+                                <!-- Informazioni principali -->
+                                <p>Film: {{ b.titoloMovie }}</p>
+                                <p>Sala: {{ b.nomeSala }}</p>
+                                <p>Tipologia sala: {{ b.nomeTipologiaSala }}</p>
+                                <p>Numero biglietti: {{ b.numeroBiglietti }}</p>
+                                <p>Data: {{ b.dataProiezione }}</p>
+                                <p>Ora inizio: {{ b.oraInizio }}</p>
+                                <p>Prezzo totale: {{ b.prezzoFinale }} €</p>
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ b.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(b.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(b.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+
+            }
+        </article>
+    </div>
+</section>
+```
+
+## cambio-ruolo
+### utenti-list.component.ts
+
+<details>
+<summary>utenti-list.component.ts V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { OperatoreService } from '../../services/operatore.service';
+import { UtenteService } from '../../services/utente.service';
+import { AuthService } from '../../services/auth.service';
+import { Utente } from '../../models/utente.model';
+
+@Component({
+  selector: 'utenti-list',
+  standalone: true,
+  templateUrl: './utente-list.component.html'
+})
+export class UtenteListComponent {
+
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly operatoreService = inject(OperatoreService);
+  private readonly utenteService = inject(UtenteService);
+
+  // Stato reattivo del componente
+  readonly utenti = signal<Utente[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  constructor() {
+    // Carica gli utenti all'avvio
+    this.caricaUtenti();
+  }
+
+  // Controlla se l'utente corrente può vedere questa pagina
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  // Recupera la lista degli utenti
+  caricaUtenti(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.operatoreService.OttieniUtenti().subscribe({
+      next: (items) => {
+        this.utenti.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento degli utenti')
+        );
+      }
+    });
+  }
+
+  // Tracking per *ngFor
+  tracciaPerId(_: string, item: Utente): string {
+    return item.id;
+  }
+
+  // Elimina un utente
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo utente?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // ⚠️ Nota: eliminaProfilo() elimina l'utente loggato, non quello passato come id
+    this.utenteService.eliminaProfilo().subscribe({
+      next: () => {
+        // Rimuove l'utente dalla lista locale
+        this.utenti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Utente eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            "Errore durante l'eliminazione dell'utente")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+### utenti-list.component.html
+
+<details>
+<summary>utenti-list.component.html V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file minimale esteticamente da modificare
+
+```html
+<section>
+
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>Lista utenti</h2>
+
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
+
+            <!-- Nessun utente -->
+            } @else if (utenti().length === 0) {
+                <p class="muted">Non ci sono utenti.</p>
+
+            <!-- Lista utenti -->
+            } @else {
+
+                <div class="list">
+
+                    <!-- Ciclo degli utenti -->
+                    @for (u of utenti(); track u.id) {
+
+                        <div class="list-item">
+                            <div>
+
+                                <!-- Intestazione -->
+                                <strong>Utente #{{ u.id }}</strong>
+
+                                <!-- Informazioni principali -->
+                                <p>Nome completo: {{ u.nomeCompleto }}</p>
+                                <p>Email: {{ u.email }}</p>
+                                <p>Età: {{ u.eta }}</p>
+                                <p>Saldo: {{ u.saldo }}</p>
+
+                                <!-- Dati abbonamento se presenti -->
+                                @if(u.seAbbonato) {
+                                    <p>Tipo di abbonamento: {{ u.tipoAbbonamento }}</p>
+                                    <p>Data inizio abbonamento: {{ u.dataInizioAbbonamento }}</p>
+                                }
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ u.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(u.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(u.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+
+            }
+        </article>
+    </div>
+</section>
+```

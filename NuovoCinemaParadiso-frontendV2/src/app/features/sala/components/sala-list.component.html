@@ -23,9 +23,21 @@
                         <p>Tipologia: {{ item.nomeTipologia }}</p>
                         <p>Capienza: {{ item.capienza }} </p>
                         <div class="muted">ID: {{ item.id }}</div>
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="salaScelta.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                        </div>
+                    }
                     </div>    
                 </div>
                 }
             </div>
             }
         </article>
+        @if (visualizzabileDa()){
+        <article class="card">
+            <sala-form [salaSelezionata]="salaScelta()" (modificaCompletata)="caricaSale()"></sala-form>
+        </article>
+        }
+    </div>

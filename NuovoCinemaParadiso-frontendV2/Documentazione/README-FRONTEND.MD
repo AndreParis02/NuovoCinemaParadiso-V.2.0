@@ -679,6 +679,8 @@ Nel nostro caso la navbar.
 
 ### utente.page.ts V1.0 
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Creazione della pagina dell'area riservata dell'utente
 
@@ -818,8 +820,10 @@ export class UtentePage implements OnInit {
 }
 ```
 
-### utente.page.html V1.0
+### utente.page.html
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Creazione pagina html dell'area riservata dell'utente
 Se l'utente non è abbonato non viene visualizzata la card e 
@@ -2774,30 +2778,10 @@ export class MoviePage {
 
 ## MODELS
 
-### abbonamento.model.ts V1.0
+### abbonamento.model.ts
 
-```ts
-// modello di ritorno che rappresenta un abbonamento
-export interface Abbonamento {
-  id: string | null;
-  nome: string;
-  durata: number;
-  prezzo: number;
-  sconto: number;
-}
-// modello di inserimento necessario per la creazione o la modifica di un modello Abbonamento
-export interface AbbonamentoCreazione {
-  nome: string;
-  durata: number;
-  prezzo: number;
-  sconto: number;
-}
-```
-</details>
 <details>
-<summary>
-versione1.1
-</summary>
+<summary>abbonamento.model.ts V1.0</summary>
 
 Francesco Lorenzi 26/05/2026
 ```ts
@@ -2820,8 +2804,9 @@ export interface AbbonamentoCreazione {
 </details>
 
 
-### auth.model.ts V1.0
-<details><summary> auth.model.ts V1.0</summary>
+### auth.model.ts
+<details>
+<summary> auth.model.ts V1.0</summary>
 
 ```ts
 // modello per la creazione della sessione dell'utente
@@ -2891,9 +2876,9 @@ export interface GiftCard {
 ```
 </details>
 
-### biglietto.model.ts V1.0
+### biglietto.model.ts
 
-<details><summary> biglietto.model.ts V1 </summary>
+<details><summary> biglietto.model.ts V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Biglietto
@@ -2915,7 +2900,7 @@ export interface BigliettoCreazione {
 ```
 </details>
 
-### genere-movie.model.ts V1.0
+### genere-movie.model.ts
 
 <details><summary> genere-movie.model V1.0</summary>
 
@@ -2948,7 +2933,7 @@ export interface GenereMovie {
 ```
 </details>
 
-### giftcard.model.ts V1.0
+### giftcard.model.ts
 
 <details><summary> giftcard.model V1.0 </summary>
 
@@ -2972,7 +2957,7 @@ export interface GiftCardCreazione {
 ```
 </details >
 
-### giftCard.model.ts V1.1
+### giftCard.model.ts
 
 Andrea Bruno 28-05-2026
 Aggiunta modello CodiceRiscatto
@@ -3002,7 +2987,7 @@ export interface CodiceRiscatto {    // <-- AGGIUNTA
 }
 ```
 
-### logAzioni.model.ts V1.0
+### logAzioni.model.ts
 
 <details><summary> logAzioni.model V1.0 </summary>
 
@@ -3028,7 +3013,7 @@ export interface LogAzioniCreazione {
 ```
 </details>
 
-### login.model.ts V1.0
+### login.model.ts
 <details><summary> login.model V1.0 </summary>
 
 ```ts
@@ -3040,7 +3025,7 @@ export interface Login {
 ```
 </details>
 
-### movie.model.ts V1.0 
+### movie.model.ts
 <details><summary> movie.model V1.0 </summary>
 
 ```ts
@@ -3066,7 +3051,7 @@ export interface MovieCreazione {
 </details >
 
 
-### movie.model.ts V1.1
+### movie.model.ts
 
 Francesco Lorenzi
 25/05/2026
@@ -3095,8 +3080,9 @@ export interface MovieCreazione {
 ```
 </details>
 
-### proiezione.model.ts V1.0
-<details><summary> proiezione.model V1.0 </summary>
+### proiezione.model.ts
+<details>
+<summary> proiezione.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Proiezione
@@ -3117,8 +3103,9 @@ export interface ProiezioneCreazione {
 ```
 </details>
 
-### registrazione.model.ts V1.0
-<details><summary> registrazione.model V1.0 </summary>
+### registrazione.model.ts
+<details>
+<summary> registrazione.model V1.0 </summary>
 
 ```ts
 // modello di inserimento necessario per la creazione di un nuovo Utente
@@ -3131,8 +3118,9 @@ export interface Registrazione {
 ```
 </details>
 
-### sala.model.ts V1.0
-<details><summary> sala.model V1.0 </summary>
+### sala.model.ts
+<details>
+<summary> sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Sala
@@ -3171,8 +3159,9 @@ export interface Sala {
 ```
 </details>
 
-### sessione-utente.model.ts V1.0
-<details><summary> sessione-utente.model V1.0 </summary>
+### sessione-utente.model.ts
+<details>
+<summary> sessione-utente.model V1.0 </summary>
 
 ```ts
 // modello per la gestione della sessione dell'utente
@@ -3191,8 +3180,9 @@ export interface SessioneUtente {
 ```
 </details>
 
-### tipologia-sala.model.ts V1.0
-<details><summary> tipologia-sala.model V1.0 </summary>
+### tipologia-sala.model.ts
+<details>
+<summary> tipologia-sala.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta una Tipologia di una Sala
@@ -3210,8 +3200,9 @@ export interface TipologiaSalaCreazione {
 ```
 </details>
 
-### turno.model.ts V1.0
-<details><summary> turno.model V1.0 </summary>
+### turno.model.ts
+<details>
+<summary> turno.model V1.0 </summary>
 
 ```ts
 // modello di ritorno che rappresenta un Turno
@@ -3250,8 +3241,9 @@ export interface TurnoCreazione {
 ```
 </details>
 
-### utente.model.ts V1.0 
-<details><summary> utente.model V1.1 </summary>
+### utente.model.ts
+<details>
+<summary> utente.model V1.1 </summary>
 
 ```ts
 // Modello di ritrono che rappresenta un Utente
@@ -3318,8 +3310,76 @@ export interface UtenteModificaRuoloRisposta {
 </details>
 
 ## SERVICES
+### operatore.service.ts
+<details>
+<summary> operatore.service.ts V1.0 </summary>
 
-### sala.service.ts V1.0
+Andrea Bruno 03-06-2026
+Modifica del metodo OttieniUtenti()
+
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Biglietto } from '../models/biglietto.model';
+import { Utente } from '../models/utente.model';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class OperatoreService {
+
+    // HttpClient iniettato per fare richieste HTTP
+    private readonly http = inject(HttpClient);
+
+    // URL base dell'API per gli endpoint dell'operatore
+    private readonly baseUrl = `${environment.apiBaseUrl}/operatore`;
+
+    // Ottiene la lista completa degli utenti
+    OttieniUtenti(): Observable<Utente[]> {
+        return this.http.get<Utente[]>(`${this.baseUrl}/listaUtenti`);
+    }
+
+    // Ottiene un singolo utente tramite ID
+    OttieniUtentePerId(id: string): Observable<Utente> {
+        return this.http.get<Utente>(`${this.baseUrl}/utenti/${id}`);
+    }
+
+    // Elimina un utente tramite ID
+    eliminaUtente(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/utenti/${id}`);
+    }
+
+    // Ottiene gli utenti che possiedono un certo abbonamento
+    ottieniUtentiTramiteAbbonamento(abbonamentoId: string): Observable<Utente[]> {
+        return this.http.get<Utente[]>(
+            `${this.baseUrl}/utenti/abbonamento/${abbonamentoId}`
+        );
+    }
+
+    // Ottiene gli utenti che possiedono una certa gift card
+    ottieniUtentiTramiteGiftCard(giftCardId: string): Observable<Utente[]> {
+        return this.http.get<Utente[]>(
+            `${this.baseUrl}/utenti/giftcard/${giftCardId}`
+        );
+    }
+
+    // Ottiene tutti i biglietti
+    ottieniBiglietti(): Observable<Biglietto[]> {
+        return this.http.get<Biglietto[]>(`${this.baseUrl}/biglietti`);
+    }
+
+    // Ottiene un singolo biglietto tramite ID
+    ottieniBigliettoPerId(id: string): Observable<Biglietto> {
+        return this.http.get<Biglietto>(`${this.baseUrl}/biglietti/${id}`);
+    }
+}
+```
+
+### sala.service.ts
+<details>
+<summary> sala.service.ts V1.0 </summary>
 
 ```ts
 
@@ -3501,6 +3561,7 @@ export class GestioneService {
 
 ```
 
+### tipologiaSalaService.ts
 <details><summary>gestioneservice.ts V1.1 </summary>
 
 - Utente: Simeone
@@ -3633,7 +3694,7 @@ export class TipologiaSalaService {
 ```
 </details>
 
-### MovieService
+### movieService
 <details><summary> movie.service V1.0 </summary>
 
 ```ts
@@ -4239,7 +4300,7 @@ export class LogAzioniService {
 ```
 </details>
 
-### log-azioni.service.ts Versione 1.1
+### log-azioni.service.ts
 
 - Utente: Simeone
 - Data: 26/05/2026
@@ -4388,7 +4449,7 @@ export class ProiezioneService {
 </details>
 
 
-### GestoreService
+### gestore.service.ts
 <details><summary> gestore.service V1.0 </summary>
 
 ```ts
@@ -4449,7 +4510,7 @@ export class GestoreService {
 ```
 </details>
 
-### GestioneUtenteService
+### gestione-utente.service.ts
 <details><summary> gestione-utente.service V1.0 </summary>
 
 ```ts
@@ -4473,7 +4534,7 @@ export class GestioneUtenteService {
 ```
 </details>
 
-### GestioneUtenteService
+### gestione-utente.service.ts
 <details>
 <details><summary> V1.1 </summary>
 Utente: Andrea Paris
@@ -4505,7 +4566,7 @@ export class GestioneUtenteService {
 </details>
 
 
-### AuthService V1.0
+### auth.service.ts
 
 Utente: Fabio Tammaro
 Data: 28/05/2026
@@ -4707,7 +4768,7 @@ export class AuthService {
 }
 ```
 
-### authService V1.1
+### auth.service.ts
 
 Utente: Marco Strazzeri
 Data: 28/05/2026
@@ -4853,8 +4914,10 @@ export class AuthService {
 
 ```
 
-### utente.service.ts V1.0
+### utente.service.ts
 
+<details>
+<summary>Versione 1.0</summary>
 Andrea Bruno 28-05-2026
 Cambio di rotta da Utente a Auth 
 Modifiche nel richiamo dei servizi 

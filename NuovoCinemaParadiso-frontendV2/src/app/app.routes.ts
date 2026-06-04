@@ -3,7 +3,8 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
-import { BigliettoListComponent } from './features/biglietto/components/biglietto-list.component';
+import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +33,17 @@ export const routes: Routes = [
   },
 
   {
+    path: 'giftcard-list',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/giftcard-list.component').then(m => m.GiftCardListComponent)
+  },
+  {
+    path: 'log-list',
+    canActivate: [authGuard, roleGuard], 
+    //data: { roles: ['Gestore'] }, <- non più necessario dopo il isGestore del log-list.component.ts
+    loadComponent: () => import('./features/log/components/log-list.component').then(m => m.LogListComponent)
+  },
+  {
     path: 'profilo',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/utente/utente.page').then((m) => m.UtentePage),
@@ -49,6 +61,11 @@ export const routes: Routes = [
   {
     path: 'lista-biglietti',
     component: BigliettoListComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'lista-utenti',
+    component: UtenteListComponent,
     canActivate: [authGuard],
   },
   {
