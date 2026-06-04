@@ -1,3 +1,4 @@
+
 # Features
 
 ## Dashboard
@@ -14,28 +15,33 @@
 - Operatore: 
 - Gestore:
 
-## abbonamento
+## abbonamento 
 ### page
 - abbonamento.page.ts
 ### components
 - abbonamento-list.component.ts [tutti] - Andrea Paris (fatto)
 - abbonamento-detail.component.ts [utente](abbonato)
-- abbonamento-form.component.ts [operatore]
+- abbonamento-form.component.ts [operatore] Andrea Paris (fatto)
 
 ## biglietto
 ### components
 - biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto)
-- biglietto-form.component.ts [operatore]
+- biglietto-form.component.ts [operatore] (Marco)
 
 ## dashboard
+[priorità]
 ### layout 
-- dashboard.layout.ts
- 
+- dashboard.layout.ts (Francesco: inserire nel layout di dashboard il component di profilo, biglietti, giftcard, abbonamento (e se non abbonato devono apparire gli abbonamenti disponibili))
+
+(PER IL GESTORE: deve avere SOLO log, vedi giftcard, implementare cambio ruolo al posto dell'operatore)
+
+
+## shared/navbar
+[priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti)
 
 ## profilo
 ### components
-- profilo.component.ts [utente,operatore,gestore]
-
+- profilo.component.ts [utente,operatore,gestore] Francesco
 
 ## genere-movie
 
@@ -154,8 +160,8 @@ Data: 04/06/2026
 
 ## giftcard
 ### components
-- riscatta-codice.component.ts
-- crea-codice.component.ts
+- riscatta-codice.component.ts (Simeone)
+- crea-codice.component.ts (Simeone)
 - giftcard-list.component.ts [gestore,utente] Simeone
 
 <details><summary>Versione 1.0</summary>
@@ -1958,7 +1964,7 @@ Data: 04/06/2026
 
 ## cambio-ruolo
 ### components
-- cambio-ruolo-form.component.ts [gestore]
+- cambio-ruolo-form.component.ts [gestore] (Fabio)
 - utenti-list.component.ts [gestore] Andrea Bruno (fatto)
 
 ## log
