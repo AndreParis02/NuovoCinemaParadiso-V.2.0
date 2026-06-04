@@ -7,12 +7,12 @@
   import { RouterLink } from '@angular/router';
   import { CommonModule } from '@angular/common';
   import { FormsModule } from '@angular/forms';
-import { MovieFormComponent } from "./proiezione-form.component";
+  import { ProiezioneFormComponent } from "./proiezione-form.component";
 
   @Component({
     selector: 'proiezione-list',
     standalone: true,
-    imports: [RouterLink, CommonModule, FormsModule, MovieFormComponent],
+    imports: [RouterLink, CommonModule, FormsModule, ProiezioneFormComponent],
     templateUrl: './proiezione-list.html',
   })
   export class ProiezioneList {

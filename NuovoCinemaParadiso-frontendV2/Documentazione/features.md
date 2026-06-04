@@ -949,6 +949,63 @@ Francesco Lorenzi 03/06/2026
 
 </details>
 
+Utente: Fabio Tammaro
+Data: 04/06/2026
+Descrizione: Aggiunti h3 per avere più informazioni sul film da modificare
+
+<details><summary> movie-form.component V1.1</summary>
+
+```html
+<section>
+        @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+        }
+
+        @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+        }
+
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
+                <h3>{{movieSelezionato()?.titolo}} - {{movieSelezionato()?.genere}} - {{movieSelezionato()?.durataMinuti }}min</h3>
+                 
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="titolo">Titolo</label>
+                        <input id="titolo" type="text" formControlName="titolo" [disabled]="!modificabileDa()">
+                        <label for="descrizione">Descrizione</label>
+                        <input id="descrizione" type="text" formControlName="descrizione"
+                            [disabled]="!modificabileDa()">
+                        <label for="durataMinuti">Durata (minuti)</label>
+                        <input id="durataMinuti" type="number" formControlName="durataMinuti"
+                            [disabled]="!modificabileDa()">
+                        <label for="prezzoMovie">Prezzo (€)</label>
+                        <input id="prezzoMovie" type="number" formControlName="prezzoMovie"
+                            [disabled]="!modificabileDa()">
+                        <label for="genereId">Genere</label>
+                        <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona un genere</option>
+                            @for (genere of generi(); track tracciaPerId($index.toString(), genere)) {
+                            <option [value]="genere.id">{{ genere.genere }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                        </button>
+                        @if (modificaId()) {
+                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                        }
+                    </div>
+                </form>
+            </article>
+        </div> 
+</section>
+```
+</details>
 
 ## proiezione
 ### page
@@ -1117,8 +1174,159 @@ Descrizione: Creato il component list per la proiezione e modificato il bigliett
 ```
 </details>
 
+Utente: Fabio Tammaro
+Data: 04/06/2026
+Descrizione: Aggiunta "proiezioneScelta"
 <details>
-<summary>proiezione-list.component.html Versione 1.0</summary>
+<summary>proiezione-list.component.ts Versione 1.1</summary>
+
+```typescript
+  import { Component, computed, inject, signal } from '@angular/core';
+  import { HttpErrorResponse } from '@angular/common/http';
+  import { ProiezioneService } from '../../../services/proiezione.service';
+  import { AuthService } from '../../../services/auth.service';
+  import { Proiezione } from '../../../models/proiezione.model';
+  import { BigliettoService } from '../../../services/biglietto.service';
+  import { RouterLink } from '@angular/router';
+  import { CommonModule } from '@angular/common';
+  import { FormsModule } from '@angular/forms';
+  // import del proiezione form per averlo nell'html del list component.
+  import { ProiezioneFormComponent } from "./proiezione-form.component";
+
+
+  @Component({
+    selector: 'proiezione-list',
+    standalone: true,
+    imports: [RouterLink, CommonModule, FormsModule],
+    templateUrl: './proiezione-list.html',
+  })
+  export class ProiezioneList {
+
+    private readonly proiezioneService = inject(ProiezioneService);
+    private readonly authService = inject(AuthService);
+    private readonly bigliettoService = inject(BigliettoService);
+
+    readonly listaProiezioni = signal<Proiezione[]>([]);
+    //aggiunta proprietà per la proiezione selezionata
+    readonly proiezioneScelta = signal<Proiezione | null>(null);
+    readonly staCaricando = signal(false);
+    readonly staInviando = signal(false);
+    readonly messaggioErrore = signal('');
+    readonly messaggioSuccesso = signal('');
+    readonly modificaId = signal<string | null>(null);
+
+    readonly isOperatore = computed(() => this.authService.isOperatore());
+    readonly isGestore = computed(() => this.authService.isGestore());
+
+    quantitaSelezionata: Record<string, number> = {};
+
+    readonly loadingMap = signal<Record<string, boolean>>({});
+
+    constructor() {
+      this.ottieniTutto();
+    }
+
+    ottieniTutto(): void {
+      this.staCaricando.set(true);
+      this.messaggioErrore.set('');
+
+      this.proiezioneService.ottieniTutto().subscribe({
+        next: (data) => {
+          this.listaProiezioni.set(data);
+
+          const init: Record<string, number> = {};
+          data.forEach(p => {
+            init[p.id] = 1;
+          });
+          this.quantitaSelezionata = init;
+          this.staCaricando.set(false);
+        },
+        error: (err) => {
+          this.staCaricando.set(false);
+          this.messaggioErrore.set(
+            this.estraiMessaggioErrore(err, 'Errore caricamento proiezioni')
+          );
+        }
+      });
+    }
+
+    acquista(proiezioneId: string) {
+
+        const numeroBiglietti = this.quantitaSelezionata[proiezioneId] ?? 1;
+
+      this.loadingMap.update(m => ({
+        ...m,
+        [proiezioneId]: true
+      }));
+
+      this.messaggioErrore.set('');
+      this.messaggioSuccesso.set('');
+
+      this.bigliettoService.crea({
+        proiezioneId,
+        numeroBiglietti
+      }).subscribe({
+        next: () => {
+          this.loadingMap.update(m => ({
+            ...m,
+            [proiezioneId]: false
+          }));
+
+          this.messaggioSuccesso.set('Biglietti acquistati con successo!');
+        },
+        error: (err) => {
+          this.loadingMap.update(m => ({
+            ...m,
+            [proiezioneId]: false
+          }));
+
+          this.messaggioErrore.set(
+            this.estraiMessaggioErrore(err, 'Errore creazione biglietto')
+          );
+        }
+      });
+    }
+
+    elimina(item: Proiezione): void {
+    if (!this.isOperatore()) {
+      return;
+    }
+
+    const confirmed = confirm(`Eliminare la proiezione\"${item.id}\"?`)
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.proiezioneService.elimina(item.id).subscribe({
+      next: () => {
+        this.messaggioSuccesso.set('Proiezione eliminata');
+
+        this.ottieniTutto();
+      },
+      error: (error: unknown) => {
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Eliminazione non riuscita'));
+
+      }
+    });
+  }
+
+    private estraiMessaggioErrore(error: unknown, fallback: string): string {
+      if (error instanceof HttpErrorResponse) {
+        return error.error?.message ?? error.error?.messaggio ?? fallback;
+      }
+
+      return fallback;
+    }
+  }
+```
+</details>
+
+<details>
+<summary>proiezione-list.component.html Versione 1.1</summary>
 
 ```html
 <section>
@@ -1187,8 +1395,6 @@ Descrizione: Creato il component list per la proiezione e modificato il bigliett
                     }
                     @if(isOperatore()){
                                 <div class="btn-row">
-                                    <button class="btn btn-secondary" type="button"> Crea</button>
-                                    <button class="btn btn-secondary" type="button"> Modifica</button>
                                     <button class="btn btn-secondary" type="button" (click)="elimina(item)"> Elimina</button>
                                 </div>
                             }
@@ -1201,15 +1407,275 @@ Descrizione: Creato il component list per la proiezione e modificato il bigliett
             }
 
         </article>
-
+        @if (isOperatore()) {
+        <article class="card">
+            <proiezione-form [proiezioneSelezionata]="proiezioneScelta()" (modificaCompletata)="ottieniTutto()"></proiezione-form>
+        </article>
+        }
     </div>
 
 </section>
 ```
 </details>
 
+
 - proiezione-form.component.ts [operatore]
-- proiezione-detail.component.ts [tutti]
+
+Utente: Fabio Tammaro
+Data: 04/06/2026
+Descrizione: aggiunta l'importazione di proiezione-form che ha validità solo per la creazione
+<details>
+<summary>proiezione-form.component.ts Versione 1.1</summary>
+
+```ts
+
+// import di input ed effect per lavorare con il modulo di modifica/creazione.
+import { Component, inject, signal, input, effect } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../services/auth.service';
+import { ProiezioneService } from '../../../services/proiezione.service';
+import { MovieService } from '../../../services/movie.service';
+import { SalaService } from '../../../services/sala.service';
+import { TurnoService } from '../../../services/turno.service';
+import { Movie } from '../../../models/movie.model';
+import { Sala } from '../../../models/sala.model';
+import { Turno } from '../../../models/turno.model';
+import { Proiezione } from '../../../models/proiezione.model';
+
+
+
+@Component({
+    selector: 'proiezione-form',
+    standalone: true,
+    imports: [ReactiveFormsModule],
+    templateUrl: './proiezione-form.component.html'
+})
+
+export class ProiezioneFormComponent {
+
+    private readonly formBuilder = inject(FormBuilder);
+    private readonly authService = inject(AuthService);
+    private readonly movieService = inject(MovieService);
+    private readonly salaService = inject(SalaService);
+    private readonly turnoService = inject(TurnoService);
+    private readonly proiezioneService = inject(ProiezioneService);
+
+
+    readonly movies = signal<Movie[]>([]);
+    readonly sale = signal<Sala[]>([]);
+    readonly turni = signal<Turno[]>([]);
+    readonly proiezioneSelezionata = input<Proiezione | null>(null);
+    readonly staCaricando = signal(false);
+    readonly staInviando = signal(false);
+    readonly messaggioErrore = signal('');
+    readonly messaggioSuccesso = signal('');
+    readonly modificaId = signal<string>('');
+
+    //costruzione del form
+    readonly form = this.formBuilder.nonNullable.group({
+        dataProiezione: ['', [Validators.required]],
+        movieId: ['', [Validators.required]],
+        salaId: ['', [Validators.required]],
+        turnoId: ['', [Validators.required]],
+    });
+
+    constructor() {
+        this.caricaMovies();
+        this.caricaSale();
+        this.caricaTurni();
+
+        effect(() => {
+            const proiezione = this.proiezioneSelezionata();
+            if (proiezione) {
+                this.inizioModifica(proiezione);
+            } else {
+                this.ripristinaForm();
+            }
+        });
+    }
+    modificabileDa(): boolean {
+        return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+    }
+
+    caricaMovies(): void {
+
+        this.staCaricando.set(true);
+        this.messaggioErrore.set('');
+        this.movieService.ottieniTutto().subscribe({
+            next: (items) => {
+                this.movies.set(items);
+                this.staCaricando.set(false);
+            },
+            error: (error: unknown) => {
+                this.staCaricando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Film non trovati'));
+            }
+        });
+    }
+
+    caricaSale(): void {
+
+        this.staCaricando.set(true);
+        this.messaggioErrore.set('');
+        this.salaService.ottieniTutto().subscribe({
+            next: (items) => {
+                this.sale.set(items);
+                this.staCaricando.set(false);
+            },
+            error: (error: unknown) => {
+                this.staCaricando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Sale non trovate'));
+            }
+        });
+    }
+
+    caricaTurni(): void {
+
+        this.staCaricando.set(true);
+        this.messaggioErrore.set('');
+        this.turnoService.ottieniTutto().subscribe({
+            next: (items) => {
+                this.turni.set(items);
+                this.staCaricando.set(false);
+            },
+            error: (error: unknown) => {
+                this.staCaricando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Turni non trovati'));
+            }
+        });
+    }
+
+    invia(): void {
+
+        if (this.form.invalid || !this.modificabileDa()) {
+            this.form.markAllAsTouched();
+            return;
+        }
+
+        this.staInviando.set(true);
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+
+
+        const request$ = this.modificaId()
+
+            ? this.proiezioneService.modifica(this.modificaId(), this.form.getRawValue())
+            : this.proiezioneService.crea(this.form.getRawValue());
+
+
+        request$.subscribe({
+            next: () => {
+                this.staInviando.set(false);
+                this.messaggioSuccesso.set(this.modificaId() ? 'Proiezione aggiornata.' : 'Proiezione creata.');
+                this.ripristinaForm();
+            },
+            error: (error: unknown) => {
+                this.staInviando.set(false);
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita.'));
+            }
+        });
+    }
+
+    inizioModifica(item: Proiezione): void {
+
+        if (!this.modificabileDa()) {
+            return;
+        }
+        this.modificaId.set(item.id);
+
+        this.form.patchValue({ dataProiezione: item.dataProiezione, movieId: item.titoloMovie, salaId: item.nomeSala, turnoId:item.nomeTurno });
+        this.messaggioErrore.set('');
+        this.messaggioSuccesso.set('');
+    }
+
+    ripristinaForm(): void {
+        this.modificaId.set('');
+        this.form.reset({ dataProiezione: '', movieId: '', salaId: '', turnoId: '' });
+    }
+
+    // implementazione per il recupero delle entità richiamate in proiezione.
+    tracciaPerId(_: string, item: Proiezione | Movie | Sala | Turno): string {
+        return item.id;
+    }
+  
+    private estraiMessaggioErrore(error: unknown, fallback: string): string {
+
+        if (error instanceof HttpErrorResponse) {
+            return error.error?.message ?? fallback;
+        }
+        return fallback;
+    }
+}
+
+```
+</details>
+
+Utente: Fabio Tammaro
+Data: 04/06/2026
+Descrizione: aggiunta l'importazione di proiezione-form.html che ha validità solo per la creazione
+
+<details>
+<summary>proiezione-form.component.html Versione 1.1</summary>
+
+```html
+
+
+<section>
+        @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+        }
+
+        @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+        }
+
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>{{ modificaId() ? 'Modifica proiezione' : 'Aggiungi proiezione' }}</h2>
+                <h3>{{proiezioneSelezionata()?.titoloMovie}} - {{proiezioneSelezionata()?.dataProiezione}} - {{proiezioneSelezionata()?.nomeTurno }}</h3>
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="dataProiezione">Data Proiezione</label>
+                        <input id="dataProiezione" type="date" formControlName="dataProiezione" [disabled]="!modificabileDa()">
+                        <label for="salaId">Sala</label>
+                        <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona una sala</option>
+                            @for (sala of sale(); track tracciaPerId($index.toString(), sala)) {
+                            <option [value]="sala.id">{{ sala.nome }}</option>
+                            }
+                        </select>
+                        <label for="movieId">Film</label>
+                        <select id="movieId" formControlName="movieId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona un film</option>
+                            @for (movie of movies(); track tracciaPerId($index.toString(), movie)) {
+                            <option [value]="movie.id">{{ movie.titolo }}</option>
+                            }
+                        </select>
+                        <label for="turnoId">Turno</label>
+                        <select id="turnoId" formControlName="turnoId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona un turno</option>
+                            @for (turno of turni(); track tracciaPerId($index.toString(), turno)) {
+                            <option [value]="turno.id">{{ turno.nome }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                        </button>
+                        @if (modificaId()) {
+                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                        }
+                    </div>
+                </form>
+            </article>
+        </div> 
+</section>
+```
+</details>
+
 
 ## sala
 ### components
@@ -1328,6 +1794,7 @@ export class SalaListComponent {
 </details>
 
 
+- proiezione-detail.component.ts [tutti]
 
 <details>
 <summary>versione1.1</summary>
