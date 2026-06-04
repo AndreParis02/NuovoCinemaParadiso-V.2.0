@@ -308,6 +308,46 @@ public class GiftCard
 }
 ```
 
+## GiftCard.cs
+
+<details><summary>Versione 1.1</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+- Descrizione: modifica per associargli un utente
+```c#
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace NuovoCinemaParadiso.Models;
+
+[Table("GiftCard")]
+public class GiftCard
+{
+    [Key]
+    public string Id {get;set;} = Guid.NewGuid().ToString();
+    [Required]
+    [StringLength(50)]
+    public string Nome {get;set;} = string.Empty;
+
+    [Required]
+    public bool Riscattata{get;set;} = false;
+
+    [Required]
+    [Range(0, 1000)]
+    public int Valore{get;set;}
+
+    [Required]
+    public string CodiceRiscatto{get;set;} = string.Empty;
+
+    public string? UtenteId { get; set; }
+
+}
+```
+
+</details>
+
+
 ## LogAzione.cs
 
 ```c#
@@ -752,6 +792,9 @@ public class TipologiaSala
     // Rappresenta una relazione uno-a-molti tra TipologiaSala e Sala
     // La lista viene inizializzata vuota per evitare errori null reference
     public List<Sala> Sale { get; set; } = new List<Sala>();
+
+    // Proprietà che indica se l'oggetto è stato eliminato
+    public bool isDeleted { get; set; } = false;
 }
 ```
 
@@ -1351,19 +1394,26 @@ public class DtoGiftCard
 }
 ```
 
-## DtoGiftCard.cs
+<details><summary>Versione 1.1</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+- Descrizione: modifica per associargli un utente
 
 ```c#
 namespace NuovoCinemaParadiso.Dtos;
-
 public class DtoGiftCard
 {
-    public string? Id { get; set; }                     // Id della gift card (null in creazione)
-    public string Nome { get; set; } = string.Empty;    // Nome della gift card
-    public int Valore { get; set; }                     // Valore/credito disponibile
-    public string CodiceRiscatto { get; set; } = string.Empty; // Codice univoco per il riscatto
+    public string? Id {get; set;}
+    public string Nome {get; set;} = string.Empty;
+    public int Valore {get; set;}
+    public string CodiceRiscatto {get; set;} = string.Empty;
+
+    public string? UtenteId { get; set; }
 }
 ```
+
+</details>
 
 ## DtoLogAzioni.cs
 
@@ -1595,6 +1645,8 @@ public class DtoTipologiaSala
     public string Nome { get; set; } = string.Empty;    // Nome della tipologia (es. Standard, IMAX, VIP)
 
     public int MaggiorazionePrezzo { get; set; }        // Maggiorazione applicata al prezzo base
+
+    public bool IsDeleted {get; set;} = false;          // Booleano che ne indica la eliminazione
 }
 ```
 
@@ -2846,147 +2898,7 @@ public class GestoreUtentiController : ControllerBase
 }
 ```
 
-## GiftCardController.cs (da copiare quando mergiato)
-
-```c#
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using NuovoCinemaParadiso.Services;
-using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
-
-namespace NuovoCinemaParadiso.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-[Authorize] // Tutte le azioni richiedono autenticazione
-public class GiftCardController : ControllerBase
-{
-    private readonly GiftCardService _giftCardService;
-    private readonly LogAzioniService _logAzioniService;
-
-    public GiftCardController(GiftCardService giftCardService, LogAzioniService logAzioniService)
-    {
-        _giftCardService = giftCardService;
-        _logAzioniService = logAzioniService;
-    }
-
-    // ---------------------------------------------------------
-    // OTTIENI TUTTE LE GIFT CARD
-    // ---------------------------------------------------------
-    [HttpGet]
-    public async Task<IActionResult> OttieniTutteLeGiftCard()
-    {
-        // Recupera tutte le gift card
-        List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
-
-        // Recupera ID dell’utente loggato dal token JWT
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Registra log dell’azione
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutte le giftcards" ,true);
-
-
-        return Ok(giftCards);
-    }
-
-    // ---------------------------------------------------------
-    // OTTIENI GIFT CARD TRAMITE ID (solo se appartiene all’utente)
-    // ---------------------------------------------------------
-    [HttpGet("{id}")]
-    public async Task<IActionResult> OttieniTramiteId(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Recupera gift card solo se appartiene all’utente
-        var risultato = await _giftCardService.OttieniTramiteIdAsync(id, utenteId);
-
-        if (risultato == null)
-        {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
-            return NotFound($"GiftCard con id {id} non trovato");
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
-
-        return Ok(risultato);
-    }
-
-    // ---------------------------------------------------------
-    // RIMOSSO DATO LE SPECIFICHE DI HARDCODED
-    // CREAZIONE GIFT CARD (Operatore)
-    // ---------------------------------------------------------
-
-    /*
-    [HttpPost]
-    [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneGiftCard dto)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Crea nuova gift card
-        DtoGiftCard? risultato = await _giftCardService.CreazioneAsync(dto);
-
-        // Registra log
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Creazione di una giftcard" ,true);
-
-        return Ok(risultato);
-    }
-
-*/
-
-    // ---------------------------------------------------------
-    // MODIFICA GIFT CARD (Operatore)
-    // ---------------------------------------------------------
-    [HttpPut("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Modifica gift card
-        DtoGiftCard? risultato = await _giftCardService.ModificaAsync(id, dto);
-
-        if (risultato == null)
-        {
-          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica giftcard" ,false);
-          return NotFound(new { messaggio = "GiftCard non trovata." });
-        }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica GiftCard", true );
-
-        return Ok(risultato);
-    }
-
-    // ---------------------------------------------------------
-    // ELIMINA GIFT CARD (Operatore)
-    // ---------------------------------------------------------
-    [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
-    public async Task<IActionResult> Elimina(string id)
-    {
-        string utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // Elimina gift card
-        bool eliminato = await _giftCardService.EliminazioneAsync(id);
-
-        if (!eliminato)
-         {
-            await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", false );
-
-
-            return NotFound(new { messaggio = "GiftCard non trovata." });
-         }
-
-        await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", true );
-
-        return NoContent();
-    }
-}
-```
-
-## Giftcard.cs
+## GiftCardController.cs
 
 ```c#
 using Microsoft.AspNetCore.Authorization;
@@ -3117,6 +3029,132 @@ public class GiftCardController : ControllerBase
     }
 }
 ```
+
+<details><summary>Versione 1.1</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+- Descrizione: modifica per associargli un utente ed ottenere le sue giftcard
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class GiftCardController : ControllerBase
+{
+    private readonly GiftCardService _giftCardService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public GiftCardController(GiftCardService giftCardService, LogAzioniService logAzioniService)
+    {
+        _giftCardService = giftCardService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniTutteLeGiftCard()
+    {
+        List<DtoGiftCard> giftCards = await _giftCardService.OttieniTutto();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni tutte le giftcard" ,true);
+
+        return Ok(giftCards);
+    }
+
+    [HttpGet("mie")]
+    [Authorize(Roles = Ruoli.Utente)]
+    public async Task<IActionResult> OttieniMieGiftCard()
+    {
+        // Il backend estrae l'ID utente direttamente dal token di sicurezza in modo automatico
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        // ATTENZIONE: Qui dovrai assicurarti che nel GiftCardService esista un metodo 
+        // che fa la query sul database filtrando per utenteId
+        List<DtoGiftCard> mieGiftCards = await _giftCardService.OttieniPerUtenteAsync(utenteId);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Visualizzazione proprie giftcard", true);
+
+        return Ok(mieGiftCards);
+    }
+
+    [HttpGet("{id}")]
+     [Authorize(Roles = Ruoli.Gestore)]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _giftCardService.OttieniTramiteIdAsync(id, utenteId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
+            return NotFound($"GiftCard con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,true);
+
+        return Ok(risultato);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneGiftCard dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        DtoGiftCard? risultato = await _giftCardService.ModificaAsync(id,dto);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Modifica giftcard" ,false);
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica GiftCard", true );
+
+        return Ok(risultato);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.GestoreOrOperatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _giftCardService.EliminazioneAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", false );
+            return NotFound(new { messaggio = "GiftCard non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync (utenteId, "eliminazione GiftCard", true );
+
+        return NoContent();
+    }
+}
+```
+
+</details>
 
 ## MovieController.cs (versione 1.1)
 
@@ -5676,21 +5714,43 @@ public class TipologiaSalaController : ControllerBase
     }
 
     [HttpGet]
+    // Restituisce tutte le tipologie di sala non eliminate e salva il log dell'operazione
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-
-        // Recupera l'ID dell'utente autenticato dal token JWT
+        List<DtoTipologiaSala> tipologieSaleTrovate = new List<DtoTipologiaSala>();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        // Log dell’operazione riuscita
+        foreach (DtoTipologiaSala temp in tipologieSala)
+        {
+            if (!temp.IsDeleted)
+            {
+                tipologieSaleTrovate.Add(temp);
+            }
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
+        
+
+        return Ok(tipologieSaleTrovate);
+    }
+
+    [HttpGet("storico")]
+    // Restituisce tutte le tipologie di sala, compresi gli elementi eliminati (storico)
+    public async Task<IActionResult> OttieniTuttiStorico()
+    {
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
 
         return Ok(tipologieSala);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> OttieniTramiteId(string id)
@@ -6343,8 +6403,125 @@ public async Task<IActionResult> RiscattaGiftCard([FromBody] DtoCodiceRiscatto d
 }
 ```
 
+## UtenteController.cs V 1.2
+
+<details><summary>Versione 1.2</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class UtenteController : ControllerBase
+{
+    private readonly UtenteService _utenteService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public UtenteController(UtenteService utenteService, LogAzioniService logAzioniService)
+    {
+        _utenteService = utenteService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet("biglietti")]
+    public async Task<IActionResult> OttieniTuttiBiglietti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+        {
+            return Unauthorized("Utente non autenticato.");
+        }
+
+        var biglietti = await _utenteService.OttieniTuttiBigliettiAsync(utenteId);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutti i biglietti", true);
+        return Ok(biglietti);
+    }
+
+    [HttpPost("abbonati")]
+    public async Task<IActionResult> Abbonati([FromBody] DtoAbbonati dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(dto.IdAbbonamento))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            return BadRequest("Dati non validi");
+        }
+
+        var risultato = await _utenteService.AbbonatiAsync(dto.IdAbbonamento, utenteId);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", false);
+            return BadRequest(new { errore = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Abbonati", true);
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
+    [HttpPut("giftCard/ricarica")]
+    public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (dto == null || dto.Importo <= 0)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest("Importo non valido.");
+        }
+
+        var risultato = await _utenteService.RicaricaGiftCardAsync(utenteId, dto);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", false);
+            return BadRequest(new { errore = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "RicaricaGiftCard", true);
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
 
 
+    [HttpPost("giftCard/riscatta")]
+    public async Task<IActionResult> RiscattaGiftCard([FromBody] DtoCodiceRiscatto dto)
+    {
+        // 1. Devi recuperare chi sta facendo la richiesta!
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (dto == null || string.IsNullOrWhiteSpace(dto.CodiceRiscatto))
+            return BadRequest("Codice non valido.");
+
+        // 2. Passa ANCHE l'utenteId al service, altrimenti non saprà a chi dare la card
+        var risultato = await _utenteService.RiscattaGiftCardAsync(utenteId, dto);
+
+        if (!risultato.Successo)
+            return BadRequest(new { errore = risultato.Messaggio });
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+}
+```
+
+</details>
 
 
 
@@ -9184,6 +9361,263 @@ public class GiftCardService
     }
 }
 ```
+
+<details><summary>Versione 1.1</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+- Descrizione: modifica per associargli un utente ed ottenere le sue giftcard
+```c#
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GiftCardService
+{
+    private readonly ContestoDb _contesto;
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<List<DtoGiftCard>> OttieniPerUtenteAsync(string utenteId)
+    {
+        // Filtriamo le giftcard direttamente nel database usando l'ID utente
+        // ATTENZIONE: Assumo che nel tuo modello GiftCard (in C#) la proprietà 
+        // che collega la carta all'utente si chiami "UtenteId". 
+        // Se si chiama in un altro modo (es. ProprietarioId), modificala qui sotto!
+        List<GiftCard> giftCards = await _contesto.GiftCards
+            .Where(g => g.UtenteId == utenteId)
+            .ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        foreach (var giftCardCorrente in giftCards)
+        {
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        DtoGiftCard risultato = new DtoGiftCard();
+        risultato.Id = giftCard.Id;
+        risultato.Nome = giftCard.Nome;
+        risultato.Valore = giftCard.Valore;
+        risultato.CodiceRiscatto = giftCard.CodiceRiscatto;
+
+        return risultato;
+    }
+
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        giftCard.Nome = dto.Nome;
+        giftCard.Valore = dto.Valore;
+        giftCard.CodiceRiscatto = dto.CodiceRiscatto;
+
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Valore = giftCard.Valore,
+            CodiceRiscatto = giftCard.CodiceRiscatto,
+        };
+    }
+
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return false;
+        }
+
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}     
+```
+
+</details>
+
+
+<details><summary>Versione 1.2</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```c#
+using System.Runtime.CompilerServices;
+using Microsoft.EntityFrameworkCore;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class GiftCardService
+{
+    private readonly ContestoDb _contesto;
+    public GiftCardService(ContestoDb contesto)
+    {
+        _contesto = contesto;
+    }
+
+    public async Task<List<DtoGiftCard>> OttieniTutto()
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        for (int i = 0; i < giftCards.Count; i++)
+        {
+            GiftCard giftCardCorrente = giftCards[i];
+
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<List<DtoGiftCard>> OttieniPerUtenteAsync(string utenteId)
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards
+            .Where(g => g.UtenteId == utenteId)
+            .ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        foreach (var giftCardCorrente in giftCards)
+        {
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return null;
+        }
+
+        DtoGiftCard risultato = new DtoGiftCard();
+        risultato.Id = giftCard.Id;
+        risultato.Nome = giftCard.Nome;
+        risultato.Valore = giftCard.Valore;
+        risultato.CodiceRiscatto = giftCard.CodiceRiscatto;
+        risultato.UtenteId = giftCard.UtenteId;
+
+        return risultato;
+    }
+
+    public async Task<DtoGiftCard?> ModificaAsync(string id, DtoCreazioneGiftCard dto)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+            return null;
+
+        giftCard.Nome = dto.Nome;
+        giftCard.Valore = dto.Valore;
+        giftCard.CodiceRiscatto = dto.CodiceRiscatto;
+
+        await _contesto.SaveChangesAsync();
+
+        return new DtoGiftCard
+        {
+            Id = giftCard.Id,
+            Nome = giftCard.Nome,
+            Valore = giftCard.Valore,
+            CodiceRiscatto = giftCard.CodiceRiscatto,
+        };
+    }
+
+    public async Task<bool> EliminazioneAsync(string id)
+    {
+        GiftCard? giftCard = await _contesto.GiftCards.FindAsync(id);
+
+        if (giftCard == null)
+        {
+            return false;
+        }
+
+        _contesto.GiftCards.Remove(giftCard);
+        await _contesto.SaveChangesAsync();
+
+        return true;
+    }
+}     
+```
+
+</details>
 
 ## LogAzioniService
 
@@ -12360,6 +12794,8 @@ public class TipologiaSalaService
                 Id = tipologiaSala.Id,
                 Nome = tipologiaSala.Nome,
                 MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo
+                IsDeleted = tipologiaSala.isDeleted;
+                
             });
         }
 
@@ -12441,18 +12877,19 @@ public class TipologiaSalaService
     /// </summary>
     /// <param name="id">ID della tipologia da eliminare.</param>
     /// <returns>True se eliminata, false se non trovata.</returns>
-    public async Task<bool> EliminaAsync(string id)
+public async Task<bool> EliminaAsync(string id)
     {
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(id);
 
-        if (tipologiaSala == null)
+        if (tipologiaSala == null || tipologiaSala.isDeleted)
+        {
             return false;
+        }
 
-        _contesto.TipologieSala.Remove(tipologiaSala);
+        tipologiaSala.isDeleted = true;
         await _contesto.SaveChangesAsync();
 
         return true;
-    }
 }
 ```
 
@@ -13299,6 +13736,190 @@ public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
 }
 }
 ```
+
+## UtenteService.cs V 1.3
+
+<details><summary>Versione 1.3</summary>
+
+- Utente: Simeone
+- Data: 03/06/2026
+```c#
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Helpers;
+using System.Security.Claims;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class UtenteService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
+    {
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            if (bigliettoCorrente.UtenteId == utenteId)
+            {
+                Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+                DtoBiglietto dto = new DtoBiglietto
+                {
+                    Id = bigliettoCorrente.Id,
+                    UtenteId = bigliettoCorrente.UtenteId,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                    NomeSala = sala.Nome,
+                    TitoloMovie = movie.Titolo,
+                    NomeTipologiaSala = tipologiaSala.Nome,
+                    OraInizio = turno.OraInizio,
+                    DataProiezione = proiezione.DataProiezione,
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento, (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento)
+                };
+                listaBiglietti.Add(dto);
+            }
+        }
+        return listaBiglietti;
+    }
+
+    public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        Abbonamento? abbonamentoTrovato = null;
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamenti[i];
+                break;
+            }
+        }
+
+        if (abbonamentoTrovato == null)
+            return (false, "Abbonamento non trovato.");
+
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteTrovato == null)
+            return (false, "Utente non trovato.");
+
+        if (utenteTrovato.SeAbbonato)
+            return (false, "L'utente è già abbonato.");
+
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
+            return (false, "Credito insufficiente per abbonarsi.");
+
+        utenteTrovato.Saldo -= abbonamentoTrovato.Prezzo;
+        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento attivato correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+    {
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.");
+
+        if (dto.Importo <= 0)
+            return (false, "Importo non valido.");
+
+        if (utenteCorrente.Saldo < dto.Importo)
+            return (false, "Saldo insufficiente.");
+
+        utenteCorrente.Saldo -= dto.Importo;
+
+        GiftCard nuovaGiftCard = new GiftCard
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice(),
+            Riscattata = false,
+            UtenteId = utenteId // -> MANCAVA L'UTENTE!!!!!!
+        };
+
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Gift card creata correttamente.");
+    }
+
+    // 1. Aggiungi utenteId come parametro (ricordati di passarlo dal Controller come ci siamo detti prima!)
+    public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
+        RiscattaGiftCardAsync(string utenteId, DtoCodiceRiscatto dto)
+    {
+        // Cerca la gift card
+        List<GiftCard> tutte = _contesto.GiftCards.ToList();
+        GiftCard? trovata = null;
+
+        foreach (GiftCard g in tutte)
+        {
+            if (g.CodiceRiscatto == dto.CodiceRiscatto)
+            {
+                trovata = g;
+                break;
+            }
+        }
+
+        if (trovata == null)
+            return (false, "Codice non valido.", null);
+
+        if (trovata.Riscattata)
+            return (false, "Gift card già riscattata.", null);
+
+        // 2. Recupera l'utente che sta riscattando la carta
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.", null);
+
+        // 3. AGGIORNAMENTI CRUCIALI
+        trovata.Riscattata = true;
+        trovata.UtenteId = utenteId; // Assegna la carta a chi l'ha riscattata (niente più NULL nel database!)
+        utenteCorrente.Saldo += trovata.Valore; // VERSA I SOLDI SUL CONTO DELL'UTENTE!
+
+        await _contesto.SaveChangesAsync();
+
+        DtoCreazioneGiftCard risposta = new DtoCreazioneGiftCard
+        {
+            Nome = trovata.Nome,
+            Valore = trovata.Valore,
+            CodiceRiscatto = trovata.CodiceRiscatto
+        };
+
+        return (true, "Gift card riscattata con successo! Saldo aggiornato.", risposta);
+    }
+
+}
+```
+
+</details>
 
 # Helpers 
 

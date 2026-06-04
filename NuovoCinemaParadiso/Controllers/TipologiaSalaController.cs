@@ -25,6 +25,29 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        List<DtoTipologiaSala> tipologieSaleTrovate = new List<DtoTipologiaSala>();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+            foreach (DtoTipologiaSala temp in tipologieSala)
+        {
+            if (!temp.IsDeleted)
+            {
+                tipologieSaleTrovate.Add(temp);
+            }
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
+        
+
+        return Ok(tipologieSaleTrovate);
+    }
+
+        [HttpGet("storico")]
+    public async Task<IActionResult> OttieniTuttiStorico()
+    {
+        List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
@@ -109,7 +132,7 @@ public class TipologiaSalaController : ControllerBase
         return Ok(new { messaggio = "Tipologia sala modificata con successo!" });
     }
 
-    [HttpDelete("{id}")]
+    [HttpPut("elimina/{id}")]
     [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {

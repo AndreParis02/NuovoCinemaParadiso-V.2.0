@@ -12,15 +12,33 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'dashboard',
   },
+  /*
   {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
   },
+  */
+  {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/component/login.component').then((m) => m.LoginComponent),
+  },
   {
     path: 'register',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage),
+  },
+  {
+    path: 'giftcard-list',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/giftcard-list.component').then(m => m.GiftCardListComponent)
+  },
+  {
+    path: 'log-list',
+    canActivate: [authGuard, roleGuard], 
+    //data: { roles: ['Gestore'] }, <- non più necessario dopo il isGestore del log-list.component.ts
+    loadComponent: () => import('./features/log/components/log-list.component').then(m => m.LogListComponent)
   },
   {
     path: 'profilo',
@@ -91,17 +109,12 @@ export const routes: Routes = [
   {
     path: 'genere-movie',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMoviePage)
   },
   {
     path: 'tipologia-sala',
     canActivate: [authGuard],
-    loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/tipologia-sala/tipologia-sala.page').then((m) => m.TipologiaSalaPage)
-  },
-  {
-    path: 'genere-movie',
-    canActivate: [authGuard],
-    loadComponent: () => import('../../../NuovoCinemaParadiso-frontendV2/src/app/pages/genere-movie/genere-movie.page').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaPage)
   },
   {
     path: 'sala',

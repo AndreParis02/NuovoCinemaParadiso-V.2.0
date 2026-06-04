@@ -1,0 +1,38 @@
+<section>
+    @if(messaggioErrore()){
+    <div class="alert alert-warning">{{ messaggioErrore()}}</div>
+    }
+
+    @if(messaggioSuccesso()){
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista abbonamenti</h2>
+
+            @if(staCaricando()){
+            <p class="muted"> Caricamento in corso...</p>
+            } @else if(abbonamenti().length === 0){
+            <p class="muted"> Nessun abbonamento presente</p>
+            } @else{
+            <div class="list">
+                <div class="list-header">
+                    <div>Abbonamento</div>
+                    <div>Prezzo</div>
+                    <div>Sconto</div>
+                    <div>Durata</div>
+                </div>
+                @for (item of abbonamenti(); track item.id) {
+                <div class="list-item">
+                    <div>{{ item.nome }}</div>
+                    <div>{{ item.prezzo }} €</div>
+                    <div>{{ item.sconto }}</div>
+                    <div>{{ item.durata }} mesi</div>
+                </div>
+                }
+            </div>
+            }
+        </article>
+    </div>
+</section>

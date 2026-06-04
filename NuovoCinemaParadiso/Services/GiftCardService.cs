@@ -29,6 +29,30 @@ public class GiftCardService
             dto.Nome = giftCardCorrente.Nome;
             dto.Valore = giftCardCorrente.Valore;
             dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
+
+            risultato.Add(dto);
+        }
+
+        return risultato;
+    }
+
+    public async Task<List<DtoGiftCard>> OttieniPerUtenteAsync(string utenteId)
+    {
+        List<GiftCard> giftCards = await _contesto.GiftCards
+            .Where(g => g.UtenteId == utenteId)
+            .ToListAsync();
+
+        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
+
+        foreach (var giftCardCorrente in giftCards)
+        {
+            DtoGiftCard dto = new DtoGiftCard();
+            dto.Id = giftCardCorrente.Id;
+            dto.Nome = giftCardCorrente.Nome;
+            dto.Valore = giftCardCorrente.Valore;
+            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
+            dto.UtenteId = giftCardCorrente.UtenteId;
 
             risultato.Add(dto);
         }
@@ -50,6 +74,7 @@ public class GiftCardService
         risultato.Nome = giftCard.Nome;
         risultato.Valore = giftCard.Valore;
         risultato.CodiceRiscatto = giftCard.CodiceRiscatto;
+        risultato.UtenteId = giftCard.UtenteId;
 
         return risultato;
     }

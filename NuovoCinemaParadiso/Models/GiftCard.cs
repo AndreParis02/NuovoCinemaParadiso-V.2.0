@@ -22,4 +22,6 @@ public class GiftCard
     [Required]
     public string CodiceRiscatto{get;set;} = string.Empty;
 
+    public string? UtenteId { get; set; }
+
 }
