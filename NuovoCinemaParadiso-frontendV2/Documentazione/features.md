@@ -24,7 +24,7 @@
 
 ## biglietto
 ### components
-- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno
+- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto)
 - biglietto-form.component.ts [operatore]
 
 ## dashboard
@@ -186,6 +186,165 @@ export class GiftCardListComponent implements OnInit {
 ### components
 - login.component.ts
 - register.component.ts
+<details>
+<summary>versione1.0</summary>
+
+Lorenzo Laviosa
+03/06/2026
+
+creazione componente per la registrazione
+## register.component.ts
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    RouterLink,
+  ],
+  templateUrl: './register.component.html',
+})
+export class RegisterComponent {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  // segnali per stato UI e gestione errori
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly submitted = signal(false);
+
+  // form tipizzato; eta non-nullable per evitare errori TS
+  readonly registerForm = this.fb.nonNullable.group({
+    nomeCompleto: this.fb.nonNullable.control('', Validators.required),
+    eta: this.fb.nonNullable.control(18, Validators.required),
+    email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
+    password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+  });
+
+  submit(): void {
+    this.submitted.set(true); // abilita la visualizzazione degli errori
+
+    if (this.registerForm.invalid) {
+      return; // evita chiamate al backend con dati non validi
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    const payload = this.registerForm.getRawValue(); // valori già sicuri e tipizzati
+
+    this.authService.registrazione(payload).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/login']); // redirect dopo registrazione
+      },
+      error: (err: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.extractError(err)); // messaggio leggibile
+      }
+    });
+  }
+
+  // converte errori backend in testo leggibile
+  private extractError(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? 'Errore durante la registrazione.';
+    }
+    return 'Errore imprevisto.';
+  }
+}
+```
+- register.component.html
+<details>
+<summary>versione1.0</summary>
+
+Lorenzo Laviosa
+03/06/2026
+
+## register.component.html
+```html
+<section class="register-section">
+
+  <h1 class="page-title">Registrazione</h1>
+  <p class="page-subtitle">Crea un nuovo account per accedere all'applicazione.</p>
+
+  <!-- errore proveniente dal backend -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger soft-alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- form reattivo con validazione -->
+  <form [formGroup]="registerForm" (ngSubmit)="submit()" class="card register-card">
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Nome completo</label>
+        <input type="text" formControlName="nomeCompleto" placeholder="Mario Rossi">
+
+        <!-- errore mostrato solo dopo submit -->
+        @if (submitted() && registerForm.controls.nomeCompleto.invalid) {
+          <p class="error-text">Il nome è obbligatorio.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Età</label>
+        <input type="number" formControlName="eta" placeholder="18">
+
+        @if (submitted() && registerForm.controls.eta.invalid) {
+          <p class="error-text">Inserisci un'età valida.</p>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="email@example.com">
+
+        @if (submitted() && registerForm.controls.email.invalid) {
+          <p class="error-text">Inserisci un'email valida.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••">
+
+        @if (submitted() && registerForm.controls.password.invalid) {
+          <p class="error-text">La password deve contenere almeno 6 caratteri.</p>
+        }
+      </div>
+    </div>
+
+    <!-- pulsanti principali -->
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" (click)="submit()">
+        Registrati
+      </button>
+
+      <a [routerLink]="['/login']" class="btn btn-secondary">
+        Torna al login
+      </a>
+    </div>
+
+  </form>
+
+</section>
+```
+
 
 ## movie
 ### components
@@ -1154,7 +1313,7 @@ export class SalaFormComponent {
 ## cambio-ruolo
 ### components
 - cambio-ruolo-form.component.ts [gestore]
-- utenti-list.component.ts [gestore] Andrea Bruno
+- utenti-list.component.ts [gestore] Andrea Bruno (fatto)
 
 ## log
 ### components
@@ -1269,3 +1428,407 @@ export class LogListComponent implements OnInit {
 ## conto-cinema
 ### components
 - conto-cinema-detail.component.ts [gestore]
+
+## biglietto
+### biglietto-list.component.ts
+
+<details>
+<summary>## biglietto-list.component.ts V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { Biglietto } from '../../models/biglietto.model';
+import { BigliettoService } from '../../services/biglietto.service';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'biglietto-list',
+  standalone: true,
+  templateUrl: './biglietto-list.component.html',
+})
+export class BigliettoListComponent {
+
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly bigliettoService = inject(BigliettoService);
+
+  // Stato reattivo del componente
+  readonly biglietti = signal<Biglietto[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  // ID dell'utente loggato
+  readonly utenteId;
+
+  constructor() {
+    // Recupera l'utente corrente
+    const utente = this.authService.utenteCorrente();
+
+    // Se non loggato, mostra errore
+    if (!utente?.id) {
+      this.messaggioErrore.set("Utente non loggato");
+      return;
+    }
+
+    this.utenteId = utente.id;
+
+    // Carica i biglietti all'avvio
+    this.caricaBiglietti();
+  }
+
+  // Recupera i biglietti dell'utente
+  caricaBiglietti(): void {
+    if (!this.utenteId) return;
+
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.bigliettoService.ottieniTutto().subscribe({
+      next: (items) => {
+        this.biglietti.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento dei biglietti')
+        );
+      }
+    });
+  }
+
+  // Funzione di tracking per *ngFor
+  tracciaPerId(_: string, item: Biglietto): string {
+    return item.id;
+  }
+
+  // Elimina un biglietto
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo biglietto?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    this.bigliettoService.elimina(id).subscribe({
+      next: () => {
+        // Rimuove il biglietto dalla lista locale
+        this.biglietti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Biglietto eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, "Errore durante l'eliminazione del biglietto")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+### biglietto-list.component.html
+
+<details>
+<summary>biglietto-list.component.html V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file minimale esteticamente da modificare 
+
+```html
+<section>
+
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>I tuoi biglietti</h2>
+
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
+
+            <!-- Nessun biglietto -->
+            } @else if (biglietti().length === 0) {
+                <p class="muted">Non hai ancora acquistato nessun biglietto.</p>
+
+            <!-- Lista biglietti -->
+            } @else {
+
+                <div class="list">
+
+                    <!-- Ciclo dei biglietti -->
+                    @for (b of biglietti(); track b.id){
+
+                        <div class="list-item">
+                            <div>
+
+                                <!-- Intestazione biglietto -->
+                                <strong>Biglietto #{{ b.id }}</strong>
+
+                                <!-- Informazioni principali -->
+                                <p>Film: {{ b.titoloMovie }}</p>
+                                <p>Sala: {{ b.nomeSala }}</p>
+                                <p>Tipologia sala: {{ b.nomeTipologiaSala }}</p>
+                                <p>Numero biglietti: {{ b.numeroBiglietti }}</p>
+                                <p>Data: {{ b.dataProiezione }}</p>
+                                <p>Ora inizio: {{ b.oraInizio }}</p>
+                                <p>Prezzo totale: {{ b.prezzoFinale }} €</p>
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ b.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(b.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(b.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+
+            }
+        </article>
+    </div>
+</section>
+```
+
+## cambio-ruolo
+### utenti-list.component.ts
+
+<details>
+<summary>utenti-list.component.ts V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file
+
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { OperatoreService } from '../../services/operatore.service';
+import { UtenteService } from '../../services/utente.service';
+import { AuthService } from '../../services/auth.service';
+import { Utente } from '../../models/utente.model';
+
+@Component({
+  selector: 'utenti-list',
+  standalone: true,
+  templateUrl: './utente-list.component.html'
+})
+export class UtenteListComponent {
+
+  // Servizi necessari
+  private readonly authService = inject(AuthService);
+  private readonly operatoreService = inject(OperatoreService);
+  private readonly utenteService = inject(UtenteService);
+
+  // Stato reattivo del componente
+  readonly utenti = signal<Utente[]>([]);
+  readonly staCaricando = signal(false);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  constructor() {
+    // Carica gli utenti all'avvio
+    this.caricaUtenti();
+  }
+
+  // Controlla se l'utente corrente può vedere questa pagina
+  visualizzabileDa(): boolean {
+    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  // Recupera la lista degli utenti
+  caricaUtenti(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
+
+    this.operatoreService.OttieniUtenti().subscribe({
+      next: (items) => {
+        this.utenti.set(items);
+        this.staCaricando.set(false);
+      },
+      error: (error: unknown) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            'Errore durante il caricamento degli utenti')
+        );
+      }
+    });
+  }
+
+  // Tracking per *ngFor
+  tracciaPerId(_: string, item: Utente): string {
+    return item.id;
+  }
+
+  // Elimina un utente
+  elimina(id: string): void {
+    if (!confirm("Sei sicuro di voler eliminare questo utente?")) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    // ⚠️ Nota: eliminaProfilo() elimina l'utente loggato, non quello passato come id
+    this.utenteService.eliminaProfilo().subscribe({
+      next: () => {
+        // Rimuove l'utente dalla lista locale
+        this.utenti.update(lista => lista.filter(b => b.id !== id));
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set("Utente eliminato con successo");
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(error, 
+            "Errore durante l'eliminazione dell'utente")
+        );
+      }
+    });
+  }
+
+  // Placeholder per futura modifica
+  modifica(id: string) {
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+### utenti-list.component.html
+
+<details>
+<summary>utenti-list.component.html V1.0</summary>
+
+Andrea Bruno 03-06-2026
+Creazione del file minimale esteticamente da modificare
+
+```html
+<section>
+
+    <!-- Messaggio di errore -->
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    <!-- Messaggio di successo -->
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+
+        <article class="card">
+            <h2>Lista utenti</h2>
+
+            <!-- Stato di caricamento -->
+            @if (staCaricando()) {
+                <p class="muted">Caricamento in corso...</p>
+
+            <!-- Nessun utente -->
+            } @else if (utenti().length === 0) {
+                <p class="muted">Non ci sono utenti.</p>
+
+            <!-- Lista utenti -->
+            } @else {
+
+                <div class="list">
+
+                    <!-- Ciclo degli utenti -->
+                    @for (u of utenti(); track u.id) {
+
+                        <div class="list-item">
+                            <div>
+
+                                <!-- Intestazione -->
+                                <strong>Utente #{{ u.id }}</strong>
+
+                                <!-- Informazioni principali -->
+                                <p>Nome completo: {{ u.nomeCompleto }}</p>
+                                <p>Email: {{ u.email }}</p>
+                                <p>Età: {{ u.eta }}</p>
+                                <p>Saldo: {{ u.saldo }}</p>
+
+                                <!-- Dati abbonamento se presenti -->
+                                @if(u.seAbbonato) {
+                                    <p>Tipo di abbonamento: {{ u.tipoAbbonamento }}</p>
+                                    <p>Data inizio abbonamento: {{ u.dataInizioAbbonamento }}</p>
+                                }
+
+                                <!-- ID tecnico -->
+                                <div class="muted">ID: {{ u.id }}</div>
+
+                                <!-- Pulsanti azione -->
+                                <div class="btn-row">
+                                    <button class="btn btn-primary" (click)="modifica(u.id)">
+                                        Modifica
+                                    </button>
+
+                                    <button class="btn btn-danger"
+                                            (click)="elimina(u.id)"
+                                            [disabled]="staInviando()">
+                                        Elimina
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+
+            }
+        </article>
+    </div>
+</section>
+```
