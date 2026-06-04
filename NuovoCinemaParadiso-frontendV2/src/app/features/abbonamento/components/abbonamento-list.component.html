@@ -1,38 +1,44 @@
 <section>
-    @if(messaggioErrore()){
-    <div class="alert alert-warning">{{ messaggioErrore()}}</div>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
-
-    @if(messaggioSuccesso()){
+    @if (messaggioSuccesso()) {
     <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
     <div class="grid grid-2">
         <article class="card">
-            <h2>Lista abbonamenti</h2>
+            <h2>Lista Abbonamenti</h2>
 
-            @if(staCaricando()){
-            <p class="muted"> Caricamento in corso...</p>
-            } @else if(abbonamenti().length === 0){
-            <p class="muted"> Nessun abbonamento presente</p>
-            } @else{
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (abbonamenti().length === 0) {
+            <p class="muted">Nessun abbonamento presente.</p>
+            } @else {
             <div class="list">
-                <div class="list-header">
-                    <div>Abbonamento</div>
-                    <div>Prezzo</div>
-                    <div>Sconto</div>
-                    <div>Durata</div>
-                </div>
-                @for (item of abbonamenti(); track item.id) {
+                @for (item of abbonamenti(); track tracciaPerId($index.toString(), item)) {
                 <div class="list-item">
-                    <div>{{ item.nome }}</div>
-                    <div>{{ item.prezzo }} €</div>
-                    <div>{{ item.sconto }}</div>
-                    <div>{{ item.durata }} mesi</div>
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>{{ item.prezzo }} €</p>
+                        <p>{{ item.durata }}</p>
+                        <p>{{ item.sconto }} €</p>
+                        <div class="muted">ID: {{ item.id }}</div>
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button (click)="abbonamentoScelto.set(item)">Modifica</button>
+                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                        </div>
+                        }
+                    </div>
                 </div>
                 }
             </div>
             }
         </article>
+        @if (visualizzabileDa()) {
+        <article class="card">
+            <abbonamento-form [abbonamentoSelezionato]="abbonamentoScelto()" (modificaCompletata)="caricaAbbonamenti()"></abbonamento-form>
+        </article>
+        }
     </div>
-</section>

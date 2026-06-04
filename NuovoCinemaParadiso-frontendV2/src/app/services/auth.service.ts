@@ -59,17 +59,20 @@ export class AuthService {
     return this.utenteCorrente() !== null;
   }
 
+  isOperatore(): boolean {
+    return this.utenteCorrente()?.ruolo === 'Operatore'
+  }
+
   isGestore(): boolean {
     return this.utenteCorrente()?.ruolo === 'Gestore';
+  }
+  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+    const ruolo = this.ottieniRuoloUtente();
+    return !!ruolo && ruoli.includes(ruolo);
   }
 
   ruoloCorrispondente(ruolo: string): boolean {
     return this.utenteCorrente()?.ruolo === ruolo;
-  }
-
-  possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
-    const ruolo = this.ottieniRuoloUtente();
-    return !!ruolo && ruoli.includes(ruolo);
   }
 
   ottieniToken(): string | null {
@@ -77,14 +80,44 @@ export class AuthService {
   }
 
   ottieniRuoloUtente(): RuoliUtente | null {
-    const utente = this.utenteCorrente();
-    if (!utente) return null;
+     const raw = localStorage.getItem(this.storageKey);
 
-    if (utente.ruolo === 'Operatore' || utente.ruolo === 'Gestore' || utente.ruolo === 'Utente') {
-      return utente.ruolo;
+     if(!raw) {
+      return null;
+     }
+
+    try {
+      const utente = JSON.parse(raw) as SessioneUtente;
+
+      if (
+        utente.ruolo === 'Operatore' ||
+        utente.ruolo === 'Gestore' ||
+        utente.ruolo === 'Utente'
+      ) {
+        return utente.ruolo;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private setSession(risposta: SessioneUtente): void {
+    const utenteInSessione: SessioneUtente = {
+      id: risposta.id,
+      nomeCompleto: risposta.nomeCompleto,
+      token: risposta.token,
+      eta: risposta.eta,
+      email: risposta.email,
+      ruolo: risposta.ruolo,
+      dataInizioAbbonamento: risposta.dataInizioAbbonamento,
+      seAbbonato: risposta.seAbbonato,
     }
 
-    return null;
+    localStorage.setItem(this.storageKey, JSON.stringify(utenteInSessione));
+    console.log('Utente salvato in localStorage:', utenteInSessione.ruolo);
+    this.utenteCorrente.set(utenteInSessione)
   }
 
   // ---------------------------

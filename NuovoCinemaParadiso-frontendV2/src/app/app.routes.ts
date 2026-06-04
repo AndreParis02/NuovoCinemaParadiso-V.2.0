@@ -3,7 +3,8 @@ import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
-import { BigliettoListComponent } from './features/biglietto/components/biglietto-list.component';
+import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -18,16 +19,19 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
   },
   */
+ 
   {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/component/login.component').then((m) => m.LoginComponent),
   },
+  
   {
     path: 'register',
     canActivate: [guestGuard],
-    loadComponent: () => import('./pages/register/register.page').then((m) => m.RegisterPage),
+    loadComponent: () => import('./features/auth/component/register.component').then((m) => m.RegisterComponent),
   },
+
   {
     path: 'giftcard-list',
     canActivate: [authGuard, roleGuard], 
@@ -60,6 +64,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'lista-utenti',
+    component: UtenteListComponent,
+    canActivate: [authGuard],
+  },
+  {
     path: 'gestione',
     component: GestionePage, // <-- Usiamo component invece di loadComponent
     canActivate: [roleGuard], // <-- Solo roleGuard
@@ -68,7 +77,7 @@ export const routes: Routes = [
   {
     path: 'abbonamento',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage)
+    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent)
   },
 
   {
@@ -93,7 +102,7 @@ export const routes: Routes = [
   {
     path: 'proiezioni',
     canActivate: [authGuard, roleGuard],
-    loadComponent: () => import('./pages/proiezione/proiezione.page').then((m) => m.ProiezionePage)
+    loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
   },
   {
     path: 'giftcard',
