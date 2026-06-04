@@ -21,7 +21,7 @@ import { Proiezione } from '../../../models/proiezione.model';
     templateUrl: './proiezione-form.component.html'
 })
 
-export class MovieFormComponent {
+export class ProiezioneFormComponent {
 
     private readonly formBuilder = inject(FormBuilder);
     private readonly authService = inject(AuthService);
