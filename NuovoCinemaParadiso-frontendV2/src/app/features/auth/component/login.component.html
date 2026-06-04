@@ -31,12 +31,12 @@
         }
       </div>
 
-      <div class="button-row">
-        <button type="submit" class="btn-primary" [disabled]="isLoading()">
-          {{ isLoading() ? 'Accesso in corso...' : 'Login' }}
+      <div class="btn-row">
+        <button class="btn btn-primary" type="button" (click)="submit()">
+          Login
         </button>
 
-        <a [routerLink]="['/register']" class="btn-secondary">
+        <a [routerLink]="['/register']" class="btn btn-secondary">
           Registrati
         </a>
       </div>

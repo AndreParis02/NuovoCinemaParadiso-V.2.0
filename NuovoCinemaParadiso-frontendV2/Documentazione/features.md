@@ -353,6 +353,165 @@ Lorenzo Laviosa
 ```
 
 - register.component.ts
+<details>
+<summary>versione1.0</summary>
+
+Lorenzo Laviosa
+03/06/2026
+
+creazione componente per la registrazione
+## register.component.ts
+```ts
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
+
+@Component({
+  selector: 'app-register',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    RouterLink,
+  ],
+  templateUrl: './register.component.html',
+})
+export class RegisterComponent {
+
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  // segnali per stato UI e gestione errori
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal('');
+  readonly submitted = signal(false);
+
+  // form tipizzato; eta non-nullable per evitare errori TS
+  readonly registerForm = this.fb.nonNullable.group({
+    nomeCompleto: this.fb.nonNullable.control('', Validators.required),
+    eta: this.fb.nonNullable.control(18, Validators.required),
+    email: this.fb.nonNullable.control('', [Validators.required, Validators.email]),
+    password: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(6)]),
+  });
+
+  submit(): void {
+    this.submitted.set(true); // abilita la visualizzazione degli errori
+
+    if (this.registerForm.invalid) {
+      return; // evita chiamate al backend con dati non validi
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    const payload = this.registerForm.getRawValue(); // valori già sicuri e tipizzati
+
+    this.authService.registrazione(payload).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.router.navigate(['/login']); // redirect dopo registrazione
+      },
+      error: (err: unknown) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.extractError(err)); // messaggio leggibile
+      }
+    });
+  }
+
+  // converte errori backend in testo leggibile
+  private extractError(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? 'Errore durante la registrazione.';
+    }
+    return 'Errore imprevisto.';
+  }
+}
+```
+- register.component.html
+<details>
+<summary>versione1.0</summary>
+
+Lorenzo Laviosa
+03/06/2026
+
+## register.component.html
+```html
+<section class="register-section">
+
+  <h1 class="page-title">Registrazione</h1>
+  <p class="page-subtitle">Crea un nuovo account per accedere all'applicazione.</p>
+
+  <!-- errore proveniente dal backend -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger soft-alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- form reattivo con validazione -->
+  <form [formGroup]="registerForm" (ngSubmit)="submit()" class="card register-card">
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Nome completo</label>
+        <input type="text" formControlName="nomeCompleto" placeholder="Mario Rossi">
+
+        <!-- errore mostrato solo dopo submit -->
+        @if (submitted() && registerForm.controls.nomeCompleto.invalid) {
+          <p class="error-text">Il nome è obbligatorio.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Età</label>
+        <input type="number" formControlName="eta" placeholder="18">
+
+        @if (submitted() && registerForm.controls.eta.invalid) {
+          <p class="error-text">Inserisci un'età valida.</p>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" formControlName="email" placeholder="email@example.com">
+
+        @if (submitted() && registerForm.controls.email.invalid) {
+          <p class="error-text">Inserisci un'email valida.</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••">
+
+        @if (submitted() && registerForm.controls.password.invalid) {
+          <p class="error-text">La password deve contenere almeno 6 caratteri.</p>
+        }
+      </div>
+    </div>
+
+    <!-- pulsanti principali -->
+    <div class="btn-row">
+      <button class="btn btn-primary" type="button" (click)="submit()">
+        Registrati
+      </button>
+
+      <a [routerLink]="['/login']" class="btn btn-secondary">
+        Torna al login
+      </a>
+    </div>
+
+  </form>
+
+</section>
+```
+
 
 ## movie
 ### components
