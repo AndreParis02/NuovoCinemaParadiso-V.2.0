@@ -1,0 +1,53 @@
+
+<section>
+        @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+        }
+
+        @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+        }
+
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>{{ modificaId() ? 'Modifica proiezione' : 'Aggiungi proiezione' }}</h2>
+                <h3>{{proiezioneSelezionata()?.titoloMovie}} - {{proiezioneSelezionata()?.dataProiezione}} - {{proiezioneSelezionata()?.nomeTurno }}</h3>
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="dataProiezione">Data Proiezione</label>
+                        <input id="dataProiezione" type="date" formControlName="dataProiezione" [disabled]="!modificabileDa()">
+                        <label for="salaId">Sala</label>
+                        <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona una sala</option>
+                            @for (sala of sale(); track tracciaPerId($index.toString(), sala)) {
+                            <option [value]="sala.id">{{ sala.nome }}</option>
+                            }
+                        </select>
+                        <label for="movieId">Film</label>
+                        <select id="movieId" formControlName="movieId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona un film</option>
+                            @for (movie of movies(); track tracciaPerId($index.toString(), movie)) {
+                            <option [value]="movie.id">{{ movie.titolo }}</option>
+                            }
+                        </select>
+                        <label for="turnoId">Turno</label>
+                        <select id="turnoId" formControlName="turnoId" [disabled]="!modificabileDa()">
+                            <option value="">Seleziona un turno</option>
+                            @for (turno of turni(); track tracciaPerId($index.toString(), turno)) {
+                            <option [value]="turno.id">{{ turno.nome }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                        </button>
+                        @if (modificaId()) {
+                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                        }
+                    </div>
+                </form>
+            </article>
+        </div> 
+</section>
