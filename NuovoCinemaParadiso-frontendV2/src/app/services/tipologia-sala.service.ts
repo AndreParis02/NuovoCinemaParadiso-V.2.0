@@ -35,6 +35,6 @@ export class TipologiaSalaService {
 
   elimina(id:string, payload: TipologiaSalaCreazione): Observable<TipologiaSala>
   {
-    return this.http.put<TipologiaSala>(`${this.baseUrl}/elimina${id}`, payload);
+    return this.http.put<TipologiaSala>(`${this.baseUrl}/elimina/${id}`, payload);
   }
 }
