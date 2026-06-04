@@ -112,12 +112,12 @@ export const routes: Routes = [
   {
     path: 'genere-movie',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMoviePage)
+    loadComponent: () => import('./features/genere-movie/components/genere-movie-list.component').then((m) => m.GenereMovieListComponent)
   },
   {
     path: 'tipologia-sala',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaPage)
+    loadComponent: () => import('./features/tipologia-sala/components/tipologia-sala-list.component').then((m) => m.TipologiaSalaListComponent)
   },
   {
     path: 'sala',
