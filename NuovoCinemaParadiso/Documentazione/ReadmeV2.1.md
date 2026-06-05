@@ -13396,7 +13396,7 @@ public class UtenteService
 
 ```
 
-### UtenteService.cs Versione 1.1.1
+### UtenteService.cs Versione 1.1
 
 Utente: Marco Strazzeri
 Data: 5/06/2026
