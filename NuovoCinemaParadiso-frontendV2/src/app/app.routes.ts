@@ -31,11 +31,21 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/component/register.component').then((m) => m.RegisterComponent),
   },
-
   {
     path: 'giftcard-list',
     canActivate: [authGuard, roleGuard], 
     loadComponent: () => import('./features/giftcard/components/giftcard-list.component').then(m => m.GiftCardListComponent)
+  },
+  {
+    path: 'gestione/giftcard/modifica/:id',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/giftcard-form.component').then(m => m.GiftCardFormComponent)
+  },
+  
+  {
+    path: 'giftcard-crea-codice',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/crea-codice.component').then(m => m.CreaCodiceComponent)
   },
   {
     path: 'log-list',

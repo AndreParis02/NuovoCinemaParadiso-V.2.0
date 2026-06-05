@@ -1,0 +1,38 @@
+<section class="page container">
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (staCaricando()) {
+        <p class="muted">Recupero dati della Gift Card in corso...</p>
+    } @else {
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>Modifica Dati Gift Card</h2>
+                 
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="nome">Nome della Carta</label>
+                        <input id="nome" type="text" formControlName="nome">
+                        
+                        <label for="valore">Valore (€)</label>
+                        <input id="valore" type="number" formControlName="valore">
+                        
+                        <label for="codiceRiscatto">Codice di Riscatto (Segreto)</label>
+                        <input id="codiceRiscatto" type="text" formControlName="codiceRiscatto">
+                    </div>
+
+                    <div class="btn-row" style="margin-top: 1rem;">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || form.invalid">
+                            {{ staInviando() ? 'Salvataggio...' : 'Aggiorna Dati' }}
+                        </button>
+                        
+                        <button class="btn btn-secondary" type="button" (click)="annulla()">
+                            Annulla
+                        </button>
+                    </div>
+                </form>
+            </article>
+        </div> 
+    }
+</section>
