@@ -96,7 +96,6 @@ export const routes: Routes = [
   },
   {
     path: 'proiezioni',
-    canActivate: [authGuard, roleGuard],
     loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
   },
   {
@@ -126,7 +125,6 @@ export const routes: Routes = [
   },
   {
     path: 'abbonamenti',
-    canActivate: [authGuard],
     loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent),
   },
   {

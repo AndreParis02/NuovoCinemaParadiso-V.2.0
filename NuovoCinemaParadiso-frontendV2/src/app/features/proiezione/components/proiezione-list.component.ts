@@ -30,8 +30,10 @@
     readonly messaggioSuccesso = signal('');
     readonly modificaId = signal<string | null>(null);
 
-    readonly isOperatore = computed(() => this.authService.isOperatore());
-    readonly isGestore = computed(() => this.authService.isGestore());
+    readonly isOperatore   = computed(() => this.authService.isOperatore());
+    readonly isGestore     = computed(() => this.authService.isGestore());
+    readonly isAutenticato = computed(() => this.authService.isAutenticato());
+
 
     quantitaSelezionata: Record<string, number> = {};
 

@@ -8,7 +8,7 @@ import { Login } from '../models/login.model';
 import { Registrazione } from '../models/registrazione.model';
 import { SessioneUtente } from '../models/sessione-utente.model';
 import { RuoliUtente } from '../ruoliUtente';
-
+import { UtenteService } from './utente.service';
 @Injectable({
   providedIn: 'root',
 })
@@ -16,8 +16,11 @@ export class AuthService {
 
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly utenteService = inject(UtenteService);
   private readonly storageKey = 'nuovo_cinema_paradiso_auth';
   private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+  readonly utenteDaAggiornare    = signal<Utente | null>(null);
+  
 
   // Stato utente sincronizzato con localStorage
   readonly utenteCorrente = signal<SessioneUtente | null>(this.caricaUtenteDaStorage());
@@ -102,7 +105,10 @@ export class AuthService {
       return null;
     }
   }
-
+  
+  aggiornaSaldoUtente(){
+    this.
+  }
   private setSession(risposta: SessioneUtente): void {
     const utenteInSessione: SessioneUtente = {
       id: risposta.id,

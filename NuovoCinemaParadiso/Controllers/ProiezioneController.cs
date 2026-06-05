@@ -10,7 +10,6 @@ namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class ProiezioneController : ControllerBase
 {
     private readonly ProiezioneService _proiezioneService;
@@ -27,8 +26,6 @@ public class ProiezioneController : ControllerBase
     {
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
 
