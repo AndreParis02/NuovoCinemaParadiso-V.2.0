@@ -2431,7 +2431,234 @@ Data: 04/06/2026
 
 ## cambio-ruolo
 ### components
-- cambio-ruolo-form.component.ts [gestore] (Fabio)
+- cambio-ruolo-form.component.ts [gestore] (Lorenzo)
+<details>
+<summary>versione1.0</summary>
+
+- Utente: Lorenzo Laviosa
+- Data: 5/06/2026
+## cambio-ruolo-form.component.ts
+```ts
+// Component Angular standalone per la pagina di cambio ruolo
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GestioneUtenteService } from '../../../services/gestione-utente.service';
+
+@Component({
+  selector: 'app-cambio-ruolo-form',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './cambio-ruolo-form.component.html'
+})
+export class CambioRuoloFormComponent {
+
+  // Iniettiamo FormBuilder per creare il form
+  private readonly fb = inject(FormBuilder);
+
+  // Iniettiamo il servizio che chiama il backend
+  private readonly gestioneUtenteService = inject(GestioneUtenteService);
+
+  // Stati reattivi per UI (loading, messaggi)
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+
+  // Lista ruoli mostrata nel select
+  readonly roles = ['Gestore', 'Operatore', 'Utente'];
+
+  // Form reattivo con validazioni
+  readonly cambiaRuoloForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],   // email obbligatoria e valida
+    nuovoRuolo: ['Utente', [Validators.required]]           // ruolo obbligatorio
+  });
+
+  // Metodo chiamato al submit del form
+  cambiaRuolo(): void {
+
+    // Se il form è invalido, mostriamo gli errori
+    if (this.cambiaRuoloForm.invalid) {
+      this.cambiaRuoloForm.markAllAsTouched();
+      return;
+    }
+
+    // Reset messaggi e attiviamo loading
+    this.isSubmitting.set(true);
+    this.successMessage.set('');
+    this.errorMessage.set('');
+
+    // Chiamata al backend
+    this.gestioneUtenteService
+      .modificaRuolo(this.cambiaRuoloForm.getRawValue())
+      .subscribe({
+
+        // Risposta OK
+        next: (response) => {
+          this.isSubmitting.set(false);
+          this.successMessage.set(
+            `${response.messaggio} Nuovo ruolo: ${response.ruolo}`
+          );
+        },
+
+        // Errore backend o rete
+        error: (error: unknown) => {
+          this.isSubmitting.set(false);
+          this.errorMessage.set(this.extractErrorMessage(error));
+        }
+      });
+  }
+
+  // Estrae un messaggio leggibile dall'errore HTTP
+  private extractErrorMessage(error: unknown): string {
+
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.messaggio ?? 'Cambio ruolo non riuscito';
+    }
+
+    return 'Cambio ruolo non riuscito';
+  }
+}
+```
+- cambio-ruolo-form.component.html
+<details>
+<summary>versione1.0</summary>
+
+- Utente: Lorenzo Laviosa
+- Data: 5/06/2026
+## cambio-ruolo-form.component.html
+
+```html
+<section>
+
+    <!-- TITOLO PAGINA -->
+    <h1 class="page-title">
+        Cambio ruolo utente
+    </h1>
+
+    <!-- SOTTOTITOLO -->
+    <p class="page-subtitle">
+        Pagina visibile solo al ruolo
+        <strong>Operatore</strong>
+    </p>
+
+    <div class="grid grid-2">
+
+        <!-- CARD FORM PRINCIPALE -->
+        <article class="card">
+
+            <!-- Messaggio di successo -->
+            @if (successMessage()) {
+                <div class="alert alert-success">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            <!-- Messaggio di errore -->
+            @if (errorMessage()) {
+                <div class="alert alert-warning">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <!-- FORM CAMBIO RUOLO -->
+            <form
+                class="form-grid"
+                [formGroup]="cambiaRuoloForm"
+                (ngSubmit)="cambiaRuolo()"
+            >
+
+                <!-- CAMPO EMAIL -->
+                <div>
+
+                    <label for="email">Email utente</label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                    />
+
+                    <!-- Errori di validazione email -->
+                    @if (cambiaRuoloForm.controls.email.touched && cambiaRuoloForm.controls.email.invalid) {
+
+                        <div class="field-error">
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['required']) {
+                                <small>L'email è obbligatoria</small>
+                            }
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['email']) {
+                                <small>Inserisci un'email valida</small>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- SELECT RUOLO -->
+                <div>
+
+                    <label for="nuovoRuolo">Nuovo ruolo</label>
+
+                    <select
+                        id="nuovoRuolo"
+                        formControlName="nuovoRuolo"
+                    >
+                        <!-- Ciclo Angular @for: mostra i ruoli -->
+                        @for (role of roles; track role) {
+                            <option [value]="role">
+                                {{ role }}
+                            </option>
+                        }
+                    </select>
+
+                </div>
+
+                <!-- BOTTONE SUBMIT -->
+                <div class="btn-row">
+
+                    <button
+                        class="btn btn-primary"
+                        type="submit"
+                        [disabled]="isSubmitting()"
+                    >
+                        {{ isSubmitting() ? 'Aggiornamento...' : 'Aggiorna ruolo' }}
+                    </button>
+
+                </div>
+
+            </form>
+
+        </article>
+
+        <!-- CARD LATERALE: LISTA RUOLI -->
+        <article class="card">
+
+            <h2>Ruoli disponibili</h2>
+
+            <div class="list">
+
+                <!-- Lista ruoli mostrata a destra -->
+                @for (role of roles; track role) {
+
+                    <div class="list-item">
+                        <span>Ruolo</span>
+                        <strong>{{ role }}</strong>
+                    </div>
+
+                }
+
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
+```
+
+
 - utenti-list.component.ts [gestore] Andrea Bruno (fatto)
 
 ## log

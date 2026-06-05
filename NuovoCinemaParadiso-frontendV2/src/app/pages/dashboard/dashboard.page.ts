@@ -20,5 +20,10 @@ export class DashboardPage {
     isOperatore(): boolean {
     return this.authService.ruoloCorrispondente('Operatore');
   }
+
+  isGestore(): boolean {
+  return this.user()?.ruolo === 'Gestore';
+}
+
 }
 

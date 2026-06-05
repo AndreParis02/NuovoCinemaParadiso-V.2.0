@@ -4,7 +4,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
 import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
-import { UtenteListComponent } from './features/cambio-ruolo/components/utente-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/component/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -134,4 +134,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/turno/components/turno-list.component').then((m) => m.TurnoListComponent),
   },
+  {
+  path: 'cambio-ruolo',
+  loadComponent: () => import('./features/cambio-ruolo/component/cambio-ruolo-form.component')
+      .then(m => m.CambioRuoloFormComponent)
+}
+
 ];
