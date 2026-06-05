@@ -50,7 +50,7 @@
                         <p>Sala: {{ item.nomeSala }}</p>
                         <p>Turno: {{ item.nomeTurno }}</p>
                     </div>
-                    @if(!isGestore() && !isOperatore()){
+                    @if(!isGestore() && !isOperatore() && isAutenticato()){
 
                     <div class="btn-row">
 
