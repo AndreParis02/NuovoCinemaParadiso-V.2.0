@@ -116,7 +116,7 @@ public class UtenteService
         if (utenteCorrente.Saldo < dto.Importo)
             return (false, "Saldo insufficiente.");
 
-        utenteCorrente.Saldo -= dto.Importo;
+        
 
         GiftCard nuovaGiftCard = new GiftCard
         {
@@ -128,7 +128,10 @@ public class UtenteService
         };
 
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
-
+        //modifico il credito dell'utente e del conto cinema
+        var contoCinema=await _contesto.ContoCinema.FirstOrDefaultAsync();
+        contoCinema.Saldo += dto.Importo;
+        utenteCorrente.Saldo -= dto.Importo;
         await _contesto.SaveChangesAsync();
 
         return (true, "Gift card creata correttamente.");
