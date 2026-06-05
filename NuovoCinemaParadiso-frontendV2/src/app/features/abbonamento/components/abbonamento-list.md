@@ -151,8 +151,8 @@ Descrizione creazione file .html di abbonamento-list
                         <div class="muted">ID: {{ item.id }}</div>
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
-                            <button (click)="abbonamentoScelto.set(item)">Modifica</button>
-                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                            <button class="btn btn-secondary" type="button" (click)="abbonamentoScelto.set(item)">Modifica</button>
+                            <button class="btn btn-secondary" type="button" (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
                         </div>
                         }
                     </div>

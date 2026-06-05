@@ -2427,7 +2427,7 @@ Data: 04/06/2026
 ## turno
 ### components
 - turno-list.component.ts [operatore] Andrea paris (fatto)
-- turno-form.component.ts [operatore]
+- turno-form.component.ts [operatore] Andrea paris (fatto)
 
 ## cambio-ruolo
 ### components

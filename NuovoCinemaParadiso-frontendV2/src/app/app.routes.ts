@@ -54,7 +54,7 @@ export const routes: Routes = [
     data: {
       roles: ['Operatore'],
     },
-    loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+    loadComponent: () => import('./features/dashboard/layout/dashboard.layout').then((m) => m.DashboardLayoutComponent),
   },
 
   // Aggiunto per test del componente biglietto-list
