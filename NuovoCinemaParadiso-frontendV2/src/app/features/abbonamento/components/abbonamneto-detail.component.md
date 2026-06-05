@@ -1,6 +1,6 @@
 # abbonamento-detail
 
-<detail>
+<details>
 <summary>versione1.0</summary>
 
 Francesco Lorenzi 05/06/2026
@@ -52,4 +52,4 @@ semplice rappresentazione dell'oggetto
     }
 </article>
 ```
-</detail>
+</details>
