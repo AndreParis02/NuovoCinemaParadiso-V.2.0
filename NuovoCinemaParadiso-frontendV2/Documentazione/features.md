@@ -20,34 +20,36 @@
 - abbonamento.page.ts
 ### components
 - abbonamento-list.component.ts [tutti] - Andrea Paris (fatto)
-- abbonamento-detail.component.ts [utente](abbonato)
+- abbonamento-detail.component.ts [utente](abbonato) Francesco
 - abbonamento-form.component.ts [operatore] Andrea Paris (fatto)
 
 ## biglietto
 ### components
 - biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto)
-- biglietto-form.component.ts [operatore] (Marco)
+- biglietto-form.component.ts [operatore] Da assegnare
 
 ## dashboard
 [priorità]
-### layout 
+### layout  
+Francesco (fatto)
+
 - dashboard.layout.ts (Francesco: inserire nel layout di dashboard il component di profilo, biglietti, giftcard, abbonamento (e se non abbonato devono apparire gli abbonamenti disponibili))
 
 (PER IL GESTORE: deve avere SOLO log, vedi giftcard, implementare cambio ruolo al posto dell'operatore)
 
 
-## shared/navbar
+## shared/navbar 
 [priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti)
 
 ## profilo
 ### components
-- profilo.component.ts [utente,operatore,gestore] Francesco
+- profilo.component.ts [utente,operatore,gestore] Francesco 
 
 ## genere-movie
 
 ### components
 
-- genere-movie-list.component.ts [tutti] Greg
+- genere-movie-list.component.ts [tutti] Greg (fatto)
 
 Utente: Greg
 
@@ -162,7 +164,7 @@ Data: 04/06/2026
 ### components
 - riscatta-codice.component.ts (Simeone)
 - crea-codice.component.ts (Simeone)
-- giftcard-list.component.ts [gestore,utente] Simeone
+- giftcard-list.component.ts [gestore,utente] Simeone (fatto)
 
 <details><summary>Versione 1.0</summary>
 
@@ -465,7 +467,7 @@ Lorenzo Laviosa
 
 ## movie
 ### components
-- movie-list.component.ts [operatore] Francesco
+- movie-list.component.ts [operatore] Francesco (fatto)
 <details>
 <summary>versione1.0</summary>
 
@@ -1010,7 +1012,7 @@ Descrizione: Aggiunti h3 per avere più informazioni sul film da modificare
 ## proiezione
 ### page
 ### components
-- proiezione-list.component.ts [tutti] Fabio
+- proiezione-list.component.ts [tutti] Fabio (fatto)
 
 Utente: Fabio Tammaro
 Data: 03/06/2026
@@ -1679,7 +1681,7 @@ Descrizione: aggiunta l'importazione di proiezione-form.html che ha validità so
 
 ## sala
 ### components
-- sala-list.component.ts [operatore] Francesco
+- sala-list.component.ts [operatore] Francesco (fatto)
 <details>
 <summary>versione1.0</summary>
 
