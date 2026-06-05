@@ -32,7 +32,7 @@ export class AbbonamentoDetailComponent {
 ```
 ## abbonamento-detail.html
 
-utilizzando questo oggetto abbonamento, diamo le sue info, non ho messo la durata perchè verraà utilizzata dalla dashboard e non c'è modo di calcolare la scadenza in modo intuitivo 
+semplice rappresentazione dell'oggetto
 
 ```html
 <article>
@@ -41,6 +41,7 @@ utilizzando questo oggetto abbonamento, diamo le sue info, non ho messo la durat
     <div>
         <p><strong>Nome:</strong> {{ abbonamentoSelezionato()!.nome }}</p>
         <p><strong>sconto:</strong> {{ abbonamentoSelezionato()!.sconto }} €</p>
+        <p><strong>durata:</strong> {{ abbonamentoSelezionato()!.durata }} mesi</p>
         <p><strong>Prezzo:</strong> {{ abbonamentoSelezionato()!.prezzo }} €</p>  
     </div>
     }
