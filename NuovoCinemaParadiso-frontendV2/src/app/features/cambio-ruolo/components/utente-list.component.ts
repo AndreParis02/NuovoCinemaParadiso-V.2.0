@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { OperatoreService } from '../../services/operatore.service';
-import { UtenteService } from '../../services/utente.service';
-import { AuthService } from '../../services/auth.service';
-import { Utente } from '../../models/utente.model';
+import { OperatoreService } from '../../../services/operatore.service';
+import { UtenteService } from '../../../services/utente.service';
+import { AuthService } from '../../../services/auth.service';
+import { Utente } from '../../../models/utente.model';
 
 @Component({
   selector: 'utenti-list',

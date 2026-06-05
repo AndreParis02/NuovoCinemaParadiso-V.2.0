@@ -4,7 +4,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
 import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
-import { UtenteListComponent } from './features/cambio-ruolo/utente-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/components/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -54,7 +54,7 @@ export const routes: Routes = [
     data: {
       roles: ['Operatore'],
     },
-    loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+    loadComponent: () => import('./features/dashboard/layout/dashboard.layout').then((m) => m.DashboardLayoutComponent),
   },
 
   // Aggiunto per test del componente biglietto-list
