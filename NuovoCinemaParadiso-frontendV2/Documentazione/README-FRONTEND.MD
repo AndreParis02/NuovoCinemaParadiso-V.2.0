@@ -5239,7 +5239,7 @@ export class UtenteService {
     }
     //Abbona l'utente della sessione con un determinato abbonamento
     abbonati( abbonamentoId: string): Observable<any> {
-        return this.http.post<any>(`${this.baseUrl}/abbonati`, { abbonamentoId });
+        return this.http.post<any>(`${environment.apiBaseUrl}/Utente/abbonati`, { IdAbbonamento: abbonamentoId });
     }
 }
 ```

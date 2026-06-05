@@ -25,6 +25,6 @@ export class UtenteService {
     }
 
     abbonati( abbonamentoId: string): Observable<any> {
-        return this.http.post<any>(`${this.baseUrl}/abbonati`, { abbonamentoId });
+        return this.http.post<any>(`${environment.apiBaseUrl}/Utente/abbonati`, { IdAbbonamento: abbonamentoId });
     }
 }

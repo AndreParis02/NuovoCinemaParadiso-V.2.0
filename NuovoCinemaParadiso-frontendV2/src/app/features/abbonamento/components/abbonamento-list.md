@@ -207,14 +207,13 @@ export class AbbonamentoListComponent {
     });
   }
 
-  private abbonati(): void {
-        if (!this.abbonamentoScelto()) {
+   abbonati(id: string): void {
+        if (id == null)  {
             this.messaggioErrore.set('Nessun abbonamento selezionato');
             return;
         }
-        this.utenteService.abbonati(this.abbonamentoScelto()!.id).subscribe({
+        this.utenteService.abbonati(id).subscribe({
             next: () => {
-                this.abbonamentoScelto.set(null);
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {
@@ -334,7 +333,7 @@ aggiunta del pulsante per abbonarsi, solo per chi si può abbonare (utente)
                         <p>Durata: {{ item.durata }} @if(item.durata == 1) {mese} @else {mesi}</p>
                         <p>Sconto: {{ item.sconto }} €</p>
                         @if(puoAbbonarsi()) {
-                        <button class="btn btn-primary" type="button" (click)="abbonamentoScelto.set(item)">Abbonati</button>
+                        <button class="btn btn-primary" type="button" (click)="abbonati(item.id)">Abbonati</button>
                         }
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
@@ -354,6 +353,7 @@ aggiunta del pulsante per abbonarsi, solo per chi si può abbonare (utente)
         </article>
         }
     </div>
+</section>
 ```
 </details>
 ## abbonamento-form

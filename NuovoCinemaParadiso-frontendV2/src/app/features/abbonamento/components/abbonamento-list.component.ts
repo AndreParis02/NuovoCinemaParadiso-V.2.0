@@ -84,14 +84,13 @@ export class AbbonamentoListComponent {
     });
   }
 
-  private abbonati(): void {
-        if (!this.abbonamentoScelto()) {
+   abbonati(id: string): void {
+        if (id == null)  {
             this.messaggioErrore.set('Nessun abbonamento selezionato');
             return;
         }
-        this.utenteService.abbonati(this.abbonamentoScelto()!.id).subscribe({
+        this.utenteService.abbonati(id).subscribe({
             next: () => {
-                this.abbonamentoScelto.set(null);
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {
