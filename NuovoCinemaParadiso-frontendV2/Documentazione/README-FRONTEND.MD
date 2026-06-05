@@ -5198,7 +5198,7 @@ export class UtenteService {
 </details>
 <details>
 <summary>Versione 1.1</summary>
-Andrea Bruno 05-06-2026
+Francesco lorenzi 05-06-2026
 aggiunta il richiamo della funzione per abbonarsi 
 
 ```c#
