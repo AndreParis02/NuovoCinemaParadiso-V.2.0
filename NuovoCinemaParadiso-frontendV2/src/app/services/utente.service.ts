@@ -23,4 +23,8 @@ export class UtenteService {
     eliminaProfilo(): Observable<any> {
         return this.http.delete<any>(`${this.baseUrl}/elimina`);
     }
+
+    abbonati( abbonamentoId: string): Observable<any> {
+        return this.http.post<any>(`${this.baseUrl}/abbonati`, { abbonamentoId });
+    }
 }
