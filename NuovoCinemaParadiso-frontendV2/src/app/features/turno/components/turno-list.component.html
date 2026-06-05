@@ -1,36 +1,43 @@
 <section>
-    @if(messaggioErrore()){
-    <div class="alert alert-warning">{{ messaggioErrore()}}</div>
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
-
-    @if(messaggioSuccesso()){
+    @if (messaggioSuccesso()) {
     <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
     <div class="grid grid-2">
         <article class="card">
-            <h2>Lista turni</h2>
+            <h2>Lista Turni</h2>
 
-            @if(staCaricando()){
-            <p class="muted"> Caricamento in corso...</p>
-            } @else if(turni().length === 0){
-            <p class="muted"> Nessun turno presente</p>
-            } @else{
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (turni().length === 0) {
+            <p class="muted">Nessun turno presente.</p>
+            } @else {
             <div class="list">
-                <div class="list-header">
-                    <div>Turno</div>
-                    <div>Ora inizio</div>
-                    <div>Ora fine</div>
-                </div>
-                @for (item of turni(); track item.id) {
+                @for (item of turni(); track tracciaPerId($index.toString(), item)) {
                 <div class="list-item">
-                    <div>{{ item.nome }}</div>
-                    <div>{{ item.oraInizio }}</div>
-                    <div>{{ item.oraFine }}</div>
+                    <div>
+                        <strong>{{ item.nome }}</strong>
+                        <p>Ora Inizio: {{ item.oraInizio.substring(0, 5) }}</p>
+                        <p>Ora Fine: {{ item.oraFine.substring(0, 5) }}</p>
+                        @if(visualizzabileDa()) {
+                        <div class="btn-row" style="margin-top: 1rem;">
+                            <button class="btn btn-secondary" type="button" (click)="turnoScelto.set(item)">Modifica</button>
+                                <button class="btn btn-secondary" type="button" (click)="elimina(item)">Elimina</button>
+
+                        </div>
+                        }
+                    </div>
                 </div>
                 }
             </div>
             }
         </article>
+        @if (visualizzabileDa()) {
+        <article class="card">
+            <turno-form [turnoSelezionato]="turnoScelto()" (modificaCompletata)="caricaTurni()"></turno-form>
+        </article>
+        }
     </div>
-</section>
