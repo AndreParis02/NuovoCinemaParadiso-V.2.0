@@ -1,0 +1,101 @@
+<section>
+
+    <h1 class="page-title">
+        Cambio ruolo utente
+    </h1>
+
+    <p class="page-subtitle">
+        Pagina visibile solo al ruolo
+        <strong>Operatore</strong>
+    </p>
+
+    <div class="grid grid-2">
+
+        <article class="card">
+
+            @if (successMessage()) {
+                <div class="alert alert-success">
+                    {{ successMessage() }}
+                </div>
+            }
+
+            @if (errorMessage()) {
+                <div class="alert alert-warning">
+                    {{ errorMessage() }}
+                </div>
+            }
+
+            <form
+                class="form-grid"
+                [formGroup]="cambiaRuoloForm"
+                (ngSubmit)="cambiaRuolo()"
+            >
+
+                <div>
+                    <label for="email">Email utente</label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        formControlName="email"
+                    />
+
+                    @if (cambiaRuoloForm.controls.email.touched && cambiaRuoloForm.controls.email.invalid) {
+
+                        <div class="field-error">
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['required']) {
+                                <small>L'email è obbligatoria</small>
+                            }
+
+                            @if (cambiaRuoloForm.controls.email.errors?.['email']) {
+                                <small>Inserisci un'email valida</small>
+                            }
+
+                        </div>
+                    }
+                </div>
+
+                <div>
+                    <label for="nuovoRuolo">Nuovo ruolo</label>
+
+                    <select
+                        id="nuovoRuolo"
+                        formControlName="nuovoRuolo"
+                    >
+                        @for (role of roles; track role) {
+                            <option [value]="role">
+                                {{ role }}
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
+                        {{ isSubmitting() ? 'Aggiornamento...' : 'Aggiorna ruolo' }}
+                    </button>
+                </div>
+
+            </form>
+
+        </article>
+
+        <article class="card">
+
+            <h2>Ruoli disponibili</h2>
+
+            <div class="list">
+                @for (role of roles; track role) {
+                    <div class="list-item">
+                        <span>Ruolo</span>
+                        <strong>{{ role }}</strong>
+                    </div>
+                }
+            </div>
+
+        </article>
+
+    </div>
+
+</section>
