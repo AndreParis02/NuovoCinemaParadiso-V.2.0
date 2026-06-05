@@ -47,7 +47,7 @@ semplice rappresentazione dell'oggetto
     }
     @if (!abbonamentoSelezionato()){
         <div>
-            <p>non sei abbonato a nessun abbonamento.</p>
+            <p> nessun abbonamento.</p>
         </div>
     }
 </article>
