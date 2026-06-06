@@ -1922,6 +1922,175 @@ public class AbbonamentoController : ControllerBase
 }
 ```
 
+### AbbonamentoController V1.1
+
+Utente: Fabio Tammaro
+Data: 06/06/2026
+Descrizione: Rimosso l'authorize e le righe di codice che non permettevano al guest di visualizzare gli abbonamenti.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AbbonamentoController : ControllerBase
+{
+    private readonly AbbonamentoService _abbonamentoService;
+    private readonly LogAzioniService _logAzioniService;
+    private readonly GestoreService _gestoreService;
+
+    public AbbonamentoController(
+        AbbonamentoService abbonamentoService,
+        LogAzioniService logAzioniService,
+        GestoreService gestoreService)
+    {
+        _abbonamentoService = abbonamentoService;
+        _logAzioniService = logAzioniService;
+        _gestoreService = gestoreService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni tutti gli abbonamenti utente",
+            true
+        );
+
+        return Ok(abbonamenti);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni abbonamenti tramite id utente",
+                false
+            );
+
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni abbonamenti tramite id utente",
+            true
+        );
+
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.CreazioneAsync(dto);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Creazione abbonamento",
+                false
+            );
+
+            return BadRequest(new { messaggio = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Creazione abbonamento",
+            true
+        );
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.ModificaAsync(id, dto);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica abbonamento",
+                false
+            );
+
+            return NotFound(new { messaggio = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Modifica abbonamento",
+            true);
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.EliminazioneAsync(id);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Elimina abbonamento",
+                false
+            );
+
+            return NotFound(new { messaggio = risultato.Messaggio });
+        }
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Elimina abbonamento",
+            true
+        );
+
+        return NoContent();
+    }
+}
+```
+
 ## GestoreController V1.0
 
 Andrea Bruno 22-05-2026 
@@ -4340,6 +4509,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+
     [HttpGet("sala/{salaId}")] // GET per sala
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
@@ -4738,6 +4908,240 @@ public class ProiezioneController : ControllerBase
 
     [HttpPut("elimina/{id}")] //<- usiamo PUT con /elimina/id e non DELETE con /id perché il nostro obbiettivo non è eliminare il campo, bensì renderlo inattivo, in modo che possa comunque apparire nello storico proiezioni
     [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _proiezioneService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
+
+        return Ok(new { messaggio = "Proiezione eliminata con successo!" });
+    }
+}
+```
+
+## ProiezioneController.cs Versione 1.2
+- Utente: Fabio Tammaro
+- Data: 06/06/2026
+- Descrizione: Rimosso l'authorize e i controlli sull'autenticazione per permettere al guest di visualizzare le proiezioni.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProiezioneController : ControllerBase
+{
+    private readonly ProiezioneService _proiezioneService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
+    {
+        _proiezioneService = proiezioneService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
+
+        return Ok(proiezioni);
+    }
+
+    [HttpGet("storico")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniStoricoProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
+
+        return Ok(proiezioni);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", false);
+
+            return NotFound($"Proiezione con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("turno/{turnoId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(turnoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", false);
+
+            return BadRequest("TurnoId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteTurnoAsync(turnoId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoid", false);
+
+            return NotFound("Nessuna proiezione trovata per questo turno");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", true);
+        return Ok(risultato);
+    }
+
+    [HttpGet("sala/{salaId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(salaId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+            return BadRequest("SalaId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+            return NotFound("Nessuna proiezione trovata per questa sala");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("movie/{movieId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movieId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(movieId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return BadRequest("MovieId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteMovieAsync(movieId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return NotFound("Nessuna proiezione trovata per questo film");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
+
+        return Ok(risultato);
+    }
+
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+        foreach (var proiezione in proiezioni)
+        {
+            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
+        }
+        try
+        {
+            bool creato = await _proiezioneService.CreazioneAsync(dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+            return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+        }
+        catch (NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+            return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
+        }
+
+
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool modificato = await _proiezioneService.ModificaAsync(id, dto);
+
+        if (!modificato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", false);
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
+
+        return Ok(new { messaggio = "Proiezione modificata con successo!" });
+    }
+
+    [HttpPut("elimina/{id}")] 
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

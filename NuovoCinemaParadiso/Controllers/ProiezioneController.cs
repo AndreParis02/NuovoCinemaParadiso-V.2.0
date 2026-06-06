@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
-using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Exceptions;
 
 namespace NuovoCinemaParadiso.Controllers;
@@ -27,7 +26,7 @@ public class ProiezioneController : ControllerBase
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
 
         return Ok(proiezioni);
     }
@@ -41,7 +40,7 @@ public class ProiezioneController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni",true);
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
 
         return Ok(proiezioni);
     }
@@ -57,7 +56,7 @@ public class ProiezioneController : ControllerBase
 
         if (risultato == null)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id",false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", false);
 
             return NotFound($"Proiezione con id {id} non trovato");
         }
@@ -121,7 +120,7 @@ public class ProiezioneController : ControllerBase
     }
 
     [HttpGet("movie/{movieId}")]
-    public async Task<ActionResult<List<DtoProiezione>>>OttieniPerFilm(string movieId)
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movieId)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
@@ -167,18 +166,19 @@ public class ProiezioneController : ControllerBase
             }
         }
         try
-        { bool creato = await _proiezioneService.CreazioneAsync(dto);
-          await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
-          return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+        {
+            bool creato = await _proiezioneService.CreazioneAsync(dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+            return Ok(new { messaggio = "Creazione avvenuta con successo!" });
         }
-        catch(NotFoundException ex)
+        catch (NotFoundException ex)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
             return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
         }
 
-       
+
     }
 
     [HttpPut("{id}")]
@@ -189,7 +189,7 @@ public class ProiezioneController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        bool modificato = await _proiezioneService.ModificaAsync(id,dto);
+        bool modificato = await _proiezioneService.ModificaAsync(id, dto);
 
         if (!modificato)
         {
@@ -200,11 +200,10 @@ public class ProiezioneController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
 
-        return Ok(new { messaggio = "Proiezione modificata con successo!"});
+        return Ok(new { messaggio = "Proiezione modificata con successo!" });
     }
 
-    [HttpPut("elimina/{id}")] //<- usiamo PUT con /elimina/id e non DELETE con /id perché il nostro obbiettivo non è eliminare il campo, bensì renderlo inattivo, in modo che possa comunque apparire nello storico proiezioni
-    [Authorize(Roles = Ruoli.Operatore)]
+    [HttpPut("elimina/{id}")]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

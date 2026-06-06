@@ -37,7 +37,7 @@
 
 
 ## shared/navbar
-[priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti)
+[priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti) (fatto)
 
 ## profilo
 ### components
