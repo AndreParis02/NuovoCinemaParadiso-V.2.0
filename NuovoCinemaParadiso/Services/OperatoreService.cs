@@ -49,6 +49,7 @@ public class OperatoreService
             dto.SeAbbonato = utenteCorrente.SeAbbonato;
             dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
             dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+            dto.Saldo = utenteCorrente.Saldo;
 
             risultato.Add(dto);
         }
@@ -75,6 +76,7 @@ public class OperatoreService
         dto.AbbonamentoId = utente.AbbonamentoId ?? string.Empty;
         dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
         dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+        dto.Saldo = utente.Saldo;
 
         return dto;
     }
