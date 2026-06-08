@@ -409,7 +409,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"nomeCompleto\": \"djajs\",\r\n    \"dataInizio\": \"0001-041-01T00:00:00+00:00\",\r\n    \"dataInizioGiftCard\": \"0001-041-01T00:00:00+00:00\",\r\n    \"seAbbonato\": false,\r\n    \"possiedeGiftCard\": false,\r\n    \"email\": \"sdsddsdd@gmail.com\",\r\n    \"eta\": 63,\r\n    \"abbonamentoId\": \"4\",\r\n    \"giftCardId\": \"4\",\r\n    \"tipoAbbonamento\": \"4\",\r\n    \"tipoGiftCard\": \"\"\r\n}",
+              "raw": "{\r\n    \"nomeCompleto\": \"Gio\",\r\n    \"eta\": 63\r\n}",
               "options": {
                 "raw": {
                   "language": "json"

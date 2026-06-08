@@ -3,8 +3,7 @@ BACKEND
 		Abbonamento
 			public async Task<IActionResult> OttieniTramiteId(string id) NON TROVA NULLA TRAMITE L'ID
 		Auth
-			public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto) NON MODIFICA TUTTI I CAMPI ES: ID, EMAIL ....
-			public async Task<IActionResult> RicercaProfiloLoggato() Restituisce l'errore se l'utente è stato eliminato
+			public async Task<IActionResult> RicercaProfiloLoggato() Non Restituisce errore se l'utente non viene trovato
 		GiftCard
 			public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto) è una PUT E NON POST
 			public async Task<IActionResult> OttieniMieGiftCard() dovrebbe mostrare solo le giftcard non riscattate

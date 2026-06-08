@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using NuovoCinemaParadiso.Services;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Exceptions;
+using Microsoft.AspNetCore.Identity;
 
 namespace NuovoCinemaParadiso.Controllers;
 
@@ -114,9 +115,9 @@ public class AuthController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        var risultato = await _authService.EliminaAsync(utenteId);
+        IdentityResult risultato = await _authService.EliminaAsync(utenteId);
 
-        if (risultato == null)
+        if (!risultato.Succeeded)
         {
             return NotFound(new { messaggio = "Utente non trovato." });
         }
