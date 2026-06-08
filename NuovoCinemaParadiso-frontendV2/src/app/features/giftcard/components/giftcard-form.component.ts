@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -17,6 +17,8 @@ export class GiftCardFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute); 
   private readonly router = inject(Router); 
+
+  readonly modificaCompletata = output<void>();
 
   readonly staCaricando = signal(true);
   readonly staInviando = signal(false);
@@ -76,6 +78,8 @@ export class GiftCardFormComponent implements OnInit {
     this.giftCardService.modifica(id, this.form.getRawValue()).subscribe({
       next: () => {
         this.router.navigate(['/giftcard-list']); 
+
+        this.modificaCompletata.emit();
       },
       error: (error: unknown) => {
         this.staInviando.set(false);
