@@ -25,7 +25,7 @@
 
 ## biglietto
 ### components
-- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto)
+- biglietto-list.component.ts [utente,operatore,gestore] Andrea Bruno (fatto) 
 - biglietto-form.component.ts [operatore] (Marco)
 
 ## dashboard
@@ -41,7 +41,7 @@
 
 ## profilo
 ### components
-- profilo.component.ts [utente,operatore,gestore] Francesco
+- profilo.component.ts [utente,operatore,gestore] 
 
 ## genere-movie
 
@@ -161,8 +161,281 @@ Data: 04/06/2026
 ## giftcard
 ### components
 - riscatta-codice.component.ts (Simeone)
-- crea-codice.component.ts (Simeone)
-- giftcard-list.component.ts [gestore,utente] Simeone
+- crea-codice.component.ts (Simeone) Fatto!
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 05/06/2026
+```ts
+import { Component, inject, signal, output } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { CurrencyPipe } from '@angular/common';
+import { GiftCardService } from '../../../services/giftcard.service';
+
+@Component({
+  selector: 'crea-codice-form',
+  standalone: true,
+  imports: [ReactiveFormsModule, CurrencyPipe],
+  templateUrl: './crea-codice.component.html',
+})
+export class CreaCodiceComponent {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly giftCardService = inject(GiftCardService);
+
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  // L'evento che "urleremo" alla pagina quando l'acquisto va a buon fine
+  readonly ricaricaCompletata = output<void>();
+
+  // Il form ora ha SOLO il campo valore
+  readonly form = this.formBuilder.nonNullable.group({
+    valore: [10, [Validators.required, Validators.min(1), Validators.max(1000)]]
+  });
+
+  invia(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    const valore = this.form.getRawValue().valore;
+
+    this.giftCardService.ricarica(valore).subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set('Gift Card acquistata e codice generato!');
+        this.form.reset({ valore: 10 });
+        
+        // Avvisiamo la Lista di ricaricare i dati!
+        this.ricaricaCompletata.emit();
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Operazione non riuscita. Controlla il tuo saldo.'));
+      },
+    });
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || error.error?.errore || fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+</details>
+ 
+- crea-codice.component.html (Simeone) Fatto!
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 05/06/2026
+```html
+<article class="card">
+    <h2 style="margin-top: 0;">Acquista Gift Card</h2>
+    
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+     
+    <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+        <div>
+            <label for="valore">Valore in Euro (€)</label>
+            <input id="valore" type="number" formControlName="valore" placeholder="Es. 50">
+        </div>
+
+        <div class="btn-row" style="margin-top: 1rem;">
+            <button class="btn btn-primary" type="submit" [disabled]="staInviando() || form.invalid">
+                {{ staInviando() ? 'Elaborazione...' : 'Acquista e Genera Codice' }}
+            </button>
+        </div>
+    </form>
+</article>
+```
+
+</details>
+ 
+- giftcard-form.component.ts (Simeone) Fatto!
+
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 05/06/2026
+```ts
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GiftCardService } from '../../../services/giftcard.service';
+import { AuthService } from '../../../services/auth.service';
+
+@Component({
+  selector: 'app-giftcard-form',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './giftcard-form.component.html'
+})
+export class GiftCardFormComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly giftCardService = inject(GiftCardService);
+  private readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute); // Per leggere l'ID dall'URL
+  private readonly router = inject(Router); // Per navigare avanti e indietro
+
+  readonly staCaricando = signal(true);
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly idModifica = signal<string | null>(null);
+
+  readonly form = this.formBuilder.nonNullable.group({
+    nome: ['', [Validators.required, Validators.maxLength(50)]],
+    valore: [10, [Validators.required, Validators.min(1), Validators.max(1000)]],
+    codiceRiscatto: ['', [Validators.required, Validators.maxLength(50)]]
+  });
+
+  ngOnInit(): void {
+    // Controllo sicurezza: butta fuori chi non è Gestore/Operatore
+    if (!this.authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore'])) {
+      this.router.navigate(['/']); // Adatta con la rotta della vostra home
+      return;
+    }
+
+    // Leggiamo l'ID dall'URL
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.idModifica.set(id);
+      this.caricaDati(id);
+    } else {
+      // Se non c'è ID, vuol dire che siamo qui per errore (o per una futura funzione Crea)
+      this.staCaricando.set(false);
+    }
+  }
+
+  caricaDati(id: string): void {
+    this.giftCardService.ottieniTramiteId(id).subscribe({
+      next: (gc) => {
+        this.form.patchValue({
+          nome: gc.nome,
+          valore: gc.valore,
+          codiceRiscatto: gc.codiceRiscatto
+        });
+        this.staCaricando.set(false);
+      },
+      error: () => {
+        this.messaggioErrore.set('Gift Card non trovata o già eliminata.');
+        this.staCaricando.set(false);
+      }
+    });
+  }
+
+  invia(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const id = this.idModifica();
+    if (!id) return;
+
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+
+    this.giftCardService.modifica(id, this.form.getRawValue()).subscribe({
+      next: () => {
+        // Modifica avvenuta con successo: torniamo alla lista!
+        this.router.navigate(['/giftcard-list']); 
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Errore durante il salvataggio.'));
+      }
+    });
+  }
+
+  annulla(): void {
+    // Tasto indietro
+    this.router.navigate(['/giftcard-list']); 
+  }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || error.error?.errore || fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+</details>
+ 
+
+- giftcard-form.component.html (Simeone) Fatto!
+
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 05/06/2026
+```html
+<section class="page container">
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (staCaricando()) {
+        <p class="muted">Recupero dati della Gift Card in corso...</p>
+    } @else {
+        <div class="grid grid-2">
+            <article class="card">
+                <h2>Modifica Dati Gift Card</h2>
+                 
+                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                    <div>
+                        <label for="nome">Nome della Carta</label>
+                        <input id="nome" type="text" formControlName="nome">
+                        
+                        <label for="valore">Valore (€)</label>
+                        <input id="valore" type="number" formControlName="valore">
+                        
+                        <label for="codiceRiscatto">Codice di Riscatto (Segreto)</label>
+                        <input id="codiceRiscatto" type="text" formControlName="codiceRiscatto">
+                    </div>
+
+                    <div class="btn-row" style="margin-top: 1rem;">
+                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || form.invalid">
+                            {{ staInviando() ? 'Salvataggio...' : 'Aggiorna Dati' }}
+                        </button>
+                        
+                        <button class="btn btn-secondary" type="button" (click)="annulla()">
+                            Annulla
+                        </button>
+                    </div>
+                </form>
+            </article>
+        </div> 
+    }
+</section>
+```
+
+</details>
+ 
+- giftcard-list.component.ts [gestore,utente] Simeone (Fatto!)
 
 <details><summary>Versione 1.0</summary>
 
@@ -244,7 +517,7 @@ export class GiftCardListComponent implements OnInit {
 
 </details>
 
-- giftcard-list.component.html [gestore,utente] Simeone
+- giftcard-list.component.html [gestore,utente] Simeone (Fatto!)
 
 <details><summary>Versione 1.0</summary>
 
@@ -2663,7 +2936,7 @@ export class CambioRuoloFormComponent {
 
 ## log
 ### components
-- log-list.component.ts [gestore] Simeone
+- log-list.component.ts [gestore] Simeone (fatto!)
 
 <details><summary>Versione 1.0</summary>
 
@@ -2721,7 +2994,7 @@ export class LogListComponent implements OnInit {
 
 </details>
 
-- log-list.component.html [gestore] Simeone
+- log-list.component.html [gestore] Simeone (Fatto!)
 
 
 <details><summary>Versione 1.0</summary>

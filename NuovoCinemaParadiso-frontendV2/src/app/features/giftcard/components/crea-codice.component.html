@@ -1,0 +1,24 @@
+<article class="card">
+    <h2 style="margin-top: 0;">Acquista Gift Card</h2>
+    
+    @if (messaggioErrore()) {
+        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+     
+    <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+        <div>
+            <label for="valore">Valore in Euro (€)</label>
+            <input id="valore" type="number" formControlName="valore" placeholder="Es. 50">
+        </div>
+
+        <div class="btn-row" style="margin-top: 1rem;">
+            <button class="btn btn-primary" type="submit" [disabled]="staInviando() || form.invalid">
+                {{ staInviando() ? 'Elaborazione...' : 'Acquista e Genera Codice' }}
+            </button>
+        </div>
+    </form>
+</article>
