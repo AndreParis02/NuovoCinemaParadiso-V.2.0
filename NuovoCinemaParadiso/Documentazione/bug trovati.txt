@@ -1,0 +1,29 @@
+BACKEND
+	Controller
+		Abbonamento
+			public async Task<IActionResult> OttieniTramiteId(string id) NON TROVA NULLA TRAMITE L'ID
+		Auth
+			public async Task<IActionResult> Modifica([FromBody] DtoCreazioneUtente dto) NON MODIFICA TUTTI I CAMPI ES: ID, EMAIL ....
+			public async Task<IActionResult> RicercaProfiloLoggato() Restituisce l'errore se l'utente è stato eliminato
+		GiftCard
+			public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto) è una PUT E NON POST
+			public async Task<IActionResult> OttieniMieGiftCard() dovrebbe mostrare solo le giftcard non riscattate
+
+		Operatore
+			public async Task<IActionResult> OttieniTuttiIProfili() non mostra il saldo degli utenti e no dice il ruolo
+			public async Task<IActionResult> RicercaProfiloTramiteId(string id) non mostra il saldo dell'utente
+		Proiezione
+			public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto) da errore in runtime
+		RuoloUtentiController.cs
+			ELIMINARE TUTTO IL FILE
+		Sala
+			public async Task<IActionResult> Elimina(string id) se è già stato eliminato non restituisce il fatto che sia stato eliminato (restituisce sempre il messaggio di successo)
+
+		Utente
+			public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto) non restituisce il codice 
+
+
+
+	FRONTEND
+		proiezione-form.component.ts
+			Proiezione non crea una nuova proiezione e contiene modifica che non funziona  128 - 148
