@@ -184,7 +184,7 @@ Data: 05/06/2026
 Descrizione creazione file .ts di turno-form
 
 ```ts
-import { Component, inject, signal, input, effect } from '@angular/core';
+import { Component, inject, signal, input, effect,output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -208,6 +208,7 @@ export class TurnoFormComponent {
     private readonly authService = inject(AuthService);
     private readonly turnoService = inject(TurnoService);
 
+    readonly modificaCompletata = output<void>();
 
     readonly turnoSelezionato = input<Turno | null>(null);
     readonly staCaricando = signal(false);
@@ -260,6 +261,8 @@ export class TurnoFormComponent {
             next: () => {
                 this.staInviando.set(false);
                 this.messaggioSuccesso.set(this.modificaId() ? 'Turno aggiornato.' : 'Turno creato.');
+                
+                this.modificaCompletata.emit();
                 this.ripristinaForm();
             },
             error: (error: unknown) => {

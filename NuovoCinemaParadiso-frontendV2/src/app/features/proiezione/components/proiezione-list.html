@@ -12,40 +12,27 @@
     }
 
     @if (messaggioErrore()) {
-    <div class="alert alert-warning">
-        {{ messaggioErrore() }}
-    </div>
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
     }
 
     @if (messaggioSuccesso()) {
-    <div class="alert alert-success">
-        {{ messaggioSuccesso() }}
-    </div>
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
     <div class="grid grid-2">
-
         <article class="card">
             <h2>Lista Proiezioni</h2>
 
             @if (staCaricando()) {
             <p class="muted">Caricamento in corso...</p>
-
             } @else if (listaProiezioni().length === 0) {
-
             <p class="muted">Nessuna proiezione disponibile.</p>
-
             } @else {
-
             <div class="list">
-
-                @for (item of listaProiezioni(); track item.id) {
-
+                @for (item of listaProiezioni(); track tracciaPerId($index.toString(),item)) {
                 <div class="list-item">
-
                     <div>
                         <strong>{{ item.titoloMovie }}</strong>
-
                         <p>{{ item.dataProiezione | date:'dd/MM/yyyy' }}</p>
                         <p>Sala: {{ item.nomeSala }}</p>
                         <p>Turno: {{ item.nomeTurno }}</p>
@@ -53,29 +40,25 @@
                     @if(!isGestore() && !isOperatore()){
 
                     <div class="btn-row">
-
                         <input type="number" min="1" class="form-control" [(ngModel)]="quantitaSelezionata[item.id]" />
-
-                        <button class="btn btn-secondary" type="button" (click)="acquista(item.id)">
-                            Acquista
-                        </button>
-
+                        <button class="btn btn-secondary" type="button" (click)="acquista(item.id)">Acquista</button>
                     </div>
                     }
                     @if(isOperatore()){
-                                <div class="btn-row">
-                                    <button class="btn btn-secondary" type="button" (click)="elimina(item)"> Elimina</button>
-                                </div>
-                            }
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="elimina(item)"> Elimina</button>
+                    </div>
+                    }
                 </div>
                 }
             </div>
             }
 
         </article>
-         @if (isOperatore()) {
+        @if (isOperatore()) {
         <article class="card">
-            <proiezione-form [proiezioneSelezionata]="proiezioneScelta()" (modificaCompletata)="ottieniTutto()"></proiezione-form>
+            <proiezione-form [proiezioneSelezionata]="proiezioneScelta()"
+                (modificaCompletata)="ottieniTutto()"></proiezione-form>
         </article>
         }
 
