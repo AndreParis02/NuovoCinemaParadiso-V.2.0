@@ -1,17 +1,17 @@
 {
   "info": {
-    "_postman_id": "215ea172-730c-4cd8-ae7e-a992352c7e2d",
+    "_postman_id": "14dbe16d-2070-429e-a0ba-58638a087d23",
     "name": "NuovoCinemaParadiso",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "54160318",
-    "_collection_link": "https://go.postman.co/collection/54160318-215ea172-730c-4cd8-ae7e-a992352c7e2d?source=collection_link"
+    "_exporter_id": "54159971",
+    "_collection_link": "https://go.postman.co/collection/54159971-14dbe16d-2070-429e-a0ba-58638a087d23?source=collection_link"
   },
   "item": [
     {
-      "name": "Abbonamenti",
+      "name": "Abbonamento",
       "item": [
         {
-          "name": "LeggiAbbonamenti",
+          "name": "LeggiAbbonamento",
           "request": {
             "auth": {
               "type": "bearer",
@@ -26,7 +26,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Abbonamento",
+              "raw": "http://localhost:5226/api/Abbonamento/",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -34,7 +34,8 @@
               "port": "5226",
               "path": [
                 "api",
-                "Abbonamento"
+                "Abbonamento",
+                ""
               ]
             }
           },
@@ -56,7 +57,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/6c062c32-997a-4849-8483-e4177edfbbb2",
+              "raw": "http://localhost:5226/api/Abbonamento/1af310c2-066c-4bf5-a8f9-a527d223556a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -65,7 +66,7 @@
               "path": [
                 "api",
                 "Abbonamento",
-                "6c062c32-997a-4849-8483-e4177edfbbb2"
+                "1af310c2-066c-4bf5-a8f9-a527d223556a"
               ]
             }
           },
@@ -88,7 +89,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"TEST\",\r\n    \"Durata\": 420,\r\n    \"Prezzo\": 32.50,\r\n    \"Sconto\" : 5\r\n}",
+              "raw": "{\r\n    \"Nome\": \"TEST\",\r\n    \"Durata\": 1,\r\n    \"Prezzo\": 32,\r\n    \"Sconto\" : 5\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -127,7 +128,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Prova 1\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36.99,\r\n    \"Sconto\" : 47\r\n}",
+              "raw": "{\r\n    \"Nome\": \"Prova\",\r\n    \"Durata\": 520,\r\n    \"Prezzo\": 36,\r\n    \"Sconto\" : 47\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -135,7 +136,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
+              "raw": "http://localhost:5226/api/Abbonamento/3358d225-ab52-479e-8424-c25b905d1305",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -144,7 +145,7 @@
               "path": [
                 "api",
                 "Abbonamento",
-                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
+                "3358d225-ab52-479e-8424-c25b905d1305"
               ]
             }
           },
@@ -166,7 +167,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Abbonamento/83fe579f-059c-48b0-a22e-f060ebc3a13d",
+              "raw": "http://localhost:5226/api/Abbonamento/3358d225-ab52-479e-8424-c25b905d1305",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -175,7 +176,7 @@
               "path": [
                 "api",
                 "Abbonamento",
-                "83fe579f-059c-48b0-a22e-f060ebc3a13d"
+                "3358d225-ab52-479e-8424-c25b905d1305"
               ]
             }
           },
@@ -186,36 +187,6 @@
     {
       "name": "Auth",
       "item": [
-        {
-          "name": "Registrazione",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"email\":\"utenteprova@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"Utente Prova\",\"eta\":\"45\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/Auth/registrazione",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Auth",
-                "registrazione"
-              ]
-            }
-          },
-          "response": []
-        },
         {
           "name": "LoginGestore",
           "event": [
@@ -349,6 +320,36 @@
           "response": []
         },
         {
+          "name": "Registrazione",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"i.gregale@gmail.com\",\"password\":\"123456\",\"nomeCompleto\":\"234\",\"eta\":\"22\", \"SeAbbonato\": false, \"DataInizio\": null, \"AbbonamentoId\":null}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Auth/registrazione",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Auth",
+                "registrazione"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "LetturaProfilo",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
@@ -408,7 +409,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"nomeCompleto\": \"Gestore 1\",\r\n    \"dataInizio\": \"0001-01-01T00:00:00+00:00\",\r\n    \"dataInizioGiftCard\": \"0001-01-01T00:00:00+00:00\",\r\n    \"seAbbonato\": false,\r\n    \"possiedeGiftCard\": false,\r\n    \"email\": \"gestore@gmail.com\",\r\n    \"eta\": 60,\r\n    \"abbonamentoId\": \"\",\r\n    \"giftCardId\": \"\",\r\n    \"tipoAbbonamento\": \"\",\r\n    \"tipoGiftCard\": \"\"\r\n}",
+              "raw": "{\r\n    \"nomeCompleto\": \"djajs\",\r\n    \"dataInizio\": \"0001-041-01T00:00:00+00:00\",\r\n    \"dataInizioGiftCard\": \"0001-041-01T00:00:00+00:00\",\r\n    \"seAbbonato\": false,\r\n    \"possiedeGiftCard\": false,\r\n    \"email\": \"sdsddsdd@gmail.com\",\r\n    \"eta\": 63,\r\n    \"abbonamentoId\": \"4\",\r\n    \"giftCardId\": \"4\",\r\n    \"tipoAbbonamento\": \"4\",\r\n    \"tipoGiftCard\": \"\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -461,6 +462,46 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "CambiaRuolo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\":\"utente1@gmail.com\", \r\n    \"nuovoRuolo\":\"Operatore\"\r\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/GestoreUtenti/cambia-ruolo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GestoreUtenti",
+                "cambia-ruolo"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -468,7 +509,38 @@
       "name": "Biglietto",
       "item": [
         {
-          "name": "CreazioneBigletto",
+          "name": "GestoreLeggiAcquisti",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Gestore/biglietti",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Gestore",
+                "biglietti"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CreazioneAcquisto",
           "request": {
             "auth": {
               "type": "bearer",
@@ -484,7 +556,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"ProiezioneId\": \"e5fee05a-c054-4678-b00e-55ec4d502611\",\r\n    \"numeroBiglietti\": 1\r\n}",
+              "raw": "{\r\n    \"ProiezioneId\": \"d3f13499-c02e-4aeb-9224-16dc80523170\",\r\n    \"NumeroBiglietti\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -507,7 +579,7 @@
           "response": []
         },
         {
-          "name": "EliminaBiglietto",
+          "name": "EliminaAcquisto",
           "request": {
             "auth": {
               "type": "bearer",
@@ -522,7 +594,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Biglietto/d547eddf-ba8a-4886-b515-ceb54edad85e",
+              "raw": "http://localhost:5226/api/Biglietto/6c27ad64-f7a0-4878-bde3-c1a06ab4a628",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -531,7 +603,7 @@
               "path": [
                 "api",
                 "Biglietto",
-                "d547eddf-ba8a-4886-b515-ceb54edad85e"
+                "6c27ad64-f7a0-4878-bde3-c1a06ab4a628"
               ]
             }
           },
@@ -542,37 +614,6 @@
     {
       "name": "GenereMovie",
       "item": [
-        {
-          "name": "LetturaGenereMovieTramiteId",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GenereMovie/11076d57-d88b-429b-9997-88b8a390b071",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GenereMovie",
-                "11076d57-d88b-429b-9997-88b8a390b071"
-              ]
-            }
-          },
-          "response": []
-        },
         {
           "name": "LetturaListaGeneriMovie",
           "request": {
@@ -602,6 +643,37 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "LetturaGenereMovieTramiteId",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GenereMovie/2d12a067-6967-4a54-858e-b1f46a377f33",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GenereMovie",
+                "2d12a067-6967-4a54-858e-b1f46a377f33"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -609,7 +681,7 @@
       "name": "Gestore",
       "item": [
         {
-          "name": "OttieniLogAzioni",
+          "name": "LetturaListaLog",
           "request": {
             "auth": {
               "type": "bearer",
@@ -640,38 +712,7 @@
           "response": []
         },
         {
-          "name": "OttieniDatiConto",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Gestore/conto",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Gestore",
-                "conto"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiBiglietti",
+          "name": "LetturaBiglietti",
           "request": {
             "auth": {
               "type": "bearer",
@@ -700,12 +741,7 @@
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "GestoreUtenti",
-      "item": [
+        },
         {
           "name": "CambiaRuolo",
           "request": {
@@ -723,7 +759,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"email\": \"utente1@gmail.com\",\r\n    \"nuovoRuolo\": \"Utente\"\r\n}",
+              "raw": "{\r\n    \"Email\": \"utente1@gmail.com\",\r\n    \r\n    \"NuovoRuolo\": \"Utente\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -745,6 +781,37 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "LetturaConto",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Gestore/conto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Gestore",
+                "conto"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -752,7 +819,7 @@
       "name": "GiftCards",
       "item": [
         {
-          "name": "LeggiGiftCards",
+          "name": "CreaGiftCard",
           "request": {
             "auth": {
               "type": "bearer",
@@ -764,40 +831,19 @@
                 }
               ]
             },
-            "method": "GET",
+            "method": "POST",
             "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/GiftCard",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "GiftCard"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiGiftCardTramiteIdGiftCard",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"importo\": \"100\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
+              }
             },
-            "method": "GET",
-            "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/GiftCard/d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a",
+              "raw": "http://localhost:5226/api/Utente/giftCard/ricarica",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -805,8 +851,9 @@
               "port": "5226",
               "path": [
                 "api",
-                "GiftCard",
-                "d4ae7ef0-374d-48c2-aae1-c3b83f7a2c5a"
+                "Utente",
+                "giftCard",
+                "ricarica"
               ]
             }
           },
@@ -829,7 +876,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"GiftCard 1 modificata\",\r\n    \"Valore\": 520,\r\n    \"CodiceRiscatto\": 12345678\r\n \r\n}",
+              "raw": "{\r\n    \"nome\": \"GiftPotentissima\",\r\n    \"valore\": \"100\",\r\n    \"codiceRiscatto\": \"abcd\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -837,7 +884,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
+              "raw": "http://localhost:5226/api/GiftCard/7c1c3267-13d1-4af6-9064-dc7f98f35d76",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -846,7 +893,100 @@
               "path": [
                 "api",
                 "GiftCard",
-                "5ce09e37-033b-456b-b65b-3bc110a64041"
+                "7c1c3267-13d1-4af6-9064-dc7f98f35d76"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiMieGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/mie",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                "mie"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiGiftCardTramiteIdGiftCard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/GiftCard/7c1c3267-13d1-4af6-9064-dc7f98f35d76",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "GiftCard",
+                "7c1c3267-13d1-4af6-9064-dc7f98f35d76"
               ]
             }
           },
@@ -868,7 +1008,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/GiftCard/5ce09e37-033b-456b-b65b-3bc110a64041",
+              "raw": "http://localhost:5226/api/GiftCard/7c1c3267-13d1-4af6-9064-dc7f98f35d76",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -877,7 +1017,7 @@
               "path": [
                 "api",
                 "GiftCard",
-                "5ce09e37-033b-456b-b65b-3bc110a64041"
+                "7c1c3267-13d1-4af6-9064-dc7f98f35d76"
               ]
             }
           },
@@ -886,7 +1026,7 @@
       ]
     },
     {
-      "name": "Movies",
+      "name": "Movie",
       "item": [
         {
           "name": "LeggiMovies",
@@ -919,7 +1059,7 @@
           "response": []
         },
         {
-          "name": "LeggiMovieTramiteIdGenere",
+          "name": "LeggiMoviesStorico",
           "request": {
             "auth": {
               "type": "bearer",
@@ -934,7 +1074,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Movie/genere/1eae688e-7d8a-4102-80ef-21998b78920a",
+              "raw": "http://localhost:5226/api/Movie/storico",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -943,8 +1083,15 @@
               "path": [
                 "api",
                 "Movie",
-                "genere",
-                "1eae688e-7d8a-4102-80ef-21998b78920a"
+                "storico"
+              ],
+              "query": [
+                {
+                  "key": null,
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                }
               ]
             }
           },
@@ -966,7 +1113,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "raw": "http://localhost:5226/api/Movie/d887ed70-e0e9-4649-8cb7-7515fa36f61a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -975,7 +1122,39 @@
               "path": [
                 "api",
                 "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+                "d887ed70-e0e9-4649-8cb7-7515fa36f61a"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiMovieTramiteIdGenere",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Movie/genere/ce544b55-372e-42bf-b960-b6a2476d6470",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Movie",
+                "genere",
+                "ce544b55-372e-42bf-b960-b6a2476d6470"
               ]
             }
           },
@@ -998,7 +1177,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Titolo\": \"Film 2\",\r\n    \"Descrizione\": \"Descrizione Film 2\",\r\n    \"DurataMinuti\": 120,\r\n    \"PrezzoMovie\": 12,\r\n    \"GenereId\":\"1eae688e-7d8a-4102-80ef-21998b78920a\"\r\n}",
+              "raw": "{\r\n    \"Titolo\": \"Film Greg\",\r\n    \"Descrizione\": \"Descrizione Film Greg\",\r\n    \"DurataMinuti\": 2,\r\n    \"PrezzoMovie\": 999,\r\n    \"GenereId\":\"2031c775-10bd-42d1-9994-bb8563658564\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1037,7 +1216,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Titolo\": \"Lo squalo 2\", \r\n    \"Descrizione\": \"Uno squalo ammazza molta piu gente\",\r\n    \"DurataMinuti\": 90,\r\n    \"Prezzo\": 10,\r\n    \"GenereId\": \"61009589-9f1d-4f3d-bc52-0fb9967d6bd1\"}",
+              "raw": "{\r\n    \"Titolo\": \"Lo squalo 2\", \r\n    \"Descrizione\": \"Uno squalo ammazza molta piu gente\",\r\n    \"DurataMinuti\": 90,\r\n    \"Prezzo\": 10,\r\n    \"GenereId\": \"7e6da993-300c-474e-b759-e94838e72a06\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1045,7 +1224,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "raw": "http://localhost:5226/api/Movie/0a535cc7-360f-4180-867a-6b7d342fdcc8",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1054,7 +1233,7 @@
               "path": [
                 "api",
                 "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+                "0a535cc7-360f-4180-867a-6b7d342fdcc8"
               ]
             }
           },
@@ -1076,7 +1255,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Movie/0f9e094a-3fc0-420d-829d-181b2dbe823b",
+              "raw": "http://localhost:5226/api/Movie/7cebe637-cb6a-49c4-a75d-4e041f7d7d26",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1085,7 +1264,7 @@
               "path": [
                 "api",
                 "Movie",
-                "0f9e094a-3fc0-420d-829d-181b2dbe823b"
+                "7cebe637-cb6a-49c4-a75d-4e041f7d7d26"
               ]
             }
           },
@@ -1131,7 +1310,7 @@
       "name": "Operatore",
       "item": [
         {
-          "name": "RicaricaSaldoUtente",
+          "name": "RicaricaSaldo",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1147,7 +1326,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Email\" : \"utente1@gmail.com\",\r\n    \"Ricarica\" : 10\r\n}",
+              "raw": "{\r\n    \"Email\": \"utente1@gmail.com\",\r\n    \"Ricarica\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1171,10 +1350,7 @@
           "response": []
         },
         {
-          "name": "LeggiListaUtenti",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
+          "name": "ListaUtenti",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1188,10 +1364,6 @@
             },
             "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
             "url": {
               "raw": "http://localhost:5226/api/Operatore/listaUtenti",
               "protocol": "http",
@@ -1209,10 +1381,7 @@
           "response": []
         },
         {
-          "name": "RicercaProfiloUtente",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
+          "name": "RicercaProfilo",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1226,12 +1395,8 @@
             },
             "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
             "url": {
-              "raw": "http://localhost:5226/api/Operatore/ricercaProfilo/",
+              "raw": "http://localhost:5226/api/Operatore/ricercaProfilo/a7f9aa72-e005-4ba4-8fe9-7758cef8b16e",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1241,14 +1406,14 @@
                 "api",
                 "Operatore",
                 "ricercaProfilo",
-                ""
+                "a7f9aa72-e005-4ba4-8fe9-7758cef8b16e"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "EliminaUtenteTramiteId",
+          "name": "EliminaUtente",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1262,12 +1427,8 @@
             },
             "method": "DELETE",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
             "url": {
-              "raw": "http://localhost:5226/api/Operatore/eliminaUtente/",
+              "raw": "http://localhost:5226/api/Operatore/eliminaUtente/a7f9aa72-e005-4ba4-8fe9-7758cef8b16e",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1277,17 +1438,14 @@
                 "api",
                 "Operatore",
                 "eliminaUtente",
-                ""
+                "a7f9aa72-e005-4ba4-8fe9-7758cef8b16e"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "LeggiListaBiglietti",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
+          "name": "biglietto",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1301,10 +1459,6 @@
             },
             "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
             "url": {
               "raw": "http://localhost:5226/api/Operatore/biglietto",
               "protocol": "http",
@@ -1322,32 +1476,7 @@
           "response": []
         },
         {
-          "name": "LeggiBigliettoTramiteId",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:5226/api/Operatore/biglietto/",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "Operatore",
-                "biglietto",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "OttieniUtentiTramiteAbbonamento",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
+          "name": "bigliettoTramiteIdBiglietto",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1361,12 +1490,40 @@
             },
             "method": "GET",
             "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": ""
-            },
             "url": {
-              "raw": "http://localhost:5226/api/Operatore/utenti/abbonamento/",
+              "raw": "http://localhost:5226/api/Operatore/biglietto/d0b1d866-cfec-4470-ad0c-ddfd78875659",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Operatore",
+                "biglietto",
+                "d0b1d866-cfec-4470-ad0c-ddfd78875659"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "UtenteTramiteIdAbbonamento",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Operatore/utenti/abbonamento/f63eeadb-000a-4917-bcc1-2fb93dd70bb9",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1377,14 +1534,14 @@
                 "Operatore",
                 "utenti",
                 "abbonamento",
-                ""
+                "f63eeadb-000a-4917-bcc1-2fb93dd70bb9"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "RicaricaGiftCard",
+          "name": "RicaricaGiftcard",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1400,7 +1557,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Importo\": 100\r\n}",
+              "raw": "{\r\n \"Importo\": 2   \r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1427,52 +1584,7 @@
       ]
     },
     {
-      "name": "OperatoreUtenti",
-      "item": [
-        {
-          "name": "CambiaRuolo",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\r\n    \"email\": \"utente1@gmail.com\",\r\n    \"nuovoRuolo\": \"Utente\"\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:5226/api/OperatoreUtenti/cambia-ruolo",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "5226",
-              "path": [
-                "api",
-                "OperatoreUtenti",
-                "cambia-ruolo"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Proiezioni",
+      "name": "Proiezione",
       "item": [
         {
           "name": "LeggiProiezioni",
@@ -1490,7 +1602,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione",
+              "raw": "http://localhost:5226/api/Proiezione/",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1498,14 +1610,15 @@
               "port": "5226",
               "path": [
                 "api",
-                "Proiezione"
+                "Proiezione",
+                ""
               ]
             }
           },
           "response": []
         },
         {
-          "name": "LeggiStoricoProiezioni",
+          "name": "LeggiProiezioniStorico",
           "request": {
             "auth": {
               "type": "bearer",
@@ -1551,7 +1664,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/eb1bf109-a332-43aa-a923-94105e2da915",
+              "raw": "http://localhost:5226/api/Proiezione/79e47f32-ce60-43df-b993-e789ab85abc7",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1560,7 +1673,7 @@
               "path": [
                 "api",
                 "Proiezione",
-                "eb1bf109-a332-43aa-a923-94105e2da915"
+                "79e47f32-ce60-43df-b993-e789ab85abc7"
               ]
             }
           },
@@ -1582,7 +1695,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/turno/87b22ceb-d36e-45ab-aceb-b6742da5d245",
+              "raw": "http://localhost:5226/api/Proiezione/turno/2d86b13f-02fc-4207-ac5b-07e1e2eaf332",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1592,7 +1705,7 @@
                 "api",
                 "Proiezione",
                 "turno",
-                "87b22ceb-d36e-45ab-aceb-b6742da5d245"
+                "2d86b13f-02fc-4207-ac5b-07e1e2eaf332"
               ]
             }
           },
@@ -1614,7 +1727,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/sala/9d6a8228-b50a-4012-b254-1eda0b068ee4",
+              "raw": "http://localhost:5226/api/Proiezione/sala/d3b07aec-ef16-4872-b6eb-f45ce7525008",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1624,7 +1737,7 @@
                 "api",
                 "Proiezione",
                 "sala",
-                "9d6a8228-b50a-4012-b254-1eda0b068ee4"
+                "d3b07aec-ef16-4872-b6eb-f45ce7525008"
               ]
             }
           },
@@ -1646,7 +1759,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/movie/d95f8c1b-e97e-4431-be50-ef319581c99r",
+              "raw": "http://localhost:5226/api/Proiezione/movie/820301b6-5e34-48a8-8a8a-737b8a5ed912",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1656,7 +1769,7 @@
                 "api",
                 "Proiezione",
                 "movie",
-                "d95f8c1b-e97e-4431-be50-ef319581c99r"
+                "820301b6-5e34-48a8-8a8a-737b8a5ed912"
               ]
             }
           },
@@ -1679,7 +1792,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"MovieId\": \"95ab0b1b-7b7b-4739-b121-b1792636aa54\",\r\n    \"SalaId\": \"4c926b21-a46c-411e-acc1-15f296633343\",\r\n    \"TurnoId\": \"82c3f522-1aed-4ef9-95a2-d5d14c6442d9\",\r\n    \"DataProiezione\": \"2026-11-01\"\r\n}",
+              "raw": "{\r\n    \"MovieId\": \"820301b6-5e34-48a8-8a8a-737b8a5ed912\",\r\n    \"SalaId\": \"94349647-35cc-489b-b19e-df309cba8079\",\r\n    \"TurnoId\": \"9f1ed1c0-9c5f-4c57-8137-30e91d2cd877\",\r\n    \"DataProiezione\": \"2026-03-03\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1726,7 +1839,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
+              "raw": "http://localhost:5226/api/Proiezione/4f6c0075-4231-429c-811c-fb0360b1899f",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1735,7 +1848,7 @@
               "path": [
                 "api",
                 "Proiezione",
-                "2eb40e35-8990-428f-a891-5dc964f907fd"
+                "4f6c0075-4231-429c-811c-fb0360b1899f"
               ]
             }
           },
@@ -1754,10 +1867,10 @@
                 }
               ]
             },
-            "method": "DELETE",
+            "method": "PUT",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Proiezione/2eb40e35-8990-428f-a891-5dc964f907fd",
+              "raw": "http://localhost:5226/api/Proiezione/elimina/4f6c0075-4231-429c-811c-fb0360b1899f",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1766,7 +1879,8 @@
               "path": [
                 "api",
                 "Proiezione",
-                "2eb40e35-8990-428f-a891-5dc964f907fd"
+                "elimina",
+                "4f6c0075-4231-429c-811c-fb0360b1899f"
               ]
             }
           },
@@ -1775,7 +1889,7 @@
       ]
     },
     {
-      "name": "Sale",
+      "name": "Sala",
       "item": [
         {
           "name": "LeggiSale",
@@ -1808,6 +1922,37 @@
           "response": []
         },
         {
+          "name": "LeggiSaleStorico",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/Sala/storico",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Sala",
+                "storico"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "LeggiSaleTramiteIdTipologiaSala",
           "request": {
             "auth": {
@@ -1823,7 +1968,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Sala/tipologia/86bd1b4f-92ba-4d71-9da1-18192be2a578",
+              "raw": "http://localhost:5226/api/Sala/tipologia/0e7c688b-255f-4b96-90fa-67e5da5c1053",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1833,7 +1978,7 @@
                 "api",
                 "Sala",
                 "tipologia",
-                "86bd1b4f-92ba-4d71-9da1-18192be2a578"
+                "0e7c688b-255f-4b96-90fa-67e5da5c1053"
               ]
             }
           },
@@ -1855,7 +2000,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Sala/2e35180c-46c3-4968-80b9-75a7af70d89d",
+              "raw": "http://localhost:5226/api/Sala/a8436546-82cf-43d1-ba8f-e584d7157706",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1864,7 +2009,7 @@
               "path": [
                 "api",
                 "Sala",
-                "2e35180c-46c3-4968-80b9-75a7af70d89d"
+                "a8436546-82cf-43d1-ba8f-e584d7157706"
               ]
             }
           },
@@ -1887,7 +2032,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Sala 2\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"86bd1b4f-92ba-4d71-9da1-18192be2a578\"\r\n}",
+              "raw": "{\r\n    \"Nome\": \"Sala 420\",\r\n    \"Capienza\": 420,\r\n    \"TipologiaSalaId\": \"0e7c688b-255f-4b96-90fa-67e5da5c1053\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1926,7 +2071,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"Nome\": \"Sala4\",\r\n    \"Capienza\": 100,\r\n    \"TipologiaSalaId\": \"6fb11cc1-c058-4135-8351-a6577b7012ar\"\r\n}",
+              "raw": "{\r\n    \"Nome\": \"Sala 420 modificata\",\r\n    \"Capienza\": 999,\r\n    \"TipologiaSalaId\": \"23b7d8af-98e6-4952-b4c5-84e72bb3fb3b\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1934,7 +2079,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Sala/1709d037-a472-4cc4-b5fe-b68966d9aade",
+              "raw": "http://localhost:5226/api/Sala/f3cc9e3c-f407-4f1c-8534-ba479f1a0d69",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1943,7 +2088,7 @@
               "path": [
                 "api",
                 "Sala",
-                "1709d037-a472-4cc4-b5fe-b68966d9aade"
+                "f3cc9e3c-f407-4f1c-8534-ba479f1a0d69"
               ]
             }
           },
@@ -1962,10 +2107,10 @@
                 }
               ]
             },
-            "method": "DELETE",
+            "method": "PUT",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Sala/63839a93-a1d7-4c4a-8b87-f87b513d813a",
+              "raw": "http://localhost:5226/api/Sala/elimina/f3cc9e3c-f407-4f1c-8534-ba479f1a0d69",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1974,7 +2119,8 @@
               "path": [
                 "api",
                 "Sala",
-                "63839a93-a1d7-4c4a-8b87-f87b513d813a"
+                "elimina",
+                "f3cc9e3c-f407-4f1c-8534-ba479f1a0d69"
               ]
             }
           },
@@ -2017,7 +2163,7 @@
       ]
     },
     {
-      "name": "TipologieSala",
+      "name": "TipologiaSala",
       "item": [
         {
           "name": "LeggiTipologie",
@@ -2035,7 +2181,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala",
+              "raw": "http://localhost:5226/api/TipologiaSala/",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2043,7 +2189,39 @@
               "port": "5226",
               "path": [
                 "api",
-                "TipologiaSala"
+                "TipologiaSala",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "LeggiTipologieStorico",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5226/api/TipologiaSala/storico",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "TipologiaSala",
+                "storico"
               ]
             }
           },
@@ -2065,7 +2243,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/fd909dce-18e6-4803-a548-5dd698d5b205",
+              "raw": "http://localhost:5226/api/TipologiaSala/0e7c688b-255f-4b96-90fa-67e5da5c1053",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2074,7 +2252,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "fd909dce-18e6-4803-a548-5dd698d5b205"
+                "0e7c688b-255f-4b96-90fa-67e5da5c1053"
               ]
             }
           },
@@ -2097,7 +2275,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"nome\":\"3D 2.0\", \"maggiorazionePrezzo\": 2}",
+              "raw": "{\"nome\":\"NUDINI 2.0\", \"maggiorazionePrezzo\": 99}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2136,7 +2314,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\"nome\":\"3D 2.3\", \"maggiorazionePrezzo\": 3}",
+              "raw": "{\"nome\":\"nudini 2.1\", \"maggiorazionePrezzo\": 420024}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2144,7 +2322,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/ea34899b-e525-4fbf-a39e-41b9e157aa3r",
+              "raw": "http://localhost:5226/api/TipologiaSala/346a41ab-a688-447a-b99b-e42719cbc8cc",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2153,7 +2331,7 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "ea34899b-e525-4fbf-a39e-41b9e157aa3r"
+                "346a41ab-a688-447a-b99b-e42719cbc8cc"
               ]
             }
           },
@@ -2172,10 +2350,10 @@
                 }
               ]
             },
-            "method": "DELETE",
+            "method": "PUT",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/TipologiaSala/ea34899b-e525-4fbf-a39e-41b9e157aa3f",
+              "raw": "http://localhost:5226/api/TipologiaSala/elimina/346a41ab-a688-447a-b99b-e42719cbc8cc",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2184,7 +2362,8 @@
               "path": [
                 "api",
                 "TipologiaSala",
-                "ea34899b-e525-4fbf-a39e-41b9e157aa3f"
+                "elimina",
+                "346a41ab-a688-447a-b99b-e42719cbc8cc"
               ]
             }
           },
@@ -2193,7 +2372,7 @@
       ]
     },
     {
-      "name": "Turni",
+      "name": "Turno",
       "item": [
         {
           "name": "LeggiTurni",
@@ -2241,7 +2420,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5226/api/Turno/69acfafa-5cb2-4084-9cf9-6ef7be3af916",
+              "raw": "http://localhost:5226/api/Turno/4c8c4688-be7c-4ded-93bf-6089bcfbab8a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2250,7 +2429,7 @@
               "path": [
                 "api",
                 "Turno",
-                "69acfafa-5cb2-4084-9cf9-6ef7be3af916"
+                "4c8c4688-be7c-4ded-93bf-6089bcfbab8a"
               ]
             }
           },
@@ -2273,7 +2452,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"oraInizio\": \"15:30:00\",\r\n    \"oraFine\": \"18:00:00\",\r\n    \"nome\": \"Pomeriggio 1\"\r\n}",
+              "raw": "{\r\n    \"oraInizio\": \"10:30:00\",\r\n    \"oraFine\": \"20:00:00\",\r\n    \"nome\": \"Pomeriggio 310\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2320,7 +2499,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:5226/api/Turno/215f1dca-8392-4316-900d-1fa48f339164",
+              "raw": "http://localhost:5226/api/Turno/5dc78c64-dc3b-49f9-bebe-555e6975258c",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2329,7 +2508,7 @@
               "path": [
                 "api",
                 "Turno",
-                "215f1dca-8392-4316-900d-1fa48f339164"
+                "5dc78c64-dc3b-49f9-bebe-555e6975258c"
               ]
             }
           },
@@ -2352,10 +2531,10 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"oraInizio\": \"16:30:00\",\r\n    \"oraFine\": \"18:00:00\",\r\n    \"nome\": \"Pomeriggio 3\"\r\n}"
+              "raw": ""
             },
             "url": {
-              "raw": "http://localhost:5226/api/Turno/215f1dca-8392-4316-900d-1fa48f339164",
+              "raw": "http://localhost:5226/api/Turno/5dc78c64-dc3b-49f9-bebe-555e6975258c",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -2364,7 +2543,7 @@
               "path": [
                 "api",
                 "Turno",
-                "215f1dca-8392-4316-900d-1fa48f339164"
+                "5dc78c64-dc3b-49f9-bebe-555e6975258c"
               ]
             }
           },
@@ -2375,6 +2554,49 @@
     {
       "name": "Utente",
       "item": [
+        {
+          "name": "Biglietti",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"IdAbbonamento\": \"f63eeadb-000a-4917-bcc1-2fb93dd70bb9\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5226/api/Utente/biglietti",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5226",
+              "path": [
+                "api",
+                "Utente",
+                "biglietti"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Abbonati",
           "request": {
@@ -2392,7 +2614,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"abbonamentoId\": \"6f8387b5-9070-420f-a53d-0d7db6f05b3b\"\r\n}",
+              "raw": "{\r\n  \"IdAbbonamento\": \"e37bec0b-f199-4c1f-8391-fcb38747387c\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2416,7 +2638,7 @@
           "response": []
         },
         {
-          "name": "RicaricaGiftCard",
+          "name": "GiftCardRicarica",
           "request": {
             "auth": {
               "type": "bearer",
@@ -2432,7 +2654,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"Importo\": 100\r\n}",
+              "raw": "{\r\n  \"Importo\": \"200\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2457,7 +2679,7 @@
           "response": []
         },
         {
-          "name": "RiscattaGiftCard",
+          "name": "GiftCardRiscatta",
           "request": {
             "auth": {
               "type": "bearer",
@@ -2469,11 +2691,11 @@
                 }
               ]
             },
-            "method": "PUT",
+            "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"CodiceRiscatto\" : 123445\r\n}",
+              "raw": "{\r\n  \"CodiceRiscatto\": \"9F19B2B6\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2494,14 +2716,6 @@
                 "riscatta"
               ]
             }
-          },
-          "response": []
-        },
-        {
-          "name": "LeggiBigliettiUtente",
-          "request": {
-            "method": "GET",
-            "header": []
           },
           "response": []
         }
