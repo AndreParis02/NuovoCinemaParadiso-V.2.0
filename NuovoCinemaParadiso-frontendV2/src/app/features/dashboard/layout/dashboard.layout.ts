@@ -10,6 +10,7 @@ import { AbbonamentoListComponent } from '../../abbonamento/components/abbonamen
 //import { AbbonamentoDetailComponent } from '../../abbonamento/components/abbonamento-detail.component';
 import { LogListComponent } from '../../log/components/log-list.component';
 import { UtenteListComponent } from '../../cambio-ruolo/components/utente-list.component';
+import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.component';
 
 @Component({
   selector: 'dashboard-layout',
@@ -22,7 +23,8 @@ import { UtenteListComponent } from '../../cambio-ruolo/components/utente-list.c
     AbbonamentoListComponent,
     //AbbonamentoDetailComponent, aggiungere il dettaglio dell'abbonamento appena possibile
     LogListComponent,
-    UtenteListComponent
+    UtenteListComponent,
+    CreaCodiceComponent
 ]
 })
 export class DashboardLayoutComponent {
