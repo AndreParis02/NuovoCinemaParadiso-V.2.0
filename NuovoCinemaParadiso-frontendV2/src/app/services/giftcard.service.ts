@@ -11,24 +11,33 @@ import { GiftCard, GiftCardCreazione } from '../models/giftCard.model';
 export class GiftCardService {
     private readonly http = inject(HttpClient);
     private readonly baseUrl = `${environment.apiBaseUrl}/giftcard`;
+    private readonly utenteUrl = `${environment.apiBaseUrl}/Utente/giftCard`;
 
     ottieniTutto(): Observable<GiftCard[]> {
         return this.http.get<GiftCard[]>(this.baseUrl);
     }
 
-    ottieniTramiteId(id: number): Observable<GiftCard> {
-        return this.http.get<GiftCard>(`${this.baseUrl}/${id}`);
+    ottieniTramiteId(id: String): Observable<GiftCard> {
+        return this.http.get<GiftCard>(`${this.baseUrl}/${id}`); //prima c'era scritto id number, ERRORE
     }
 
     crea(payload: GiftCardCreazione): Observable<GiftCard> {
         return this.http.post<GiftCard>(this.baseUrl, payload);
     }
 
-    modifica(id: number, payload: GiftCardCreazione): Observable<GiftCard> {
+    modifica(id: string, payload: GiftCardCreazione): Observable<GiftCard> {
         return this.http.put<GiftCard>(`${this.baseUrl}/${id}`, payload);
     }
 
-    elimina(id: number): Observable<void> {
+    elimina(id: string): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    }
+
+    ricarica(importo: number): Observable<{messaggio: string}> {
+        return this.http.put<{messaggio: string}>(`${this.utenteUrl}/ricarica`, { importo: importo });
+    }
+
+    riscatta(codiceRiscatto: string): Observable<any> {
+        return this.http.post<any>(`${this.utenteUrl}/riscatta`, { codiceRiscatto: codiceRiscatto });
     }
 }

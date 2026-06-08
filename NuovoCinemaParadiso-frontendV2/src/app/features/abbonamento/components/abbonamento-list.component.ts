@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../services/auth.service';
 import { AbbonamentoService } from '../../../services/abbonamento.service';
-
+import { UtenteService } from '../../../services/utente.service';
 
 import { Abbonamento } from '../../../models/abbonamento.model';
 import { AbbonamentoFormComponent } from "./abbonamento-form.component";
@@ -20,7 +20,7 @@ export class AbbonamentoListComponent {
 
   private readonly authService = inject(AuthService);
   private readonly abbonamentoService = inject(AbbonamentoService);
-
+  private readonly utenteService = inject(UtenteService);
 
   readonly abbonamenti = signal<Abbonamento[]>([]);
   readonly abbonamentoScelto = signal<Abbonamento | null>(null);
@@ -35,6 +35,10 @@ export class AbbonamentoListComponent {
   }
   visualizzabileDa(): boolean {
     return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+  }
+
+  puoAbbonarsi(): boolean {
+      return this.authService.possiedeQualsiasiRuolo(['Utente']);
   }
   caricaAbbonamenti(): void {
 
@@ -79,6 +83,21 @@ export class AbbonamentoListComponent {
       }
     });
   }
+
+   abbonati(id: string): void {
+        if (id == null)  {
+            this.messaggioErrore.set('Nessun abbonamento selezionato');
+            return;
+        }
+        this.utenteService.abbonati(id).subscribe({
+            next: () => {
+                this.messaggioSuccesso.set('Abbonamento effettuato con successo');
+            },
+            error: (error) => {
+                this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Errore durante l\'abbonamento'));
+            }
+        });
+    }
 
   tracciaPerId(_: string, item: Abbonamento): string {
     return item.id;

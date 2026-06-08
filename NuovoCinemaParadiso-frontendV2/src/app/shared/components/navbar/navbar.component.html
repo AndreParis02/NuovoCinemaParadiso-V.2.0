@@ -1,34 +1,47 @@
 <header class="navbar-shell">
-  <div class="container navbar">
-    @if (isAutenticato()) {
-    <nav class="links">
-      <a routerLink="/proiezioni" class="brand">Nuovo cinema Paradiso</a>
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/movies">Film</a>
-      </div>
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
-      </div>
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
-      </div>
-       @if(isGestore()){
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/gestione">Gestione</a>
-      </div>
-       }
-      <div class="btn-row">
-        <a class="btn btn-secondary" routerLink="/profilo">Profilo</a>
-      </div>
-      <div>
-        <strong>{{ utente()?.ruolo }}</strong>
-        <div class="muted small">{{ utente()?.email }}</div>
-      </div>
-      <div class="user-box">
-        <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
-      </div>
-    </nav>
+    <div class="container navbar">
+        <nav class="links">
+            <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+            </div>
+            @if(isOperatore()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/movies">Film</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/sale">Sale</a>
+            </div>
+            }
+            @if(!isAutenticato()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+            </div>
+            }
 
-  }
-  </div>
+            @if(!isGestore() && !isOperatore() && isAutenticato()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
+                <div class="muted small">Saldo: {{utenteCorrente()?.saldo}}</div>
+                <div class="muted small">{{utenteCorrente()?.email}}</div>
+            </div>
+            }
+
+            @if(isGestore() || isOperatore()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
+                <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
+            </div>
+            }
+
+            @if(isAutenticato()){
+            <div class="user-box">
+                <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+            </div>
+            }
+        </nav>
+    </div>
 </header>

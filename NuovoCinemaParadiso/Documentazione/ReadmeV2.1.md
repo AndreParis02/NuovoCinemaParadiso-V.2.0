@@ -1922,6 +1922,175 @@ public class AbbonamentoController : ControllerBase
 }
 ```
 
+### AbbonamentoController V1.1
+
+Utente: Fabio Tammaro
+Data: 06/06/2026
+Descrizione: Rimosso l'authorize e le righe di codice che non permettevano al guest di visualizzare gli abbonamenti.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AbbonamentoController : ControllerBase
+{
+    private readonly AbbonamentoService _abbonamentoService;
+    private readonly LogAzioniService _logAzioniService;
+    private readonly GestoreService _gestoreService;
+
+    public AbbonamentoController(
+        AbbonamentoService abbonamentoService,
+        LogAzioniService logAzioniService,
+        GestoreService gestoreService)
+    {
+        _abbonamentoService = abbonamentoService;
+        _logAzioniService = logAzioniService;
+        _gestoreService = gestoreService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni tutti gli abbonamenti utente",
+            true
+        );
+
+        return Ok(abbonamenti);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Ottieni abbonamenti tramite id utente",
+                false
+            );
+
+            return NotFound($"Abbonamento con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Ottieni abbonamenti tramite id utente",
+            true
+        );
+
+        return Ok(risultato);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneAbbonamento dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.CreazioneAsync(dto);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Creazione abbonamento",
+                false
+            );
+
+            return BadRequest(new { messaggio = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Creazione abbonamento",
+            true
+        );
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneAbbonamento dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.ModificaAsync(id, dto);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Modifica abbonamento",
+                false
+            );
+
+            return NotFound(new { messaggio = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Modifica abbonamento",
+            true);
+
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _abbonamentoService.EliminazioneAsync(id);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+                utenteId,
+                "Elimina abbonamento",
+                false
+            );
+
+            return NotFound(new { messaggio = risultato.Messaggio });
+        }
+            await _logAzioniService.SalvataggioLogAzioneAsync(
+            utenteId,
+            "Elimina abbonamento",
+            true
+        );
+
+        return NoContent();
+    }
+}
+```
+
 ## GestoreController V1.0
 
 Andrea Bruno 22-05-2026 
@@ -4340,6 +4509,7 @@ public class ProiezioneController : ControllerBase
         return Ok(risultato);
     }
 
+
     [HttpGet("sala/{salaId}")] // GET per sala
     public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
     {
@@ -4738,6 +4908,240 @@ public class ProiezioneController : ControllerBase
 
     [HttpPut("elimina/{id}")] //<- usiamo PUT con /elimina/id e non DELETE con /id perché il nostro obbiettivo non è eliminare il campo, bensì renderlo inattivo, in modo che possa comunque apparire nello storico proiezioni
     [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Elimina(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool eliminato = await _proiezioneService.EliminaAsync(id);
+
+        if (!eliminato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", false);
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Elimina proiezione", true);
+
+        return Ok(new { messaggio = "Proiezione eliminata con successo!" });
+    }
+}
+```
+
+## ProiezioneController.cs Versione 1.2
+- Utente: Fabio Tammaro
+- Data: 06/06/2026
+- Descrizione: Rimosso l'authorize e i controlli sull'autenticazione per permettere al guest di visualizzare le proiezioni.
+
+```c#
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using NuovoCinemaParadiso.Services;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Exceptions;
+
+namespace NuovoCinemaParadiso.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProiezioneController : ControllerBase
+{
+    private readonly ProiezioneService _proiezioneService;
+    private readonly LogAzioniService _logAzioniService;
+
+    public ProiezioneController(ProiezioneService proiezioneService, LogAzioniService logAzioniService)
+    {
+        _proiezioneService = proiezioneService;
+        _logAzioniService = logAzioniService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OttieniTutteLeProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
+
+        return Ok(proiezioni);
+    }
+
+    [HttpGet("storico")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> OttieniStoricoProiezioni()
+    {
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniStoricoAsync();
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le proieioni", true);
+
+        return Ok(proiezioni);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> OttieniTramiteId(string id)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _proiezioneService.OttieniTramiteIdAsync(id);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", false);
+
+            return NotFound($"Proiezione con id {id} non trovato");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione tramite id", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("turno/{turnoId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerTurno(string turnoId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(turnoId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", false);
+
+            return BadRequest("TurnoId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteTurnoAsync(turnoId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoid", false);
+
+            return NotFound("Nessuna proiezione trovata per questo turno");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per turnoId", true);
+        return Ok(risultato);
+    }
+
+    [HttpGet("sala/{salaId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerSala(string salaId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(salaId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+            return BadRequest("SalaId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteSalaAsync(salaId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", false);
+            return NotFound("Nessuna proiezione trovata per questa sala");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezione per sala", true);
+
+        return Ok(risultato);
+    }
+
+    [HttpGet("movie/{movieId}")]
+    public async Task<ActionResult<List<DtoProiezione>>> OttieniPerFilm(string movieId)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        if (string.IsNullOrEmpty(movieId))
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return BadRequest("MovieId non valido");
+        }
+
+        var risultato = await _proiezioneService.OttieniTramiteMovieAsync(movieId);
+
+        if (risultato == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", false);
+            return NotFound("Nessuna proiezione trovata per questo film");
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni proiezioni per film", true);
+
+        return Ok(risultato);
+    }
+
+
+    [HttpPost]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Creazione([FromBody] DtoCreazioneProiezione dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
+
+        foreach (var proiezione in proiezioni)
+        {
+            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
+        }
+        try
+        {
+            bool creato = await _proiezioneService.CreazioneAsync(dto);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", true);
+            return Ok(new { messaggio = "Creazione avvenuta con successo!" });
+        }
+        catch (NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+
+            return BadRequest(new { messaggio = $"Errore durante la creazione della proiezione: {ex.Message}" });
+        }
+
+
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = Ruoli.Operatore)]
+    public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto)
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        bool modificato = await _proiezioneService.ModificaAsync(id, dto);
+
+        if (!modificato)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", false);
+
+            return NotFound(new { messaggio = "Proiezione non trovata." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
+
+        return Ok(new { messaggio = "Proiezione modificata con successo!" });
+    }
+
+    [HttpPut("elimina/{id}")] 
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -13396,6 +13800,8 @@ public class UtenteService
 
 ```
 
+
+
 ## UtenteService.cs V1.1
 
 Andrea Bruno 22-05-2026
@@ -13918,8 +14324,396 @@ public class UtenteService
 
 }
 ```
-
 </details>
+
+### UtenteService.cs Versione 1.4
+
+Utente: Marco Strazzeri
+Data: 5/06/2026
+Descrizione: in abbonati() aggiunta modifica conto cinema e controllo scadenza dell'abbonamento
+
+<details><summary>Versione 1.4</summary>
+
+```c#
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Helpers;
+using System.Security.Claims;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class UtenteService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
+    {
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            if (bigliettoCorrente.UtenteId == utenteId)
+            {
+                Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+                DtoBiglietto dto = new DtoBiglietto
+                {
+                    Id = bigliettoCorrente.Id,
+                    UtenteId = bigliettoCorrente.UtenteId,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                    NomeSala = sala.Nome,
+                    TitoloMovie = movie.Titolo,
+                    NomeTipologiaSala = tipologiaSala.Nome,
+                    OraInizio = turno.OraInizio,
+                    DataProiezione = proiezione.DataProiezione,
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento, (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento)
+                };
+                listaBiglietti.Add(dto);
+            }
+        }
+        return listaBiglietti;
+    }
+
+    public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        Abbonamento? abbonamentoTrovato = null;
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamenti[i];
+                break;
+            }
+        }
+
+        if (abbonamentoTrovato == null)
+            return (false, "Abbonamento non trovato.");
+
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteTrovato == null)
+            return (false, "Utente non trovato.");
+
+        if (utenteTrovato.SeAbbonato)
+        {
+            //aggiunta controllo data scadenza
+            DateTimeOffset dataScadenzaAbbonamento = utenteTrovato.DataInizioAbbonamento.AddMonths(abbonamentoTrovato.Durata);
+            if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
+                return (false, "L'utente è già abbonato.");
+        }
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
+            return (false, "Credito insufficiente per abbonarsi.");
+
+        //aggiornamento dei saldi utente e conto cinema
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(abbonamentoTrovato.Prezzo, utenteTrovato, contoCinema);
+        utenteTrovato.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        utenteTrovato.TipologiaAbbonamento = abbonamentoTrovato.Nome;
+        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento attivato correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+    {
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.");
+
+        if (dto.Importo <= 0)
+            return (false, "Importo non valido.");
+
+        if (utenteCorrente.Saldo < dto.Importo)
+            return (false, "Saldo insufficiente.");
+
+        utenteCorrente.Saldo -= dto.Importo;
+
+        GiftCard nuovaGiftCard = new GiftCard
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice(),
+            Riscattata = false,
+            UtenteId = utenteId // -> MANCAVA L'UTENTE!!!!!!
+        };
+
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Gift card creata correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
+        RiscattaGiftCardAsync(string utenteId, DtoCodiceRiscatto dto)
+    {
+        List<GiftCard> tutte = _contesto.GiftCards.ToList();
+        GiftCard? trovata = null;
+
+        foreach (GiftCard g in tutte)
+        {
+            if (g.CodiceRiscatto == dto.CodiceRiscatto)
+            {
+                trovata = g;
+                break;
+            }
+        }
+
+        if (trovata == null)
+            return (false, "Codice non valido.", null);
+
+        if (trovata.Riscattata)
+            return (false, "Gift card già riscattata.", null);
+
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.", null);
+
+        trovata.Riscattata = true;
+        trovata.UtenteId = utenteId; 
+        utenteCorrente.Saldo += trovata.Valore; 
+
+        await _contesto.SaveChangesAsync();
+
+        DtoCreazioneGiftCard risposta = new DtoCreazioneGiftCard
+        {
+            Nome = trovata.Nome,
+            Valore = trovata.Valore,
+            CodiceRiscatto = trovata.CodiceRiscatto
+        };
+
+        return (true, "Gift card riscattata con successo! Saldo aggiornato.", risposta);
+    }
+
+}
+
+```
+</Details>
+
+
+### UtenteService.cs Versione 1.5
+
+Utente: Marco Strazzeri
+Data: 5/06/2026
+Descrizione: in RicaricaGiftCard() aggiunta modifica conto cinema
+
+<details><summary>Versione 1.5</summary>
+
+```c#
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using NuovoCinemaParadiso.Data;
+using NuovoCinemaParadiso.Dtos;
+using NuovoCinemaParadiso.Models;
+using NuovoCinemaParadiso.Exceptions;
+using NuovoCinemaParadiso.Helpers;
+using System.Security.Claims;
+
+namespace NuovoCinemaParadiso.Services;
+
+public class UtenteService
+{
+    private readonly ContestoDb _contesto;
+    private readonly UserManager<Utente> _gestioneUtenti;
+
+    public UtenteService(ContestoDb contestoDb, UserManager<Utente> gestioneUtenti)
+    {
+        _contesto = contestoDb;
+        _gestioneUtenti = gestioneUtenti;
+    }
+
+    public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
+    {
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+
+        for (int i = 0; i < biglietti.Count; i++)
+        {
+            Biglietto bigliettoCorrente = biglietti[i];
+            if (bigliettoCorrente.UtenteId == utenteId)
+            {
+                Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+                DtoBiglietto dto = new DtoBiglietto
+                {
+                    Id = bigliettoCorrente.Id,
+                    UtenteId = bigliettoCorrente.UtenteId,
+                    ProiezioneId = bigliettoCorrente.ProiezioneId,
+                    OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                    NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                    NomeSala = sala.Nome,
+                    TitoloMovie = movie.Titolo,
+                    NomeTipologiaSala = tipologiaSala.Nome,
+                    OraInizio = turno.OraInizio,
+                    DataProiezione = proiezione.DataProiezione,
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento, (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento)
+                };
+                listaBiglietti.Add(dto);
+            }
+        }
+        return listaBiglietti;
+    }
+
+    public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
+    {
+        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        Abbonamento? abbonamentoTrovato = null;
+
+        for (int i = 0; i < abbonamenti.Count; i++)
+        {
+            if (abbonamenti[i].Id == abbonamentoId)
+            {
+                abbonamentoTrovato = abbonamenti[i];
+                break;
+            }
+        }
+
+        if (abbonamentoTrovato == null)
+            return (false, "Abbonamento non trovato.");
+
+        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteTrovato == null)
+            return (false, "Utente non trovato.");
+
+        if (utenteTrovato.SeAbbonato)
+        {
+            DateTimeOffset dataScadenzaAbbonamento = utenteTrovato.DataInizioAbbonamento.AddMonths(abbonamentoTrovato.Durata);
+            if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
+                return (false, "L'utente è già abbonato.");
+        }
+        if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
+            return (false, "Credito insufficiente per abbonarsi.");
+
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(abbonamentoTrovato.Prezzo, utenteTrovato, contoCinema);
+        utenteTrovato.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        utenteTrovato.TipologiaAbbonamento = abbonamentoTrovato.Nome;
+        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
+        utenteTrovato.SeAbbonato = true;
+        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Abbonamento attivato correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
+    {
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.");
+
+        if (dto.Importo <= 0)
+            return (false, "Importo non valido.");
+
+        if (utenteCorrente.Saldo < dto.Importo)
+            return (false, "Saldo insufficiente.");
+
+        
+
+        GiftCard nuovaGiftCard = new GiftCard
+        {
+            Nome = "GiftCard",
+            Valore = dto.Importo,
+            CodiceRiscatto = GiftCardHelper.GeneraCodice(),
+            Riscattata = false,
+            UtenteId = utenteId // -> MANCAVA L'UTENTE!!!!!!
+        };
+
+        await _contesto.GiftCards.AddAsync(nuovaGiftCard);
+        //modifico il credito dell'utente e del conto cinema
+        var contoCinema=await _contesto.ContoCinema.FirstOrDefaultAsync();
+        contoCinema.Saldo += dto.Importo;
+        utenteCorrente.Saldo -= dto.Importo;
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Gift card creata correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
+        RiscattaGiftCardAsync(string utenteId, DtoCodiceRiscatto dto)
+    {
+        List<GiftCard> tutte = _contesto.GiftCards.ToList();
+        GiftCard? trovata = null;
+
+        foreach (GiftCard g in tutte)
+        {
+            if (g.CodiceRiscatto == dto.CodiceRiscatto)
+            {
+                trovata = g;
+                break;
+            }
+        }
+
+        if (trovata == null)
+            return (false, "Codice non valido.", null);
+
+        if (trovata.Riscattata)
+            return (false, "Gift card già riscattata.", null);
+
+        Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);
+        if (utenteCorrente == null)
+            return (false, "Utente non trovato.", null);
+
+        trovata.Riscattata = true;
+        trovata.UtenteId = utenteId; 
+        utenteCorrente.Saldo += trovata.Valore; 
+
+        await _contesto.SaveChangesAsync();
+
+        DtoCreazioneGiftCard risposta = new DtoCreazioneGiftCard
+        {
+            Nome = trovata.Nome,
+            Valore = trovata.Valore,
+            CodiceRiscatto = trovata.CodiceRiscatto
+        };
+
+        return (true, "Gift card riscattata con successo! Saldo aggiornato.", risposta);
+    }
+
+}
+
+```
+</details>
+
 
 # Helpers 
 

@@ -79,12 +79,21 @@ public class UtenteService
             return (false, "Utente non trovato.");
 
         if (utenteTrovato.SeAbbonato)
-            return (false, "L'utente è già abbonato.");
-
+        {
+            DateTimeOffset dataScadenzaAbbonamento = utenteTrovato.DataInizioAbbonamento.AddMonths(abbonamentoTrovato.Durata);
+            if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
+                return (false, "L'utente è già abbonato.");
+        }
         if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
             return (false, "Credito insufficiente per abbonarsi.");
 
-        utenteTrovato.Saldo -= abbonamentoTrovato.Prezzo;
+        //aggiornamento dei saldi utente e conto cinema
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        var saldi = await Calcoli.CalcolaSaldo(abbonamentoTrovato.Prezzo, utenteTrovato, contoCinema);
+        utenteTrovato.Saldo = saldi[0];
+        contoCinema.Saldo = saldi[1];
+
+        utenteTrovato.TipologiaAbbonamento = abbonamentoTrovato.Nome;
         utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
         utenteTrovato.SeAbbonato = true;
         utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
@@ -107,7 +116,7 @@ public class UtenteService
         if (utenteCorrente.Saldo < dto.Importo)
             return (false, "Saldo insufficiente.");
 
-        utenteCorrente.Saldo -= dto.Importo;
+        
 
         GiftCard nuovaGiftCard = new GiftCard
         {
@@ -119,7 +128,10 @@ public class UtenteService
         };
 
         await _contesto.GiftCards.AddAsync(nuovaGiftCard);
-
+        //modifico il credito dell'utente e del conto cinema
+        var contoCinema=await _contesto.ContoCinema.FirstOrDefaultAsync();
+        contoCinema.Saldo += dto.Importo;
+        utenteCorrente.Saldo -= dto.Importo;
         await _contesto.SaveChangesAsync();
 
         return (true, "Gift card creata correttamente.");
