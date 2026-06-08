@@ -40,9 +40,11 @@ export class CreaCodiceComponent {
       next: () => {
         this.staInviando.set(false);
         this.messaggioSuccesso.set('Gift Card acquistata e codice generato!');
-        this.form.reset({ valore: 10 });
 
         this.ricaricaCompletata.emit();
+        this.form.reset({ valore: 10 });
+
+
       },
       error: (error: unknown) => {
         this.staInviando.set(false);
