@@ -1,13 +1,13 @@
 import { Component, inject, signal, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { CurrencyPipe } from '@angular/common';
 import { GiftCardService } from '../../../services/giftcard.service';
 
 @Component({
   selector: 'crea-codice-form',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe],
+  imports: [ReactiveFormsModule
+  ],
   templateUrl: './crea-codice.component.html',
 })
 export class CreaCodiceComponent {

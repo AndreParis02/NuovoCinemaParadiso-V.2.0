@@ -4,7 +4,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
 import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
-import { UtenteListComponent } from './features/cambio-ruolo/component/utente-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/components/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -97,14 +97,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/operatore/operatore.page').then((m) => m.OperatorePage)
   },
   {
-    path: 'listaUtenti',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/operatore/operatore-lista-utenti.page').then(
-        (m) => m.OperatoreListaUtentiPage,
-      ),
-  },
-  {
     path: 'proiezioni',
     loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
   },
@@ -144,7 +136,7 @@ export const routes: Routes = [
   },
   {
   path: 'cambio-ruolo',
-  loadComponent: () => import('./features/cambio-ruolo/component/cambio-ruolo-form.component')
+  loadComponent: () => import('./features/cambio-ruolo/components/cambio-ruolo-form.component')
       .then(m => m.CambioRuoloFormComponent)
 }
 

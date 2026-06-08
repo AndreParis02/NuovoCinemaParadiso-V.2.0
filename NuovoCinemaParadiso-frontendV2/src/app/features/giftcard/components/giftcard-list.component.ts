@@ -1,6 +1,5 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { DatePipe, CurrencyPipe } from '@angular/common';
-import { RouterModule } from '@angular/router'; // AGGIUNTO
+import { RouterModule } from '@angular/router';
 import { GestioneService } from '../../../services/gestione.service';
 import { GiftCardService } from '../../../services/giftcard.service';
 import { GiftCard } from '../../../models/gestione.model';
@@ -9,7 +8,7 @@ import { AuthService } from '../../../services/auth.service';
 @Component({
   selector: 'giftcard-list',
   standalone: true,
-  imports: [DatePipe, CurrencyPipe, RouterModule], // AGGIUNTO RouterModule
+  imports: [RouterModule], // AGGIUNTO RouterModule
   templateUrl: './giftcard-list.component.html',
 })
 export class GiftCardListComponent implements OnInit {

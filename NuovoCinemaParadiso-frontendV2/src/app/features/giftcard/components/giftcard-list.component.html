@@ -21,7 +21,7 @@
                         </div>
 
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <span class="badge">{{ gc.valore | currency:'EUR' }}</span>
+                            <span class="badge">{{ gc.valore }}</span>
                             
                             @if(authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore'])) {
                                 <a [routerLink]="['/gestione/giftcard/modifica', gc.id]" 

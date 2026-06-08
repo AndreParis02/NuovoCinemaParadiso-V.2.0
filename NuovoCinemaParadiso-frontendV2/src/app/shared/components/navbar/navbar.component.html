@@ -24,9 +24,8 @@
 
             @if(!isGestore() && !isOperatore() && isAutenticato()){
             <div>
-                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
-                <div class="muted small">Saldo: {{utenteCorrente()?.saldo}}</div>
-                <div class="muted small">{{utenteCorrente()?.email}}</div>
+                <strong>{{utenteCorrente()?.nomeCompleto}} </strong>
+                <span class="badge">{{utenteCorrente()?.saldo }}</span>
             </div>
             }
 
