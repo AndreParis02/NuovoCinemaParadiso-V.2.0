@@ -5195,6 +5195,55 @@ export class UtenteService {
     }
 }
 ```
+</details>
+<details>
+<summary>Versione 1.1</summary>
+Francesco lorenzi 05-06-2026
+aggiunta il richiamo della funzione per abbonarsi 
+
+```c#
+import { environment } from '../../environments/environment';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Utente, UtenteCreazione } from '../models/utente.model';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class UtenteService {
+
+    // HttpClient viene iniettato tramite inject() (metodo moderno Angular)
+    private readonly http = inject(HttpClient);
+
+    // Base URL dell'API: punta al controller Auth del backend
+    // /Auth è corretto perché il controller è AuthController
+    private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+    // Recupera il profilo dell'utente loggato
+    // Ritorna un Observable<Utente> che il componente sottoscrive
+    profilo(): Observable<Utente> {
+        return this.http.get<Utente>(`${this.baseUrl}/profilo`);
+    }
+
+    // Modifica i dati dell'utente (nome + età)
+    // Usa PUT perché aggiorna risorse esistenti
+    modifica(payload: UtenteCreazione): Observable<any> {
+        return this.http.put<any>(`${this.baseUrl}/modifica`, payload);
+    }
+
+    // Elimina definitivamente l'account dell'utente
+    // Il backend gestisce la rimozione e la logout viene fatta nel componente
+    eliminaProfilo(): Observable<any> {
+        return this.http.delete<any>(`${this.baseUrl}/elimina`);
+    }
+    //Abbona l'utente della sessione con un determinato abbonamento
+    abbonati( abbonamentoId: string): Observable<any> {
+        return this.http.post<any>(`${environment.apiBaseUrl}/Utente/abbonati`, { IdAbbonamento: abbonamentoId });
+    }
+}
+```
+</details>
 
 ## GUARDS
 

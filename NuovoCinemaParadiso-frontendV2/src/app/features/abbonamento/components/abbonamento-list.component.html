@@ -23,6 +23,9 @@
                         <p>Prezzo: {{ item.prezzo }} €</p>
                         <p>Durata: {{ item.durata }} @if(item.durata == 1) {mese} @else {mesi}</p>
                         <p>Sconto: {{ item.sconto }} €</p>
+                        @if(puoAbbonarsi()) {
+                        <button class="btn btn-primary" type="button" (click)="abbonati(item.id)">Abbonati</button>
+                        }
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
                             <button class="btn btn-secondary" type="button" (click)="abbonamentoScelto.set(item)">Modifica</button>
@@ -41,3 +44,4 @@
         </article>
         }
     </div>
+</section>
