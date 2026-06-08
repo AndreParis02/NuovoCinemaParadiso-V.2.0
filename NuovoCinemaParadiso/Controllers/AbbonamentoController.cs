@@ -48,7 +48,7 @@ public class AbbonamentoController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
+        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {
