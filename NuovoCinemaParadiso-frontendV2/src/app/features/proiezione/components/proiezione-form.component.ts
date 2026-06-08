@@ -1,4 +1,4 @@
-import { Component, inject, signal, input, effect } from '@angular/core';
+import { Component, inject, signal, input, effect, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -30,6 +30,7 @@ export class ProiezioneFormComponent {
     private readonly turnoService = inject(TurnoService);
     private readonly proiezioneService = inject(ProiezioneService);
 
+    readonly modificaCompletata = output<void>();
 
     readonly movies = signal<Movie[]>([]);
     readonly sale = signal<Sala[]>([]);
@@ -127,7 +128,6 @@ export class ProiezioneFormComponent {
 
 
         const request$ = this.modificaId()
-
             ? this.proiezioneService.modifica(this.modificaId(), this.form.getRawValue())
             : this.proiezioneService.crea(this.form.getRawValue());
 
@@ -136,6 +136,9 @@ export class ProiezioneFormComponent {
             next: () => {
                 this.staInviando.set(false);
                 this.messaggioSuccesso.set(this.modificaId() ? 'Proiezione aggiornata.' : 'Proiezione creata.');
+                
+                // Comunica al padre di ricaricare la lista
+                this.modificaCompletata.emit();
                 this.ripristinaForm();
             },
             error: (error: unknown) => {
@@ -152,7 +155,13 @@ export class ProiezioneFormComponent {
         }
         this.modificaId.set(item.id);
 
-        this.form.patchValue({ dataProiezione: item.dataProiezione, movieId: item.titoloMovie, salaId: item.nomeSala, turnoId:item.nomeTurno });
+        this.form.patchValue({ 
+            dataProiezione: item.dataProiezione, 
+            movieId: item.titoloMovie, 
+            salaId: item.nomeSala, 
+            turnoId: item.nomeTurno 
+        });
+        
         this.messaggioErrore.set('');
         this.messaggioSuccesso.set('');
     }

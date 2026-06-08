@@ -43,70 +43,70 @@
       this.ottieniTutto();
     }
 
-   
-    ottieniTutto(): void {
-      this.staCaricando.set(true);
-      this.messaggioErrore.set('');
 
-      this.proiezioneService.ottieniTutto().subscribe({
-        next: (data) => {
-          this.listaProiezioni.set(data);
+  ottieniTutto(): void {
+    this.staCaricando.set(true);
+    this.messaggioErrore.set('');
 
-          const init: Record<string, number> = {};
-          data.forEach(p => {
-            init[p.id] = 1;
-          });
-          this.quantitaSelezionata = init;
-          this.staCaricando.set(false);
-        },
-        error: (err) => {
-          this.staCaricando.set(false);
-          this.messaggioErrore.set(
-            this.estraiMessaggioErrore(err, 'Errore caricamento proiezioni')
-          );
-        }
-      });
-    }
+    this.proiezioneService.ottieniTutto().subscribe({
+      next: (data) => {
+        this.listaProiezioni.set(data);
 
-    
-    acquista(proiezioneId: string) {
+        const init: Record<string, number> = {};
+        data.forEach(p => {
+          init[p.id] = 1;
+        });
+        this.quantitaSelezionata = init;
+        this.staCaricando.set(false);
+      },
+      error: (err) => {
+        this.staCaricando.set(false);
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(err, 'Errore caricamento proiezioni')
+        );
+      }
+    });
+  }
 
-        const numeroBiglietti = this.quantitaSelezionata[proiezioneId] ?? 1;
 
-      this.loadingMap.update(m => ({
-        ...m,
-        [proiezioneId]: true
-      }));
+  acquista(proiezioneId: string) {
 
-      this.messaggioErrore.set('');
-      this.messaggioSuccesso.set('');
+    const numeroBiglietti = this.quantitaSelezionata[proiezioneId] ?? 1;
 
-      this.bigliettoService.crea({
-        proiezioneId,
-        numeroBiglietti
-      }).subscribe({
-        next: () => {
-          this.loadingMap.update(m => ({
-            ...m,
-            [proiezioneId]: false
-          }));
+    this.loadingMap.update(m => ({
+      ...m,
+      [proiezioneId]: true
+    }));
 
-          this.messaggioSuccesso.set('Biglietti acquistati con successo!');
-        },
-        error: (err) => {
-          this.loadingMap.update(m => ({
-            ...m,
-            [proiezioneId]: false
-          }));
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
 
-          this.messaggioErrore.set(
-            this.estraiMessaggioErrore(err, 'Errore creazione biglietto')
-          );
-        }
-      });
-    }
+    this.bigliettoService.crea({
+      proiezioneId,
+      numeroBiglietti
+    }).subscribe({
+      next: () => {
+        this.loadingMap.update(m => ({
+          ...m,
+          [proiezioneId]: false
+        }));
 
-    elimina(item: Proiezione): void {
+        this.messaggioSuccesso.set('Biglietti acquistati con successo!');
+      },
+      error: (err) => {
+        this.loadingMap.update(m => ({
+          ...m,
+          [proiezioneId]: false
+        }));
+
+        this.messaggioErrore.set(
+          this.estraiMessaggioErrore(err, 'Errore creazione biglietto')
+        );
+      }
+    });
+  }
+
+  elimina(item: Proiezione): void {
     if (!this.isOperatore()) {
       return;
     }
@@ -133,11 +133,15 @@
     });
   }
 
-    private estraiMessaggioErrore(error: unknown, fallback: string): string {
-      if (error instanceof HttpErrorResponse) {
-        return error.error?.message ?? error.error?.messaggio ?? fallback;
-      }
-
-      return fallback;
-    }
+  tracciaPerId(_: string, item: Proiezione): string {
+    return item.id;
   }
+
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message ?? error.error?.messaggio ?? fallback;
+    }
+
+    return fallback;
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, inject, signal, input, effect } from '@angular/core';
+import { Component, inject, signal, input, effect, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -25,6 +25,8 @@ export class SalaFormComponent {
     private readonly salaService = inject(SalaService);
     private readonly tipologiaSalaService = inject(TipologiaSalaService);
 
+    readonly modificaCompletata = output<void>();
+    
     readonly salaSelezionata = input<Sala | null>(null);
     readonly tipologie = signal<TipologiaSala[]>([]);
     readonly staCaricando = signal(false);
@@ -94,6 +96,8 @@ export class SalaFormComponent {
             next: () => {
                 this.staInviando.set(false);
                 this.messaggioSuccesso.set(this.modificaId() ? 'Sala aggiornata.' : 'Sala creata.');
+                
+                this.modificaCompletata.emit();
                 this.ripristinaForm();
             },
             error: (error: unknown) => {

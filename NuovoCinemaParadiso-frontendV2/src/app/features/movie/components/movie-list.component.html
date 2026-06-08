@@ -33,9 +33,11 @@
             </div>
             }
         </article>
+        
         @if (visualizzabileDa()) {
         <article class="card">
             <movie-form [movieSelezionato]="filmScelto()" (modificaCompletata)="caricaMovies()"></movie-form>
         </article>
         }
-    </div>
+    </div> 
+</section>
