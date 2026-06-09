@@ -10,7 +10,7 @@ BACKEND
 			public async Task<IActionResult> OttieniMieGiftCard() dovrebbe mostrare solo le giftcard non riscattate
 
 		Operatore
-			public async Task<IActionResult> OttieniTuttiIProfili() non mostra il saldo degli utenti e no dice il ruolo
+			public async Task<IActionResult> OttieniTuttiIProfili() non mostra il saldo degli utenti
 			public async Task<IActionResult> RicercaProfiloTramiteId(string id) non mostra il saldo dell'utente
 		Proiezione
 			public async Task<IActionResult> Modifica(string id, [FromBody] DtoCreazioneProiezione dto) da errore in runtime
