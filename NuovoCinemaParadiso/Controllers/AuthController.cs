@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("profilo")]    
+    [HttpGet("profilo")]
     public async Task<IActionResult> RicercaProfiloLoggato()
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -85,6 +85,25 @@ public class AuthController : ControllerBase
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca profilo loggato", true);
         return Ok(utente);
+    }
+
+    [HttpGet("saldo")]
+    public async Task<IActionResult> OttieniSaldoLoggatoAsync()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(utenteId))
+            return Unauthorized();
+
+        DtoUtente? dtoUtente = await _authService.OttieniTramiteIdAsync(utenteId);
+
+        if (dtoUtente == null)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca saldo del profilo loggato", false);
+            return NotFound(new { messaggio = "Utente non trovato." });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ricerca saldo del profilo loggato", true);
+        return Ok(new { saldo = dtoUtente.Saldo });
     }
 
     [HttpPut("modifica")]

@@ -2,6 +2,7 @@ import { Component, inject, signal, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { GiftCardService } from '../../../services/giftcard.service';
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
 
 @Component({
   selector: 'crea-codice-form',
@@ -13,6 +14,7 @@ import { GiftCardService } from '../../../services/giftcard.service';
 export class CreaCodiceComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly giftCardService = inject(GiftCardService);
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService)
 
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -42,6 +44,7 @@ export class CreaCodiceComponent {
         this.messaggioSuccesso.set('Gift Card acquistata e codice generato!');
 
         this.ricaricaCompletata.emit();
+        this.navbarSharedStateService.forzaAggiornamentoSaldo();
         this.form.reset({ valore: 10 });
 
 

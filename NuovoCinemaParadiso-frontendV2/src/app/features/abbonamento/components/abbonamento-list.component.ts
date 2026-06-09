@@ -1,10 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-
 import { AuthService } from '../../../services/auth.service';
 import { AbbonamentoService } from '../../../services/abbonamento.service';
 import { UtenteService } from '../../../services/utente.service';
-
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
 import { Abbonamento } from '../../../models/abbonamento.model';
 import { AbbonamentoFormComponent } from "./abbonamento-form.component";
 
@@ -21,6 +20,7 @@ export class AbbonamentoListComponent {
   private readonly authService = inject(AuthService);
   private readonly abbonamentoService = inject(AbbonamentoService);
   private readonly utenteService = inject(UtenteService);
+ private readonly navbarSharedStateService = inject(NavbarSharedStateService);
 
   readonly abbonamenti = signal<Abbonamento[]>([]);
   readonly abbonamentoScelto = signal<Abbonamento | null>(null);
@@ -91,6 +91,7 @@ export class AbbonamentoListComponent {
         }
         this.utenteService.abbonati(id).subscribe({
             next: () => {
+                this.navbarSharedStateService.forzaAggiornamentoSaldo();
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {

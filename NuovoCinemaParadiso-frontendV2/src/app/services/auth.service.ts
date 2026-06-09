@@ -9,6 +9,8 @@ import { Registrazione } from '../models/registrazione.model';
 import { SessioneUtente } from '../models/sessione-utente.model';
 import { RuoliUtente } from '../ruoliUtente';
 import { UtenteService } from './utente.service';
+import { NavbarSharedStateService } from './navbar-shared-state--service.service';
+
 @Injectable({
     providedIn: 'root',
 })
@@ -19,6 +21,8 @@ export class AuthService {
     private readonly utenteService = inject(UtenteService);
     private readonly storageKey = 'nuovo_cinema_paradiso_auth';
     private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+    private readonly navbarSharedStateService = inject(NavbarSharedStateService);
+
 
 
     // Stato utente sincronizzato con localStorage
@@ -27,13 +31,14 @@ export class AuthService {
     // ---------------------------
     // LOGIN
     // ---------------------------
-    login(payload: Login): Observable<SessioneUtente> {
-        return this.http
-            .post<SessioneUtente>(`${this.baseUrl}/login`, payload)
-            .pipe(
-                tap(response => this.salvaSessione(response))
-            );
-    }
+    login(payload: any) {
+    this.http.post<SessioneUtente>('.../login', payload).subscribe(response => {
+      this.salvaSessione(response);
+      
+      // ALIMENTIAMO IL CANALE: impostando il signal, scateniamo tutte le reazioni a catena
+      this.utenteCorrente.set(response);
+    });
+  }
 
     // ---------------------------
     // REGISTRAZIONE
