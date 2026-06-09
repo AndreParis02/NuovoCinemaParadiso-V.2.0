@@ -135,7 +135,7 @@ public class SalaService
     {
         Sala? sala = await _contesto.Sale.FindAsync(id);
 
-        if (sala == null)
+        if (sala == null || sala.IsDeleted)
         {
             return false;
         }
