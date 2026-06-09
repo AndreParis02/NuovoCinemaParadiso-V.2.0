@@ -2093,6 +2093,8 @@ public class AbbonamentoController : ControllerBase
 
 ## AbbonamentoController.cs 1.1
 
+<details> <summary>Version 1.1 </summary>
+
 Utente: Alessandro Gregorio
 Data: 9/06/2026
 Descrizione: in OttieniTramiteId() Rimosso passaggio dell'id dell'utente al service per evitare inutili controlli sull'utente
@@ -2262,6 +2264,8 @@ public class AbbonamentoController : ControllerBase
     }
 }
 ```
+
+</details>
 
 ## GestoreController V1.0
 
@@ -7292,6 +7296,8 @@ public class AbbonamentoService
 
 ### AbbonamentoService.cs 1.1
 
+<details> <summary> Versione 1.2 </summary>
+
 Utente: Alessandro Gregorio
 Data: 9/06/2026
 Descrizione: in OttieniTramiteIdAsync() Adesso l'utente può vedere un abbonamento anche se non lo ha
@@ -7431,6 +7437,8 @@ public class AbbonamentoService
 }
 
 ```
+
+</details>
 
 ## AuthService.cs
 
@@ -14830,7 +14838,7 @@ public class UtenteService
 }
 
 ```
-</Details>
+</details>
 
 
 ### UtenteService.cs Versione 1.5
