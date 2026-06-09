@@ -189,6 +189,7 @@ public class ProiezioneController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
+        try{
         bool modificato = await _proiezioneService.ModificaAsync(id, dto);
 
         if (!modificato)
@@ -201,6 +202,13 @@ public class ProiezioneController : ControllerBase
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica proiezione", true);
 
         return Ok(new { messaggio = "Proiezione modificata con successo!" });
+        }
+        catch(NotFoundException ex)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica Proiezione", false);
+            return NotFound(new { messaggio = ex.Message });
+        }
+        
     }
 
     [HttpPut("elimina/{id}")]

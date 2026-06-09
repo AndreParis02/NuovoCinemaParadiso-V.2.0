@@ -247,12 +247,27 @@ public class ProiezioneService
     public async Task<bool> ModificaAsync(string id, DtoCreazioneProiezione dto)
     {
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
-
+        Movie? film = await _contesto.Movies.FindAsync(dto.MovieId);
+        Sala? sala = await _contesto.Sale.FindAsync(dto.SalaId);
+        Turno? turno = await _contesto.Turni.FindAsync(dto.TurnoId);
+        
         if (proiezione == null)
         {
             return false;
         }
-
+        if (film == null)
+        {
+            throw new NotFoundException("Movie", dto.MovieId);
+        }
+        if (sala == null)
+        {
+            throw new NotFoundException("Sala", dto.SalaId);
+        }
+        if (turno == null)
+        {
+            throw new NotFoundException("Turno", dto.TurnoId);
+        }
+        
         proiezione.DataProiezione = dto.DataProiezione;
         proiezione.MovieId = dto.MovieId;
         proiezione.SalaId = dto.SalaId;
