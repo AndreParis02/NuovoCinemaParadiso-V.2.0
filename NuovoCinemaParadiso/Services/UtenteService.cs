@@ -134,7 +134,7 @@ public class UtenteService
         utenteCorrente.Saldo -= dto.Importo;
         await _contesto.SaveChangesAsync();
 
-        return (true, "Gift card creata correttamente.");
+        return (true, $"Gift card creata correttamente: {nuovaGiftCard.CodiceRiscatto}");
     }
 
     public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
