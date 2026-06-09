@@ -29,6 +29,7 @@ public class BigliettoController : ControllerBase
         var (risultato, errore) = await _bigliettoService.CreazioneAsync(dto, utenteId);
 
         if (errore != null) {
+            Console.WriteLine("Errore di creazione biglietto");
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", false);
             if (errore.Contains("non trovat")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
