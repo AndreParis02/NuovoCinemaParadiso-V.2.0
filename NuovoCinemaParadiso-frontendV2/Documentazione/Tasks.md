@@ -114,7 +114,8 @@ Navbar: Fabio (fatto).
 Francesco: Acquisto biglietto in proiezioni(aggiornamento della navbar)
 Greg: Eliminazione del biglietto da dashboard(aggiornamento della navbar)
 Fabio:
-Marco: 
+Marco:
+Andrea Bruno: Proiezione page
 Andrea paris: Documentazione
 ## A fine frontend
 
