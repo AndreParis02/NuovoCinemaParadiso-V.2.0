@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProiezioneList } from './components/proiezione-list.component';
 
 @Component({
-  selector: 'app-proiezione',
-  imports: [],
-  templateUrl: './proiezione-page.html',
-  styleUrl: './proiezione.page.css',
+  selector: 'proiezione-page',
+  standalone: true,
+  imports: [CommonModule, ProiezioneList],
+  templateUrl: './proiezione.page.html'
 })
 export class ProiezionePage {}

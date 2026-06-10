@@ -23,8 +23,6 @@ export class ProiezioneList {
   private readonly bigliettoService = inject(BigliettoService);
   private readonly navbarSharedStateService = inject(NavbarSharedStateService);
 
-
-
   readonly listaProiezioni = signal<Proiezione[]>([]);
   readonly proiezioneScelta = signal<Proiezione | null>(null);
   readonly staCaricando = signal(false);
@@ -45,7 +43,6 @@ export class ProiezioneList {
   constructor() {
     this.ottieniTutto();
   }
-
 
   ottieniTutto(): void {
     this.staCaricando.set(true);
@@ -70,7 +67,6 @@ export class ProiezioneList {
       }
     });
   }
-
 
   acquista(proiezioneId: string) {
    
