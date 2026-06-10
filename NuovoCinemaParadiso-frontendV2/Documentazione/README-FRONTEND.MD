@@ -4747,7 +4747,7 @@ export class BigliettoService {
 
 Francesco Lorenzi 10/06/2026
 
-ho dovuto modificare la richesta di creazione, che accettava solo un file json, suttavia il backend restituiva una stringa messaggio dando così un errore anche se l'azione avveniva correttamente
+ho dovuto modificare la richesta di creazione, che accettava solo un file json come risposta osservabile, tuttavia il backend restituiva una stringa messaggio dando così un errore anche se l'azione avveniva correttamente
 ```ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
