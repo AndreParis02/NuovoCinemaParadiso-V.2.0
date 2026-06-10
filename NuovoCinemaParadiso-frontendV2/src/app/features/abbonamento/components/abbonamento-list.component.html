@@ -20,14 +20,16 @@
                 <div class="list-item">
                     <div>
                         <strong>{{ item.nome }}</strong>
-                        <p>{{ item.prezzo }} €</p>
-                        <p>{{ item.durata }}</p>
-                        <p>{{ item.sconto }} €</p>
-                        <div class="muted">ID: {{ item.id }}</div>
+                        <p>Prezzo: {{ item.prezzo }} €</p>
+                        <p>Durata: {{ item.durata }} @if(item.durata == 1) {mese} @else {mesi}</p>
+                        <p>Sconto: {{ item.sconto }} €</p>
+                        @if(puoAbbonarsi()) {
+                        <button class="btn btn-primary" type="button" (click)="abbonati(item.id)">Abbonati</button>
+                        }
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
-                            <button (click)="abbonamentoScelto.set(item)">Modifica</button>
-                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                            <button class="btn btn-secondary" type="button" (click)="abbonamentoScelto.set(item)">Modifica</button>
+                            <button class="btn btn-secondary" type="button" (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
                         </div>
                         }
                     </div>
@@ -42,3 +44,4 @@
         </article>
         }
     </div>
+</section>

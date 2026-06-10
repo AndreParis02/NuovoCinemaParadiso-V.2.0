@@ -12,17 +12,20 @@
             <article class="card">
                 <h2>{{ modificaId() ? 'Modifica proiezione' : 'Aggiungi proiezione' }}</h2>
                 <h3>{{proiezioneSelezionata()?.titoloMovie}} - {{proiezioneSelezionata()?.dataProiezione}} - {{proiezioneSelezionata()?.nomeTurno }}</h3>
+                
                 <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
                     <div>
                         <label for="dataProiezione">Data Proiezione</label>
                         <input id="dataProiezione" type="date" formControlName="dataProiezione" [disabled]="!modificabileDa()">
+                        
                         <label for="salaId">Sala</label>
-                        <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                        <select id="salaId" formControlName="salaId" [disabled]="!modificabileDa()">
                             <option value="">Seleziona una sala</option>
                             @for (sala of sale(); track tracciaPerId($index.toString(), sala)) {
                             <option [value]="sala.id">{{ sala.nome }}</option>
                             }
                         </select>
+                        
                         <label for="movieId">Film</label>
                         <select id="movieId" formControlName="movieId" [disabled]="!modificabileDa()">
                             <option value="">Seleziona un film</option>
@@ -30,6 +33,7 @@
                             <option [value]="movie.id">{{ movie.titolo }}</option>
                             }
                         </select>
+                        
                         <label for="turnoId">Turno</label>
                         <select id="turnoId" formControlName="turnoId" [disabled]="!modificabileDa()">
                             <option value="">Seleziona un turno</option>

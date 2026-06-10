@@ -1,0 +1,16 @@
+<article>
+    @if (abbonamentoSelezionato()) {
+    <h2>Dettagli Abbonamento</h2>
+    <div>
+        <p><strong>Nome:</strong> {{ abbonamentoSelezionato()!.nome }}</p>
+        <p><strong>sconto:</strong> {{ abbonamentoSelezionato()!.sconto }} €</p>
+        <p><strong>durata:</strong> {{ abbonamentoSelezionato()!.durata }} mesi</p>
+        <p><strong>Prezzo:</strong> {{ abbonamentoSelezionato()!.prezzo }} €</p>  
+    </div>
+    }
+    @if (!abbonamentoSelezionato()){
+        <div>
+            <p> nessun abbonamento.</p>
+        </div>
+    }
+</article>

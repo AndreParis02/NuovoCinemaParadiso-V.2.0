@@ -29,6 +29,7 @@ public class BigliettoController : ControllerBase
         var (risultato, errore) = await _bigliettoService.CreazioneAsync(dto, utenteId);
 
         if (errore != null) {
+            Console.WriteLine("Errore di creazione biglietto");
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione biglietto", false);
             if (errore.Contains("non trovat")) return NotFound(new { messaggio = errore });
             return BadRequest(new { messaggio = errore });
@@ -39,7 +40,6 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);

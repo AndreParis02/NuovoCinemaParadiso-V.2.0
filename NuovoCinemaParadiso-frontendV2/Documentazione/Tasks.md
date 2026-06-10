@@ -107,6 +107,16 @@ UtentePage: Francesco - lista film
 
 Navbar: Fabio (fatto).
 
+
+
+### Tasks 5:
+
+Francesco: Acquisto biglietto in proiezioni(aggiornamento della navbar)
+Greg: Eliminazione del biglietto da dashboard(aggiornamento della navbar)
+Fabio:
+Marco:
+Andrea Bruno: Proiezione page (fatto)
+Andrea paris: Documentazione
 ## A fine frontend
 
 ### in corso

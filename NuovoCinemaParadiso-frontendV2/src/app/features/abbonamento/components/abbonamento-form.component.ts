@@ -1,4 +1,4 @@
-import { Component, inject, signal, input, effect } from '@angular/core';
+import { Component, inject, signal, input, effect, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -22,6 +22,7 @@ export class AbbonamentoFormComponent {
     private readonly authService = inject(AuthService);
     private readonly abbonamentoService = inject(AbbonamentoService);
 
+    readonly modificaCompletata = output<void>();
 
     readonly abbonamentoSelezionato = input<Abbonamento | null>(null);
     readonly staCaricando = signal(false);
@@ -75,6 +76,9 @@ export class AbbonamentoFormComponent {
             next: () => {
                 this.staInviando.set(false);
                 this.messaggioSuccesso.set(this.modificaId() ? 'Abbonamento aggiornato.' : 'Abbonamento creato.');
+                
+                // Comunica al padre di ricaricare la lista
+                this.modificaCompletata.emit();
                 this.ripristinaForm();
             },
             error: (error: unknown) => {

@@ -22,11 +22,10 @@
                         <strong>{{ item.nome }}</strong>
                         <p>Tipologia: {{ item.nomeTipologia }}</p>
                         <p>Capienza: {{ item.capienza }} </p>
-                        <div class="muted">ID: {{ item.id }}</div>
                         @if(visualizzabileDa()) {
                         <div class="btn-row" style="margin-top: 1rem;">
-                            <button (click)="salaScelta.set(item)">Modifica</button>
-                            <button (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
+                            <button class="btn btn-secondary" type="button" (click)="salaScelta.set(item)">Modifica</button>
+                            <button class="btn btn-secondary" type="button" (click)="elimina(item)" [disabled]="staInviando()">Elimina</button>
                         </div>
                     }
                     </div>    

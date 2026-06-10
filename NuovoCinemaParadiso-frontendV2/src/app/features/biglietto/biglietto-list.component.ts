@@ -73,6 +73,7 @@ export class BigliettoListComponent {
         this.messaggioSuccesso.set("Biglietto eliminato con successo");
       },
       error: (error: unknown) => {
+        console.log("Errore di eliminazione");
         this.staInviando.set(false);
         this.messaggioErrore.set(
           this.estraiMessaggioErrore(error, "Errore durante l'eliminazione del biglietto")

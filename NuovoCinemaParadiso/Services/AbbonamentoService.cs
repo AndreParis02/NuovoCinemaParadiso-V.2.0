@@ -38,28 +38,12 @@ public class AbbonamentoService
         return risultato;
     }
 
-    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id, string utenteId)
+    public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id)
     {
         Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(id);
         if (abbonamento == null)
             return null;
-
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-        bool trovato = false;
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            if (utenti[i].Id == utenteId &&
-                utenti[i].AbbonamentoId == abbonamento.Id)
-            {
-                trovato = true;
-                break;
-            }
-        }
-
-        if (!trovato)
-            return null;
-
+            
         return new DtoAbbonamento
         {
             Id = abbonamento.Id,

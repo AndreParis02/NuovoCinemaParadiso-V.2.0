@@ -47,6 +47,7 @@ public class GiftCardService
 
         foreach (var giftCardCorrente in giftCards)
         {
+            if(!giftCardCorrente.Riscattata){
             DtoGiftCard dto = new DtoGiftCard();
             dto.Id = giftCardCorrente.Id;
             dto.Nome = giftCardCorrente.Nome;
@@ -55,6 +56,7 @@ public class GiftCardService
             dto.UtenteId = giftCardCorrente.UtenteId;
 
             risultato.Add(dto);
+            }
         }
 
         return risultato;

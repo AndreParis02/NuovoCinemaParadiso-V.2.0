@@ -9,7 +9,6 @@ namespace NuovoCinemaParadiso.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class AbbonamentoController : ControllerBase
 {
     private readonly AbbonamentoService _abbonamentoService;
@@ -30,8 +29,6 @@ public class AbbonamentoController : ControllerBase
     public async Task<IActionResult> OttieniTuttiGliAbbonamenti()
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (utenteId == null)
-            return Unauthorized("Utente non autenticato.");
 
         List<DtoAbbonamento> abbonamenti = await _abbonamentoService.OttieniTutto();
 
@@ -51,7 +48,7 @@ public class AbbonamentoController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id, utenteId);
+        var risultato = await _abbonamentoService.OttieniTramiteIdAsync(id);
 
         if (risultato == null)
         {

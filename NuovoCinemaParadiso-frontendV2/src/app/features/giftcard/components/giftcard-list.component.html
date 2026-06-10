@@ -1,42 +1,52 @@
 <section class="page">
     <h1 class="page-title">Gestione Gift Card</h1>
-    <p class="page-subtitle">Elenco di tutte le Gift Card attive nel sistema.</p>
+    <p class="page-subtitle">Elenco di tutte le Gift Card attive.</p>
 
-    @if(errorMessage()){
-        <div class="alert alert-warning">{{ errorMessage() }}</div>
-    }
+    @if(errorMessage()){ <div class="alert alert-warning">{{ errorMessage() }}</div> }
 
     @if(isLoading()){
         <p class="muted">Recupero Gift Card dal server in corso...</p>
     } @else {
-        
         <article class="card">
             <h2 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.2rem;">
-                Totale Card Emesse: <span style="color: var(--primary);">{{ giftCards().length }}</span>
+                Totale Card: <span style="color: var(--primary);">{{ giftCards().length }}</span>
             </h2>
 
             <div class="list">
                 @for(gc of giftCards(); track trackById($index, gc)){
                     <div class="list-item">
-                        
                         <div class="user-info">
-                            <strong>{{ gc.nome }}</strong> 
-                            <br>
+                            <strong>{{ gc.nome }}</strong> <br>
                             <span class="muted" style="font-size: 0.85rem;">Codice: {{ gc.codiceRiscatto }}</span>
                         </div>
 
-                        <div>
-                            <span class="badge">{{ gc.valore | currency:'EUR' }}</span>
-                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span class="badge">{{ gc.valore }}</span>
+                            
+                            @if(authService.possiedeQualsiasiRuolo(['Gestore', 'Operatore'])) {
+                                <a [routerLink]="['/gestione/giftcard/modifica', gc.id]" 
+                                   class="btn btn-secondary" 
+                                   style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                   Modifica
+                                </a>
 
+                                <button class="btn btn-danger-solid" 
+                                        style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
+                                        (click)="eliminaGiftCard(gc.id)">
+                                    Elimina
+                                </button>
+                            }
+                        </div>
                     </div>
                 } @empty {
                     <div class="list-item">
-                        <span class="muted">Nessuna Gift Card emessa al momento.</span>
+                        <span class="muted">Nessuna Gift Card trovata.</span>
                     </div>
                 }
             </div>
         </article>
-
     }
+    <article class="card">
+            <crea-codice-form (ricaricaCompletata)="caricaGiftCard()"></crea-codice-form>
+        </article>
 </section>

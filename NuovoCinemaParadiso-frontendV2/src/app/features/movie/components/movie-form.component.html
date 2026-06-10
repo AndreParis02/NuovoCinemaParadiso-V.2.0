@@ -1,49 +1,49 @@
-
 <section>
-        @if (messaggioErrore()) {
-        <div class="alert alert-warning">{{ messaggioErrore() }}</div>
-        }
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
 
-        @if (messaggioSuccesso()) {
-        <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
-        }
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
 
-        <div class="grid grid-2">
-            <article class="card">
-                <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
-                <h3>{{movieSelezionato()?.titolo}} - {{movieSelezionato()?.genere}} - {{movieSelezionato()?.durataMinuti }}min</h3>
-                 
-                <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
-                    <div>
-                        <label for="titolo">Titolo</label>
-                        <input id="titolo" type="text" formControlName="titolo" [disabled]="!modificabileDa()">
-                        <label for="descrizione">Descrizione</label>
-                        <input id="descrizione" type="text" formControlName="descrizione"
-                            [disabled]="!modificabileDa()">
-                        <label for="durataMinuti">Durata (minuti)</label>
-                        <input id="durataMinuti" type="number" formControlName="durataMinuti"
-                            [disabled]="!modificabileDa()">
-                        <label for="prezzoMovie">Prezzo (€)</label>
-                        <input id="prezzoMovie" type="number" formControlName="prezzoMovie"
-                            [disabled]="!modificabileDa()">
-                        <label for="genereId">Genere</label>
-                        <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
-                            <option value="">Seleziona un genere</option>
-                            @for (genere of generi(); track tracciaPerId($index.toString(), genere)) {
-                            <option [value]="genere.id">{{ genere.genere }}</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="btn-row">
-                        <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
-                            {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
-                        </button>
-                        @if (modificaId()) {
-                        <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>{{ modificaId() ? 'Modifica film' : 'Aggiungi film' }}</h2>
+            <h3>{{movieSelezionato()?.titolo}} - {{movieSelezionato()?.genere}} - {{movieSelezionato()?.durataMinuti }}min</h3>
+             
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="titolo">Titolo</label>
+                    <input id="titolo" type="text" formControlName="titolo" [disabled]="!modificabileDa()">
+                    
+                    <label for="descrizione">Descrizione</label>
+                    <input id="descrizione" type="text" formControlName="descrizione" [disabled]="!modificabileDa()">
+                    
+                    <label for="durataMinuti">Durata (minuti)</label>
+                    <input id="durataMinuti" type="number" formControlName="durataMinuti" [disabled]="!modificabileDa()">
+                    
+                    <label for="prezzoMovie">Prezzo (€)</label>
+                    <input id="prezzoMovie" type="number" formControlName="prezzoMovie" [disabled]="!modificabileDa()">
+                    
+                    <label for="genereId">Genere</label>
+                    <select id="genereId" formControlName="genereId" [disabled]="!modificabileDa()">
+                        <option value="">Seleziona un genere</option>
+                        @for (genere of generi(); track tracciaPerId($index.toString(), genere)) {
+                        <option [value]="genere.id">{{ genere.genere }}</option>
                         }
-                    </div>
-                </form>
-            </article>
-        </div> 
+                    </select>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || !modificabileDa()">
+                        {{ staInviando() ? 'Salvataggio...' : (modificaId() ? 'Aggiorna' : 'Crea') }}
+                    </button>
+                    @if (modificaId()) {
+                    <button class="btn btn-secondary" type="button" (click)="ripristinaForm()">Annulla</button>
+                    }
+                </div>
+            </form>
+        </article>
+    </div> 
 </section>

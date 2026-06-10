@@ -4,7 +4,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { GestionePage } from './pages/gestione/gestione.page';
 import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
-import { UtenteListComponent } from './features/cambio-ruolo/utente-list.component';
+import { UtenteListComponent } from './features/cambio-ruolo/components/utente-list.component';
 
 export const routes: Routes = [
   {
@@ -31,11 +31,25 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/component/register.component').then((m) => m.RegisterComponent),
   },
-
   {
     path: 'giftcard-list',
     canActivate: [authGuard, roleGuard], 
     loadComponent: () => import('./features/giftcard/components/giftcard-list.component').then(m => m.GiftCardListComponent)
+  },
+  {
+    path: 'gestione/giftcard/modifica/:id',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/giftcard-form.component').then(m => m.GiftCardFormComponent)
+  }, 
+  {
+    path: 'giftcard-crea-codice',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/crea-codice.component').then(m => m.CreaCodiceComponent)
+  }, 
+  {
+    path: 'giftcard-riscatta-codice',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/riscatta-codice.component').then(m => m.RiscattaCodiceComponent)
   },
   {
     path: 'log-list',
@@ -54,7 +68,7 @@ export const routes: Routes = [
     data: {
       roles: ['Operatore'],
     },
-    loadComponent: () => import('./pages/dashboard/dashboard.page').then((m) => m.DashboardPage),
+    loadComponent: () => import('./features/dashboard/layout/dashboard.layout').then((m) => m.DashboardLayoutComponent),
   },
 
   // Aggiunto per test del componente biglietto-list
@@ -87,17 +101,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/operatore/operatore.page').then((m) => m.OperatorePage)
   },
   {
-    path: 'listaUtenti',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/operatore/operatore-lista-utenti.page').then(
-        (m) => m.OperatoreListaUtentiPage,
-      ),
-  },
-  {
     path: 'proiezioni',
-    canActivate: [authGuard, roleGuard],
-    loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
+    loadComponent: () => import('./features/proiezione/proiezione.page').then((m) => m.ProiezionePage)
   },
   {
     path: 'giftcard',
@@ -126,7 +131,6 @@ export const routes: Routes = [
   },
   {
     path: 'abbonamenti',
-    canActivate: [authGuard],
     loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent),
   },
   {
@@ -134,4 +138,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/turno/components/turno-list.component').then((m) => m.TurnoListComponent),
   },
+  {
+  path: 'cambio-ruolo',
+  loadComponent: () => import('./features/cambio-ruolo/components/cambio-ruolo-form.component')
+      .then(m => m.CambioRuoloFormComponent)
+}
+
 ];

@@ -4,10 +4,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { MovieService } from '../../../services/movie.service';
 
-
 import { Movie } from '../../../models/movie.model';
 import { MovieFormComponent } from "./movie-form.component";
-
 
 @Component({
   selector: 'movie-list',
@@ -15,12 +13,10 @@ import { MovieFormComponent } from "./movie-form.component";
   templateUrl: './movie-list.component.html',
   imports: [MovieFormComponent]
 })
-
 export class MovieListComponent {
 
   private readonly authService = inject(AuthService);
   private readonly movieService = inject(MovieService);
-
 
   readonly movies = signal<Movie[]>([]);
   readonly filmScelto = signal<Movie | null>(null);
@@ -29,23 +25,22 @@ export class MovieListComponent {
   readonly messaggioErrore = signal('');
   readonly messaggioSuccesso = signal('');
 
-
   constructor() {
     this.caricaMovies();
   }
+
   visualizzabileDa(): boolean {
     return this.authService.possiedeQualsiasiRuolo(['Operatore']);
   }
-  caricaMovies(): void {
 
+  caricaMovies(): void {
     this.staCaricando.set(true);
     this.messaggioErrore.set('');
+    
     this.movieService.ottieniTutto().subscribe({
-
       next: (items) => {
         this.movies.set(items);
         this.staCaricando.set(false);
-
       },
       error: (error: unknown) => {
         this.staCaricando.set(false);
@@ -65,16 +60,22 @@ export class MovieListComponent {
 
     this.messaggioErrore.set('');
     this.messaggioSuccesso.set('');
+    this.staInviando.set(true);
 
     this.movieService.elimina(item.id).subscribe({
       next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set('Film eliminato con successo.');
+
         if (this.filmScelto()?.id === item.id) {
           this.filmScelto.set(null);
         }
-        this.caricaMovies();
+
+        // OTTIMIZZAZIONE SEGNALE: Rimuove l'elemento direttamente dallo stato locale
+        this.movies.update(listaAttuale => listaAttuale.filter(m => m.id !== item.id));
       },
       error: (error: unknown) => {
-
+        this.staInviando.set(false);
         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'eliminazione non riuscita.'));
       }
     });
@@ -85,7 +86,6 @@ export class MovieListComponent {
   }
 
   private estraiMessaggioErrore(error: unknown, fallback: string): string {
-
     if (error instanceof HttpErrorResponse) {
       return error.error?.message ?? fallback;
     }
