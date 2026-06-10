@@ -40,7 +40,6 @@ public class BigliettoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Ruoli.Operatore)]
     public async Task<IActionResult> Elimina(string id)
     {
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
