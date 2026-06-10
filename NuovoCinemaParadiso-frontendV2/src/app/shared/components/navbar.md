@@ -1,14 +1,14 @@
-
-## Navbar
+# shared/navbar
+[priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti) 
 
 ### navbar.component.ts
 
+<details>
 Utente: Fabio Tammaro
 Data: 06/06/2026
 Descrizione: modificata la navbar in base alla decisioni prese per l'interfaccia della web app. Aggiunto l'import di effect per avere la lettura del cambiamento di signal<'Utente'>
 
-
-<details><summary> navbar.component.ts V1.0 </summary>
+<summary> V1.0 </summary>
 
 ```ts
 import { Component, computed, inject, signal, effect } from '@angular/core';
@@ -63,7 +63,57 @@ export class NavbarComponent {
 ```
 </details>
 
-<details><summary> navbar.component.html V1.0</summary>
+### Aggiornamento Codice
+
+<details>
+Utente: Fabio Tammaro
+Data: 08/06/2026
+
+<summary> V1.1 </summary>
+
+```ts
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
+
+@Component({
+    selector: 'app-navbar',
+    standalone: true,
+    imports: [RouterLink],
+    templateUrl: './navbar.component.html',
+    styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+    private readonly authService = inject(AuthService);
+    private readonly navbarSharedStateService = inject(NavbarSharedStateService);
+
+    // Mappiamo i segnali dell'AuthService direttamente per l'HTML
+    readonly isAutenticato = this.authService.isAutenticato;
+    readonly isGestore = this.authService.isGestore;
+    readonly isOperatore = this.authService.isOperatore;
+    
+    // Leggiamo passivamente l'utente e calcoliamo il saldo in tempo reale
+    readonly utenteCorrente = this.navbarSharedStateService.utenteLoggato;
+    readonly utenteInSessione = this.authService.utenteCorrente;
+    readonly saldoCondiviso = computed(() => this.utenteCorrente()?.saldo ?? 0);
+
+    logout(): void {
+        this.authService.logout(); 
+        // Non serve chiamare pulisciUtente()! 
+        // L'effect nel servizio noterà che sessioneAttiva è diventata null e pulirà tutto da solo.
+    }
+}
+```
+
+</details>
+
+### navbar.component.html 
+<details>
+Utente: Fabio Tammaro
+Data: 06/06/2026
+
+<summary> V1.0 </summary>
 
 ```html
 <header class="navbar-shell">
@@ -116,3 +166,60 @@ export class NavbarComponent {
 
 ```
 </details>
+
+### Aggiornamento Codice
+
+<details>
+Utente: Fabio Tammaro
+Data: 08/06/2026
+
+<summary> V1.1 </summary>
+
+```html
+<header class="navbar-shell">
+    <div class="container navbar">
+        <nav class="links">
+            <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+            </div>
+            @if(isOperatore()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/movies">Film</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/sale">Sale</a>
+            </div>
+            }
+            @if(!isAutenticato()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+            </div>
+            }
+
+            @if(!isGestore() && !isOperatore() && isAutenticato()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}} </strong>
+                <span class="badge">{{utenteCorrente()?.saldo }}</span>
+            </div>
+            }
+
+            @if(isGestore() || isOperatore()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
+                <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
+            </div>
+            }
+
+            @if(isAutenticato()){
+            <div class="user-box">
+                <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+            </div>
+            }
+        </nav>
+    </div>
+</header>
+```

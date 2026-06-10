@@ -1940,6 +1940,37 @@ Fabio
 }
 ```
 
+### Aggiornamento Codice
+
+<details>
+ 
+Andrea Bruno 10-06-2026
+- Spostamento della lista utenti in operatore perchè abbiamo
+  deciso sia un operazione dell'operatore e non del gestore.
+
+</details><summary> Versione 1.2 </summary>
+
+```html
+<profilo></profilo>
+@if (isUtente()) {
+    <biglietto-list></biglietto-list>
+    <giftcard-list></giftcard-list>
+    }
+    <!-- ricordarsi di aggiungere il dettaglio dell'abbonamento appena possibile -->
+    <h1 class="page-title">Abbonamenti disponibili</h1>
+    <abbonamento-list></abbonamento-list>
+    
+
+@if (isGestore()) {
+    <log-list></log-list>
+    <giftcard-list></giftcard-list>
+}
+
+@if (isOperatore()) {
+    <utenti-list></utenti-list>
+}
+```
+
 # genere-movie
 
 ## components
@@ -4243,6 +4274,67 @@ anche il componente html è copiato, qua non ho modificato niente
 
 # proiezione
 ## page
+
+### proiezione.page.ts
+
+<details>
+ 
+Andrea Bruno 10-06-2026
+- Creazione della pagina ts di proiezione 
+
+</details><summary> Versione 1.0 </summary>
+
+```ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProiezioneList } from './components/proiezione-list.component';
+
+@Component({
+  selector: 'proiezione-page',
+  standalone: true,
+
+  // Import dei moduli necessari per il template della pagina.
+  // CommonModule → abilita *ngIf, *ngFor, pipe comuni, ecc.
+  // ProiezioneList → componente principale che gestisce lista, acquisto e form.
+  imports: [CommonModule, ProiezioneList],
+
+  // Template della pagina (contenitore).  
+  // La logica è delegata ai componenti figli.
+  templateUrl: './proiezione.page.html'
+})
+export class ProiezionePage {
+
+  // Questa pagina non contiene logica: funge solo da "contenitore" per routing e layout.
+  // Tutta la logica di caricamento, modifica, acquisto e gestione è nel componente ProiezioneList.
+  
+}
+```
+
+### proiezione.page.html
+
+<details>
+ 
+Andrea Bruno 10-06-2026
+- Creazione della pagina html di proiezione
+
+</details><summary> Versione 1.0 </summary>   
+
+```html
+<section class="container">
+
+    <!--
+      Il componente principale che gestisce:
+      - caricamento delle proiezioni
+      - acquisto biglietti
+      - eliminazione (se operatore)
+      - form di creazione/modifica (inserito internamente)
+      
+      La page non contiene logica: delega tutto a ProiezioneList che a sua volta contiene il form
+    -->
+    <proiezione-list></proiezione-list>
+</section>
+```
+
 ## components
 ### proiezione-list.component.ts [tutti]
 
@@ -4876,6 +4968,86 @@ Data: 09/06/2026
 
                     <div class="btn-row">
                         <input name ="proiezioneId" type="number" min="1" class="form-control" [(ngModel)]="quantitaSelezionata[item.id]" />
+                        <button class="btn btn-secondary" type="button" (click)="acquista(item.id)">Acquista</button>
+                    </div>
+                    }
+                    @if(isOperatore()){
+                    <div class="btn-row">
+                        <button class="btn btn-secondary" type="button" (click)="elimina(item)"> Elimina</button>
+                    </div>
+                    }
+                </div>
+                }
+            </div>
+            }
+
+        </article>
+        @if (isOperatore()) {
+        <article class="card">
+            <proiezione-form [proiezioneSelezionata]="proiezioneScelta()"
+                (modificaCompletata)="ottieniTutto()"></proiezione-form>
+        </article>
+        }
+
+    </div>
+
+</section>
+```
+</details>
+
+### Aggiornamento Codice
+
+<details>
+<summary> v1.2</summary>
+
+Utente: Francesco
+Data: 10/06/2026
+Descrizione: modificato proiezioneId in NumeroBiglietti
+
+```html
+<section>
+    <h1 class="page-title">Proiezioni</h1>
+    @if(!isOperatore()){
+    <p class="page-subtitle">
+        Visualizza le proiezioni del cinema e acquista i biglietti.
+    </p>
+    }
+    @else{
+    <p class="page-subtitle">
+        Visualizza e gestisci le proiezioni del cinema.
+    </p>
+    }
+
+    @if (messaggioErrore()) {
+    <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+    }
+
+    @if (messaggioSuccesso()) {
+    <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+    }
+
+    <div class="grid grid-2">
+        <article class="card">
+            <h2>Lista Proiezioni</h2>
+
+            @if (staCaricando()) {
+            <p class="muted">Caricamento in corso...</p>
+            } @else if (listaProiezioni().length === 0) {
+            <p class="muted">Nessuna proiezione disponibile.</p>
+            } @else {
+            <div class="list">
+                @for (item of listaProiezioni(); track tracciaPerId($index.toString(),item)) {
+                <div class="list-item">
+                    <div>
+                        <strong>{{ item.titoloMovie }}</strong>
+                        <p>{{ item.dataProiezione | date:'dd/MM/yyyy' }}</p>
+                        <p>Sala: {{ item.nomeSala }}</p>
+                        <p>Turno: {{ item.nomeTurno }}</p>
+                    </div>
+                    @if(!isGestore() && !isOperatore() && isAutenticato()){
+
+                    <div class="btn-row">
+                        <input name ="numeroBiglietti" type="number" min="1" class="form-control" [(ngModel)]="quantitaSelezionata[item.id]" />
                         <button class="btn btn-secondary" type="button" (click)="acquista(item.id)">Acquista</button>
                     </div>
                     }
@@ -6302,229 +6474,5 @@ Descrizione creazione file .html di turno-form
 
 </details>
 
-# shared/navbar
-[priorità] (Fabio: modificare aggiungendo sale per l'operatore, rimuovendo profilo per tutti, crediti) 
 
-### navbar.component.ts
-
-<details>
-Utente: Fabio Tammaro
-Data: 06/06/2026
-Descrizione: modificata la navbar in base alla decisioni prese per l'interfaccia della web app. Aggiunto l'import di effect per avere la lettura del cambiamento di signal<'Utente'>
-
-<summary> V1.0 </summary>
-
-```ts
-import { Component, computed, inject, signal, effect } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from './../../../services/auth.service';
-import { UtenteService } from '../../../services/utente.service';
-import { Utente } from '../../../models/utente.model';
-
-@Component({
-    selector: 'app-navbar',
-    standalone: true,
-    imports: [RouterLink, RouterLinkActive],
-    templateUrl: './navbar.component.html',
-    styleUrl: './navbar.component.css'
-})
-export class NavbarComponent {
-
-    private readonly authService = inject(AuthService);
-    private readonly utenteService = inject(UtenteService);
-
-    readonly utenteCorrente = signal<Utente | null>(null);
-    readonly utenteInSessione = computed(() => this.authService.utenteCorrente());
-
-    readonly isAutenticato = computed(() => this.authService.isAutenticato());
-    readonly isGestore = computed(() => this.authService.isGestore());
-    readonly isOperatore = computed(() => this.authService.isOperatore());
-
-    constructor() {
-        // L'effect reagisce AUTOMATICAMENTE ogni volta che 'isAutenticato' cambia valore
-        effect(() => {
-            if (this.isAutenticato()) {
-                this.caricaUtente(); // Se è loggato, carica i dati aggiornati
-            } else {
-                this.utenteCorrente.set(null); // Se fa logout, azzera i dati
-            }
-        });
-    }
-
-    caricaUtente(): void {
-        this.utenteService.profilo().subscribe({
-            next: (item) => {
-                this.utenteCorrente.set(item);
-            }
-        });
-    }
-
-    logout(): void {
-        this.authService.logout();
-    }
-}
-
-```
-</details>
-
-### Aggiornamento Codice
-
-<details>
-Utente: Fabio Tammaro
-Data: 08/06/2026
-
-<summary> V1.1 </summary>
-
-```ts
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { AuthService } from './../../../services/auth.service';
-import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
-
-@Component({
-    selector: 'app-navbar',
-    standalone: true,
-    imports: [RouterLink],
-    templateUrl: './navbar.component.html',
-    styleUrl: './navbar.component.css'
-})
-export class NavbarComponent {
-    private readonly authService = inject(AuthService);
-    private readonly navbarSharedStateService = inject(NavbarSharedStateService);
-
-    // Mappiamo i segnali dell'AuthService direttamente per l'HTML
-    readonly isAutenticato = this.authService.isAutenticato;
-    readonly isGestore = this.authService.isGestore;
-    readonly isOperatore = this.authService.isOperatore;
-    
-    // Leggiamo passivamente l'utente e calcoliamo il saldo in tempo reale
-    readonly utenteCorrente = this.navbarSharedStateService.utenteLoggato;
-    readonly utenteInSessione = this.authService.utenteCorrente;
-    readonly saldoCondiviso = computed(() => this.utenteCorrente()?.saldo ?? 0);
-
-    logout(): void {
-        this.authService.logout(); 
-        // Non serve chiamare pulisciUtente()! 
-        // L'effect nel servizio noterà che sessioneAttiva è diventata null e pulirà tutto da solo.
-    }
-}
-```
-
-</details>
-
-### navbar.component.html 
-<details>
-Utente: Fabio Tammaro
-Data: 06/06/2026
-
-<summary> V1.0 </summary>
-
-```html
-<header class="navbar-shell">
-    <div class="container navbar">
-        <nav class="links">
-            <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
-            </div>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
-            </div>
-            @if(isOperatore()){
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/movies">Film</a>
-            </div>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/sale">Sale</a>
-            </div>
-            }
-            @if(!isAutenticato()){
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/register">Registrati</a>
-            </div>
-            }
-
-            @if(!isGestore() && !isOperatore() && isAutenticato()){
-            <div>
-                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
-                <div class="muted small">Saldo: {{utenteCorrente()?.saldo}}</div>
-                <div class="muted small">{{utenteCorrente()?.email}}</div>
-            </div>
-            }
-
-            @if(isGestore() || isOperatore()){
-            <div>
-                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
-                <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
-            </div>
-            }
-
-            @if(isAutenticato()){
-            <div class="user-box">
-                <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
-            </div>
-            }
-        </nav>
-    </div>
-</header>
-
-```
-</details>
-
-### Aggiornamento Codice
-
-<details>
-Utente: Fabio Tammaro
-Data: 08/06/2026
-
-<summary> V1.1 </summary>
-
-```html
-<header class="navbar-shell">
-    <div class="container navbar">
-        <nav class="links">
-            <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
-            </div>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
-            </div>
-            @if(isOperatore()){
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/movies">Film</a>
-            </div>
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/sale">Sale</a>
-            </div>
-            }
-            @if(!isAutenticato()){
-            <div class="btn-row">
-                <a class="btn btn-secondary" routerLink="/register">Registrati</a>
-            </div>
-            }
-
-            @if(!isGestore() && !isOperatore() && isAutenticato()){
-            <div>
-                <strong>{{utenteCorrente()?.nomeCompleto}} </strong>
-                <span class="badge">{{utenteCorrente()?.saldo }}</span>
-            </div>
-            }
-
-            @if(isGestore() || isOperatore()){
-            <div>
-                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
-                <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
-            </div>
-            }
-
-            @if(isAutenticato()){
-            <div class="user-box">
-                <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
-            </div>
-            }
-        </nav>
-    </div>
-</header>
-```
 
