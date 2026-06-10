@@ -108,6 +108,47 @@ export class NavbarComponent {
 
 </details>
 
+### Aggiornamento Codice
+
+<details>
+Utente: Fabio Tammaro
+Data: 10/06/2026
+
+<summary> V1.2 </summary>
+
+```ts
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AuthService } from './../../../services/auth.service';
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
+
+@Component({
+    selector: 'app-navbar',
+    standalone: true,
+    imports: [RouterLink],
+    templateUrl: './navbar.component.html',
+    styleUrl: './navbar.component.css'
+})
+export class NavbarComponent {
+    private readonly authService = inject(AuthService);
+    private readonly navbarSharedStateService = inject(NavbarSharedStateService);
+
+    readonly isAutenticato = computed(()=> this.authService.isAutenticato());
+    readonly isGestore = computed(()=> this.authService.isGestore());
+    readonly isOperatore = computed(()=> this.authService.isOperatore());
+    readonly isUtente = computed(()=> this.authService.isUtente());
+    
+    readonly utenteCorrente = this.navbarSharedStateService.utenteLoggato;
+    readonly utenteInSessione = this.authService.utenteCorrente;
+    readonly saldoCondiviso = computed(() => this.utenteCorrente()?.saldo ?? 0);
+
+    logout(): void {
+        this.authService.logout(); 
+      
+    }
+}
+```
+
 ### navbar.component.html 
 <details>
 Utente: Fabio Tammaro
@@ -223,6 +264,63 @@ Data: 08/06/2026
     </div>
 </header>
 ```
+
+### Aggiornamento Codice
+
+<details>
+Utente: Fabio Tammaro
+Data: 10/06/2026
+
+<summary> V1.2 </summary>
+
+```html
+<header class="navbar-shell">
+    <div class="container navbar">
+        <nav class="links">
+            <a routerLink="/dashboard" class="brand">Nuovo cinema Paradiso</a>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/proiezioni">Proiezioni</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/abbonamenti">Abbonamenti</a>
+            </div>
+            @if(isOperatore()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/movies">Film</a>
+            </div>
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/sale">Sale</a>
+            </div>
+            }
+
+            @if(!isAutenticato()){
+            <div class="btn-row">
+                <a class="btn btn-secondary" routerLink="/register">Registrati</a>
+            </div>
+            }
+            @if(isUtente()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}} </strong>
+                <span class="badge">{{utenteCorrente()?.saldo }}</span>
+            </div>
+            }
+            @else if(isGestore() || isOperatore()){
+            <div>
+                <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
+                <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
+            </div>
+            }
+            @if(isAutenticato()){
+            <div class="user-box">
+                <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+            </div>
+            }
+        </nav>
+    </div>
+</header>
+```
+
+</details>
 
 ### navbar.component.css
 

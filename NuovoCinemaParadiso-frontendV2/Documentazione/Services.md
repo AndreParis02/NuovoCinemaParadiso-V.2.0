@@ -675,6 +675,133 @@ export class AuthService {
 }
 ```
 
+</details>
+
+### Aggiornamento Codice
+
+<details>
+<summary>Versione 1.4</summary>
+Fabio 10-06-2026
+Descrizione: aggiunto isUtente
+
+```ts
+import { environment } from '../../environments/environment';
+import { inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { Login } from '../models/login.model';
+import { Registrazione } from '../models/registrazione.model';
+import { SessioneUtente } from '../models/sessione-utente.model';
+import { RuoliUtente } from '../ruoliUtente';
+
+@Injectable({
+    providedIn: 'root',
+})
+export class AuthService {
+
+    private readonly http = inject(HttpClient);
+    private readonly router = inject(Router);
+    private readonly storageKey = 'nuovo_cinema_paradiso_auth';
+    private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+    readonly utenteCorrente = signal<SessioneUtente | null>(this.caricaUtenteDaStorage());
+
+  login(payload: Login): Observable<SessioneUtente> {
+
+    return this.http.post<SessioneUtente>(`${this.baseUrl}/login`, payload).pipe(
+      tap(response => {
+        this.salvaSessione(response);
+        this.utenteCorrente.set(response);
+      })
+    );
+  }
+
+    registrazione(payload: Registrazione): Observable<{ message: string }> {
+        return this.http.post<{ message: string }>(
+            `${this.baseUrl}/registrazione`,
+            payload
+        );
+    }
+
+    logout(): void {
+        localStorage.removeItem(this.storageKey);
+        this.utenteCorrente.set(null);
+        void this.router.navigate(['/login']);
+    }
+
+    isAutenticato(): boolean {
+        return this.utenteCorrente() !== null;
+    }
+
+    isOperatore(): boolean {
+        return this.utenteCorrente()?.ruolo === 'Operatore'
+    }
+
+    isGestore(): boolean {
+        return this.utenteCorrente()?.ruolo === 'Gestore';
+    }
+    
+    isUtente(): boolean{
+     return this.utenteCorrente()?.ruolo === 'Utente';
+    }
+    
+    possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
+        const ruolo = this.ottieniRuoloUtente();
+        return !!ruolo && ruoli.includes(ruolo);
+    }
+
+    ruoloCorrispondente(ruolo: string): boolean {
+        return this.utenteCorrente()?.ruolo === ruolo;
+    }
+
+    ottieniToken(): string | null {
+        return this.utenteCorrente()?.token ?? null;
+    }
+
+    ottieniRuoloUtente(): RuoliUtente | null {
+        const raw = localStorage.getItem(this.storageKey);
+
+        if (!raw) {
+            return null;
+        }
+
+        try {
+            const utente = JSON.parse(raw) as SessioneUtente;
+
+            if (
+                utente.ruolo === 'Operatore' ||
+                utente.ruolo === 'Gestore' ||
+                utente.ruolo === 'Utente'
+            ) {
+                return utente.ruolo;
+            }
+
+            return null;
+        } catch {
+            return null;
+        }
+    }
+
+    private salvaSessione(risposta: SessioneUtente): void {
+        localStorage.setItem(this.storageKey, JSON.stringify(risposta));
+        this.utenteCorrente.set(risposta);
+    }
+
+    private caricaUtenteDaStorage(): SessioneUtente | null {
+        const raw = localStorage.getItem(this.storageKey);
+        if (!raw) return null;
+
+        try {
+            return JSON.parse(raw) as SessioneUtente;
+        } catch {
+            localStorage.removeItem(this.storageKey);
+            return null;
+        }
+    }
+}
+```
 
 
 ## biglietto.service
@@ -1432,6 +1559,69 @@ export class NavbarSharedStateService {
 
   // Azione continua: se l'utente compra un biglietto nel sito, 
   // chiami questo metodo e la navbar si aggiorna da sola in background
+  async forzaAggiornamentoSaldo(): Promise<void> {
+    if (!this.utenteLoggato()) return;
+
+    const res = await firstValueFrom(this.http.get<{ saldo: number }>(`${this.baseUrl}/saldo`));
+    
+    this.utenteLoggato.update(attuale => 
+      attuale ? { ...attuale, saldo: res.saldo } : null
+    );
+  }
+}
+```
+</details>
+
+### Aggiornamento Codice
+
+<details>
+<summary>Versione 1.1</summary>
+Fabio 10-06-2026
+Descrizione: aggiunto import { firstValueFrom } from 'rxjs';
+
+```ts
+import { Injectable, signal, inject, effect } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
+import { Utente } from '../models/utente.model';
+import { firstValueFrom } from 'rxjs'; 
+@Injectable({
+  providedIn: 'root'
+})
+export class NavbarSharedStateService {
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
+
+  readonly utenteLoggato = signal<Utente | null>(null);
+
+  constructor() {
+ 
+    effect(async () => {
+      const sessione = this.authService.utenteCorrente();
+
+      if (sessione) {
+        try {
+          await this.caricaFlussoProfiloESaldo();
+        } catch (err) {
+          console.error("Errore nel canale asincrono della navbar:", err);
+        }
+      } else {
+        this.utenteLoggato.set(null);
+      }
+    });
+  }
+
+  private async caricaFlussoProfiloESaldo(): Promise<void> {
+    const profilo = await firstValueFrom(this.http.get<Utente>(`${this.baseUrl}/profilo`));
+    
+    const resSaldo = await firstValueFrom(this.http.get<{ saldo: number }>(`${this.baseUrl}/saldo`));
+    
+    profilo.saldo = resSaldo.saldo;
+    this.utenteLoggato.set(profilo);
+  }
+
   async forzaAggiornamentoSaldo(): Promise<void> {
     if (!this.utenteLoggato()) return;
 
