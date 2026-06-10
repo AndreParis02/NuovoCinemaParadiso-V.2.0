@@ -10,7 +10,9 @@
 
 @if (isGestore()) {
     <log-list></log-list>
-    <utenti-list></utenti-list>
     <giftcard-list></giftcard-list>
 }
 
+@if (isOperatore()) {
+    <utenti-list></utenti-list>
+}

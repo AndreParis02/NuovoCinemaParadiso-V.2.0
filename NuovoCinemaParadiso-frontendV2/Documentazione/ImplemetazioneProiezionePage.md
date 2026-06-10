@@ -1,4 +1,35 @@
 
+### dashboard.layout.html
+
+<details>
+ 
+Andrea Bruno 10-06-2026
+- Spostamento della lista utenti in operatore perchè abbiamo
+  deciso sia un operazione dell'operatore e non del gestore.
+
+</details><summary> Versione 1.0 </summary>
+
+```html
+<profilo></profilo>
+@if (isUtente()) {
+    <biglietto-list></biglietto-list>
+    <giftcard-list></giftcard-list>
+    }
+    <!-- ricordarsi di aggiungere il dettaglio dell'abbonamento appena possibile -->
+    <h1 class="page-title">Abbonamenti disponibili</h1>
+    <abbonamento-list></abbonamento-list>
+    
+
+@if (isGestore()) {
+    <log-list></log-list>
+    <giftcard-list></giftcard-list>
+}
+
+@if (isOperatore()) {
+    <utenti-list></utenti-list>
+}
+```
+
 ### proiezione.page.ts
 
 <details>
