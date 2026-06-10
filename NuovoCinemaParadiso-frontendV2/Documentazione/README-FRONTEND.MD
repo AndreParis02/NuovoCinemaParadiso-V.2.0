@@ -4743,6 +4743,49 @@ export class BigliettoService {
 ```
 </details>
 
+<details><summary> biglietto.service V1.1 </summary>
+
+Francesco Lorenzi 10/06/2026
+
+ho dovuto modificare la richesta di creazione, che accettava solo un file json, suttavia il backend restituiva una stringa messaggio dando così un errore anche se l'azione avveniva correttamente
+```ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Biglietto, BigliettoCreazione } from '../models/biglietto.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class BigliettoService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiBaseUrl}/biglietto`;
+
+  ottieniTutto(utenteId: string): Observable<Biglietto[]> {
+    return this.http.get<Biglietto[]>(`${this.baseUrl}/utente/${utenteId}`);
+  }
+
+  ottieniTramiteId(id: string, utenteId: string): Observable<Biglietto> {
+    return this.http.get<Biglietto>(`${this.baseUrl}/${id}/utente/${utenteId}`);
+  }
+  //ora l'osservabile è una stringa e non un "any" che accettava qualsiasi tipo di JSON
+  crea(payload: BigliettoCreazione): Observable<string> {
+  return this.http.post(this.baseUrl, payload, { responseType: 'text' });
+  }
+
+  modifica(id: string, payload: BigliettoCreazione): Observable<Biglietto> {
+    return this.http.put<Biglietto>(`${this.baseUrl}/${id}`, payload);
+  }
+
+  elimina(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+}
+
+```
+</details>
+
 ### GestoreService
 <details><summary> gestore.service V1.0 </summary>
 
