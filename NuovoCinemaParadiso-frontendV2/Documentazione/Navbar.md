@@ -223,3 +223,75 @@ Data: 08/06/2026
     </div>
 </header>
 ```
+
+### navbar.component.css
+
+<details>
+<summary>Versione 1.0</summary>
+
+```css
+/* Contenitore principale della navbar */
+.navbar-shell {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.links a {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.links a.active,
+.links a:hover {
+  color: var(--primary);
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.small {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+/* Responsività tablet/mobile*/
+@media (max-width: 900px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+  }
+
+  .user-box {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+```
+</details>
