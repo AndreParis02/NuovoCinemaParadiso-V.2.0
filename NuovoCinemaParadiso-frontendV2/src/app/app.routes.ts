@@ -40,12 +40,16 @@ export const routes: Routes = [
     path: 'gestione/giftcard/modifica/:id',
     canActivate: [authGuard, roleGuard], 
     loadComponent: () => import('./features/giftcard/components/giftcard-form.component').then(m => m.GiftCardFormComponent)
-  },
-  
+  }, 
   {
     path: 'giftcard-crea-codice',
     canActivate: [authGuard, roleGuard], 
     loadComponent: () => import('./features/giftcard/components/crea-codice.component').then(m => m.CreaCodiceComponent)
+  }, 
+  {
+    path: 'giftcard-riscatta-codice',
+    canActivate: [authGuard, roleGuard], 
+    loadComponent: () => import('./features/giftcard/components/riscatta-codice.component').then(m => m.RiscattaCodiceComponent)
   },
   {
     path: 'log-list',

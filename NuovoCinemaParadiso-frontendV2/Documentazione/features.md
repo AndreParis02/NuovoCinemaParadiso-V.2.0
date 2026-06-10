@@ -162,7 +162,135 @@ Data: 04/06/2026
 
 ## giftcard
 ### components
-- riscatta-codice.component.ts (Simeone)
+- riscatta-codice.component.ts (Simeone) Fatto!
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 08/06/2026
+```ts
+import { Component, inject, signal, output } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { GiftCardService } from '../../../services/giftcard.service';
+
+/**
+ * Componente responsabile della gestione del form per il riscatto di una Gift Card.
+ * Permette all'utente di inserire un codice segreto per farsi accreditare i crediti sul conto.
+ */
+@Component({
+  selector: 'riscatta-codice-form',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './riscatta-codice.component.html',
+})
+export class RiscattaCodiceComponent {
+  // Iniezione delle dipendenze per la costruzione del form e le chiamate API
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly giftCardService = inject(GiftCardService);
+
+  // Gestione dello stato reattivo del componente (caricamento e messaggi di feedback)
+  readonly staInviando = signal(false);
+  readonly messaggioErrore = signal('');
+  readonly messaggioSuccesso = signal('');
+
+  // Output utilizzato per notificare al componente padre (es. la Lista) che il riscatto 
+  // è andato a buon fine, permettendo di ricaricare i dati aggiornati
+  readonly riscattoCompletato = output<void>();
+
+  // Definizione del form reattivo: richiede un codice alfanumerico (max 50 caratteri)
+  readonly form = this.formBuilder.nonNullable.group({
+    codiceRiscatto: ['', [Validators.required, Validators.maxLength(50)]]
+  });
+
+  /**
+   * Gestisce l'invio del form.
+   * Valida l'input, invia la richiesta al backend e aggiorna l'interfaccia in base alla risposta.
+   */
+  invia(): void {
+    // Blocco preventivo se il form non rispetta i validatori
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    // Reset degli stati prima di una nuova chiamata
+    this.staInviando.set(true);
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+
+    const codice = this.form.getRawValue().codiceRiscatto;
+
+    // Chiamata HTTP al service
+    this.giftCardService.riscatta(codice).subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.messaggioSuccesso.set('Gift Card riscattata! I crediti sono stati aggiunti ai tuoi crediti.');
+
+        // Emette l'evento di successo e pulisce il campo di testo
+        this.riscattoCompletato.emit();
+        this.form.reset({ codiceRiscatto: '' });
+      },
+      error: (error: unknown) => {
+        this.staInviando.set(false);
+        // Utilizza l'helper per mappare correttamente l'errore restituito dal C#
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Codice non valido o già utilizzato.'));
+      },
+    });
+  }
+
+  /**
+   * Helper per estrarre il messaggio di errore da una risposta HTTP.
+   * Controlla sia la proprietà 'message' standard che la proprietà 'errore' personalizzata del backend.
+   */
+  private estraiMessaggioErrore(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || error.error?.errore || fallback;
+    }
+    return fallback;
+  }
+}
+```
+
+</details>
+
+- riscatta-codice-component.html (Simeone) Fatto!
+
+<details><summary>Versione 1.0</summary>
+
+- Utente: Simeone
+- Data: 08/06/2026
+```html
+<section>
+        <article class="card">
+            <h2 style="margin-top: 0;">Riscatta Gift Card</h2>
+
+            @if (messaggioErrore()) {
+            <div class="alert alert-warning">{{ messaggioErrore() }}</div>
+            }
+
+            @if (messaggioSuccesso()) {
+            <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
+            }
+
+            <form class="form-grid" [formGroup]="form" (ngSubmit)="invia()">
+                <div>
+                    <label for="codiceRiscatto">Codice di Riscatto</label>
+                    <input id="codiceRiscatto" type="text" formControlName="codiceRiscatto" placeholder="Es. 3SL99AO7">
+                </div>
+
+                <div class="btn-row" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" type="submit" [disabled]="staInviando() || form.invalid">
+                        {{ staInviando() ? 'Elaborazione...' : 'Riscatta Codice' }}
+                    </button>
+                </div>
+            </form>
+        </article>
+</section>
+```
+
+</details>
+
 - crea-codice.component.ts (Simeone) Fatto!
 
 <details><summary>Versione 1.0</summary>
