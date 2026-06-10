@@ -102,7 +102,7 @@ export const routes: Routes = [
   },
   {
     path: 'proiezioni',
-    loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
+    loadComponent: () => import('./features/proiezione/proiezione.page').then((m) => m.ProiezionePage)
   },
   {
     path: 'giftcard',
