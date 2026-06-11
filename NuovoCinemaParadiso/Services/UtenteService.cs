@@ -44,6 +44,12 @@ public class UtenteService
                 Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
                     ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
+                var abbonamentoAcquisto = utente?.UtentiAbbonamenti
+                    .Where(ua => ua.DataInizioAbbonamento <= bigliettoCorrente.OrarioCreazione
+                              && ua.DataFine > bigliettoCorrente.OrarioCreazione)
+                    .OrderByDescending(ua => ua.DataInizioAbbonamento)
+                    .FirstOrDefault();
+
                 return new DtoBiglietto
                 {
                     Id = bigliettoCorrente.Id,
@@ -60,8 +66,8 @@ public class UtenteService
                         movie.PrezzoMovie,
                         tipologiaSala.MaggiorazionePrezzo,
                         bigliettoCorrente.NumeroBiglietti,
-                        abbonamentoAttivo?.Abbonamento,
-                        abbonamentoAttivo?.DataInizioAbbonamento)
+                        abbonamentoAcquisto?.Abbonamento,
+                        abbonamentoAcquisto?.DataInizioAbbonamento)
                 };
             }));
 
