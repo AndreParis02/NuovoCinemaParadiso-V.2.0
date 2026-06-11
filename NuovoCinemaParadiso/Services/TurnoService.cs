@@ -16,19 +16,16 @@ namespace NuovoCinemaParadiso.Services
         public async Task<List<DtoTurno>> OttieniTuttoAsync()
         {
             List<Turno> turni = await _contesto.Turni.ToListAsync();
-            List<DtoTurno> risultato = new List<DtoTurno>();
 
-            foreach (var turnoCorrente in turni)
-            {
-                DtoTurno dto = new DtoTurno();
-                dto.Id = turnoCorrente.Id;
-                dto.OraInizio = turnoCorrente.OraInizio;
-                dto.OraFine = turnoCorrente.OraFine;
-                dto.Nome = turnoCorrente.Nome;
-                risultato.Add(dto);
-            }
-
-            return risultato;
+            return turni
+                .Select(turnoCorrente => new DtoTurno
+                {
+                    Id = turnoCorrente.Id,
+                    OraInizio = turnoCorrente.OraInizio,
+                    OraFine = turnoCorrente.OraFine,
+                    Nome = turnoCorrente.Nome
+                })
+                .ToList();
         }
 
         public async Task<DtoTurno?> OttieniTramiteIdAsync(string id)

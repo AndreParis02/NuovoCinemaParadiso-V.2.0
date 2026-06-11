@@ -63,12 +63,8 @@ public class BigliettoService
             ?? throw new Exception("TipologiaSala non trovato");
         var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
             ?? throw new Exception("Turno non trovato");
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
-
-        for (int i = 0; i < biglietti.Count; i++)
-        {
-            Biglietto bigliettoCorrente = biglietti[i];
-            DtoBiglietto dto = new DtoBiglietto
+        return biglietti
+            .Select(bigliettoCorrente => new DtoBiglietto
             {
                 Id = bigliettoCorrente.Id,
                 UtenteId = bigliettoCorrente.UtenteId,
@@ -81,19 +77,23 @@ public class BigliettoService
                 NomeTipologiaSala = tipologiaSala.Nome,
                 OraInizio = turno.OraInizio,
                 DataProiezione = proiezione.DataProiezione,
-            };
-            risultato.Add(dto);
-        }
-        return risultato;
+            })
+            .ToList();
     }
 
     public async Task<(string? successo, string? Errore)> CreazioneAsync(DtoCreazioneBiglietto dto, string utenteId)
     {
         /*controlla che l'utente esista*/
-        var utente = await _contesto.Utenti.FindAsync(utenteId);
+        var utente = await _contesto.Utenti
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Id == utenteId);
         if (utente == null) return (null, "Utente non trovato.");
 
-        utente.Abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
 
         var proiezione = await _contesto.Proiezioni.FindAsync(dto.ProiezioneId);
         if (proiezione == null) return (null, "Proiezione non trovata.");
@@ -115,7 +115,7 @@ public class BigliettoService
         var tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
         if (tipologiaSala == null) return (null, "Tipologia di sala non trovata.");
 
-        int prezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, utente.Abbonamento, utente.DataInizioAbbonamento);
+        int prezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, dto.NumeroBiglietti, abbonamentoAttivo?.Abbonamento, abbonamentoAttivo?.DataInizioAbbonamento);
         if (utente.Saldo < prezzoFinale)
             return (null, "Saldo insufficiente per acquistare i biglietti.");
 

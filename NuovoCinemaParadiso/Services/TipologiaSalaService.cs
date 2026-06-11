@@ -16,20 +16,16 @@ public class TipologiaSalaService
     public async Task<List<DtoTipologiaSala>> OttieniTuttoAsync()
     {
         List<TipologiaSala> tipologieSala = await _contesto.TipologieSala.ToListAsync();
-        
-        List<DtoTipologiaSala> risultati = new List<DtoTipologiaSala>();
 
-        foreach (var tipologiaSala in tipologieSala)
-        {
-            DtoTipologiaSala dto = new DtoTipologiaSala();
-            dto.Id = tipologiaSala.Id;
-            dto.Nome = tipologiaSala.Nome;
-            dto.MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo;
-            dto.IsDeleted = tipologiaSala.isDeleted;
-
-            risultati.Add(dto);
-        }
-        return risultati;
+        return tipologieSala
+            .Select(tipologiaSala => new DtoTipologiaSala
+            {
+                Id = tipologiaSala.Id,
+                Nome = tipologiaSala.Nome,
+                MaggiorazionePrezzo = tipologiaSala.MaggiorazionePrezzo,
+                IsDeleted = tipologiaSala.isDeleted
+            })
+            .ToList();
     }
 
     public async Task<DtoTipologiaSala?> OttieniTramiteIdAsync(string id)

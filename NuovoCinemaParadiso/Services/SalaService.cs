@@ -18,23 +18,21 @@ public class SalaService
     {
         List<Sala> sale = await _contesto.Sale.ToListAsync();
 
-        List<DtoSala> risultato = new List<DtoSala>();
-
-        for (int i = 0; i < sale.Count; i++)
+        var risultato = await Task.WhenAll(sale.Select(async salaCorrente =>
         {
-            Sala salaCorrente = sale[i];
-
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(salaCorrente.TipologiaSalaId);
-            DtoSala dto = new DtoSala();
-            dto.Id = salaCorrente.Id;
-            dto.Nome = salaCorrente.Nome;
-            dto.Capienza = salaCorrente.Capienza;
-            dto.NomeTipologia = tipologiaSala?.Nome ?? "";
-            dto.TipologiaSalaId = tipologiaSala?.Id ?? "";
-            dto.IsDeleted = salaCorrente.IsDeleted;
-            risultato.Add(dto);
-        }
-        return risultato;
+            return new DtoSala
+            {
+                Id = salaCorrente.Id,
+                Nome = salaCorrente.Nome,
+                Capienza = salaCorrente.Capienza,
+                NomeTipologia = tipologiaSala?.Nome ?? "",
+                TipologiaSalaId = tipologiaSala?.Id ?? "",
+                IsDeleted = salaCorrente.IsDeleted
+            };
+        }));
+
+        return risultato.ToList();
     }
     public async Task<DtoSala?> OttieniTramiteIdAsync(string id)
     {
@@ -64,28 +62,24 @@ public class SalaService
     {
         List<Sala> tutteLeSale = await _contesto.Sale.ToListAsync();
 
-        List<DtoSala> risultato = new List<DtoSala>();
-
-        foreach (var sala in tutteLeSale)
-        {
-            if (sala.TipologiaSalaId != tipologiaId)
-                continue;
-
-            TipologiaSala? tipologia = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
-
-            DtoSala dto = new DtoSala
+        var risultato = await Task.WhenAll(tutteLeSale
+            .Where(sala => sala.TipologiaSalaId == tipologiaId)
+            .Select(async sala =>
             {
-                Id = sala.Id,
-                Nome = sala.Nome,
-                Capienza = sala.Capienza,
-                TipologiaSalaId = sala.TipologiaSalaId,
-                NomeTipologia = tipologia?.Nome ?? "",
-                IsDeleted = sala.IsDeleted
-            };
+                TipologiaSala? tipologia = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
 
-            risultato.Add(dto);
-        }
-        return risultato;
+                return new DtoSala
+                {
+                    Id = sala.Id,
+                    Nome = sala.Nome,
+                    Capienza = sala.Capienza,
+                    TipologiaSalaId = sala.TipologiaSalaId,
+                    NomeTipologia = tipologia?.Nome ?? "",
+                    IsDeleted = sala.IsDeleted
+                };
+            }));
+
+        return risultato.ToList();
     }
 
     public async Task<string?> CreazioneAsync(DtoCreazioneSala dto)
