@@ -2,15 +2,17 @@ import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../services/auth.service';
+import { AbbonamentoService } from '../../../services/abbonamento.service';
+import { UtenteService } from '../../../services/utente.service';
 
 import { ProfiloComponent } from '../../profilo/components/profilo.component';
 import { BigliettoListComponent } from '../../biglietto/biglietto-list.component';
 import { GiftCardListComponent } from '../../giftcard/components/giftcard-list.component';
 import { AbbonamentoListComponent } from '../../abbonamento/components/abbonamento-list.component';
-//import { AbbonamentoDetailComponent } from '../../abbonamento/components/abbonamento-detail.component';
 import { LogListComponent } from '../../log/components/log-list.component';
 import { UtenteListComponent } from '../../cambio-ruolo/components/utente-list.component';
 import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.component';
+import { ProiezioneList } from '../../proiezione/components/proiezione-list.component';
 
 @Component({
   selector: 'dashboard-layout',
@@ -21,7 +23,7 @@ import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.compo
     BigliettoListComponent,
     GiftCardListComponent,
     AbbonamentoListComponent,
-    //AbbonamentoDetailComponent, aggiungere il dettaglio dell'abbonamento appena possibile
+    ProiezioneList,
     LogListComponent,
     UtenteListComponent,
     CreaCodiceComponent
@@ -30,7 +32,10 @@ import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.compo
 export class DashboardLayoutComponent {
 
   private readonly authService = inject(AuthService);
+  private readonly abbonamentoService = inject(AbbonamentoService);
+  private readonly utenteService = inject(UtenteService);
 
+  readonly sessioneUtente = this.authService.utenteCorrente;
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -39,14 +44,27 @@ export class DashboardLayoutComponent {
   constructor() {
   }
 
+  ngOnInit(): void {
+  this.utenteService.profilo().subscribe({
+    next: (utenteServer) => {
+      // Sincronizza lo stato basandosi sul backend (se ha un abbonamentoId, è abbonato)
+      const haAbbonamento = !!utenteServer.abbonamentoId;
+      this.abbonamentoService.aggiornaStatoAbbonamento(haAbbonamento, utenteServer.tipoAbbonamento ?? null, utenteServer.dataInizioAbbonamento);
+    }
+  });
+}
+
   isGestore(): boolean {
-    return this.authService.possiedeQualsiasiRuolo(['Gestore']);
+    return this.authService.isGestore();
   }
   isOperatore(): boolean {
-    return this.authService.possiedeQualsiasiRuolo(['Operatore']);
+    return this.authService.isOperatore();
   }
   isUtente(): boolean {
-    return this.authService.possiedeQualsiasiRuolo(['Utente']);
+    return this.authService.isUtente();
+  }
+  seAbbonato(): boolean {
+    return this.sessioneUtente()?.seAbbonato ?? false;
   }
 
   private estraiMessaggioErrore(error: unknown, fallback: string): string {

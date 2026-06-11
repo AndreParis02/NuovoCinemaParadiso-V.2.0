@@ -21,6 +21,7 @@ export class ProfiloComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   readonly utente = signal<Utente | null>(null);
+  readonly sessioneUtente = this.authService.utenteCorrente;
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -34,7 +35,7 @@ export class ProfiloComponent implements OnInit {
   ngOnInit(): void {
     this.caricaUtente();
   }
-  
+
   modificabileDa(): boolean {
     return this.authService.possiedeQualsiasiRuolo(['Operatore']);
   }
@@ -107,6 +108,10 @@ export class ProfiloComponent implements OnInit {
         );
       }
     });
+  }
+
+  seAbbonato(): boolean {
+    return this.sessioneUtente()?.seAbbonato ?? false;
   }
 
   private estraiMessaggioErrore(error: unknown, fallback: string): string {

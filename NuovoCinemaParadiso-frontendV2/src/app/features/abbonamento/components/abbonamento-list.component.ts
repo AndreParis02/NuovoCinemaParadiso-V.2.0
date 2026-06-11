@@ -91,7 +91,16 @@ export class AbbonamentoListComponent {
         }
         this.utenteService.abbonati(id).subscribe({
             next: () => {
-                this.navbarSharedStateService.forzaAggiornamentoSaldo();
+                this.abbonamentoService.ottieniTramiteId(id).subscribe({
+                    next: (abbonamento) => {
+                        this.abbonamentoScelto.set(abbonamento);
+                        this.abbonamentoService.aggiornaStatoAbbonamento(true, abbonamento.nome, new Date().toISOString());
+                    },
+                    error: (error) => {
+                        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Abbonamento sottoscritto ma errore nel recupero dettagli'));
+                    }
+                });
+                this.navbarSharedStateService.forzaAggiornamentoSaldo(); 
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {

@@ -5,6 +5,7 @@ export interface SessioneUtente {
     eta: number;
     email: string;
     ruolo: string;
+    abbonamento: string | null;
     dataInizioAbbonamento: string;
     seAbbonato: boolean;
 }

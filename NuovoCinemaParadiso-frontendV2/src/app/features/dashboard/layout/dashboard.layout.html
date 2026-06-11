@@ -1,18 +1,27 @@
+@if(isGestore() || isOperatore() || isUtente()){
 <profilo></profilo>
+}
+
 @if (isUtente()) {
-    <biglietto-list></biglietto-list>
-    <giftcard-list></giftcard-list>
-    }
-    <!-- ricordarsi di aggiungere il dettaglio dell'abbonamento appena possibile -->
-    <h1 class="page-title">Abbonamenti disponibili</h1>
-    <abbonamento-list></abbonamento-list>
-    
+<biglietto-list></biglietto-list>
+<giftcard-list></giftcard-list>
+}
+
+
 
 @if (isGestore()) {
-    <log-list></log-list>
-    <giftcard-list></giftcard-list>
+<log-list></log-list>
+<giftcard-list></giftcard-list>
 }
 
 @if (isOperatore()) {
-    <utenti-list></utenti-list>
+<utenti-list></utenti-list>
+}
+@if(!isGestore() && !isOperatore()){
+<h1 class="page-title">Film disponibili</h1>
+<proiezione-list></proiezione-list>
+@if(!seAbbonato()){
+<h1 class="page-title">Abbonamenti disponibili</h1>
+<abbonamento-list></abbonamento-list>
+}
 }
