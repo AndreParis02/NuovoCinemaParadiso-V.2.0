@@ -1,3 +1,12 @@
+## OperatoreService.cs V1.4
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Gestito il caso  in OttieniUtentiTramiteAbbonamentoAsync dove l'abbonamento chiesto non viene trovato
+
+
+```c#
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Data;
@@ -234,9 +243,6 @@ public class OperatoreService
         {
             throw new Exception("Impossibile ricaricare la giftcard. Importo non valido.");
         }
-
-        /* L'operatore crea la GiftCard "dal nulla", senza scalare un saldo, 
-        perché si presume che il pagamento sia stato gestito in cassa.*/
         GiftCard nuovaGiftCard = new GiftCard()
         {
             Nome = "GiftCard",
@@ -250,3 +256,5 @@ public class OperatoreService
         return true;
     }
 }
+
+```

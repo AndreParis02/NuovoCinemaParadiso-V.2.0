@@ -1,3 +1,12 @@
+### TipologiaSalaController.cs V 1.1
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Modificato in Creazione l'if che controlla il nome della tipologia sala
+
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -154,3 +163,6 @@ public class TipologiaSalaController : ControllerBase
         return Ok(new { messaggio = "Tipologia sala eliminata con successo!" });
     }
 }
+
+
+```

@@ -1,3 +1,12 @@
+
+### MovieController.cs Versione 1.4
+
+Utente: Marco Strazzeri
+Data: 10/06/2026
+Descrizione: Modificato l'if che controlla se un film è già esistente. Corretto messaggio d'errore nell' eliminazione movie
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -179,3 +188,5 @@ public class MovieController : ControllerBase
         return Ok(new { messaggio = "Film eliminato con successo!" });
     }
 }
+
+```

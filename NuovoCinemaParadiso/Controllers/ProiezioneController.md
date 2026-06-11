@@ -1,3 +1,13 @@
+### ProiezioneController.cs Versione 1.3
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Modificati i metodi di lettura OttieniPerTurno, OttieniPerSala, OttieniPerFilm
+
+
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -232,3 +242,5 @@ public class ProiezioneController : ControllerBase
         return Ok(new { messaggio = "Proiezione eliminata con successo!" });
     }
 }
+
+```

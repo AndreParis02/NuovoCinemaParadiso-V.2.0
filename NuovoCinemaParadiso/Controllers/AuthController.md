@@ -1,3 +1,12 @@
+
+### AuthController.cs Versione 1.2
+
+Utente: Marco Strazzeri
+Data: 10/06/2026
+Descrizione: Modificato il metodo di modifica
+
+```c#
+
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
@@ -115,7 +124,7 @@ public class AuthController : ControllerBase
             return Unauthorized("Utente non autenticato.");
 
         var risultato = await _authService.ModificaAsync(dto, utenteId);
-
+        //controlla se l'operazione di modifica ha avuto successo o meno.
         if (risultato.Succeeded == false)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica utente", false);
@@ -146,3 +155,5 @@ public class AuthController : ControllerBase
         return Ok(new { messaggio = "Utente eliminato con successo." });
     }
 }
+
+```
