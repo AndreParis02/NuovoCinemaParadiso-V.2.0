@@ -21,55 +21,49 @@ public class MovieService
     {
         List<Movie> movies = await _contesto.Movies.ToListAsync();
 
-        List<DtoMovie> risultato = new List<DtoMovie>();
+        var risultato = await Task.WhenAll(movies
+            .Where(movieCorrente => !movieCorrente.IsDeleted)
+            .Select(async movieCorrente =>
+            {
+                GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
 
-        for (int i = 0; i < movies.Count; i++)
-        {
-            Movie movieCorrente = movies[i];
+                return new DtoMovie
+                {
+                    Id = movieCorrente.Id,
+                    Titolo = movieCorrente.Titolo,
+                    Descrizione = movieCorrente.Descrizione,
+                    DurataMinuti = movieCorrente.DurataMinuti,
+                    PrezzoMovie = movieCorrente.PrezzoMovie,
+                    GenereId = movieCorrente.GenereId,
+                    Genere = genereMovie?.Genere ?? ""
+                };
+            }));
 
-            if (movieCorrente.IsDeleted)
-                continue;
-                
-            GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
-
-            DtoMovie dto = new DtoMovie();
-            dto.Id = movieCorrente.Id;
-            dto.Titolo = movieCorrente.Titolo;
-            dto.Descrizione = movieCorrente.Descrizione;
-            dto.DurataMinuti = movieCorrente.DurataMinuti;
-            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
-            dto.GenereId = movieCorrente.GenereId;
-            dto.Genere = genereMovie?.Genere ?? "";
-
-            risultato.Add(dto);
-        }
-        return risultato;
+        return risultato.ToList();
     }
 
         public async Task<List<DtoMovie>> OttieniTuttoStorico()
     {
         List<Movie> movies = await _contesto.Movies.ToListAsync();
 
-        List<DtoMovie> risultato = new List<DtoMovie>();
-
-        for (int i = 0; i < movies.Count; i++)
+        var risultato = await Task.WhenAll(movies.Select(async movieCorrente =>
         {
-            Movie movieCorrente = movies[i];
             GenereMovie? genereMovie = await _contesto.GeneriMovies.FindAsync(movieCorrente.GenereId);
 
-            DtoMovie dto = new DtoMovie();
-            dto.Id = movieCorrente.Id;
-            dto.Titolo = movieCorrente.Titolo;
-            dto.Descrizione = movieCorrente.Descrizione;
-            dto.DurataMinuti = movieCorrente.DurataMinuti;
-            dto.PrezzoMovie = movieCorrente.PrezzoMovie;
-            dto.GenereId = movieCorrente.GenereId;
-            dto.Genere = genereMovie?.Genere ?? "";
-            dto.IsDeleted = movieCorrente.IsDeleted;
+            return new DtoMovie
+            {
+                Id = movieCorrente.Id,
+                Titolo = movieCorrente.Titolo,
+                Descrizione = movieCorrente.Descrizione,
+                DurataMinuti = movieCorrente.DurataMinuti,
+                PrezzoMovie = movieCorrente.PrezzoMovie,
+                GenereId = movieCorrente.GenereId,
+                Genere = genereMovie?.Genere ?? "",
+                IsDeleted = movieCorrente.IsDeleted
+            };
+        }));
 
-            risultato.Add(dto);
-        }
-        return risultato;
+        return risultato.ToList();
     }
 
     public async Task<DtoMovie?> OttieniTramiteIdAsync(string id)
@@ -99,18 +93,11 @@ public class MovieService
 
     public async Task<List<DtoMovie>> OttieniTramiteGenere(string genereId)
     {
-        List<DtoMovie> risultato = new List<DtoMovie>();
-
         List<DtoMovie> movies = await OttieniTutto();
 
-        foreach (var movie in movies)
-        {
-            if (movie.GenereId.Trim() == genereId)
-            {
-                risultato.Add(movie);
-            }
-        }
-        return risultato;
+        return movies
+            .Where(movie => movie.GenereId.Trim() == genereId)
+            .ToList();
     }
 
     public async Task<bool> CreazioneAsync(DtoCreazioneMovie dto)
@@ -176,10 +163,7 @@ public class MovieService
 
         List<Proiezione> Proiezioni = await _contesto.Proiezioni.Where(P => P.MovieId == movie.Id && P.DataProiezione >= DateOnly.FromDateTime(DateTime.Now)).ToListAsync();
 
-        foreach(Proiezione temp in Proiezioni)
-        {
-            temp.Attivo = false;
-        }
+        Proiezioni.ForEach(temp => temp.Attivo = false);
 
         await _contesto.SaveChangesAsync();
 

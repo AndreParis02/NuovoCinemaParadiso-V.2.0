@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NuovoCinemaParadiso.Models;
 using NuovoCinemaParadiso.Dtos;
 using NuovoCinemaParadiso.Helpers;
 using NuovoCinemaParadiso.Data;
 using NuovoCinemaParadiso.Exceptions;
+using Microsoft.EntityFrameworkCore;
 
 namespace NuovoCinemaParadiso.Services;
 
@@ -62,29 +64,20 @@ public class AuthService
 
     public async Task<DtoAuthResponse?> LoginAsync(DtoLogin dto)
     {
-        Utente? utente = await _gestioneUtenti.FindByEmailAsync(dto.Email);
+        Utente? utente = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
         if (utente == null)
         {
             throw new NotFoundException("Utente", dto.Email);
         }
 
-        Abbonamento? abbonamento = null;
-        if (!string.IsNullOrEmpty(utente.AbbonamentoId))
-        {
-            abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        }
-
-        if (utente.SeAbbonato == true && abbonamento != null)
-        {
-            DateTimeOffset? scadenzaAbbonamento = Calcoli.CalcolaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
-            int giorniMancanti = Calcoli.GiorniAllaScadenza(utente.DataInizioAbbonamento, abbonamento.Durata);
-
-            if (giorniMancanti <= 0)
-            {
-                utente.SeAbbonato = false;
-            }
-        }
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
 
         SignInResult result = await _gestioneAccesso.CheckPasswordSignInAsync(utente, dto.Password, false);
 
@@ -97,44 +90,44 @@ public class AuthService
 
         string token = _jwtHelper.GenerateToken(utente, ruoli);
 
-        DtoAuthResponse response = new DtoAuthResponse();
-        response.Token = token;
-        response.Id = utente.Id;
-        response.NomeCompleto = utente.NomeCompleto;
-        response.Email = utente.Email ?? string.Empty;
-        response.Eta = utente.Eta;
-        response.DataInizioAbbonamento = utente.DataInizioAbbonamento;
-        response.SeAbbonato = utente.SeAbbonato;
-        response.Saldo = utente.Saldo;
-
-        if (ruoli.Count > 0)
+        DtoAuthResponse response = new DtoAuthResponse
         {
-            response.Ruolo = ruoli[0];
-        }
-        else
-        {
-            response.Ruolo = "";
-        }
+            Token = token,
+            Id = utente.Id,
+            NomeCompleto = utente.NomeCompleto,
+            Email = utente.Email ?? string.Empty,
+            Eta = utente.Eta,
+            DataInizioAbbonamento = abbonamentoAttivo?.DataInizioAbbonamento,
+            SeAbbonato = abbonamentoAttivo != null,
+            Saldo = utente.Saldo,
+            Ruolo = ruoli.FirstOrDefault() ?? string.Empty
+        };
 
         return response;
     }
 
     public async Task<DtoUtente?> OttieniTramiteIdAsync(string id)
     {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
+        Utente? utente = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Id == id)
             ?? throw new NotFoundException("Utente", id);
 
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
 
         DtoUtente dto = new DtoUtente();
         dto.Id = utente.Id;
         dto.Email = utente.Email ?? string.Empty;
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
-        dto.SeAbbonato = utente.SeAbbonato;
-        dto.AbbonamentoId = utente?.AbbonamentoId ?? string.Empty;
-        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
-        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
+        dto.SeAbbonato = abbonamentoAttivo != null;
+        dto.AbbonamentoId = abbonamentoAttivo?.AbbonamentoId ?? string.Empty;
+        dto.TipoAbbonamento = abbonamentoAttivo?.Abbonamento?.Nome ?? string.Empty;
+        dto.DataInizioAbbonamento = abbonamentoAttivo?.DataInizioAbbonamento;
         dto.Saldo = utente.Saldo;
 
         return dto;

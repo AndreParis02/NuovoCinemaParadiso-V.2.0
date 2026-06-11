@@ -14,22 +14,15 @@ public class GenereMovieService
     }
     public async Task<List<DtoGenereMovie>> OttieniTuttoAsync()
     {
-        List<DtoGenereMovie> risultato = new List<DtoGenereMovie>();
-
         List<GenereMovie> generiMovies = await _contesto.GeneriMovies.ToListAsync();
 
-        for (int i = 0; i < generiMovies.Count; i++)
-        {
-            GenereMovie genereCorrente = generiMovies[i];
-
-            DtoGenereMovie dto = new DtoGenereMovie();
-            dto.Id = genereCorrente.Id;
-            dto.Genere = genereCorrente.Genere;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
+        return generiMovies
+            .Select(genereCorrente => new DtoGenereMovie
+            {
+                Id = genereCorrente.Id,
+                Genere = genereCorrente.Genere
+            })
+            .ToList();
     }
 
     public async Task<DtoGenereMovie?> OttieniTramiteIdAsync(string id)

@@ -104,13 +104,10 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        foreach (var movie in movies)
+        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo)))
         {
-            if (movie.Titolo.Contains(dto.Titolo))
-            {
-              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
-              return BadRequest(new { messaggio = "Film già presente." });
-            }
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+            return BadRequest(new { messaggio = "Film già presente." });
         }
         
         bool risultato = await _movieService.CreazioneAsync(dto);
@@ -135,13 +132,10 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        foreach (var movie in movies)
+        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo) && movie.Id != id))
         {
-            if (movie.Titolo.Contains(dto.Titolo) && movie.Id != id)
-            {
-              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
-              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
-            }
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+            return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
         }
         try
         {

@@ -19,23 +19,17 @@ public class AbbonamentoService
     public async Task<List<DtoAbbonamento>> OttieniTutto()
     {
         List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-        List<DtoAbbonamento> risultato = new List<DtoAbbonamento>();
 
-        for (int i = 0; i < abbonamenti.Count; i++)
-        {
-            Abbonamento a = abbonamenti[i];
-
-            risultato.Add(new DtoAbbonamento
+        return abbonamenti
+            .Select(a => new DtoAbbonamento
             {
                 Id = a.Id,
                 Nome = a.Nome,
                 Durata = a.Durata,
                 Prezzo = a.Prezzo,
                 Sconto = a.Sconto
-            });
-        }
-
-        return risultato;
+            })
+            .ToList();
     }
 
     public async Task<DtoAbbonamento?> OttieniTramiteIdAsync(string id)
@@ -56,14 +50,12 @@ public class AbbonamentoService
 
     public async Task<(bool Successo, string Messaggio)> CreazioneAsync(DtoCreazioneAbbonamento dto)
     {
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        bool nomeGiaUsato = await _contesto.Abbonamenti
+            .AnyAsync(a => a.Nome.ToLower() == dto.Nome.ToLower());
 
-        for (int i = 0; i < abbonamenti.Count; i++)
+        if (nomeGiaUsato)
         {
-            if (abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
-            {
-                return (false, "Esiste già un abbonamento con questo nome.");
-            }
+            return (false, "Esiste già un abbonamento con questo nome.");
         }
 
         Abbonamento nuovo = new Abbonamento
@@ -89,15 +81,12 @@ public class AbbonamentoService
             return (false, "Abbonamento non trovato.");
         }
 
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        bool nomeGiaUsato = await _contesto.Abbonamenti
+            .AnyAsync(a => a.Id != id && a.Nome.ToLower() == dto.Nome.ToLower());
 
-        for (int i = 0; i < abbonamenti.Count; i++)
+        if (nomeGiaUsato)
         {
-            if (abbonamenti[i].Id != id &&
-                abbonamenti[i].Nome.ToLower() == dto.Nome.ToLower())
-            {
-                return (false, "Esiste già un altro abbonamento con questo nome.");
-            }
+            return (false, "Esiste già un altro abbonamento con questo nome.");
         }
 
         abbonamento.Nome = dto.Nome;

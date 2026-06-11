@@ -29,14 +29,9 @@ public class SalaController : ControllerBase
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
         List<DtoSala> sale = await _salaService.OttieniTuttoAsync();
-        List<DtoSala> saleFiltrate = new List<DtoSala>();
-        foreach (DtoSala temp in sale)
-        {
-            if (!temp.IsDeleted)
-            {
-                saleFiltrate.Add(temp);
-            }
-        }
+        List<DtoSala> saleFiltrate = sale
+            .Where(temp => !temp.IsDeleted)
+            .ToList();
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le sale", true);
 
         return Ok(saleFiltrate);

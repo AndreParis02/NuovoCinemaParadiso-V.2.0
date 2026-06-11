@@ -25,18 +25,13 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-        List<DtoTipologiaSala> tipologieSaleTrovate = new List<DtoTipologiaSala>();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-            foreach (DtoTipologiaSala temp in tipologieSala)
-        {
-            if (!temp.IsDeleted)
-            {
-                tipologieSaleTrovate.Add(temp);
-            }
-        }
+        List<DtoTipologiaSala> tipologieSaleTrovate = tipologieSala
+            .Where(temp => !temp.IsDeleted)
+            .ToList();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
         
@@ -87,14 +82,11 @@ public class TipologiaSalaController : ControllerBase
 
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
 
-        foreach (var tipologiaSala in tipologieSala)
+        if (tipologieSala.Any(tipologiaSala => tipologiaSala.Nome.Contains(dto.Nome)))
         {
-            if (tipologiaSala.Nome.Contains(dto.Nome))
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
 
-                return BadRequest(new { messaggio = "Tipologia sala già presente." });
-            }
+            return BadRequest(new { messaggio = "Tipologia sala già presente." });
         }
 
         bool risultato = await _tipologiaSalaService.CreazioneAsync(dto);
