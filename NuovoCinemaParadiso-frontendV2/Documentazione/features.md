@@ -1,6 +1,58 @@
 # abbonamento 
 ## page
-- abbonamento.page.ts
+
+### abbonamento.page.ts
+
+<details>
+ 
+Andrea Paris 11-06-2026
+- Creazione della pagina ts di Abbonamento
+
+</details><summary> Versione 1.0 </summary>   
+
+```ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AbbonamentoListComponent } from './components/abbonamento-list.component';
+import { AbbonamentoFormComponent } from './components/abbonamento-form.component';
+import { AbbonamentoDetailComponent } from "./components/abbonamento-detail.component";
+
+@Component({
+  selector: 'abbonamento-page',
+  standalone: true,
+
+  // Import dei moduli necessari per il template della pagina.
+  // CommonModule → abilita *ngIf, *ngFor, pipe comuni, ecc.
+  // ProiezioneList → componente principale che gestisce lista, acquisto e form.
+  imports: [CommonModule, AbbonamentoListComponent, AbbonamentoFormComponent, AbbonamentoDetailComponent],
+
+  // Template della pagina (contenitore).  
+  // La logica è delegata ai componenti figli.
+  templateUrl: './abbonamento.page.html'
+})
+export class AbbonamentoPage {
+
+  // Questa pagina non contiene logica: funge solo da "contenitore" per routing e layout.
+  // Tutta la logica di caricamento, modifica, acquisto e gestione è nel componente ProiezioneList.
+  
+}
+```
+
+### abbonamento.page.html
+
+<details>
+ 
+Andrea Paris 11-06-2026
+- Creazione della pagina html di Abbonamento
+
+</details><summary> Versione 1.0 </summary>   
+
+```html
+<section class="container">
+    <abbonamento-list></abbonamento-list>
+</section>
+```
+
 ## components
 
 ### abbonamento-list.component.ts [tutti] 

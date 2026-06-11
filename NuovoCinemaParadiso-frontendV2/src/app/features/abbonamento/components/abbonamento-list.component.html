@@ -6,10 +6,12 @@
     <div class="alert alert-success">{{ messaggioSuccesso() }}</div>
     }
 
+    @if (visualizzabileDa() || puoVisualizzareListaAbbonamenti()) {
     <div class="grid grid-2">
         <article class="card">
+            
             <h2>Lista Abbonamenti</h2>
-
+         
             @if (staCaricando()) {
             <p class="muted">Caricamento in corso...</p>
             } @else if (abbonamenti().length === 0) {
@@ -44,4 +46,9 @@
         </article>
         }
     </div>
+    } @else if (puoAbbonarsi()) {
+    <div class="alert alert-info">
+        Hai già un abbonamento attivo, quindi non puoi visualizzare la lista degli abbonamenti disponibili.
+    </div>
+    }
 </section>
