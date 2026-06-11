@@ -11,6 +11,7 @@ import { AbbonamentoListComponent } from '../../abbonamento/components/abbonamen
 import { LogListComponent } from '../../log/components/log-list.component';
 import { UtenteListComponent } from '../../cambio-ruolo/components/utente-list.component';
 import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.component';
+import { RiscattaCodiceComponent } from '../../giftcard/components/riscatta-codice.component';
 
 @Component({
   selector: 'dashboard-layout',
@@ -24,7 +25,8 @@ import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.compo
     //AbbonamentoDetailComponent, aggiungere il dettaglio dell'abbonamento appena possibile
     LogListComponent,
     UtenteListComponent,
-    CreaCodiceComponent
+    CreaCodiceComponent,
+    RiscattaCodiceComponent
 ]
 })
 export class DashboardLayoutComponent {

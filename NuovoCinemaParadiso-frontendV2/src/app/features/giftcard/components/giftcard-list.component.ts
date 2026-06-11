@@ -5,11 +5,12 @@ import { GiftCardService } from '../../../services/giftcard.service';
 import { GiftCard } from '../../../models/gestione.model';
 import { AuthService } from '../../../services/auth.service';
 import { CreaCodiceComponent } from "./crea-codice.component";
+import { RiscattaCodiceComponent } from "./riscatta-codice.component";
 
 @Component({
   selector: 'giftcard-list',
   standalone: true,
-  imports: [RouterModule, CreaCodiceComponent], // AGGIUNTO RouterModule
+  imports: [RouterModule, CreaCodiceComponent, RiscattaCodiceComponent], // AGGIUNTO RouterModule
   templateUrl: './giftcard-list.component.html',
 })
 export class GiftCardListComponent implements OnInit {
