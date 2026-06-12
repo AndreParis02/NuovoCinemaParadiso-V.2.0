@@ -1,3 +1,11 @@
+### GiftCardController.cs Versione 1.1
+
+Utente: Marco Strazzeri
+Data: 10/06/2026
+Descrizione: Modificato il metodo OttieniTramiteId che aveva una riga di logging errata
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -61,6 +69,7 @@ public class GiftCardController : ControllerBase
 
         if (risultato == null)
         {
+            //cambiato da true a false
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId,"Ottieni giftcard tramite id" ,false);
             return NotFound($"GiftCard con id {id} non trovato");
         }
@@ -111,3 +120,5 @@ public class GiftCardController : ControllerBase
         return NoContent();
     }
 }
+
+```

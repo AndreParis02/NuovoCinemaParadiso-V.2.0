@@ -1,3 +1,13 @@
+### ProiezioneController.cs Versione 1.3
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Modificati i metodi di lettura OttieniPerTurno, OttieniPerSala, OttieniPerFilm
+
+
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -156,11 +166,14 @@ public class ProiezioneController : ControllerBase
 
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
-        if (proiezioni.Any(proiezione => proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione))
+        foreach (var proiezione in proiezioni)
         {
-            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
+            {
+                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
-            return BadRequest(new { messaggio = "Proiezione già presente." });
+                return BadRequest(new { messaggio = "Proiezione già presente." });
+            }
         }
         try
         {
@@ -229,3 +242,5 @@ public class ProiezioneController : ControllerBase
         return Ok(new { messaggio = "Proiezione eliminata con successo!" });
     }
 }
+
+```

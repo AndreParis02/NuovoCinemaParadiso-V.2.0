@@ -205,26 +205,26 @@ public class OperatoreService
             .Where(ua => ua.AbbonamentoId == abbonamentoId)
             .ToListAsync();
 
-        var ultimiUtentiAbbonamenti = utentiAbbonamenti
-            .GroupBy(ua => ua.UtenteId)
-            .Select(g => g.OrderByDescending(ua => ua.DataInizioAbbonamento).First());
+        if (utentiAbbonamenti == null || utentiAbbonamenti.Count == 0)
+            throw new NotFoundException("Abbonamento", abbonamentoId);
 
-        return ultimiUtentiAbbonamenti
-            .Where(utenteAbbonamento => utenteAbbonamento.Utente != null)
-            .Select(utenteAbbonamento => new DtoUtente
-            {
-                Id = utenteAbbonamento.Utente!.Id,
-                NomeCompleto = utenteAbbonamento.Utente.NomeCompleto,
-                Email = utenteAbbonamento.Utente.Email ?? string.Empty,
-                Eta = utenteAbbonamento.Utente.Eta,
-                SeAbbonato = utenteAbbonamento.DataFine > DateTimeOffset.UtcNow,
-                AbbonamentoId = utenteAbbonamento.AbbonamentoId,
-                DataInizioAbbonamento = utenteAbbonamento.DataInizioAbbonamento,
-                TipoAbbonamento = utenteAbbonamento.Abbonamento?.Nome ?? string.Empty
-            })
-            .ToList();
+        var risultato = utentiAbbonamenti.Select(utenteAbbonamento => new DtoUtente
+        {
+            Id = utenteAbbonamento.Utente!.Id,
+            NomeCompleto = utenteAbbonamento.Utente.NomeCompleto ?? string.Empty,
+            Email = utenteAbbonamento.Utente.Email ?? string.Empty,
+            Eta = utenteAbbonamento.Utente.Eta,
+            SeAbbonato = utenteAbbonamento.DataFine > DateTimeOffset.UtcNow,
+            AbbonamentoId = utenteAbbonamento.AbbonamentoId,
+            DataInizioAbbonamento = utenteAbbonamento.DataInizioAbbonamento,
+            TipoAbbonamento = utenteAbbonamento.Abbonamento?.Nome ?? string.Empty,
+            Saldo = utenteAbbonamento.Utente.Saldo
+        })
+        .ToList();
+
+        return risultato;
     }
-
+    
     public async Task<bool> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
     {
         if (dto.Importo <= 0)

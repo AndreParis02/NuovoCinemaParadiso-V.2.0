@@ -3,12 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Abbonamento, AbbonamentoCreazione  } from '../models/abbonamento.model';
+import { AuthService } from './auth.service';
 
 
 @Injectable({ providedIn: 'root' })
 export class AbbonamentoService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/abbonamento`;
+
+  private readonly authService = inject(AuthService);
+  private readonly utenteCorrente = this.authService.utenteCorrente;
 
   ottieniTutto(): Observable<Abbonamento[]> {
     return this.http.get<Abbonamento[]>(this.baseUrl);
@@ -29,4 +33,14 @@ export class AbbonamentoService {
   elimina(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+  aggiornaStatoAbbonamento(seAbbonato: boolean, abbonamento: string | null, dataInizio: string): void {
+        const utenteAttuale = this.utenteCorrente();
+        if (utenteAttuale) {
+            const utenteAggiornato = { ...utenteAttuale, seAbbonato, abbonamento, dataInizioAbbonamento: dataInizio };
+
+            this.utenteCorrente.set(utenteAggiornato); // Aggiorna i componenti in tempo reale
+            localStorage.setItem('user_session', JSON.stringify(utenteAggiornato)); // Salva per il futuro ricaricamento
+        }
+    }
 }
