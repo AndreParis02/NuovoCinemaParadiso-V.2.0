@@ -16,26 +16,24 @@
                 <a class="btn btn-secondary" routerLink="/sale">Sale</a>
             </div>
             }
+
             @if(!isAutenticato()){
             <div class="btn-row">
                 <a class="btn btn-secondary" routerLink="/register">Registrati</a>
             </div>
             }
-
-            @if(!isGestore() && !isOperatore() && isAutenticato()){
+            @if(isUtente()){
             <div>
                 <strong>{{utenteCorrente()?.nomeCompleto}} </strong>
                 <span class="badge">{{utenteCorrente()?.saldo }}</span>
             </div>
             }
-
-            @if(isGestore() || isOperatore()){
+            @else if(isGestore() || isOperatore()){
             <div>
                 <strong>{{utenteCorrente()?.nomeCompleto}}</strong>
                 <div class="muted small">{{utenteInSessione()?.ruolo}}</div>
             </div>
             }
-
             @if(isAutenticato()){
             <div class="user-box">
                 <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>

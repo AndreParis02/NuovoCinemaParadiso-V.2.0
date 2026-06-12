@@ -40,7 +40,7 @@
                     @if(!isGestore() && !isOperatore() && isAutenticato()){
 
                     <div class="btn-row">
-                        <input name ="proiezioneId" type="number" min="1" class="form-control" [(ngModel)]="quantitaSelezionata[item.id]" />
+                        <input name ="numeroBiglietti" type="number" min="1" class="form-control" [(ngModel)]="quantitaSelezionata[item.id]" />
                         <button class="btn btn-secondary" type="button" (click)="acquista(item.id)">Acquista</button>
                     </div>
                     }

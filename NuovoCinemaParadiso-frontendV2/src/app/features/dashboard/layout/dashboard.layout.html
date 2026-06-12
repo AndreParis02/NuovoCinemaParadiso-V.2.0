@@ -2,6 +2,7 @@
 @if (isUtente()) {
     <biglietto-list></biglietto-list>
     <giftcard-list></giftcard-list>
+    <riscatta-codice-form></riscatta-codice-form>
     }
     <!-- ricordarsi di aggiungere il dettaglio dell'abbonamento appena possibile -->
     <h1 class="page-title">Abbonamenti disponibili</h1>
@@ -10,7 +11,9 @@
 
 @if (isGestore()) {
     <log-list></log-list>
-    <utenti-list></utenti-list>
     <giftcard-list></giftcard-list>
 }
 
+@if (isOperatore()) {
+    <utenti-list></utenti-list>
+}

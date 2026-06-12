@@ -104,7 +104,7 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        foreach (var movie in movies)
+        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo)))
         {
             //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
             if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase))
@@ -136,7 +136,7 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        foreach (var movie in movies)
+        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo) && movie.Id != id))
         {
             //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
             if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase) && movie.Id != id)

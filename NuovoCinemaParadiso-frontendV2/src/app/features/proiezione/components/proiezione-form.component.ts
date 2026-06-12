@@ -13,7 +13,6 @@ import { Turno } from '../../../models/turno.model';
 import { Proiezione } from '../../../models/proiezione.model';
 
 
-
 @Component({
     selector: 'proiezione-form',
     standalone: true,

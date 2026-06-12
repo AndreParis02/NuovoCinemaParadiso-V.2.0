@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { roleGuard } from './core/guards/role.guard';
-import { GestionePage } from './pages/gestione/gestione.page';
 import { BigliettoListComponent } from './features/biglietto/biglietto-list.component';
 import { UtenteListComponent } from './features/cambio-ruolo/components/utente-list.component';
 
@@ -58,11 +57,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/log/components/log-list.component').then(m => m.LogListComponent)
   },
   {
-    path: 'profilo',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/utente/utente.page').then((m) => m.UtentePage),
-  },
-  {
     path: 'dashboard',
     canActivate: [authGuard],
     data: {
@@ -83,31 +77,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'gestione',
-    component: GestionePage, // <-- Usiamo component invece di loadComponent
-    canActivate: [roleGuard], // <-- Solo roleGuard
-    data: { roles: ['Gestore'] }, // <-- Ruolo richiesto
-  },
-  {
     path: 'abbonamento',
     canActivate: [authGuard],
     loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent)
-  },
-
-  {
-    path: 'operatore/cambio-ruolo',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['operatore'] },
-    loadComponent: () => import('./pages/operatore/operatore.page').then((m) => m.OperatorePage)
-  },
-  {
-    path: 'proiezioni',
-    loadComponent: () => import('./features/proiezione/components/proiezione-list.component').then((m) => m.ProiezioneList)
-  },
-  {
-    path: 'giftcard',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/giftcard/giftcard.page').then((m) => m.GiftcardPage)
   },
   {
     path: 'genere-movie',
@@ -131,12 +103,17 @@ export const routes: Routes = [
   },
   {
     path: 'abbonamenti',
-    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent),
+    loadComponent: () => import('./features/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage),
   },
   {
     path: 'turni',
     canActivate: [authGuard],
     loadComponent: () => import('./features/turno/components/turno-list.component').then((m) => m.TurnoListComponent),
+  },
+   {
+    path: 'proiezioni',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/proiezione/proiezione.page').then((m) => m.ProiezionePage),
   },
   {
   path: 'cambio-ruolo',

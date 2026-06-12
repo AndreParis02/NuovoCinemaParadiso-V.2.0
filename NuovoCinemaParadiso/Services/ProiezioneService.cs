@@ -21,14 +21,11 @@ public class ProiezioneService
     public async Task<List<DtoProiezione>> OttieniTuttoAsync()
     {
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
-        List<DtoProiezione> risultato = new List<DtoProiezione>();
 
-        for (int i = 0; i < proiezioni.Count; i++)
-        {
-            Proiezione proiezioneCorrente = proiezioni[i];
-            if (proiezioneCorrente.Attivo)
+        var risultato = await Task.WhenAll(proiezioni
+            .Where(proiezioneCorrente => proiezioneCorrente.Attivo)
+            .Select(async proiezioneCorrente =>
             {
-
                 Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
                     ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
                 Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
@@ -36,31 +33,29 @@ public class ProiezioneService
                 Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
                     ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
 
-                DtoProiezione dto = new DtoProiezione();
-                dto.Id = proiezioneCorrente.Id;
-                dto.DataProiezione = proiezioneCorrente.DataProiezione;
-                dto.MovieId = proiezioneCorrente.MovieId;
-                dto.TitoloMovie = movie.Titolo;
-                dto.SalaId = proiezioneCorrente.SalaId;
-                dto.NomeSala = sala.Nome;
-                dto.TurnoId = proiezioneCorrente.TurnoId;
-                dto.NomeTurno = turno.Nome;
-                dto.Attivo = proiezioneCorrente.Attivo;
-                risultato.Add(dto);
-            }
-        }
-        return risultato;
+                return new DtoProiezione
+                {
+                    Id = proiezioneCorrente.Id,
+                    DataProiezione = proiezioneCorrente.DataProiezione,
+                    MovieId = proiezioneCorrente.MovieId,
+                    TitoloMovie = movie.Titolo,
+                    SalaId = proiezioneCorrente.SalaId,
+                    NomeSala = sala.Nome,
+                    TurnoId = proiezioneCorrente.TurnoId,
+                    NomeTurno = turno.Nome,
+                    Attivo = proiezioneCorrente.Attivo
+                };
+            }));
+
+        return risultato.ToList();
     }
 
     public async Task<List<DtoProiezione>> OttieniStoricoAsync()
     {
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
-        List<DtoProiezione> risultato = new List<DtoProiezione>();
 
-        for (int i = 0; i < proiezioni.Count; i++)
+        var risultato = await Task.WhenAll(proiezioni.Select(async proiezioneCorrente =>
         {
-            Proiezione proiezioneCorrente = proiezioni[i];
-
             Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
                    ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
@@ -68,19 +63,21 @@ public class ProiezioneService
             Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
                 ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
 
-            DtoProiezione dto = new DtoProiezione();
-            dto.Id = proiezioneCorrente.Id;
-            dto.DataProiezione = proiezioneCorrente.DataProiezione;
-            dto.MovieId = proiezioneCorrente.MovieId;
-            dto.TitoloMovie = movie.Titolo;
-            dto.SalaId = proiezioneCorrente.SalaId;
-            dto.NomeSala = sala.Nome;
-            dto.TurnoId = proiezioneCorrente.TurnoId;
-            dto.NomeTurno = turno.Nome;
-            dto.Attivo = proiezioneCorrente.Attivo;
-            risultato.Add(dto);
-        }
-        return risultato;
+            return new DtoProiezione
+            {
+                Id = proiezioneCorrente.Id,
+                DataProiezione = proiezioneCorrente.DataProiezione,
+                MovieId = proiezioneCorrente.MovieId,
+                TitoloMovie = movie.Titolo,
+                SalaId = proiezioneCorrente.SalaId,
+                NomeSala = sala.Nome,
+                TurnoId = proiezioneCorrente.TurnoId,
+                NomeTurno = turno.Nome,
+                Attivo = proiezioneCorrente.Attivo
+            };
+        }));
+
+        return risultato.ToList();
     }
 
     public async Task<DtoProiezione?> OttieniTramiteIdAsync(string id)
@@ -115,100 +112,98 @@ public class ProiezioneService
 
     public async Task<List<DtoProiezione>> OttieniTramiteMovieAsync(string movieId)
     {
-        List<DtoProiezione> risultato = new List<DtoProiezione>();
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
 
-        for (int i = 0; i < proiezioni.Count; i++)
-        {
-            Proiezione proiezioneCorrente = proiezioni[i];
-            Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
-                   ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
-            Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
-                ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
-            Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
-                ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
-            if (proiezioneCorrente.MovieId == movieId)
+        var risultato = await Task.WhenAll(proiezioni
+            .Where(proiezioneCorrente => proiezioneCorrente.MovieId == movieId)
+            .Select(async proiezioneCorrente =>
             {
-                DtoProiezione dto = new DtoProiezione();
-                dto.Id = proiezioneCorrente.Id;
-                dto.DataProiezione = proiezioneCorrente.DataProiezione;
-                dto.MovieId = proiezioneCorrente.MovieId;
-                dto.TitoloMovie = movie.Titolo;
-                dto.SalaId = proiezioneCorrente.SalaId;
-                dto.NomeSala = sala.Nome;
-                dto.TurnoId = proiezioneCorrente.TurnoId;
-                dto.NomeTurno = turno.Nome;
-                dto.Attivo = proiezioneCorrente.Attivo;
-                risultato.Add(dto);
-            }
+                Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
+                       ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
+                    ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
 
+                return new DtoProiezione
+                {
+                    Id = proiezioneCorrente.Id,
+                    DataProiezione = proiezioneCorrente.DataProiezione,
+                    MovieId = proiezioneCorrente.MovieId,
+                    TitoloMovie = movie.Titolo,
+                    SalaId = proiezioneCorrente.SalaId,
+                    NomeSala = sala.Nome,
+                    TurnoId = proiezioneCorrente.TurnoId,
+                    NomeTurno = turno.Nome,
+                    Attivo = proiezioneCorrente.Attivo
+                };
+            }));
 
-        }
-        return risultato;
+        return risultato.ToList();
     }
 
     public async Task<List<DtoProiezione>> OttieniTramiteSalaAsync(string salaId)
     {
-        List<DtoProiezione> risultato = new List<DtoProiezione>();
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
 
-        for (int i = 0; i < proiezioni.Count; i++)
-        {
-            Proiezione proiezioneCorrente = proiezioni[i];
-            Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
-                   ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
-            Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
-                ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
-            Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
-                ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
-            if (proiezioneCorrente.SalaId == salaId)
+        var risultato = await Task.WhenAll(proiezioni
+            .Where(proiezioneCorrente => proiezioneCorrente.SalaId == salaId)
+            .Select(async proiezioneCorrente =>
             {
-                DtoProiezione dto = new DtoProiezione();
-                dto.Id = proiezioneCorrente.Id;
-                dto.DataProiezione = proiezioneCorrente.DataProiezione;
-                dto.MovieId = proiezioneCorrente.MovieId;
-                dto.TitoloMovie = movie.Titolo;
-                dto.SalaId = proiezioneCorrente.SalaId;
-                dto.NomeSala = sala.Nome;
-                dto.TurnoId = proiezioneCorrente.TurnoId;
-                dto.NomeTurno = turno.Nome;
-                dto.Attivo = proiezioneCorrente.Attivo;
-                risultato.Add(dto);
-            }
-        }
-        return risultato;
+                Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
+                       ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
+                    ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
+
+                return new DtoProiezione
+                {
+                    Id = proiezioneCorrente.Id,
+                    DataProiezione = proiezioneCorrente.DataProiezione,
+                    MovieId = proiezioneCorrente.MovieId,
+                    TitoloMovie = movie.Titolo,
+                    SalaId = proiezioneCorrente.SalaId,
+                    NomeSala = sala.Nome,
+                    TurnoId = proiezioneCorrente.TurnoId,
+                    NomeTurno = turno.Nome,
+                    Attivo = proiezioneCorrente.Attivo
+                };
+            }));
+
+        return risultato.ToList();
     }
 
     public async Task<List<DtoProiezione>> OttieniTramiteTurnoAsync(string turnoId)
     {
-        List<DtoProiezione> risultato = new List<DtoProiezione>();
         List<Proiezione> proiezioni = await _contesto.Proiezioni.ToListAsync();
 
-        for (int i = 0; i < proiezioni.Count; i++)
-        {
-            Proiezione proiezioneCorrente = proiezioni[i];
-            Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
-                   ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
-            Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
-                ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
-            Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
-                ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
-            if (proiezioneCorrente.TurnoId == turnoId)
+        var risultato = await Task.WhenAll(proiezioni
+            .Where(proiezioneCorrente => proiezioneCorrente.TurnoId == turnoId)
+            .Select(async proiezioneCorrente =>
             {
-                DtoProiezione dto = new DtoProiezione();
-                dto.Id = proiezioneCorrente.Id;
-                dto.DataProiezione = proiezioneCorrente.DataProiezione;
-                dto.MovieId = proiezioneCorrente.MovieId;
-                dto.TitoloMovie = movie.Titolo;
-                dto.SalaId = proiezioneCorrente.SalaId;
-                dto.NomeSala = sala.Nome;
-                dto.TurnoId = proiezioneCorrente.TurnoId;
-                dto.NomeTurno = turno.Nome;
-                dto.Attivo = proiezioneCorrente.Attivo;
-                risultato.Add(dto);
-            }
-        }
-        return risultato;
+                Movie? movie = await _contesto.Movies.FindAsync(proiezioneCorrente.MovieId)
+                       ?? throw new NotFoundException("Movie", proiezioneCorrente.MovieId);
+                Sala? sala = await _contesto.Sale.FindAsync(proiezioneCorrente.SalaId)
+                    ?? throw new NotFoundException("Sala", proiezioneCorrente.SalaId);
+                Turno? turno = await _contesto.Turni.FindAsync(proiezioneCorrente.TurnoId)
+                    ?? throw new NotFoundException("Turno", proiezioneCorrente.TurnoId);
+
+                return new DtoProiezione
+                {
+                    Id = proiezioneCorrente.Id,
+                    DataProiezione = proiezioneCorrente.DataProiezione,
+                    MovieId = proiezioneCorrente.MovieId,
+                    TitoloMovie = movie.Titolo,
+                    SalaId = proiezioneCorrente.SalaId,
+                    NomeSala = sala.Nome,
+                    TurnoId = proiezioneCorrente.TurnoId,
+                    NomeTurno = turno.Nome,
+                    Attivo = proiezioneCorrente.Attivo
+                };
+            }));
+
+        return risultato.ToList();
 
     }
 
@@ -283,10 +278,7 @@ public class ProiezioneService
         Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(id);
         List<DtoBiglietto> biglietti = await _bigliettoService.OttieniTramiteProiezioneAsync(id);
 
-        foreach (DtoBiglietto biglietto in biglietti)
-        {
-            await _bigliettoService.EliminazioneAsync(biglietto.Id);
-        }
+        await Task.WhenAll(biglietti.Select(biglietto => _bigliettoService.EliminazioneAsync(biglietto.Id)));
 
         if (proiezione == null)
         {

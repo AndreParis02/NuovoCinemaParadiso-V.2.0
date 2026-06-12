@@ -37,7 +37,6 @@
 
                         <div class="muted">ID: {{ b.id }}</div>
                         <div class="btn-row">
-                            <button class="btn btn-primary" (click)="modifica(b.id)">Modifica</button>
                             <button class="btn btn-danger" (click)="elimina(b.id)"
                                 [disabled]="staInviando()">Elimina</button>
                         </div>

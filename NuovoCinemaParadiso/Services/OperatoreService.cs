@@ -30,52 +30,57 @@ public class OperatoreService
 
     public async Task<List<DtoUtente>> OttieniUtentiAsync()
     {
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
+        List<Utente> utenti = await _contesto.Utenti
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .ToListAsync();
 
-        List<DtoUtente> risultato = new List<DtoUtente>();
+        return utenti
+            .Select(utenteCorrente =>
+            {
+                var abbonamentoAttivo = utenteCorrente.UtentiAbbonamenti
+                    .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+                    .OrderByDescending(ua => ua.DataInizioAbbonamento)
+                    .FirstOrDefault();
 
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            Utente utenteCorrente = utenti[i];
-
-            Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
-
-            DtoUtente dto = new DtoUtente();
-            dto.Id = utenteCorrente.Id;
-            dto.Email = utenteCorrente.Email ?? string.Empty;
-            dto.NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty;
-            dto.Eta = utenteCorrente.Eta;
-            dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
-            dto.SeAbbonato = utenteCorrente.SeAbbonato;
-            dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
-            dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
-            dto.Saldo = utenteCorrente.Saldo;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
+                return new DtoUtente
+                {
+                    Id = utenteCorrente.Id,
+                    Email = utenteCorrente.Email ?? string.Empty,
+                    NomeCompleto = utenteCorrente.NomeCompleto ?? string.Empty,
+                    Eta = utenteCorrente.Eta,
+                    AbbonamentoId = abbonamentoAttivo?.AbbonamentoId ?? string.Empty,
+                    SeAbbonato = abbonamentoAttivo != null,
+                    DataInizioAbbonamento = abbonamentoAttivo?.DataInizioAbbonamento,
+                    TipoAbbonamento = abbonamentoAttivo?.Abbonamento?.Nome ?? string.Empty,
+                    Saldo = utenteCorrente.Saldo
+                };
+            })
+            .ToList();
     }
 
     public async Task<DtoUtente?> OttieniUtenteTramiteIdAsync(string id)
     {
-        Utente? utente = await _gestioneUtenti.FindByIdAsync(id)
+        Utente? utente = await _contesto.Utenti
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Id == id)
             ?? throw new NotFoundException("Utente", id);
-        Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utente.AbbonamentoId);
-        if (utente == null)
-        {
-            throw new NotFoundException("Utente", id);
-        }
+
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
 
         DtoUtente dto = new DtoUtente();
         dto.Id = utente.Id;
         dto.Email = utente.Email ?? string.Empty;
         dto.NomeCompleto = utente.NomeCompleto ?? string.Empty;
         dto.Eta = utente.Eta;
-        dto.SeAbbonato = utente.SeAbbonato;
-        dto.AbbonamentoId = utente.AbbonamentoId ?? string.Empty;
-        dto.DataInizioAbbonamento = utente.DataInizioAbbonamento;
-        dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
+        dto.SeAbbonato = abbonamentoAttivo != null;
+        dto.AbbonamentoId = abbonamentoAttivo?.AbbonamentoId ?? string.Empty;
+        dto.DataInizioAbbonamento = abbonamentoAttivo?.DataInizioAbbonamento;
+        dto.TipoAbbonamento = abbonamentoAttivo?.Abbonamento?.Nome ?? string.Empty;
         dto.Saldo = utente.Saldo;
 
         return dto;
@@ -97,46 +102,52 @@ public class OperatoreService
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
 
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
-
-        for (int i = 0; i < biglietti.Count; i++)
+        var risultato = await Task.WhenAll(biglietti.Select(async bigliettoCorrente =>
         {
-            Biglietto bigliettoCorrente = biglietti[i];
             Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
                 ?? throw new NotFoundException("Proiezione", bigliettoCorrente.ProiezioneId);
             Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId)
                 ?? throw new NotFoundException("Movie", proiezione.MovieId);
             Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
                 ?? throw new NotFoundException("Sala", proiezione.SalaId);
-            Utente? utente = await _contesto.Utenti.FindAsync(bigliettoCorrente.UtenteId)
+            Utente? utente = await _contesto.Utenti
+                .Include(u => u.UtentiAbbonamenti)
+                .ThenInclude(ua => ua.Abbonamento)
+                .FirstOrDefaultAsync(u => u.Id == bigliettoCorrente.UtenteId)
                 ?? throw new NotFoundException("Utente", bigliettoCorrente.UtenteId);
             TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
                 ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
             Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
                 ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
-            DtoBiglietto dto = new DtoBiglietto();
-            dto.Id = bigliettoCorrente.Id;
-            dto.ProiezioneId = bigliettoCorrente.ProiezioneId;
-            dto.UtenteId = bigliettoCorrente.UtenteId;
-            dto.OrarioCreazione = bigliettoCorrente.OrarioCreazione;
-            dto.NumeroBiglietti = bigliettoCorrente.NumeroBiglietti;
-            dto.NomeSala = sala.Nome;
-            dto.TitoloMovie = movie.Titolo;
-            dto.NomeTipologiaSala = tipologiaSala.Nome;
-            dto.OraInizio = turno.OraInizio;
-            dto.DataProiezione = proiezione.DataProiezione;
-            dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
-                tipologiaSala.MaggiorazionePrezzo,
-                bigliettoCorrente.NumeroBiglietti,
-                utente.Abbonamento,
-                utente.DataInizioAbbonamento
-            );
+            var abbonamentoAttivo = utente.UtentiAbbonamenti
+                .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+                .OrderByDescending(ua => ua.DataInizioAbbonamento)
+                .FirstOrDefault();
 
-            risultato.Add(dto);
-        }
+            return new DtoBiglietto
+            {
+                Id = bigliettoCorrente.Id,
+                ProiezioneId = bigliettoCorrente.ProiezioneId,
+                UtenteId = bigliettoCorrente.UtenteId,
+                OrarioCreazione = bigliettoCorrente.OrarioCreazione,
+                NumeroBiglietti = bigliettoCorrente.NumeroBiglietti,
+                NomeSala = sala.Nome,
+                TitoloMovie = movie.Titolo,
+                NomeTipologiaSala = tipologiaSala.Nome,
+                OraInizio = turno.OraInizio,
+                DataProiezione = proiezione.DataProiezione,
+                PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                    movie.PrezzoMovie,
+                    tipologiaSala.MaggiorazionePrezzo,
+                    bigliettoCorrente.NumeroBiglietti,
+                    abbonamentoAttivo?.Abbonamento,
+                    abbonamentoAttivo?.DataInizioAbbonamento
+                )
+            };
+        }));
 
-        return risultato;
+        return risultato.ToList();
     }
 
     public async Task<DtoBiglietto> OttieniBigliettoTramiteIdAsync(string id)
@@ -150,12 +161,20 @@ public class OperatoreService
             ?? throw new NotFoundException("Movie", proiezione.MovieId);
         Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId)
             ?? throw new NotFoundException("Sala", proiezione.SalaId);
-        Utente? utente = await _contesto.Users.FindAsync(biglietto.UtenteId)
+        Utente? utente = await _contesto.Utenti
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Id == biglietto.UtenteId)
             ?? throw new NotFoundException("Utente", biglietto.UtenteId);
         TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId)
             ?? throw new NotFoundException("TipologiaSala", sala.TipologiaSalaId);
         Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
             ?? throw new NotFoundException("Turno", proiezione.TurnoId);
+
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
 
         DtoBiglietto dto = new DtoBiglietto();
         dto.Id = biglietto.Id;
@@ -171,8 +190,8 @@ public class OperatoreService
         dto.PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie,
             tipologiaSala.MaggiorazionePrezzo,
             biglietto.NumeroBiglietti,
-            utente.Abbonamento,
-            utente.DataInizioAbbonamento
+            abbonamentoAttivo?.Abbonamento,
+            abbonamentoAttivo?.DataInizioAbbonamento
         );
 
         return dto;
@@ -212,20 +231,16 @@ public class OperatoreService
 
             if (utenteCorrente.Abbonamento == abbonamentoTrovato)
             {
-                DtoUtente dto = new DtoUtente();
-                dto.Id = utenteCorrente.Id;
-                dto.NomeCompleto = utenteCorrente.NomeCompleto;
-                dto.Email = utenteCorrente.Email ?? string.Empty;
-                dto.Eta = utenteCorrente.Eta;
-                dto.SeAbbonato = utenteCorrente.SeAbbonato;
-                dto.AbbonamentoId = utenteCorrente.AbbonamentoId ?? string.Empty;
-                dto.DataInizioAbbonamento = utenteCorrente.DataInizioAbbonamento;
-                dto.TipoAbbonamento = abbonamento?.Nome ?? string.Empty;
-
-                risultato.Add(dto);
-            }
-        }
-        return risultato;
+                Id = utenteAbbonamento.Utente!.Id,
+                NomeCompleto = utenteAbbonamento.Utente.NomeCompleto,
+                Email = utenteAbbonamento.Utente.Email ?? string.Empty,
+                Eta = utenteAbbonamento.Utente.Eta,
+                SeAbbonato = utenteAbbonamento.DataFine > DateTimeOffset.UtcNow,
+                AbbonamentoId = utenteAbbonamento.AbbonamentoId,
+                DataInizioAbbonamento = utenteAbbonamento.DataInizioAbbonamento,
+                TipoAbbonamento = utenteAbbonamento.Abbonamento?.Nome ?? string.Empty
+            })
+            .ToList();
     }
 
     public async Task<bool> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)

@@ -156,14 +156,11 @@ public class ProiezioneController : ControllerBase
 
         List<DtoProiezione> proiezioni = await _proiezioneService.OttieniTuttoAsync();
 
-        foreach (var proiezione in proiezioni)
+        if (proiezioni.Any(proiezione => proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione))
         {
-            if (proiezione.TurnoId == dto.TurnoId && proiezione.SalaId == dto.SalaId && proiezione.DataProiezione == dto.DataProiezione)
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Crea proiezione", false);
 
-                return BadRequest(new { messaggio = "Proiezione già presente." });
-            }
+            return BadRequest(new { messaggio = "Proiezione già presente." });
         }
         try
         {

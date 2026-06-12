@@ -19,29 +19,18 @@ export class AuthService {
     private readonly storageKey = 'nuovo_cinema_paradiso_auth';
     private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
 
-
-
-    // Stato utente sincronizzato con localStorage
     readonly utenteCorrente = signal<SessioneUtente | null>(this.caricaUtenteDaStorage());
 
-    // ---------------------------
-    // LOGIN
-    // ---------------------------
   login(payload: Login): Observable<SessioneUtente> {
+
     return this.http.post<SessioneUtente>(`${this.baseUrl}/login`, payload).pipe(
       tap(response => {
         this.salvaSessione(response);
-        
-        // ALIMENTIAMO IL CANALE: l'effetto nel NavbarSharedStateService 
-        // intercetterà questo cambio e caricherà profilo e saldo!
         this.utenteCorrente.set(response);
       })
     );
   }
 
-    // ---------------------------
-    // REGISTRAZIONE
-    // ---------------------------
     registrazione(payload: Registrazione): Observable<{ message: string }> {
         return this.http.post<{ message: string }>(
             `${this.baseUrl}/registrazione`,
@@ -49,18 +38,12 @@ export class AuthService {
         );
     }
 
-    // ---------------------------
-    // LOGOUT
-    // ---------------------------
     logout(): void {
         localStorage.removeItem(this.storageKey);
         this.utenteCorrente.set(null);
         void this.router.navigate(['/login']);
     }
 
-    // ---------------------------
-    // STATO UTENTE
-    // ---------------------------
     isAutenticato(): boolean {
         return this.utenteCorrente() !== null;
     }
@@ -72,6 +55,11 @@ export class AuthService {
     isGestore(): boolean {
         return this.utenteCorrente()?.ruolo === 'Gestore';
     }
+    
+    isUtente(): boolean{
+     return this.utenteCorrente()?.ruolo === 'Utente';
+    }
+    
     possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
         const ruolo = this.ottieniRuoloUtente();
         return !!ruolo && ruoli.includes(ruolo);
@@ -109,26 +97,22 @@ export class AuthService {
         }
     }
 
-    private setSession(risposta: SessioneUtente): void {
-        const utenteInSessione: SessioneUtente = {
-            id: risposta.id,
-            nomeCompleto: risposta.nomeCompleto,
-            token: risposta.token,
-            eta: risposta.eta,
-            email: risposta.email,
-            ruolo: risposta.ruolo,
-            dataInizioAbbonamento: risposta.dataInizioAbbonamento,
-            seAbbonato: risposta.seAbbonato,
+    aggiornaStatoAbbonamento(seAbbonato: boolean): void {
+        const utenteCorrente = this.utenteCorrente();
+
+        if (!utenteCorrente) {
+            return;
         }
 
-        localStorage.setItem(this.storageKey, JSON.stringify(utenteInSessione));
-        console.log('Utente salvato in localStorage:', utenteInSessione.ruolo);
-        this.utenteCorrente.set(utenteInSessione)
+        const utenteAggiornato: SessioneUtente = {
+            ...utenteCorrente,
+            seAbbonato,
+        };
+
+        localStorage.setItem(this.storageKey, JSON.stringify(utenteAggiornato));
+        this.utenteCorrente.set(utenteAggiornato);
     }
 
-    // ---------------------------
-    // PRIVATE
-    // ---------------------------
     private salvaSessione(risposta: SessioneUtente): void {
         localStorage.setItem(this.storageKey, JSON.stringify(risposta));
         this.utenteCorrente.set(risposta);
