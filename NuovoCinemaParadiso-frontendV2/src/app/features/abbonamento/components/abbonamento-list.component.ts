@@ -154,7 +154,7 @@ export class AbbonamentoListComponent {
   private estraiMessaggioErrore(error: unknown, fallback: string): string {
 
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? fallback;
+      return error.error?.message || error.error?.messaggio || error.error?.errore || fallback;
     }
     return fallback;
   }

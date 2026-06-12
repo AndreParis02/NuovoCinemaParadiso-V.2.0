@@ -115,10 +115,13 @@ public class AbbonamentoService
 
         foreach (var abbonamentoUtente in abbonamentiUtenteAssociati)
         {
-            bool haBigliettiUtilizzati = await _contesto.Biglietti
-                .AnyAsync(b => b.UtenteId == abbonamentoUtente.UtenteId
-                    && b.OrarioCreazione >= abbonamentoUtente.DataInizioAbbonamento
-                    && b.OrarioCreazione < abbonamentoUtente.DataFine);
+            var bigliettiUtente = await _contesto.Biglietti
+                .Where(b => b.UtenteId == abbonamentoUtente.UtenteId)
+                .ToListAsync();
+
+            bool haBigliettiUtilizzati = bigliettiUtente
+                .Any(b => b.OrarioCreazione >= abbonamentoUtente.DataInizioAbbonamento
+                          && b.OrarioCreazione < abbonamentoUtente.DataFine);
 
             if (haBigliettiUtilizzati)
             {

@@ -133,10 +133,13 @@ public class UtenteService
         if (abbonamentoAttivo == null)
             return (false, "Nessun abbonamento attivo da rimborsare.");
 
-        bool haBigliettiUtilizzati = await _contesto.Biglietti
-            .AnyAsync(b => b.UtenteId == utenteId
-                && b.OrarioCreazione >= abbonamentoAttivo.DataInizioAbbonamento
-                && b.OrarioCreazione < abbonamentoAttivo.DataFine);
+        var bigliettiUtente = await _contesto.Biglietti
+            .Where(b => b.UtenteId == utenteId)
+            .ToListAsync();
+
+        bool haBigliettiUtilizzati = bigliettiUtente
+            .Any(b => b.OrarioCreazione >= abbonamentoAttivo.DataInizioAbbonamento
+                      && b.OrarioCreazione < abbonamentoAttivo.DataFine);
 
         if (haBigliettiUtilizzati)
             return (false, "Non è possibile richiedere il rimborso perché l'abbonamento è già stato utilizzato.");
