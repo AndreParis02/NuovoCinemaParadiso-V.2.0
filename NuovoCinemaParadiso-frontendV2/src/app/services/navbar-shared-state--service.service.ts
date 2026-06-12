@@ -13,6 +13,7 @@ export class NavbarSharedStateService {
   private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
 
   readonly utenteLoggato = signal<Utente | null>(null);
+  readonly bigliettiAggiornati = signal<number>(0);
 
   constructor() {
  
@@ -40,6 +41,16 @@ export class NavbarSharedStateService {
     this.utenteLoggato.set(profilo);
   }
 
+  async forzaAggiornamentoProfilo(): Promise<void> {
+    if (!this.authService.isAutenticato()) return;
+
+    const profiloAggiornato = await firstValueFrom(this.http.get<Utente>(`${this.baseUrl}/profilo`));
+
+    this.utenteLoggato.update(attuale =>
+      attuale ? { ...attuale, ...profiloAggiornato } : null
+    );
+  }
+
   async forzaAggiornamentoSaldo(): Promise<void> {
     if (!this.utenteLoggato()) return;
 
@@ -48,5 +59,9 @@ export class NavbarSharedStateService {
     this.utenteLoggato.update(attuale => 
       attuale ? { ...attuale, saldo: res.saldo } : null
     );
+  }
+
+  notificaBigliettoAcquistato(): void {
+    this.bigliettiAggiornati.update(c => c + 1);
   }
 }

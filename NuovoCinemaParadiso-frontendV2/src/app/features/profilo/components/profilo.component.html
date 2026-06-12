@@ -74,7 +74,7 @@
     </div>
 
     @if (!modificabileDa()) {
-    @if (utente()?.seAbbonato)
+    @if (seAbbonato())
     {
     <article class="card" style="margin-top: 2rem;">
         <h2>Abbonamento</h2>
@@ -82,18 +82,18 @@
         <div class="abbonamento-row">
             <div>
                 <strong>Stato:</strong>
-                {{ utente()?.seAbbonato ? 'Attivo' : 'Non attivo' }}
+                {{ seAbbonato() ? 'Attivo' : 'Non attivo' }}
             </div>
 
-            @if (utente()?.seAbbonato) {
+            @if (seAbbonato()) {
             <div>
                 <strong>Inizio:</strong>
-                {{ utente()?.dataInizioAbbonamento | date }}
+                {{ sessioneUtente()?.dataInizioAbbonamento | date }}
             </div>
 
             <div>
                 <strong>Tipo:</strong>
-                {{ utente()?.tipoAbbonamento }}
+                {{ sessioneUtente()?.abbonamento }}
             </div>
             }
         </div>

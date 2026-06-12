@@ -22,22 +22,35 @@ public class UtenteService
 
     public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync(string utenteId)
     {
-        var biglietti = await _contesto.Biglietti.ToListAsync();
-        List<DtoBiglietto> listaBiglietti = new List<DtoBiglietto>();
+        var utente = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .ThenInclude(ua => ua.Abbonamento)
+            .FirstOrDefaultAsync(u => u.Id == utenteId);
 
-        for (int i = 0; i < biglietti.Count; i++)
-        {
-            Biglietto bigliettoCorrente = biglietti[i];
-            if (bigliettoCorrente.UtenteId == utenteId)
+        var abbonamentoAttivo = utente?.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
+
+        var biglietti = await _contesto.Biglietti.ToListAsync();
+        var listaBiglietti = await Task.WhenAll(biglietti
+            .Where(bigliettoCorrente => bigliettoCorrente.UtenteId == utenteId)
+            .Select(async bigliettoCorrente =>
             {
                 Proiezione? proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId);
-                Movie? movie = await _contesto.Movies.FindAsync(proiezione.MovieId);
+                Movie? movie = await _contesto.Movies.FindAsync(proiezione!.MovieId);
                 Sala? sala = await _contesto.Sale.FindAsync(proiezione.SalaId);
-                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala.TipologiaSalaId);
+                TipologiaSala? tipologiaSala = await _contesto.TipologieSala.FindAsync(sala!.TipologiaSalaId);
                 Turno? turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
                     ?? throw new NotFoundException("Turno", proiezione.TurnoId);
 
-                DtoBiglietto dto = new DtoBiglietto
+                var abbonamentoAcquisto = utente?.UtentiAbbonamenti
+                    .Where(ua => ua.DataInizioAbbonamento <= bigliettoCorrente.OrarioCreazione
+                              && ua.DataFine > bigliettoCorrente.OrarioCreazione)
+                    .OrderByDescending(ua => ua.DataInizioAbbonamento)
+                    .FirstOrDefault();
+
+                return new DtoBiglietto
                 {
                     Id = bigliettoCorrente.Id,
                     UtenteId = bigliettoCorrente.UtenteId,
@@ -49,58 +62,104 @@ public class UtenteService
                     NomeTipologiaSala = tipologiaSala.Nome,
                     OraInizio = turno.OraInizio,
                     DataProiezione = proiezione.DataProiezione,
-                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(movie.PrezzoMovie, tipologiaSala.MaggiorazionePrezzo, bigliettoCorrente.NumeroBiglietti, (await _gestioneUtenti.FindByIdAsync(utenteId)).Abbonamento, (await _gestioneUtenti.FindByIdAsync(utenteId)).DataInizioAbbonamento)
+                    PrezzoFinale = Calcoli.CalcolaPrezzoFinale(
+                        movie.PrezzoMovie,
+                        tipologiaSala.MaggiorazionePrezzo,
+                        bigliettoCorrente.NumeroBiglietti,
+                        abbonamentoAcquisto?.Abbonamento,
+                        abbonamentoAcquisto?.DataInizioAbbonamento)
                 };
-                listaBiglietti.Add(dto);
-            }
-        }
-        return listaBiglietti;
+            }));
+
+        return listaBiglietti.ToList();
     }
 
     public async Task<(bool Successo, string Messaggio)> AbbonatiAsync(string abbonamentoId, string utenteId)
     {
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
-        Abbonamento? abbonamentoTrovato = null;
-
-        for (int i = 0; i < abbonamenti.Count; i++)
-        {
-            if (abbonamenti[i].Id == abbonamentoId)
-            {
-                abbonamentoTrovato = abbonamenti[i];
-                break;
-            }
-        }
-
+        Abbonamento? abbonamentoTrovato = await _contesto.Abbonamenti.FindAsync(abbonamentoId);
         if (abbonamentoTrovato == null)
             return (false, "Abbonamento non trovato.");
 
-        Utente? utenteTrovato = await _gestioneUtenti.FindByIdAsync(utenteId);
+        Utente? utenteTrovato = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .FirstOrDefaultAsync(u => u.Id == utenteId);
         if (utenteTrovato == null)
             return (false, "Utente non trovato.");
 
-        if (utenteTrovato.SeAbbonato)
-        {
-            DateTimeOffset dataScadenzaAbbonamento = utenteTrovato.DataInizioAbbonamento.AddMonths(abbonamentoTrovato.Durata);
-            if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
-                return (false, "L'utente è già abbonato.");
-        }
+        var abbonamentoAttivo = utenteTrovato.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
+
+        if (abbonamentoAttivo != null)
+            return (false, "L'utente è già abbonato.");
+
         if (utenteTrovato.Saldo < abbonamentoTrovato.Prezzo)
             return (false, "Credito insufficiente per abbonarsi.");
 
-        //aggiornamento dei saldi utente e conto cinema
         var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
         var saldi = await Calcoli.CalcolaSaldo(abbonamentoTrovato.Prezzo, utenteTrovato, contoCinema);
         utenteTrovato.Saldo = saldi[0];
         contoCinema.Saldo = saldi[1];
 
-        utenteTrovato.TipologiaAbbonamento = abbonamentoTrovato.Nome;
-        utenteTrovato.AbbonamentoId = abbonamentoTrovato.Id;
-        utenteTrovato.SeAbbonato = true;
-        utenteTrovato.DataInizioAbbonamento = DateTimeOffset.UtcNow;
+        UtenteAbbonamento nuovoUtenteAbbonamento = new UtenteAbbonamento
+        {
+            UtenteId = utenteId,
+            AbbonamentoId = abbonamentoId,
+            DataInizioAbbonamento = DateTimeOffset.UtcNow,
+            DataFine = DateTimeOffset.UtcNow.AddMonths(abbonamentoTrovato.Durata)
+        };
 
+        _contesto.UtenteAbbonamento.Add(nuovoUtenteAbbonamento);
         await _contesto.SaveChangesAsync();
 
         return (true, "Abbonamento attivato correttamente.");
+    }
+
+    public async Task<(bool Successo, string Messaggio)> RimborsaAbbonamentoAsync(string utenteId)
+    {
+        Utente? utente = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .FirstOrDefaultAsync(u => u.Id == utenteId);
+
+        if (utente == null)
+            return (false, "Utente non trovato.");
+
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
+
+        if (abbonamentoAttivo == null)
+            return (false, "Nessun abbonamento attivo da rimborsare.");
+
+        var bigliettiUtente = await _contesto.Biglietti
+            .Where(b => b.UtenteId == utenteId)
+            .ToListAsync();
+
+        bool haBigliettiUtilizzati = bigliettiUtente
+            .Any(b => b.OrarioCreazione >= abbonamentoAttivo.DataInizioAbbonamento
+                      && b.OrarioCreazione < abbonamentoAttivo.DataFine);
+
+        if (haBigliettiUtilizzati)
+            return (false, "Non è possibile richiedere il rimborso perché l'abbonamento è già stato utilizzato.");
+
+        var abbonamento = await _contesto.Abbonamenti.FindAsync(abbonamentoAttivo.AbbonamentoId);
+        if (abbonamento == null)
+            return (false, "Abbonamento non trovato.");
+
+        utente.Saldo += abbonamento.Prezzo;
+
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        if (contoCinema != null)
+        {
+            contoCinema.Saldo = Math.Max(0, contoCinema.Saldo - abbonamento.Prezzo);
+        }
+
+        _contesto.UtenteAbbonamento.Remove(abbonamentoAttivo);
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Rimborso effettuato correttamente.");
     }
 
     public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
@@ -140,17 +199,8 @@ public class UtenteService
     public async Task<(bool Successo, string Messaggio, DtoCreazioneGiftCard? Dto)>
         RiscattaGiftCardAsync(string utenteId, DtoCodiceRiscatto dto)
     {
-        List<GiftCard> tutte = _contesto.GiftCards.ToList();
-        GiftCard? trovata = null;
-
-        foreach (GiftCard g in tutte)
-        {
-            if (g.CodiceRiscatto == dto.CodiceRiscatto)
-            {
-                trovata = g;
-                break;
-            }
-        }
+        GiftCard? trovata = await _contesto.GiftCards
+            .FirstOrDefaultAsync(g => g.CodiceRiscatto == dto.CodiceRiscatto);
 
         if (trovata == null)
             return (false, "Codice non valido.", null);

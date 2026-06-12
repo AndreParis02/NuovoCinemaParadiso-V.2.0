@@ -18,23 +18,16 @@ public class GiftCardService
     {
         List<GiftCard> giftCards = await _contesto.GiftCards.ToListAsync();
 
-        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
-
-        for (int i = 0; i < giftCards.Count; i++)
-        {
-            GiftCard giftCardCorrente = giftCards[i];
-
-            DtoGiftCard dto = new DtoGiftCard();
-            dto.Id = giftCardCorrente.Id;
-            dto.Nome = giftCardCorrente.Nome;
-            dto.Valore = giftCardCorrente.Valore;
-            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
-            dto.UtenteId = giftCardCorrente.UtenteId;
-
-            risultato.Add(dto);
-        }
-
-        return risultato;
+        return giftCards
+            .Select(giftCardCorrente => new DtoGiftCard
+            {
+                Id = giftCardCorrente.Id,
+                Nome = giftCardCorrente.Nome,
+                Valore = giftCardCorrente.Valore,
+                CodiceRiscatto = giftCardCorrente.CodiceRiscatto,
+                UtenteId = giftCardCorrente.UtenteId
+            })
+            .ToList();
     }
 
     public async Task<List<DtoGiftCard>> OttieniPerUtenteAsync(string utenteId)
@@ -43,23 +36,17 @@ public class GiftCardService
             .Where(g => g.UtenteId == utenteId)
             .ToListAsync();
 
-        List<DtoGiftCard> risultato = new List<DtoGiftCard>();
-
-        foreach (var giftCardCorrente in giftCards)
-        {
-            if(!giftCardCorrente.Riscattata){
-            DtoGiftCard dto = new DtoGiftCard();
-            dto.Id = giftCardCorrente.Id;
-            dto.Nome = giftCardCorrente.Nome;
-            dto.Valore = giftCardCorrente.Valore;
-            dto.CodiceRiscatto = giftCardCorrente.CodiceRiscatto;
-            dto.UtenteId = giftCardCorrente.UtenteId;
-
-            risultato.Add(dto);
-            }
-        }
-
-        return risultato;
+        return giftCards
+            .Where(giftCardCorrente => !giftCardCorrente.Riscattata)
+            .Select(giftCardCorrente => new DtoGiftCard
+            {
+                Id = giftCardCorrente.Id,
+                Nome = giftCardCorrente.Nome,
+                Valore = giftCardCorrente.Valore,
+                CodiceRiscatto = giftCardCorrente.CodiceRiscatto,
+                UtenteId = giftCardCorrente.UtenteId
+            })
+            .ToList();
     }
 
     public async Task<DtoGiftCard?> OttieniTramiteIdAsync(string id, string utenteId)

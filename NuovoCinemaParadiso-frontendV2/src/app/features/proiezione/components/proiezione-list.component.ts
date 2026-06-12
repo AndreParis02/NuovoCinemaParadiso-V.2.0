@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProiezioneFormComponent } from "./proiezione-form.component";
+import {ProfiloService} from "../../../services/profilo.service";
 
 @Component({
   selector: 'proiezione-list',
@@ -22,6 +23,7 @@ export class ProiezioneList {
   private readonly authService = inject(AuthService);
   private readonly bigliettoService = inject(BigliettoService);
   private readonly navbarSharedStateService = inject(NavbarSharedStateService);
+  private readonly profiloService = inject(ProfiloService);
 
   readonly listaProiezioni = signal<Proiezione[]>([]);
   readonly proiezioneScelta = signal<Proiezione | null>(null);
@@ -90,6 +92,8 @@ export class ProiezioneList {
           [proiezioneId]: false
         }));
         this.navbarSharedStateService.forzaAggiornamentoSaldo();
+        this.navbarSharedStateService.notificaBigliettoAcquistato();
+        this.profiloService.richiediAggiornamentoProfilo();
         this.messaggioSuccesso.set('Biglietti acquistati con successo!');
       },
       error: (err) => {

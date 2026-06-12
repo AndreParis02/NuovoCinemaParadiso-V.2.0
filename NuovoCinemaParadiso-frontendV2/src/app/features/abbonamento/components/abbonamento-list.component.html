@@ -47,8 +47,33 @@
         }
     </div>
     } @else if (puoAbbonarsi()) {
-    <div class="alert alert-info">
-        Hai già un abbonamento attivo, quindi non puoi visualizzare la lista degli abbonamenti disponibili.
-    </div>
+    <article class="card">
+        <h2>Stato del tuo abbonamento</h2>
+        @if (mostraStatoAbbonamento()) {
+        <div class="list">
+            <div class="list-item">
+                <div>
+                    <strong>Abbonamento attivo</strong>
+                    <p>Stato: Attivo</p>
+                    <p>Data inizio: {{ dataInizioAbbonamento() }}</p>
+                    <button class="btn btn-secondary" type="button" (click)="rimborsaAbbonamento()" [disabled]="staInviando()">Richiedi rimborso</button>
+                </div>
+            </div>
+        </div>
+        } @else if (abbonamentoAttivo()) {
+        <div class="list">
+            <div class="list-item">
+                <div>
+                    <strong>{{ abbonamentoAttivo()!.nome }}</strong>
+                    <p>Prezzo: {{ abbonamentoAttivo()!.prezzo }} €</p>
+                    <p>Durata: {{ abbonamentoAttivo()!.durata }} mesi</p>
+                    <p>Sconto: {{ abbonamentoAttivo()!.sconto }} €</p>
+                </div>
+            </div>
+        </div>
+        } @else {
+        <p class="muted">Non hai ancora abbonamenti attivi.</p>
+        }
+    </article>
     }
 </section>

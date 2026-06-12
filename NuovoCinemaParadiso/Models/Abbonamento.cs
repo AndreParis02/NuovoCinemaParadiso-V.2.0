@@ -17,5 +17,6 @@ public class Abbonamento
     public int Prezzo {get;set;}
     [Required]
     public int Sconto {get;set;}
-    public List<Utente> Utenti {get;set;} = new List<Utente>();
+
+    public List<UtenteAbbonamento> UtentiAbbonamenti { get; set; } = new();
 }

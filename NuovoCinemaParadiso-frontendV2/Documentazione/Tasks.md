@@ -51,20 +51,13 @@ Aggiungere modello giftcard collegato a tipologia giftcard ( giftcard attuale )
 
 ## 19/05/2026
 
-Greg: Dashboard operatore.
+Greg: Dashboard operatore. (fatto)
 Fabio: operatore utenti lista.
 Simeone: operatore cambio ruolo.
 
 ## 25/05/2025
 
-Greg: Sala (fatto)
-Marco: Generemovie
-Simeone: LogAzioni
-Francesco: Movie
-Fabio: Giftcard
-Lorenzo:
-
-Greg: Sala.
+Greg: Sala. (fatto)
 Marco: Generemovie(fatto).
 Simeone: LogAzioni.
 Francesco: Movie.(fatto)
@@ -112,7 +105,7 @@ Navbar: Fabio (fatto).
 ### Tasks 5:
 
 Francesco: Acquisto biglietto in proiezioni(aggiornamento della navbar)
-Greg: Eliminazione del biglietto da dashboard(aggiornamento della navbar)
+Greg: Eliminazione del biglietto da dashboard(aggiornamento della navbar) (fatto)
 Fabio:
 Marco:
 Andrea Bruno: Proiezione page (fatto)

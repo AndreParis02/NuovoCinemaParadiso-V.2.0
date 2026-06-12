@@ -1,3 +1,12 @@
+## OperatoreController.cs versione 1.2
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Modificato l'if che controlla se un film è già esistente. Corretto messaggio d'errore nell' eliminazione movie
+
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -198,3 +207,5 @@ public class OperatoreController : ControllerBase
         }
     }
 }
+
+```

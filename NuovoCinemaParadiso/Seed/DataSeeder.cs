@@ -132,20 +132,13 @@ public static class DataSeeder
         utente.Email = email;
         utente.NomeCompleto = nomeCompleto;
         utente.Eta = eta;
-        utente.SeAbbonato = abbonato;
-        utente.AbbonamentoId = null;
         utente.Saldo = saldo;
 
         IdentityResult risultato = await gestioneUtenti.CreateAsync(utente, password);
 
         if (!risultato.Succeeded)
         {
-            List<string> errori = new List<string>();
-
-            foreach (IdentityError errore in risultato.Errors)
-            {
-                errori.Add(errore.Description);
-            }
+            var errori = risultato.Errors.Select(errore => errore.Description);
             string messaggio = string.Join("|", errori);
             throw new Exception($"Errore durante il seed dell'utente {email} : {messaggio}");
         }
@@ -177,14 +170,12 @@ public static class DataSeeder
     {
         IList<string> ruoliCorrenti = await gestioneUtenti.GetRolesAsync(utente);
 
-        for (int i = 0; i < ruoliCorrenti.Count; i++)
-        {
-            string ruoloCorrente = ruoliCorrenti[i];
+        var ruoliDaRimuovere = ruoliCorrenti
+            .Where(ruoloCorrente => ruoloCorrente == Ruoli.Gestore || ruoloCorrente == Ruoli.Operatore || ruoloCorrente == Ruoli.Utente);
 
-            if (ruoloCorrente == Ruoli.Gestore || ruoloCorrente == Ruoli.Operatore || ruoloCorrente == Ruoli.Utente)
-            {
-                await gestioneUtenti.RemoveFromRoleAsync(utente, ruoloCorrente);
-            }
+        foreach (string ruoloCorrente in ruoliDaRimuovere)
+        {
+            await gestioneUtenti.RemoveFromRoleAsync(utente, ruoloCorrente);
         }
         bool alreadyInTargetRole = await gestioneUtenti.IsInRoleAsync(utente, ruoloTarget);
 
@@ -198,18 +189,12 @@ public static class DataSeeder
     ContestoDb context,
     string genere)
     {
-        List<GenereMovie> generiMovies = await context.GeneriMovies.ToListAsync();
-        for (int i = 0; i < generiMovies.Count; i++)
+        GenereMovie? genereEsistente = await context.GeneriMovies
+            .FirstOrDefaultAsync(g => g.Genere.ToLower() == genere.ToLower());
+
+        if (genereEsistente != null)
         {
-            GenereMovie genereCorrente = generiMovies[i];
-            bool nomeUguale = string.Equals(
-                genereCorrente.Genere,
-                genere,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return genereCorrente;
-            }
+            return genereEsistente;
         }
 
         GenereMovie nuovoGenere = new GenereMovie
@@ -231,18 +216,12 @@ public static class DataSeeder
     int prezzoMovie,
     string genereId)
     {
-        List<Movie> movies = await context.Movies.ToListAsync();
-        for (int i = 0; i < movies.Count; i++)
+        Movie? movieEsistente = await context.Movies
+            .FirstOrDefaultAsync(m => m.Titolo.ToLower() == titolo.ToLower());
+
+        if (movieEsistente != null)
         {
-            Movie movieCorrente = movies[i];
-            bool nomeUguale = string.Equals(
-                movieCorrente.Titolo,
-                titolo,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return movieCorrente;
-            }
+            return movieEsistente;
         }
 
         Movie nuovoMovie = new Movie
@@ -264,18 +243,12 @@ public static class DataSeeder
      ContestoDb context,
      string nome, int maggiorazioneprezzo)
     {
-        List<TipologiaSala> tipologieSala = await context.TipologieSala.ToListAsync();
-        for (int i = 0; i < tipologieSala.Count; i++)
+        TipologiaSala? tipologiaEsistente = await context.TipologieSala
+            .FirstOrDefaultAsync(t => t.Nome.ToLower() == nome.ToLower());
+
+        if (tipologiaEsistente != null)
         {
-            TipologiaSala tipologiaCorrente = tipologieSala[i];
-            bool nomeUguale = string.Equals(
-                tipologiaCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return tipologiaCorrente;
-            }
+            return tipologiaEsistente;
         }
 
         TipologiaSala nuovaTipologia = new TipologiaSala
@@ -296,18 +269,12 @@ public static class DataSeeder
         int capienza,
         string tipologiaSalaId)
     {
-        List<Sala> sale = await context.Sale.ToListAsync();
-        for (int i = 0; i < sale.Count; i++)
+        Sala? salaEsistente = await context.Sale
+            .FirstOrDefaultAsync(s => s.Nome.ToLower() == nome.ToLower());
+
+        if (salaEsistente != null)
         {
-            Sala salaCorrente = sale[i];
-            bool nomeUguale = string.Equals(
-                salaCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return salaCorrente;
-            }
+            return salaEsistente;
         }
 
         Sala nuovaSala = new Sala
@@ -327,18 +294,12 @@ public static class DataSeeder
      ContestoDb context,
      TimeOnly oraInizio, TimeOnly oraFine, string nome)
     {
-        List<Turno> turni = await context.Turni.ToListAsync();
-        for (int i = 0; i < turni.Count; i++)
+        Turno? turnoEsistente = await context.Turni
+            .FirstOrDefaultAsync(t => t.Nome.ToLower() == nome.ToLower() || (t.OraInizio == oraInizio && t.OraFine == oraFine));
+
+        if (turnoEsistente != null)
         {
-            Turno turnoCorrente = turni[i];
-            bool nomeUguale = string.Equals(
-                turnoCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale || (turnoCorrente.OraInizio == oraInizio && turnoCorrente.OraFine == oraFine))
-            {
-                return turnoCorrente;
-            }
+            return turnoEsistente;
         }
 
         Turno nuovoTurno = new Turno
@@ -356,19 +317,12 @@ public static class DataSeeder
 
     private static async Task AssicuraEsistenzaAbbonamento(ContestoDb context, string nome, int prezzo, int sconto, int durata)
     {
-        List<Abbonamento> abbonamenti = await context.Abbonamenti.ToListAsync();
-        for (int i = 0; i < abbonamenti.Count; i++)
-        {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
-            bool nomeUguale = string.Equals(
-                abbonamentoCorrente.Nome,
-                nome,
-                StringComparison.OrdinalIgnoreCase);
-            if (nomeUguale)
-            {
-                return;
-            }
+        bool esisteAbbonamento = await context.Abbonamenti
+            .AnyAsync(a => a.Nome.ToLower() == nome.ToLower());
 
+        if (esisteAbbonamento)
+        {
+            return;
         }
 
         Abbonamento nuovoAbbonamento = new Abbonamento
@@ -391,19 +345,12 @@ public static class DataSeeder
     string salaId,
     string turnoId)
     {
-        List<Proiezione> proiezioni = await context.Proiezioni.ToListAsync();
-        for (int i = 0; i < proiezioni.Count; i++)
+        Proiezione? proiezioneEsistente = await context.Proiezioni
+            .FirstOrDefaultAsync(p => p.SalaId == salaId && p.MovieId == movieId && p.TurnoId == turnoId);
+
+        if (proiezioneEsistente != null)
         {
-            Proiezione proiezione = proiezioni[i];
-
-            bool stessaSala = proiezione.SalaId == salaId;
-            bool stessoMovie = proiezione.MovieId == movieId;
-            bool stessoTurno = proiezione.TurnoId == turnoId;
-
-            if (stessaSala && stessoMovie && stessoTurno)
-            {
-                return proiezione;
-            }
+            return proiezioneEsistente;
         }
 
         Proiezione nuovaProiezione = new Proiezione

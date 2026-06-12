@@ -20,10 +20,9 @@ public class GestoreService
     public async Task<List<DtoLogAzioni>> LetturaLogAzioneAsync()
     {
         List<LogAzioni> logs = await _contesto.LogAzioni.ToListAsync();
-        List<DtoLogAzioni> risultati = new List<DtoLogAzioni>();
-        foreach (LogAzioni log in logs)
-        {
-            DtoLogAzioni risultato = new DtoLogAzioni
+
+        return logs
+            .Select(log => new DtoLogAzioni
             {
                 Id = log.Id,
                 IdUtente = log.IdUtente,
@@ -31,11 +30,8 @@ public class GestoreService
                 Effettuato = log.Effettuato,
                 Messaggio = log.Messaggio,
                 TimeStamp = log.TimeStamp
-            };
-            risultati.Add(risultato);
-        }
-
-        return risultati;
+            })
+            .ToList();
     }
 
     public async Task<DtoContoCinema> OttieniDatiContoAsync()
@@ -53,9 +49,7 @@ public class GestoreService
     public async Task<List<DtoBiglietto>> OttieniTuttiBigliettiAsync()
     {
         List<Biglietto> biglietti = await _contesto.Biglietti.ToListAsync();
-        List<DtoBiglietto> risultato = new List<DtoBiglietto>();
-
-        foreach (var bigliettoCorrente in biglietti)
+        var risultato = await Task.WhenAll(biglietti.Select(async bigliettoCorrente =>
         {
             var proiezione = await _contesto.Proiezioni.FindAsync(bigliettoCorrente.ProiezioneId)
                 ?? throw new Exception("Proiezione non trovata");
@@ -72,7 +66,7 @@ public class GestoreService
             var turno = await _contesto.Turni.FindAsync(proiezione.TurnoId)
                 ?? throw new Exception("Turno non trovato");
 
-            risultato.Add(new DtoBiglietto
+            return new DtoBiglietto
             {
                 Id = bigliettoCorrente.Id,
                 ProiezioneId = bigliettoCorrente.ProiezioneId,
@@ -85,8 +79,9 @@ public class GestoreService
                 NomeTipologiaSala = tipologiaSala.Nome,
                 OraInizio = turno.OraInizio,
                 DataProiezione = proiezione.DataProiezione
-            });
-        }
-        return risultato;
+            };
+        }));
+
+        return risultato.ToList();
     }
 }

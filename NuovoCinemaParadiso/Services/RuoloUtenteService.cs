@@ -27,14 +27,12 @@ public class RuoloUtenteService
         }
         IList<string> ruoloCorrente = await _gestioneUtenti.GetRolesAsync(utente);
 
-        // rimuoviamo i ruoli classici già presenti
-        for(int i = 0; i < ruoloCorrente.Count; i++)
+        var ruoliDaRimuovere = ruoloCorrente
+            .Where(currentRole => currentRole == Ruoli.Gestore || currentRole == Ruoli.Operatore || currentRole == Ruoli.Utente);
+
+        foreach (string currentRole in ruoliDaRimuovere)
         {
-            string currentRole = ruoloCorrente[i];
-            if(currentRole == Ruoli.Gestore || currentRole == Ruoli.Operatore || currentRole == Ruoli.Utente)
-             {
-                await _gestioneUtenti.RemoveFromRoleAsync(utente, currentRole);
-             }
+            await _gestioneUtenti.RemoveFromRoleAsync(utente, currentRole);
         }
 
         // assegniamo il nuovo ruolo
