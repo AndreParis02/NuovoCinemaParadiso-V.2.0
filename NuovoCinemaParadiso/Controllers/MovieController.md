@@ -1,3 +1,12 @@
+
+### MovieController.cs Versione 1.4
+
+Utente: Marco Strazzeri
+Data: 10/06/2026
+Descrizione: Modificato l'if che controlla se un film è già esistente. Corretto messaggio d'errore nell' eliminazione movie
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -104,7 +113,7 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo)))
+        foreach (var movie in movies)
         {
             //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
             if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase))
@@ -136,7 +145,7 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo) && movie.Id != id))
+        foreach (var movie in movies)
         {
             //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
             if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase) && movie.Id != id)
@@ -179,3 +188,5 @@ public class MovieController : ControllerBase
         return Ok(new { messaggio = "Film eliminato con successo!" });
     }
 }
+
+```

@@ -1,3 +1,12 @@
+### TipologiaSalaController.cs V 1.1
+
+Utente: Marco Strazzeri
+Data: 11/06/2026
+Descrizione: Modificato in Creazione l'if che controlla il nome della tipologia sala
+
+
+```c#
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -25,13 +34,18 @@ public class TipologiaSalaController : ControllerBase
     public async Task<IActionResult> OttieniTutti()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
+        List<DtoTipologiaSala> tipologieSaleTrovate = new List<DtoTipologiaSala>();
         string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (utenteId == null)
             return Unauthorized("Utente non autenticato.");
 
-        List<DtoTipologiaSala> tipologieSaleTrovate = tipologieSala
-            .Where(temp => !temp.IsDeleted)
-            .ToList();
+            foreach (DtoTipologiaSala temp in tipologieSala)
+        {
+            if (!temp.IsDeleted)
+            {
+                tipologieSaleTrovate.Add(temp);
+            }
+        }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
         
@@ -82,14 +96,15 @@ public class TipologiaSalaController : ControllerBase
 
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
 
-        if (tipologieSala.Any(tipologiaSala => tipologiaSala.Nome.Contains(dto.Nome)))
+        foreach (var tipologiaSala in tipologieSala)
         {
             // Confronta i nomi delle tipologie di sala esistenti con il nome della nuova tipologia (ignorando maiuscole/minuscole)
             if (tipologiaSala.Nome.Equals(dto.Nome, StringComparison.OrdinalIgnoreCase))
             {
                 await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
 
-            return BadRequest(new { messaggio = "Tipologia sala già presente." });
+                return BadRequest(new { messaggio = "Tipologia sala già presente." });
+            }
         }
 
         bool risultato = await _tipologiaSalaService.CreazioneAsync(dto);
@@ -148,3 +163,6 @@ public class TipologiaSalaController : ControllerBase
         return Ok(new { messaggio = "Tipologia sala eliminata con successo!" });
     }
 }
+
+
+```
