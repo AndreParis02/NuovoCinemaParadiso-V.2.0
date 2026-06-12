@@ -21,15 +21,15 @@ export class AuthService {
 
     readonly utenteCorrente = signal<SessioneUtente | null>(this.caricaUtenteDaStorage());
 
-  login(payload: Login): Observable<SessioneUtente> {
+    login(payload: Login): Observable<SessioneUtente> {
 
-    return this.http.post<SessioneUtente>(`${this.baseUrl}/login`, payload).pipe(
-      tap(response => {
-        this.salvaSessione(response);
-        this.utenteCorrente.set(response);
-      })
-    );
-  }
+        return this.http.post<SessioneUtente>(`${this.baseUrl}/login`, payload).pipe(
+            tap(response => {
+                this.salvaSessione(response);
+                this.utenteCorrente.set(response);
+            })
+        );
+    }
 
     registrazione(payload: Registrazione): Observable<{ message: string }> {
         return this.http.post<{ message: string }>(
@@ -55,11 +55,11 @@ export class AuthService {
     isGestore(): boolean {
         return this.utenteCorrente()?.ruolo === 'Gestore';
     }
-    
-    isUtente(): boolean{
-     return this.utenteCorrente()?.ruolo === 'Utente';
+
+    isUtente(): boolean {
+        return this.utenteCorrente()?.ruolo === 'Utente';
     }
-    
+
     possiedeQualsiasiRuolo(ruoli: RuoliUtente[]): boolean {
         const ruolo = this.ottieniRuoloUtente();
         return !!ruolo && ruoli.includes(ruolo);

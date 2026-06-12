@@ -1,3 +1,10 @@
+<details>
+<summary>Versione1.3</summary>
+
+Francesco Lorenzi 12/06/2026
+
+ora, quando ci si abbona, si aggiornano dinamicamente i dati di sessione
+```ts
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
@@ -40,11 +47,6 @@ export class AbbonamentoListComponent {
   puoAbbonarsi(): boolean {
       return this.authService.possiedeQualsiasiRuolo(['Utente']);
   }
-
-  puoVisualizzareListaAbbonamenti(): boolean {
-      return this.puoAbbonarsi() && !this.authService.utenteCorrente()?.seAbbonato;
-  }
-
   caricaAbbonamenti(): void {
 
     this.staCaricando.set(true);
@@ -96,17 +98,19 @@ export class AbbonamentoListComponent {
         }
         this.utenteService.abbonati(id).subscribe({
             next: () => {
+                // per aggiornare i dati di sessione ho bisogno di ottenere l'abbonamento
                 this.abbonamentoService.ottieniTramiteId(id).subscribe({
                     next: (abbonamento) => {
                         this.abbonamentoScelto.set(abbonamento);
+                        //aggiorno lo stato dell'abbonamento nella sessione: è abbonato(true), nomeAbbonamento, data di sottoscrizione; 
                         this.abbonamentoService.aggiornaStatoAbbonamento(true, abbonamento.nome, new Date().toISOString());
                     },
                     error: (error) => {
+                        // in caso di errore in questo punto la sottoscrizione verrà effettuata ma non l'aggiornamento dei dati di sessione
                         this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Abbonamento sottoscritto ma errore nel recupero dettagli'));
                     }
                 });
                 this.navbarSharedStateService.forzaAggiornamentoSaldo(); 
-                this.authService.aggiornaStatoAbbonamento(true);
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {
@@ -127,3 +131,4 @@ export class AbbonamentoListComponent {
     return fallback;
   }
 }
+```
