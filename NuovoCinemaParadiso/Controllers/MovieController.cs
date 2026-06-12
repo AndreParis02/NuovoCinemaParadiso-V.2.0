@@ -104,15 +104,12 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo)))
-        {
-            //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
-            if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase))
-            {
-              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
-              return BadRequest(new { messaggio = "Film già presente." });
-            }
-        }
+                // Verifica se esiste già un film con lo stesso titolo (case-insensitive)
+                if (movies.Any(m => m.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase)))
+                {
+                    await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
+                    return BadRequest(new { messaggio = "Film già presente." });
+                }
         
         bool risultato = await _movieService.CreazioneAsync(dto);
 
@@ -136,15 +133,12 @@ public class MovieController : ControllerBase
 
         List<DtoMovie> movies = await _movieService.OttieniTutto();
 
-        if (movies.Any(movie => movie.Titolo.Contains(dto.Titolo) && movie.Id != id))
-        {
-            //controlla se esiste già un film con lo stesso titolo (ignorando maiuscole/minuscole)
-            if (movie.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase) && movie.Id != id)
-            {
-              await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione movie", false);
-              return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
-            }
-        }
+                // Verifica se esiste già un altro film con lo stesso titolo (case-insensitive)
+                if (movies.Any(m => m.Id != id && m.Titolo.Equals(dto.Titolo, StringComparison.OrdinalIgnoreCase)))
+                {
+                    await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Modifica movie", false);
+                    return BadRequest(new { messaggio = "non è possibile modificare il titolo con uno già esistente." });
+                }
         try
         {
             await _movieService.ModificaAsync(id, dto);

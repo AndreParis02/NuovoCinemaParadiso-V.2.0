@@ -199,50 +199,32 @@ public class OperatoreService
 
     public async Task<List<DtoUtente>> OttieniUtentiTramiteAbbonamentoAsync(string abbonamentoId)
     {
+        var utentiAbbonamenti = await _contesto.UtenteAbbonamento
+            .Include(ua => ua.Utente)
+            .Include(ua => ua.Abbonamento)
+            .Where(ua => ua.AbbonamentoId == abbonamentoId)
+            .ToListAsync();
 
-        List<Utente> utenti = await _contesto.Utenti.ToListAsync();
-        List<Abbonamento> abbonamenti = await _contesto.Abbonamenti.ToListAsync();
+        if (utentiAbbonamenti == null || utentiAbbonamenti.Count == 0)
+            throw new NotFoundException("Abbonamento", abbonamentoId);
 
-        Abbonamento? abbonamentoTrovato = null;
-
-        for (int i = 0; i < abbonamenti.Count; i++)
+        var risultato = utentiAbbonamenti.Select(utenteAbbonamento => new DtoUtente
         {
-            Abbonamento abbonamentoCorrente = abbonamenti[i];
+            Id = utenteAbbonamento.Utente!.Id,
+            NomeCompleto = utenteAbbonamento.Utente.NomeCompleto ?? string.Empty,
+            Email = utenteAbbonamento.Utente.Email ?? string.Empty,
+            Eta = utenteAbbonamento.Utente.Eta,
+            SeAbbonato = utenteAbbonamento.DataFine > DateTimeOffset.UtcNow,
+            AbbonamentoId = utenteAbbonamento.AbbonamentoId,
+            DataInizioAbbonamento = utenteAbbonamento.DataInizioAbbonamento,
+            TipoAbbonamento = utenteAbbonamento.Abbonamento?.Nome ?? string.Empty,
+            Saldo = utenteAbbonamento.Utente.Saldo
+        })
+        .ToList();
 
-            if (abbonamentoCorrente.Id == abbonamentoId)
-            {
-                abbonamentoTrovato = abbonamentoCorrente;
-                break;
-            }
-        }
-
-        //ritorna un'eccezione se l'abbonamento con l'id specificato non è stato trovato
-        if (abbonamentoTrovato == null)
-        {
-            throw new Exception($"Abbonamento con id {abbonamentoId} non trovato");
-        }
-
-        List<DtoUtente> risultato = new List<DtoUtente>();
-
-        for (int i = 0; i < utenti.Count; i++)
-        {
-            Utente utenteCorrente = utenti[i];
-            Abbonamento? abbonamento = await _contesto.Abbonamenti.FindAsync(utenteCorrente.AbbonamentoId);
-
-            if (utenteCorrente.Abbonamento == abbonamentoTrovato)
-            {
-                Id = utenteAbbonamento.Utente!.Id,
-                NomeCompleto = utenteAbbonamento.Utente.NomeCompleto,
-                Email = utenteAbbonamento.Utente.Email ?? string.Empty,
-                Eta = utenteAbbonamento.Utente.Eta,
-                SeAbbonato = utenteAbbonamento.DataFine > DateTimeOffset.UtcNow,
-                AbbonamentoId = utenteAbbonamento.AbbonamentoId,
-                DataInizioAbbonamento = utenteAbbonamento.DataInizioAbbonamento,
-                TipoAbbonamento = utenteAbbonamento.Abbonamento?.Nome ?? string.Empty
-            })
-            .ToList();
+        return risultato;
     }
-
+    
     public async Task<bool> RicaricaGiftCardAsync(DtoRicaricaGiftCard dto)
     {
         if (dto.Importo <= 0)

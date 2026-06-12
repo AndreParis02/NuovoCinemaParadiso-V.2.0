@@ -34,12 +34,12 @@ public class TipologiaSalaController : ControllerBase
             .ToList();
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Ottieni tutte le tipologie", true);
-        
+
 
         return Ok(tipologieSaleTrovate);
     }
 
-        [HttpGet("storico")]
+    [HttpGet("storico")]
     public async Task<IActionResult> OttieniTuttiStorico()
     {
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
@@ -81,14 +81,10 @@ public class TipologiaSalaController : ControllerBase
             return Unauthorized("Utente non autenticato.");
 
         List<DtoTipologiaSala> tipologieSala = await _tipologiaSalaService.OttieniTuttoAsync();
-
-        if (tipologieSala.Any(tipologiaSala => tipologiaSala.Nome.Contains(dto.Nome)))
+        // Verifica se esiste già una tipologia con lo stesso nome (case-insensitive)
+        if (tipologieSala.Any(ts => ts.Nome.Equals(dto.Nome, StringComparison.OrdinalIgnoreCase)))
         {
-            // Confronta i nomi delle tipologie di sala esistenti con il nome della nuova tipologia (ignorando maiuscole/minuscole)
-            if (tipologiaSala.Nome.Equals(dto.Nome, StringComparison.OrdinalIgnoreCase))
-            {
-                await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
-
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
             return BadRequest(new { messaggio = "Tipologia sala già presente." });
         }
 
@@ -97,12 +93,10 @@ public class TipologiaSalaController : ControllerBase
         if (!risultato)
         {
             await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", false);
-
             return BadRequest(new { messaggio = "Tipologia sala non valida." });
         }
 
         await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Creazione tipologia", true);
-
         return Ok(new { messaggio = "Tipologia sala aggiunta con successo!" });
     }
 
