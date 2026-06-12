@@ -5,7 +5,7 @@ import { DatePipe } from '@angular/common';
 import { UtenteService } from '../../../services/utente.service';
 import { AuthService } from '../../../services/auth.service';
 import { Utente } from '../../../models/utente.model';
-
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
 @Component({
   selector: 'profilo',
   standalone: true,
@@ -19,6 +19,7 @@ export class ProfiloComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly utenteService = inject(UtenteService);
   private readonly authService = inject(AuthService);
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService);
 
   readonly utente = signal<Utente | null>(null);
   readonly staCaricando = signal(false);
@@ -75,6 +76,7 @@ export class ProfiloComponent implements OnInit {
 
     this.utenteService.modifica(this.form.getRawValue()).subscribe({
       next: () => {
+        this.navbarSharedStateService.forzaAggiornamentoProfilo();
         this.staInviando.set(false);
         this.messaggioSuccesso.set('Profilo aggiornato');
         this.caricaUtente();

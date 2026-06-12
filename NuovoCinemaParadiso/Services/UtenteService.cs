@@ -116,6 +116,49 @@ public class UtenteService
         return (true, "Abbonamento attivato correttamente.");
     }
 
+    public async Task<(bool Successo, string Messaggio)> RimborsaAbbonamentoAsync(string utenteId)
+    {
+        Utente? utente = await _gestioneUtenti.Users
+            .Include(u => u.UtentiAbbonamenti)
+            .FirstOrDefaultAsync(u => u.Id == utenteId);
+
+        if (utente == null)
+            return (false, "Utente non trovato.");
+
+        var abbonamentoAttivo = utente.UtentiAbbonamenti
+            .Where(ua => ua.DataInizioAbbonamento <= DateTimeOffset.UtcNow && ua.DataFine > DateTimeOffset.UtcNow)
+            .OrderByDescending(ua => ua.DataInizioAbbonamento)
+            .FirstOrDefault();
+
+        if (abbonamentoAttivo == null)
+            return (false, "Nessun abbonamento attivo da rimborsare.");
+
+        bool haBigliettiUtilizzati = await _contesto.Biglietti
+            .AnyAsync(b => b.UtenteId == utenteId
+                && b.OrarioCreazione >= abbonamentoAttivo.DataInizioAbbonamento
+                && b.OrarioCreazione < abbonamentoAttivo.DataFine);
+
+        if (haBigliettiUtilizzati)
+            return (false, "Non è possibile richiedere il rimborso perché l'abbonamento è già stato utilizzato.");
+
+        var abbonamento = await _contesto.Abbonamenti.FindAsync(abbonamentoAttivo.AbbonamentoId);
+        if (abbonamento == null)
+            return (false, "Abbonamento non trovato.");
+
+        utente.Saldo += abbonamento.Prezzo;
+
+        var contoCinema = await _contesto.ContoCinema.FirstOrDefaultAsync();
+        if (contoCinema != null)
+        {
+            contoCinema.Saldo = Math.Max(0, contoCinema.Saldo - abbonamento.Prezzo);
+        }
+
+        _contesto.UtenteAbbonamento.Remove(abbonamentoAttivo);
+        await _contesto.SaveChangesAsync();
+
+        return (true, "Rimborso effettuato correttamente.");
+    }
+
     public async Task<(bool Successo, string Messaggio)> RicaricaGiftCardAsync(string utenteId, DtoRicaricaGiftCard dto)
     {
         Utente? utenteCorrente = await _gestioneUtenti.FindByIdAsync(utenteId);

@@ -147,7 +147,7 @@ public class AbbonamentoController : ControllerBase
                 false
             );
 
-            return NotFound(new { messaggio = risultato.Messaggio });
+            return Conflict(new { messaggio = risultato.Messaggio });
         }
             await _logAzioniService.SalvataggioLogAzioneAsync(
             utenteId,
