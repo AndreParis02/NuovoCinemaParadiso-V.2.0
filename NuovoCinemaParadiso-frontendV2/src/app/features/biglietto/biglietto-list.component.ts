@@ -1,20 +1,24 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, output } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { Biglietto } from '../../models/biglietto.model';
 import { BigliettoService } from '../../services/biglietto.service';
 import { AuthService } from '../../services/auth.service';
+import { NavbarSharedStateService } from '../../services/navbar-shared-state--service.service';
+
 
 @Component({
   selector: 'biglietto-list',
   standalone: true,
-  templateUrl: './biglietto-list.component.html',
+  templateUrl: './biglietto-list.component.html'
 })
 export class BigliettoListComponent {
 
   private readonly authService = inject(AuthService);
   private readonly bigliettoService = inject(BigliettoService);
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService);
 
+  readonly modificaCompletata = output<void>();
   readonly biglietti = signal<Biglietto[]>([]);
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
@@ -48,7 +52,7 @@ export class BigliettoListComponent {
       error: (error: unknown) => {
         this.staCaricando.set(false);
         this.messaggioErrore.set(
-          this.estraiMessaggioErrore(error, 
+          this.estraiMessaggioErrore(error,
             'Errore durante il caricamento dei biglietti')
         );
       }
@@ -70,6 +74,7 @@ export class BigliettoListComponent {
       next: () => {
         this.biglietti.update(lista => lista.filter(b => b.id !== id));
         this.staInviando.set(false);
+        this.navbarSharedStateService.forzaAggiornamentoSaldo();
         this.messaggioSuccesso.set("Biglietto eliminato con successo");
       },
       error: (error: unknown) => {

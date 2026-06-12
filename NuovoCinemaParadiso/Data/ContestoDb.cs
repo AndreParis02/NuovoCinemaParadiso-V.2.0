@@ -24,6 +24,7 @@ namespace NuovoCinemaParadiso.Data
         public DbSet<Proiezione> Proiezioni {get;set;}
         public DbSet<GiftCard> GiftCards {get;set;}
         public DbSet<ContoCinema> ContoCinema {get;set;}
+        public DbSet<UtenteAbbonamento> UtenteAbbonamento {get;set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,20 @@ namespace NuovoCinemaParadiso.Data
                 .HasForeignKey(a => a.ProiezioneId)
                 .OnDelete(DeleteBehavior.Restrict); 
                 // 'Restrict' impedisce la cancellazione della proiezione se esistono scontrini
+
+                 // Relazione molti-a-molti Utente <-> Abbonamento
+            modelBuilder.Entity<UtenteAbbonamento>()
+                .HasKey(ua => new { ua.UtenteId, ua.AbbonamentoId }); // chiave composta
+
+            modelBuilder.Entity<UtenteAbbonamento>()
+                .HasOne(ua => ua.Utente)
+                .WithMany(u => u.UtentiAbbonamenti)
+                .HasForeignKey(ua => ua.UtenteId);
+
+            modelBuilder.Entity<UtenteAbbonamento>()
+                .HasOne(ua => ua.Abbonamento)
+                .WithMany(a => a.UtentiAbbonamenti)
+                .HasForeignKey(ua => ua.AbbonamentoId);
         }
     }
 }

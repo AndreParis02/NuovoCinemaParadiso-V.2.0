@@ -40,6 +40,11 @@ export class AbbonamentoListComponent {
   puoAbbonarsi(): boolean {
       return this.authService.possiedeQualsiasiRuolo(['Utente']);
   }
+
+  puoVisualizzareListaAbbonamenti(): boolean {
+      return this.puoAbbonarsi() && !this.authService.utenteCorrente()?.seAbbonato;
+  }
+
   caricaAbbonamenti(): void {
 
     this.staCaricando.set(true);
@@ -101,6 +106,7 @@ export class AbbonamentoListComponent {
                     }
                 });
                 this.navbarSharedStateService.forzaAggiornamentoSaldo(); 
+                this.authService.aggiornaStatoAbbonamento(true);
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {

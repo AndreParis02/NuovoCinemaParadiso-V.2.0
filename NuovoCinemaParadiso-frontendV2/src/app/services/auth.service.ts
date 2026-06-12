@@ -97,6 +97,22 @@ export class AuthService {
         }
     }
 
+    aggiornaStatoAbbonamento(seAbbonato: boolean): void {
+        const utenteCorrente = this.utenteCorrente();
+
+        if (!utenteCorrente) {
+            return;
+        }
+
+        const utenteAggiornato: SessioneUtente = {
+            ...utenteCorrente,
+            seAbbonato,
+        };
+
+        localStorage.setItem(this.storageKey, JSON.stringify(utenteAggiornato));
+        this.utenteCorrente.set(utenteAggiornato);
+    }
+
     private salvaSessione(risposta: SessioneUtente): void {
         localStorage.setItem(this.storageKey, JSON.stringify(risposta));
         this.utenteCorrente.set(risposta);

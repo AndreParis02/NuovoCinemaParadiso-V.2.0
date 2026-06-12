@@ -13,6 +13,7 @@ import { LogListComponent } from '../../log/components/log-list.component';
 import { UtenteListComponent } from '../../cambio-ruolo/components/utente-list.component';
 import { CreaCodiceComponent } from '../../giftcard/components/crea-codice.component';
 import { ProiezioneList } from '../../proiezione/components/proiezione-list.component';
+import { RiscattaCodiceComponent } from '../../giftcard/components/riscatta-codice.component';
 
 @Component({
   selector: 'dashboard-layout',
@@ -26,8 +27,9 @@ import { ProiezioneList } from '../../proiezione/components/proiezione-list.comp
     ProiezioneList,
     LogListComponent,
     UtenteListComponent,
-    CreaCodiceComponent
-  ]
+    CreaCodiceComponent,
+    RiscattaCodiceComponent
+]
 })
 export class DashboardLayoutComponent {
 

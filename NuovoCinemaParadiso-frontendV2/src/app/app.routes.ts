@@ -103,7 +103,7 @@ export const routes: Routes = [
   },
   {
     path: 'abbonamenti',
-    loadComponent: () => import('./features/abbonamento/components/abbonamento-list.component').then((m) => m.AbbonamentoListComponent),
+    loadComponent: () => import('./features/abbonamento/abbonamento.page').then((m) => m.AbbonamentoPage),
   },
   {
     path: 'turni',

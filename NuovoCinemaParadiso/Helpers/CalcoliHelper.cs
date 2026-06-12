@@ -5,15 +5,15 @@ namespace NuovoCinemaParadiso.Helpers;
 
 public static class Calcoli
 {
-    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento? abbonamento, DateTimeOffset dataInizioAbbonamento)
+    public static int CalcolaPrezzoFinale(int prezzoMovie, int maggiorazione, int numeroBiglietti, Abbonamento? abbonamento, DateTimeOffset? dataInizioAbbonamento)
     {
         int prezzoBiglietto = prezzoMovie + maggiorazione;
-        if(abbonamento == null)
+        if (abbonamento == null || dataInizioAbbonamento == null)
         {
             return prezzoBiglietto * numeroBiglietti;
         }
  
-        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.AddMonths(abbonamento.Durata);
+        DateTimeOffset dataScadenzaAbbonamento = dataInizioAbbonamento.Value.AddMonths(abbonamento.Durata);
         if (DateTimeOffset.UtcNow < dataScadenzaAbbonamento)
         {
             int prezzoScontato = prezzoBiglietto - abbonamento.Sconto;
