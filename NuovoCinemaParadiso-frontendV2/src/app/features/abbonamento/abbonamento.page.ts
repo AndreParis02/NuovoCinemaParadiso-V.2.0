@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbbonamentoListComponent } from './components/abbonamento-list.component';
-import { AbbonamentoFormComponent } from './components/abbonamento-form.component';
-import { AbbonamentoDetailComponent } from "./components/abbonamento-detail.component";
 
 @Component({
   selector: 'abbonamento-page',
@@ -11,7 +9,7 @@ import { AbbonamentoDetailComponent } from "./components/abbonamento-detail.comp
   // Import dei moduli necessari per il template della pagina.
   // CommonModule → abilita *ngIf, *ngFor, pipe comuni, ecc.
   // ProiezioneList → componente principale che gestisce lista, acquisto e form.
-  imports: [CommonModule, AbbonamentoListComponent, AbbonamentoFormComponent, AbbonamentoDetailComponent],
+  imports: [CommonModule, AbbonamentoListComponent],
 
   // Template della pagina (contenitore).  
   // La logica è delegata ai componenti figli.

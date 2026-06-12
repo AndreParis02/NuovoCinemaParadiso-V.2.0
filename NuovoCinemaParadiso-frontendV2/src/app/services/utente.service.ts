@@ -27,4 +27,8 @@ export class UtenteService {
     abbonati( abbonamentoId: string): Observable<any> {
         return this.http.post<any>(`${environment.apiBaseUrl}/Utente/abbonati`, { IdAbbonamento: abbonamentoId });
     }
+
+    rimborsaAbbonamento(): Observable<{messaggio:string}> {
+        return this.http.post<{messaggio:string}>(`${environment.apiBaseUrl}/Utente/rimborso-abbonamento`, {});
+    }
 }

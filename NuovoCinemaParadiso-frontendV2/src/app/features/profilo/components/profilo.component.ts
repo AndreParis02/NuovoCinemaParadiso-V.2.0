@@ -85,6 +85,7 @@ export class ProfiloComponent implements OnInit, OnDestroy {
 
     this.utenteService.modifica(this.form.getRawValue()).subscribe({
       next: () => {
+        this.navbarSharedStateService.forzaAggiornamentoProfilo();
         this.staInviando.set(false);
         this.messaggioSuccesso.set('Profilo aggiornato');
         this.caricaUtente();

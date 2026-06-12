@@ -7,7 +7,6 @@ import { NavbarSharedStateService } from '../../../services/navbar-shared-state-
 import { Abbonamento } from '../../../models/abbonamento.model';
 import { AbbonamentoFormComponent } from "./abbonamento-form.component";
 
-
 @Component({
   selector: 'abbonamento-list',
   standalone: true,
@@ -24,6 +23,7 @@ export class AbbonamentoListComponent {
 
   readonly abbonamenti = signal<Abbonamento[]>([]);
   readonly abbonamentoScelto = signal<Abbonamento | null>(null);
+  readonly abbonamentoAttivo = signal<Abbonamento | null>(null);
   readonly staCaricando = signal(false);
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -43,6 +43,15 @@ export class AbbonamentoListComponent {
 
   puoVisualizzareListaAbbonamenti(): boolean {
       return this.puoAbbonarsi() && !this.authService.utenteCorrente()?.seAbbonato;
+  }
+
+  mostraStatoAbbonamento(): boolean {
+      return this.puoAbbonarsi() && !!this.authService.utenteCorrente()?.seAbbonato;
+  }
+
+  dataInizioAbbonamento(): string {
+      const data = this.authService.utenteCorrente()?.dataInizioAbbonamento;
+      return data ? data : 'Non disponibile';
   }
 
   caricaAbbonamenti(): void {
@@ -107,6 +116,8 @@ export class AbbonamentoListComponent {
                 });
                 this.navbarSharedStateService.forzaAggiornamentoSaldo(); 
                 this.authService.aggiornaStatoAbbonamento(true);
+                this.abbonamentoAttivo.set(this.abbonamenti().find(item => item.id === id) ?? null);
+                this.abbonamentoScelto.set(this.abbonamentoAttivo());
                 this.messaggioSuccesso.set('Abbonamento effettuato con successo');
             },
             error: (error) => {
@@ -115,6 +126,27 @@ export class AbbonamentoListComponent {
         });
     }
 
+  rimborsaAbbonamento(): void {
+    this.messaggioErrore.set('');
+    this.messaggioSuccesso.set('');
+    this.staInviando.set(true);
+
+    this.utenteService.rimborsaAbbonamento().subscribe({
+      next: () => {
+        this.staInviando.set(false);
+        this.authService.aggiornaStatoAbbonamento(false);
+        this.abbonamentoAttivo.set(null);
+        this.abbonamentoScelto.set(null);
+        void this.navbarSharedStateService.forzaAggiornamentoSaldo();
+        this.messaggioSuccesso.set('Rimborso effettuato con successo');
+      },
+      error: (error) => {
+        this.staInviando.set(false);
+        this.messaggioErrore.set(this.estraiMessaggioErrore(error, 'Rimborso non disponibile'));
+      }
+    });
+  }
+
   tracciaPerId(_: string, item: Abbonamento): string {
     return item.id;
   }
@@ -122,7 +154,7 @@ export class AbbonamentoListComponent {
   private estraiMessaggioErrore(error: unknown, fallback: string): string {
 
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? fallback;
+      return error.error?.message || error.error?.messaggio || error.error?.errore || fallback;
     }
     return fallback;
   }
