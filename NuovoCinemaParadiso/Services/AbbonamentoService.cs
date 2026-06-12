@@ -109,6 +109,23 @@ public class AbbonamentoService
             return (false, "Abbonamento non trovato.");
         }
 
+        var abbonamentiUtenteAssociati = await _contesto.UtenteAbbonamento
+            .Where(ua => ua.AbbonamentoId == id)
+            .ToListAsync();
+
+        foreach (var abbonamentoUtente in abbonamentiUtenteAssociati)
+        {
+            bool haBigliettiUtilizzati = await _contesto.Biglietti
+                .AnyAsync(b => b.UtenteId == abbonamentoUtente.UtenteId
+                    && b.OrarioCreazione >= abbonamentoUtente.DataInizioAbbonamento
+                    && b.OrarioCreazione < abbonamentoUtente.DataFine);
+
+            if (haBigliettiUtilizzati)
+            {
+                return (false, "Non è possibile eliminare l'abbonamento perché è già stato utilizzato e non è rimborsabile dopo il primo utilizzo.");
+            }
+        }
+
         _contesto.Abbonamenti.Remove(abbonamento);
         await _contesto.SaveChangesAsync();
 

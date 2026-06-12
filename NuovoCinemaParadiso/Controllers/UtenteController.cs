@@ -60,6 +60,25 @@ public class UtenteController : ControllerBase
         return Ok(new { messaggio = risultato.Messaggio });
     }
 
+    [HttpPost("rimborso-abbonamento")]
+    public async Task<IActionResult> RimborsoAbbonamento()
+    {
+        string? utenteId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (utenteId == null)
+            return Unauthorized("Utente non autenticato.");
+
+        var risultato = await _utenteService.RimborsaAbbonamentoAsync(utenteId);
+
+        if (!risultato.Successo)
+        {
+            await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Rimborso abbonamento", false);
+            return Conflict(new { messaggio = risultato.Messaggio });
+        }
+
+        await _logAzioniService.SalvataggioLogAzioneAsync(utenteId, "Rimborso abbonamento", true);
+        return Ok(new { messaggio = risultato.Messaggio });
+    }
+
     [HttpPut("giftCard/ricarica")]
     public async Task<IActionResult> RicaricaGiftCard([FromBody] DtoRicaricaGiftCard dto)
     {

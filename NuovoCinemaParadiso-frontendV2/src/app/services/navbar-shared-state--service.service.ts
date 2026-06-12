@@ -40,6 +40,16 @@ export class NavbarSharedStateService {
     this.utenteLoggato.set(profilo);
   }
 
+  async forzaAggiornamentoProfilo(): Promise<void> {
+    if (!this.authService.isAutenticato()) return;
+
+    const profiloAggiornato = await firstValueFrom(this.http.get<Utente>(`${this.baseUrl}/profilo`));
+
+    this.utenteLoggato.update(attuale =>
+      attuale ? { ...attuale, ...profiloAggiornato } : null
+    );
+  }
+
   async forzaAggiornamentoSaldo(): Promise<void> {
     if (!this.utenteLoggato()) return;
 
