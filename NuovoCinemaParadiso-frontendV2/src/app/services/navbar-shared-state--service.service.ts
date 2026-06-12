@@ -13,6 +13,7 @@ export class NavbarSharedStateService {
   private readonly baseUrl = `${environment.apiBaseUrl}/Auth`;
 
   readonly utenteLoggato = signal<Utente | null>(null);
+  readonly bigliettiAggiornati = signal<number>(0);
 
   constructor() {
  
@@ -58,5 +59,9 @@ export class NavbarSharedStateService {
     this.utenteLoggato.update(attuale => 
       attuale ? { ...attuale, saldo: res.saldo } : null
     );
+  }
+
+  notificaBigliettoAcquistato(): void {
+    this.bigliettiAggiornati.update(c => c + 1);
   }
 }

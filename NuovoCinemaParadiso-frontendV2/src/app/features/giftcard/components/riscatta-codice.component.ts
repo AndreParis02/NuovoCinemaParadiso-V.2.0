@@ -2,6 +2,8 @@ import { Component, inject, signal, output } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { GiftCardService } from '../../../services/giftcard.service';
+import { ProfiloService } from '../../../services/profilo.service';
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
 
 @Component({
   selector: 'riscatta-codice-form',
@@ -12,6 +14,8 @@ import { GiftCardService } from '../../../services/giftcard.service';
 export class RiscattaCodiceComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly giftCardService = inject(GiftCardService);
+  private readonly profiloService = inject(ProfiloService);
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService);
 
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -39,7 +43,8 @@ export class RiscattaCodiceComponent {
       next: () => {
         this.staInviando.set(false);
         this.messaggioSuccesso.set('Gift Card riscattata! I crediti sono stati aggiunti ai tuoi crediti.');
-
+        this.profiloService.richiediAggiornamentoProfilo();
+        this.navbarSharedStateService.forzaAggiornamentoSaldo();
         this.riscattoCompletato.emit();
         this.form.reset({ codiceRiscatto: '' });
       },
