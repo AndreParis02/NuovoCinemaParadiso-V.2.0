@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { GiftCardService } from '../../../services/giftcard.service';
 import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
+import { ProfiloService } from '../../../services/profilo.service';
 
 @Component({
   selector: 'crea-codice-form',
@@ -14,7 +15,8 @@ import { NavbarSharedStateService } from '../../../services/navbar-shared-state-
 export class CreaCodiceComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly giftCardService = inject(GiftCardService);
-  private readonly navbarSharedStateService = inject(NavbarSharedStateService)
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService);
+  private readonly profiloService = inject(ProfiloService);
 
   readonly staInviando = signal(false);
   readonly messaggioErrore = signal('');
@@ -45,6 +47,7 @@ export class CreaCodiceComponent {
 
         this.ricaricaCompletata.emit();
         this.navbarSharedStateService.forzaAggiornamentoSaldo();
+        this.profiloService.richiediAggiornamentoProfilo();
         this.form.reset({ valore: 10 });
 
 

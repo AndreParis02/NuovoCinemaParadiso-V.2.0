@@ -1,4 +1,4 @@
-import { Component, inject, signal, output } from '@angular/core';
+import { Component, inject, signal, output, effect } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ProfiloService } from '../../services/profilo.service'
 import { Biglietto } from '../../models/biglietto.model';
@@ -37,6 +37,12 @@ export class BigliettoListComponent {
 
     this.utenteId = utente.id;
     this.caricaBiglietti();
+
+    // Ascolta il segnale di aggiornamento biglietti e ricarica
+    effect(() => {
+      this.navbarSharedStateService.bigliettiAggiornati();
+      this.caricaBiglietti();
+    });
   }
 
   caricaBiglietti(): void {

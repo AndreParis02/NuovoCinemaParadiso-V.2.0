@@ -6,6 +6,7 @@ import { UtenteService } from '../../../services/utente.service';
 import { AuthService } from '../../../services/auth.service';
 import { Utente } from '../../../models/utente.model';
 import { ProfiloService } from '../../../services/profilo.service';
+import { NavbarSharedStateService } from '../../../services/navbar-shared-state--service.service';
 
 @Component({
   selector: 'profilo',
@@ -21,7 +22,7 @@ export class ProfiloComponent implements OnInit, OnDestroy {
   private readonly utenteService = inject(UtenteService);
   private readonly authService = inject(AuthService);
   private readonly profiloService = inject(ProfiloService);
-
+  private readonly navbarSharedStateService = inject(NavbarSharedStateService);
   readonly utente = signal<Utente | null>(null);
   readonly sessioneUtente = this.authService.utenteCorrente;
   readonly staCaricando = signal(false);

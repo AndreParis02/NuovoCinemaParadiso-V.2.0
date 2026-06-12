@@ -6,6 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { AbbonamentoService } from '../../../services/abbonamento.service';
 
 import { Abbonamento } from '../../../models/abbonamento.model';
+import { ProfiloService } from '../../../services/profilo.service';
 
 
 
@@ -21,6 +22,7 @@ export class AbbonamentoFormComponent {
     private readonly formBuilder = inject(FormBuilder);
     private readonly authService = inject(AuthService);
     private readonly abbonamentoService = inject(AbbonamentoService);
+    private readonly profiloService = inject(ProfiloService);
 
     readonly modificaCompletata = output<void>();
 
@@ -76,7 +78,7 @@ export class AbbonamentoFormComponent {
             next: () => {
                 this.staInviando.set(false);
                 this.messaggioSuccesso.set(this.modificaId() ? 'Abbonamento aggiornato.' : 'Abbonamento creato.');
-                
+                this.profiloService.richiediAggiornamentoProfilo();
                 // Comunica al padre di ricaricare la lista
                 this.modificaCompletata.emit();
                 this.ripristinaForm();
